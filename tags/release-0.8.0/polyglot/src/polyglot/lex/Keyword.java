@@ -1,0 +1,17 @@
+package jltools.lex;
+
+import java_cup.runtime.Symbol;
+import jltools.util.Position;
+
+public class Keyword extends Token {
+  String keyword;
+
+  public Keyword(Position position, String s, int sym) {
+      super(position, sym);
+      keyword = s;
+  }
+
+  public String toString() {
+      return "Keyword<" + keyword + ">";
+  }
+}
