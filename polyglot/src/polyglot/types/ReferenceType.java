@@ -14,4 +14,9 @@ public interface ReferenceType extends Type
     List methods();
 
     FieldInstance fieldNamed(String name);
+    List methodsNamed(String name);
+    List methods(String name, List argTypes);
+
+    boolean hasMethod(MethodInstance mi);
+    boolean hasMethodImpl(MethodInstance mi);
 }
