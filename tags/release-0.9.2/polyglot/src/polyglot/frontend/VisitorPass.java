@@ -1,0 +1,62 @@
+package polyglot.frontend;
+
+import polyglot.ast.Node;
+import polyglot.visit.NodeVisitor;
+import polyglot.util.*;
+
+/** A pass which runs a visitor. */
+public class VisitorPass extends AbstractPass
+{
+    Job job;
+    NodeVisitor v;
+
+    public VisitorPass(Pass.ID id, Job job) {
+	this(id, job, null);
+    }
+
+    public VisitorPass(Pass.ID id, Job job, NodeVisitor v) {
+        super(id);
+	this.job = job;
+	this.v = v;
+    }
+
+    public void visitor(NodeVisitor v) {
+	this.v = v;
+    }
+
+    public NodeVisitor visitor() {
+	return v;
+    }
+
+    public boolean run() {
+	Node ast = job.ast();
+
+	if (ast == null) {
+	    throw new InternalCompilerError("Null AST: did the parser run?");
+	}
+
+        NodeVisitor v_ = v.begin();
+
+        if (v_ != null) {
+	    ErrorQueue q = job.compiler().errorQueue();
+	    int nErrsBefore = q.errorCount();
+
+            ast = ast.visit(v_);
+            v_.finish(ast);
+
+            int nErrsAfter = q.errorCount();
+
+            job.ast(ast);
+
+            return (nErrsBefore == nErrsAfter);
+            // because, if they're equal, no new errors occured,
+            // so the run was successful.
+        }
+
+        return false;
+    }
+
+    public String toString() {
+	return id.toString();
+    }
+}
