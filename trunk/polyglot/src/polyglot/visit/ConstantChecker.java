@@ -1,42 +1,31 @@
 package polyglot.visit;
 
-import polyglot.ast.Ambiguous;
 import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
+import polyglot.frontend.goals.Goal;
 import polyglot.main.Report;
-import polyglot.types.SemanticException;
-import polyglot.types.UnavailableTypeException;
+import polyglot.types.*;
 
-/**
- * A visitor which traverses the AST and remove ambiguities found in fields,
- * method signatures and the code itself.
- */
-public abstract class AmbiguityRemover extends ContextVisitor
+/** Visitor which performs type checking on the AST. */
+public class ConstantChecker extends DisambiguationDriver
 {
-    DisambiguationDriver dd;
+    public ConstantChecker(Goal goal, TypeSystem ts, NodeFactory nf) {
+        super(goal, ts, nf);
+    }
     
-    public AmbiguityRemover(DisambiguationDriver dd) {
-        super(dd.goal(), dd.typeSystem(), dd.nodeFactory());
-        this.dd = dd;
-        this.context = dd.context();
-    }
-
-    public NodeVisitor begin() {
-        AmbiguityRemover v = (AmbiguityRemover) super.begin();
-        v.context = dd.context();
-        return v;
-    }
-
+    /*
     protected NodeVisitor enterCall(Node n) throws SemanticException {
         if (Report.should_report(Report.visit, 2))
             Report.report(2, ">> " + this + "::enter " + n);
         
-        AmbiguityRemover v = (AmbiguityRemover) n.del().disambiguateEnter(this);
+        ConstantChecker v = (ConstantChecker) n.del().checkConstantsEnter(this);
         
         if (Report.should_report(Report.visit, 2))
             Report.report(2, "<< " + this + "::enter " + n + " -> " + v);
         
         return v;
     }
+    */
     
     protected Node leaveCall(Node old, Node n, NodeVisitor v) throws SemanticException {
         if (Report.should_report(Report.visit, 2))
@@ -45,15 +34,15 @@ public abstract class AmbiguityRemover extends ContextVisitor
         Node m = n;
         
         try {
-            m = n.del().disambiguate((AmbiguityRemover) v);
+            m = m.del().checkConstants((ConstantChecker) v);
         }
         catch (UnavailableTypeException e) {
-            // ignore: we'll revisit the pass later
+            // ignore: we'll rerun the pass later
         }
         
         if (Report.should_report(Report.visit, 2))
             Report.report(2, "<< " + this + "::leave " + n + " -> " + m);
         
         return m;
-    }
+    }   
 }
