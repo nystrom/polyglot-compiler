@@ -1,4 +1,4 @@
-package polyglot.ext.covarRet;
+package polyglot.ext.pao.ast;
 
 import polyglot.ast.*;
 import polyglot.ext.jl.ast.*;
@@ -9,8 +9,9 @@ import polyglot.types.Qualifier;
 import polyglot.util.*;
 import java.util.*;
 
-public class CovarRetNodeFactory extends NodeFactory_c {
-    public ClassBody ClassBody(Position pos, List members) {
-	return new CovarRetClassBody_c(new Del_c(), pos, members);
-    }
+/**
+ * NodeFactory for pao extension.
+ */
+public interface PaoNodeFactory extends NodeFactory {
+    // TODO: Declare any factory methods for new AST nodes.
 }
