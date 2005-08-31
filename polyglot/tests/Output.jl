@@ -2,7 +2,7 @@ public class Header  {
 
     private void jsa$html$BlockContainer$(String s, Object n) { }
 
-    public Header jsa$html$Header: /Users/nystrom/Desktop/cvsroot/polyglot/polyglot/tests/Output.jl,v 1.1 2005-08-31 19:55:30 schong Exp $(final int level,
+    public Header jsa$html$HeaderXX(final int level,
                                             final Object contents) {
         {
 	    
