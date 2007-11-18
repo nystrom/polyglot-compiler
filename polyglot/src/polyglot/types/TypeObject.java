@@ -7,8 +7,11 @@
 
 package polyglot.types;
 
-import polyglot.util.*;
-import java.io.*;
+import java.io.Serializable;
+
+import polyglot.frontend.GoalSet;
+import polyglot.util.Copy;
+import polyglot.util.Position;
 
 /**
  * A <code>TypeObject</code> is a compile-time value created by the type system.
@@ -17,11 +20,11 @@ import java.io.*;
  */
 public interface TypeObject extends Copy, Serializable
 {
-    /**
-     * Return true if the type object contains no unknown/ambiguous types.
-     */
-    boolean isCanonical();
-
+    public <T extends TypeObject> Symbol<T> symbol();
+    public void setSymbol(Symbol<? extends TypeObject> sym);
+    
+    void complete(GoalSet phase);
+    
     /**
      * The object's type system.
      */

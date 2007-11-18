@@ -7,11 +7,10 @@
 
 package polyglot.types;
 
-import polyglot.util.*;
-import polyglot.frontend.ExtensionInfo;
-import polyglot.main.Report;
-import polyglot.types.Package;
 import java.util.*;
+
+import polyglot.main.Report;
+import polyglot.util.*;
 
 /**
  * A <code>CachingResolver</code> memoizes another Resolver

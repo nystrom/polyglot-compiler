@@ -7,9 +7,9 @@
 
 package polyglot.ast;
 
-import java.util.List;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.util.List;
 
 import polyglot.frontend.ExtensionInfo;
 import polyglot.types.*;
@@ -187,8 +187,8 @@ public class JL_c extends Ext_c implements JL {
 	return jl().typeCheck(tc);
     }
 
-    public Node checkConstants(ConstantChecker cc) throws SemanticException {
-        return jl().checkConstants(cc);
+    public Node checkConstants(TypeChecker tc) throws SemanticException {
+        return jl().checkConstants(tc);
     }
     
     /**
@@ -226,7 +226,7 @@ public class JL_c extends Ext_c implements JL {
      * List of Types of exceptions that might get thrown.  The result is
      * not necessarily correct until after type checking. 
      */
-    public List throwTypes(TypeSystem ts) {
+    public List<Type> throwTypes(TypeSystem ts) {
 	   return jl().throwTypes(ts);
     }
 

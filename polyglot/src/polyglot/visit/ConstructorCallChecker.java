@@ -10,14 +10,9 @@ package polyglot.visit;
 import java.util.HashMap;
 import java.util.Map;
 
-import polyglot.ast.ConstructorCall;
-import polyglot.ast.Node;
-import polyglot.ast.NodeFactory;
+import polyglot.ast.*;
 import polyglot.frontend.Job;
-import polyglot.types.ConstructorInstance;
-import polyglot.types.Context;
-import polyglot.types.SemanticException;
-import polyglot.types.TypeSystem;
+import polyglot.types.*;
 import polyglot.util.InternalCompilerError;
 
 /** Visitor which ensures that constructor calls are not recursive. */
@@ -36,16 +31,16 @@ public class ConstructorCallChecker extends ContextVisitor
                 // the constructor calls another constructor in the same class
                 Context ctxt = context();
 
-                if (!(ctxt.currentCode() instanceof ConstructorInstance)) {
+                if (!(ctxt.currentCode() instanceof ConstructorDef)) {
                     throw new InternalCompilerError("Constructor call " +
                         "occurring in a non-constructor.", cc.position());
                 }
-                ConstructorInstance srcCI = ((ConstructorInstance)ctxt.currentCode()).orig();
-                ConstructorInstance destCI = cc.constructorInstance().orig();
+                ConstructorDef srcCI = (ConstructorDef)ctxt.currentCode();
+                ConstructorDef destCI = cc.constructorInstance().def();
                 
                 constructorInvocations.put(srcCI, destCI);
                 while (destCI != null) {
-                    destCI = (ConstructorInstance)constructorInvocations.get(destCI);
+                    destCI = (ConstructorDef)constructorInvocations.get(destCI);
                     if (destCI != null && srcCI.equals(destCI)) {
                         // loop in the constructor invocations!
                         throw new SemanticException("Recursive constructor " +

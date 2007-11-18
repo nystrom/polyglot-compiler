@@ -12,9 +12,7 @@ import java.util.*;
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
 import polyglot.frontend.Job;
-import polyglot.types.SemanticException;
-import polyglot.types.Type;
-import polyglot.types.TypeSystem;
+import polyglot.types.*;
 import polyglot.util.*;
 
 /** Visitor which checks if exceptions are caught or declared properly. */
@@ -93,7 +91,7 @@ public class ExceptionChecker extends ErrorHandlingVisitor
     
     public ExceptionChecker push() {
         throwsSet(); // force an instantiation of the throwsset.
-        ExceptionChecker ec = (ExceptionChecker) this.visitChildren();
+        ExceptionChecker ec = (ExceptionChecker) this.copy();
         ec.outer = this;
         ec.catchable = null;
         ec.catchAllThrowable = false;
@@ -123,6 +121,10 @@ public class ExceptionChecker extends ErrorHandlingVisitor
      */
     protected Node leaveCall(Node old, Node n, NodeVisitor v)
 	throws SemanticException {
+        
+        if (v instanceof PruningVisitor) {
+            return n;
+        }
         
         ExceptionChecker inner = (ExceptionChecker) v;
 

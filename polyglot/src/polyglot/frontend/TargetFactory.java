@@ -7,13 +7,16 @@
 
 package polyglot.frontend;
 
-import polyglot.main.Options;
-import polyglot.main.Report;
-import polyglot.types.*;
-import polyglot.util.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
 
-import java.io.*;
-import java.util.*;
+import polyglot.main.Report;
+import polyglot.util.CodeWriter;
+import polyglot.util.InternalCompilerError;
+import polyglot.util.UnicodeWriter;
 
 /** A <code>TargetFactory</code> is responsible for opening output files. */
 public class TargetFactory

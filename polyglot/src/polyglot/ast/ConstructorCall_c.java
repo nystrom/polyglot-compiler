@@ -9,6 +9,7 @@
 package polyglot.ast;
 
 import java.util.*;
+
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -22,7 +23,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
     protected Kind kind;
     protected Expr qualifier;
     protected List arguments;
-    protected ConstructorInstance ci;
+    protected ConstructorType ci;
 
     public ConstructorCall_c(Position pos, Kind kind, Expr qualifier, List arguments) {
 	super(pos);
@@ -57,28 +58,28 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
     }
 
     /** Get the actual arguments of the constructor call. */
-    public List arguments() {
+    public List<Expr> arguments() {
 	return Collections.unmodifiableList(this.arguments);
     }
 
     /** Set the actual arguments of the constructor call. */
-    public ProcedureCall arguments(List arguments) {
+    public ProcedureCall arguments(List<Expr> arguments) {
 	ConstructorCall_c n = (ConstructorCall_c) copy();
 	n.arguments = TypedList.copyAndCheck(arguments, Expr.class, true);
 	return n;
     }
 
-    public ProcedureInstance procedureInstance() {
+    public ProcedureType procedureInstance() {
 	return constructorInstance();
     }
 
     /** Get the constructor we are calling. */
-    public ConstructorInstance constructorInstance() {
+    public ConstructorType constructorInstance() {
         return ci;
     }
 
     /** Set the constructor we are calling. */
-    public ConstructorCall constructorInstance(ConstructorInstance ci) {
+    public ConstructorCall constructorInstance(ConstructorType ci) {
         if (ci == this.ci) return this;
 	ConstructorCall_c n = (ConstructorCall_c) copy();
 	n.ci = ci;
@@ -122,14 +123,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 
         ConstructorCall_c n = (ConstructorCall_c) super.buildTypes(tb);
 
-        List l = new ArrayList(arguments.size());
-        for (int i = 0; i < arguments.size(); i++) {
-          l.add(ts.unknownType(position()));
-        }
-
-        ConstructorInstance ci = ts.constructorInstance(position(), ts.Object(),
-                                                        Flags.NONE, l,
-                                                        Collections.EMPTY_LIST);
+        ConstructorType ci = new ConstructorType_c(ts, position(), new ErrorRef_c<ConstructorDef>(ts, position()));
         return n.constructorInstance(ci);
     }
 
@@ -155,10 +149,6 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
         //     ChildOfInner() { (new Outer()).super(); }
         // }
         if (qualifier != null) {
-            if (! qualifier.isDisambiguated()) {
-                return this;
-            }
-          
             if (kind != SUPER) {
                 throw new SemanticException("Can only qualify a \"super\"" +
                                             "constructor invocation.",
@@ -218,13 +208,10 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
             }
 	}
 
-	List argTypes = new LinkedList();
+	List<Type> argTypes = new ArrayList<Type>();
 	
-	for (Iterator iter = this.arguments.iterator(); iter.hasNext();) {
-	    Expr e = (Expr) iter.next();
-	    if (! e.isDisambiguated()) {
-	        return this;
-	    }
+	for (Iterator<Expr> iter = this.arguments.iterator(); iter.hasNext();) {
+	    Expr e = iter.next();
 	    argTypes.add(e.type());
 	}
 	
@@ -232,7 +219,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	    ct = ct.superType().toClass();
 	}
 	
-	ConstructorInstance ci = ts.findConstructor(ct, argTypes, c.currentClass());
+	ConstructorType ci = ts.findConstructor(ct, argTypes, c.currentClassScope());
 
 	return constructorInstance(ci);
     }
@@ -298,7 +285,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
         }
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         if (qualifier != null) {
             if (!arguments.isEmpty()) {
                 v.visitCFG(qualifier, listChild(arguments, null), ENTRY);
@@ -315,7 +302,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
         return succs;
     }
 
-    public List throwTypes(TypeSystem ts) {
+    public List<Type> throwTypes(TypeSystem ts) {
         List l = new LinkedList();
         l.addAll(ci.throwTypes());
         l.addAll(ts.uncheckedExceptions());

@@ -34,7 +34,7 @@ public class ExitChecker extends DataFlow
 
         if (code instanceof MethodDecl) {
             MethodDecl d = (MethodDecl) code;
-            if (! d.methodInstance().returnType().isVoid()) {
+            if (! d.methodInstance().returnType().get().isVoid()) {
                 return super.initGraph(code, root);
             }
         }

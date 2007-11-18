@@ -8,20 +8,10 @@
 package polyglot.frontend;
 
 import java.io.Reader;
-import java.io.OutputStream;
-import java.util.*;
 
-import polyglot.ast.NodeFactory;
-import polyglot.ast.NodeFactory_c;
 import polyglot.parse.Grm;
 import polyglot.parse.Lexer_c;
-import polyglot.types.TypeSystem_c;
-import polyglot.frontend.*;
-import polyglot.frontend.goals.*;
-import polyglot.main.Version;
-import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.visit.*;
+import polyglot.util.ErrorQueue;
 
 /**
  * This is the default <code>ExtensionInfo</code> for the Java language.

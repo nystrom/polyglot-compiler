@@ -11,10 +11,14 @@ import java.io.Reader;
 
 import polyglot.ast.NodeFactory;
 import polyglot.ast.NodeFactory_c;
-import polyglot.frontend.goals.Goal;
 import polyglot.main.Version;
-import polyglot.types.*;
+import polyglot.types.LoadedClassResolver;
+import polyglot.types.MemberClassResolver;
+import polyglot.types.SemanticException;
+import polyglot.types.SourceClassResolver;
+import polyglot.types.TopLevelResolver;
 import polyglot.types.TypeSystem;
+import polyglot.types.TypeSystem_c;
 import polyglot.util.ErrorQueue;
 import polyglot.util.InternalCompilerError;
 
@@ -86,14 +90,5 @@ public abstract class ParserlessJLExtensionInfo extends AbstractExtensionInfo {
      */
     public abstract Parser parser(Reader reader, FileSource source, ErrorQueue eq);
     
-    /**
-     * Return the <code>Goal</code> to compile the source file associated with
-     * <code>job</code> to completion.
-     */
-    public Goal getCompileGoal(Job job) {
-        return scheduler.CodeGenerated(job);
-    }
-
     static { Topics t = new Topics(); }
-
 }

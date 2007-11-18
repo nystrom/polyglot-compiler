@@ -84,7 +84,7 @@ public class Disamb_c implements Disamb
     }
 
     protected Node disambiguatePackagePrefix(PackageNode pn) throws SemanticException {
-        Resolver pc = ts.packageContextResolver(pn.package_());
+        Resolver pc = ts.packageContextResolver(pn.package_().get());
 
         Named n;
         
@@ -104,10 +104,10 @@ public class Disamb_c implements Disamb
         }
         
         if (q.isPackage() && packageOK()) {
-            return nf.PackageNode(pos, q.toPackage());
+            return nf.PackageNode(pos, Ref_c.ref(q.toPackage()));
         }
         else if (q.isType() && typeOK()) {
-            return nf.CanonicalTypeNode(pos, q.toType());
+            return nf.CanonicalTypeNode(pos, Ref_c.ref(q.toType()));
         }
 
         return null;
@@ -122,7 +122,7 @@ public class Disamb_c implements Disamb
 
         if (t.isReference() && exprOK()) {
             try {
-                FieldInstance fi = ts.findField(t.toReference(), name.id(), c.currentClass());
+                FieldType fi = ts.findField(t.toReference(), name.id(), c.currentClassScope());
                 return nf.Field(pos, tn, name).fieldInstance(fi);
             } catch (NoMemberException e) {
                 if (e.getKind() != NoMemberException.FIELD) {
@@ -164,7 +164,7 @@ public class Disamb_c implements Disamb
     protected Node disambiguateNoPrefix() throws SemanticException {
         if (exprOK()) {
             // First try local variables and fields.
-            VarInstance vi = c.findVariableSilent(name.id());
+            VarType vi = c.findVariableSilent(name.id());
             
             if (vi != null) {
                 Node n = disambiguateVarInstance(vi);
@@ -178,9 +178,6 @@ public class Disamb_c implements Disamb
                 Named n = c.find(name.id());
                 if (n instanceof Type) {
                     Type type = (Type) n;
-                    if (! type.isCanonical()) {
-                        throw new InternalCompilerError("Found an ambiguous type in the context: " + type, pos);
-                    }
                     return nf.CanonicalTypeNode(pos, type);
                 }
             } catch (NoClassException e) {
@@ -197,25 +194,25 @@ public class Disamb_c implements Disamb
 
         // Must be a package then...
         if (packageOK()) {
-            return nf.PackageNode(pos, ts.packageForName(name.id()));
+            return nf.PackageNode(pos, Ref_c.ref(ts.packageForName(name.id())));
         }
 
         return null;
     }
 
-    protected Node disambiguateVarInstance(VarInstance vi) throws SemanticException {
-        if (vi instanceof FieldInstance) {
-            FieldInstance fi = (FieldInstance) vi;
+    protected Node disambiguateVarInstance(VarType vi) throws SemanticException {
+        if (vi instanceof FieldType) {
+            FieldType fi = (FieldType) vi;
             Receiver r = makeMissingFieldTarget(fi);
             return nf.Field(pos, r, name).fieldInstance(fi).targetImplicit(true);
-        } else if (vi instanceof LocalInstance) {
-            LocalInstance li = (LocalInstance) vi;
+        } else if (vi instanceof LocalType) {
+            LocalType li = (LocalType) vi;
             return nf.Local(pos, name).localInstance(li);
         }
         return null;
     }
 
-    protected Receiver makeMissingFieldTarget(FieldInstance fi) throws SemanticException {
+    protected Receiver makeMissingFieldTarget(FieldType fi) throws SemanticException {
         Receiver r;
 
         if (fi.flags().isStatic()) {

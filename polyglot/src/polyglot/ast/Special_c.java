@@ -92,10 +92,6 @@ public class Special_c extends Expr_c implements Special
             t = c.currentClass();
         }
         else {
-            if (! qualifier.isDisambiguated()) {
-                return this;
-            }
-            
             if (qualifier.type().isClass()) {
                 t = qualifier.type().toClass();
                 
@@ -136,7 +132,7 @@ public class Special_c extends Expr_c implements Special
         return null;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         if (qualifier != null) {
             v.visitCFG(qualifier, this, EXIT);
         }

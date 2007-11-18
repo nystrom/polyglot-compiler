@@ -23,12 +23,12 @@ import java.util.Collection;
  *
  *     Does not support Remove.
  **/
-public final class TransformingIterator implements Iterator {
-  public TransformingIterator(Iterator iter, Transformation trans) {
+public final class TransformingIterator<S,T> implements Iterator<T> {
+  public TransformingIterator(Iterator<S> iter, Transformation<S,T> trans) {
     this(new Iterator[]{iter}, trans);
   }
 
-  public TransformingIterator(Collection iters, Transformation trans) {
+  public TransformingIterator(Collection<S> iters, Transformation<S,T> trans) {
     index = 0;
     backing_iterators = (Iterator[]) iters.toArray(new Iterator[0]);
     transformation = trans;
@@ -37,7 +37,7 @@ public final class TransformingIterator implements Iterator {
     findNextItem();
   }
 
-  public TransformingIterator(Iterator[] iters, Transformation trans) {
+  public TransformingIterator(Iterator[] iters, Transformation<S,T> trans) {
     index = 0;
     backing_iterators = (Iterator[]) iters.clone();
     transformation = trans;
@@ -46,8 +46,8 @@ public final class TransformingIterator implements Iterator {
     findNextItem();
   }
 
-  public Object next() {
-    Object res = next_item;
+  public T next() {
+    T res = next_item;
     if (res == null)
       throw new java.util.NoSuchElementException();
     findNextItem();
@@ -67,16 +67,16 @@ public final class TransformingIterator implements Iterator {
     while (current_iter != null) {
     inner_loop:
       while (current_iter.hasNext()) {		
-	Object o = current_iter.next();	
-	Object res = transformation.transform(o);
-	if (res == Transformation.NOTHING)
+	S o = current_iter.next();	
+	T res = transformation.transform(o);
+	if (res == null)
 	  continue inner_loop;
 	next_item = res;
 	return;
       }
       index++;
       if (index < backing_iterators.length) {
-	current_iter = backing_iterators[index];
+	current_iter = (Iterator<S>) backing_iterators[index];
       } else {
 	current_iter = null;
       }
@@ -89,11 +89,11 @@ public final class TransformingIterator implements Iterator {
   //      those elements e of backing_iterator[index] transformed by TRANS.
   // RI: current_iter = backing_iterators[index], or null if no 
   //     backing_iterator hasNext.
-  protected Object next_item;
-  protected Iterator current_iter;
+  protected T next_item;
+  protected Iterator<S> current_iter;
   protected int index;
   protected Iterator[] backing_iterators;
-  protected Transformation transformation;
+  protected Transformation<S,T> transformation;
 }
 
 

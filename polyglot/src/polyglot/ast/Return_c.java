@@ -63,14 +63,14 @@ public class Return_c extends Stmt_c implements Return
 	TypeSystem ts = tc.typeSystem();
 	Context c = tc.context();
 
-	CodeInstance ci = c.currentCode();
+	CodeDef ci = c.currentCode();
 
-	if (ci instanceof InitializerInstance) {
+	if (ci instanceof InitializerDef) {
 	    throw new SemanticException(
 		"Cannot return from an initializer block.", position());
 	}
 
-	if (ci instanceof ConstructorInstance) {
+	if (ci instanceof ConstructorDef) {
 	    if (expr != null) {
 		throw new SemanticException(
 		    "Cannot return a value from " + ci + ".",
@@ -80,10 +80,11 @@ public class Return_c extends Stmt_c implements Return
 	    return this;
 	}
 
-	if (ci instanceof FunctionInstance) {
-	    FunctionInstance fi = (FunctionInstance) ci;
-
-	    if (fi.returnType().isVoid()) {
+	if (ci instanceof FunctionDef) {
+	    FunctionDef fi = (FunctionDef) ci;
+	    Type returnType = fi.returnType().get();
+	    
+	    if (returnType.isVoid()) {
                 if (expr != null) {
                     throw new SemanticException("Cannot return a value from " +
                         fi + ".", position());
@@ -97,11 +98,11 @@ public class Return_c extends Stmt_c implements Return
                     fi + ".", position());
             }
 
-	    if (ts.isImplicitCastValid(expr.type(), fi.returnType())) {
+	    if (ts.isImplicitCastValid(expr.type(), returnType)) {
 	        return this;
 	    }
 
-            if (ts.numericConversionValid(fi.returnType(),
+            if (ts.numericConversionValid(returnType,
                                           expr.constantValue())) {
                 return this;
             }
@@ -116,21 +117,21 @@ public class Return_c extends Stmt_c implements Return
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         if (child == expr) {
             Context c = av.context();
-            CodeInstance ci = c.currentCode();
+            CodeDef ci = c.currentCode();
 
-            if (ci instanceof MethodInstance) {
-                MethodInstance mi = (MethodInstance) ci;
+            if (ci instanceof MethodDef) {
+                MethodDef mi = (MethodDef) ci;
 
                 TypeSystem ts = av.typeSystem();
 
                 // If expr is an integral constant, we can relax the expected
                 // type to the type of the constant.
-                if (ts.numericConversionValid(mi.returnType(),
+                if (ts.numericConversionValid(mi.returnType().get(),
                                               child.constantValue())) {
                     return child.type();
                 }
                 else {
-                    return mi.returnType();
+                    return mi.returnType().get();
                 }
             }
         }
@@ -157,7 +158,7 @@ public class Return_c extends Stmt_c implements Return
         return null;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         if (expr != null) {
             v.visitCFG(expr, this, EXIT);
         }

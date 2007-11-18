@@ -15,6 +15,7 @@ import polyglot.util.CodeWriter;
 import polyglot.frontend.ExtensionInfo;
 import polyglot.types.SemanticException;
 import polyglot.types.Context;
+import polyglot.types.Type;
 import polyglot.types.TypeSystem;
 import polyglot.visit.*;
 
@@ -204,9 +205,9 @@ public interface NodeOps
      * <code>this</code> or a new copy of the node which will be
      * installed as a child of the node's parent.
      *
-     * @param cc The constant checking visitor.
+     * @param tc The constant checking visitor.
      */
-    Node checkConstants(ConstantChecker cc) throws SemanticException;
+    Node checkConstants(TypeChecker tc) throws SemanticException;
     
     /**
      * Check that exceptions are properly propagated throughout the AST.
@@ -239,7 +240,7 @@ public interface NodeOps
      * List of Types of exceptions that might get thrown.  The result is
      * not necessarily correct until after type checking. 
      */
-    List throwTypes(TypeSystem ts);
+    List<Type> throwTypes(TypeSystem ts);
 
     /** Dump the AST for debugging. */
     public void dump(OutputStream os);

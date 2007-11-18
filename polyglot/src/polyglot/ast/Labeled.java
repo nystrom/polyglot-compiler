@@ -18,11 +18,6 @@ public interface Labeled extends CompoundStmt
     /** Set the label. */
     Labeled labelNode(Id label);
     
-    /** The label. */
-    String label();
-    /** Set the label. */
-    Labeled label(String label);
-
     /** The statement to label. */
     Stmt statement();
     /** Set the statement to label. */

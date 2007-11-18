@@ -16,17 +16,12 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import polyglot.frontend.ExtensionInfo;
+import polyglot.frontend.Globals;
 
 /** 
  * This object encapsulates various polyglot options. 
  */
 public class Options {
-    /**
-     * An annoying hack to allow objects to get their hands on the Options
-     * object. This should be fixed. XXX###@@@
-     */
-    public static Options global;
-    
     /**
      * Back pointer to the extension that owns this options
      */
@@ -36,7 +31,7 @@ public class Options {
      * Fields for storing values for options.
      */
     public int error_count = 100;
-    public Collection source_path; // List<File>
+    public Collection<File> source_path; // List<File>
     public File output_directory;
     public String default_classpath;
     public String default_output_classpath;
@@ -60,13 +55,13 @@ public class Options {
     public boolean serialize_type_info = true;
   
     /** Dump the AST after the following passes? */
-    public Set dump_ast = new HashSet();
+    public Set<String> dump_ast = new HashSet<String>();
   
     /** Pretty-print the AST after the following passes? */
-    public Set print_ast = new HashSet();
+    public Set<String> print_ast = new HashSet<String>();
  
     /** Disable the following passes? */
-    public Set disable_passes = new HashSet();
+    public Set<String> disable_passes = new HashSet<String>();
   
     /** keep output files */
     public boolean keep_output_files = true;
@@ -107,7 +102,7 @@ public class Options {
         String java_home = System.getProperty("java.home");
         String current_dir = System.getProperty("user.dir");
     
-        source_path = new LinkedList();
+        source_path = new LinkedList<File>();
         source_path.add(new File(current_dir));
     
         output_directory = new File(current_dir);
@@ -138,7 +133,7 @@ public class Options {
      * 
      * @throws UsageError if the usage is incorrect.
      */
-    public void parseCommandLine(String args[], Set source) throws UsageError {
+    public void parseCommandLine(String args[], Set<String> source) throws UsageError {
         if(args.length < 1) {
             throw new UsageError("No command line arguments given");
         }
@@ -168,7 +163,7 @@ public class Options {
      * @return the next index to process. i.e., if calling this method
      *         processes two commands, then the return value should be index+2
      */
-    protected int parseCommand(String args[], int index, Set source) 
+    protected int parseCommand(String args[], int index, Set<String> source) 
             throws UsageError, Main.TerminationException {
         int i = index;
         if (args[i].equals("-h") || 

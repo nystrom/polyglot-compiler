@@ -9,6 +9,8 @@
 package polyglot.util;
 
 import java.io.Serializable;
+
+import polyglot.frontend.Globals;
 import polyglot.main.Options;
 
 /**
@@ -44,7 +46,7 @@ public class Position implements Serializable
      * depth.  Depth 1 is the caller.  Depth 2 is the caller's caller, etc.
      */ 
     public static Position compilerGenerated(int depth) {
-    	if (! Options.global.precise_compiler_generated_positions)
+    	if (! Globals.Options().precise_compiler_generated_positions)
             return COMPILER_GENERATED;
         StackTraceElement[] stack = new Exception().getStackTrace();
         if (depth < stack.length) {

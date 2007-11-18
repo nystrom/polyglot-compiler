@@ -7,13 +7,13 @@
 
 package polyglot.visit;
 
-import polyglot.ast.*;
-import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.frontend.*;
-import polyglot.frontend.goals.Goal;
+import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
+import polyglot.frontend.Job;
 import polyglot.main.Report;
-import java.util.*;
+import polyglot.types.Context;
+import polyglot.types.TypeSystem;
+import polyglot.util.InternalCompilerError;
 
 /**
  * A visitor which maintains a context throughout the visitor's pass.  This is 
@@ -125,39 +125,18 @@ public class ContextVisitor extends ErrorHandlingVisitor
             return new PruningVisitor();
         }
 
-        try {
-            ContextVisitor v = this;
-            
-            Context c = this.enterScope(parent, n);
-            
-            if (c != this.context) {
-                v = (ContextVisitor) this.copy();
-                v.context = c;
-                v.outer = this;
-                v.error = false;
-            }
-            
-            return v.superEnter(parent, n);
-        }
-        catch (MissingDependencyException e) {
-            if (Report.should_report(Report.frontend, 3))
-                e.printStackTrace();
-            Scheduler scheduler = job.extensionInfo().scheduler();
-            Goal g = scheduler.currentGoal();
-            scheduler.addDependencyAndEnqueue(g, e.goal(), e.prerequisite());
-            g.setUnreachableThisRun();
+        ContextVisitor v = this;
 
-            // The context for visiting the children
-            // isn't set up correctly, so prune the traversal here.
-            // The context might also be incorrect for later siblings
-            // of this node, so set a flag to prune until the scope
-            // is popped.
-            this.prune = true;            
-            if (this.rethrowMissingDependencies) {
-                throw e;
-            }
-            return new PruningVisitor();
+        Context c = this.enterScope(parent, n);
+
+        if (c != this.context) {
+            v = (ContextVisitor) this.copy();
+            v.context = c;
+            v.outer = this;
+            v.error = false;
         }
+
+        return v.superEnter(parent, n);
     }
 
     protected boolean prune;
@@ -173,22 +152,8 @@ public class ContextVisitor extends ErrorHandlingVisitor
             return n;
         }
 
-        try {
-            Node m = super.leave(parent, old, n, v);
-            this.addDecls(m);
-            return m;
-        }
-        catch (MissingDependencyException e) {
-            if (Report.should_report(Report.frontend, 3))
-                e.printStackTrace();
-            Scheduler scheduler = job.extensionInfo().scheduler();
-            Goal g = scheduler.currentGoal();
-            scheduler.addDependencyAndEnqueue(g, e.goal(), e.prerequisite());
-            g.setUnreachableThisRun();
-            if (this.rethrowMissingDependencies) {
-                throw e;
-            }
-        }
-        return n;
+        Node m = super.leave(parent, old, n, v);
+        this.addDecls(m);
+        return m;
     }
 }

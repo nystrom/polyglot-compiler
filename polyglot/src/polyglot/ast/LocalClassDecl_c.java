@@ -61,7 +61,7 @@ public class LocalClassDecl_c extends Stmt_c implements LocalClassDecl
     /**
      * Visit this term in evaluation order.
      */
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         v.visitCFG(decl(), this, EXIT);
         return succs;
     }
@@ -86,10 +86,10 @@ public class LocalClassDecl_c extends Stmt_c implements LocalClassDecl
     public void addDecls(Context c) {
         // We should now be back in the scope of the enclosing block.
         // Add the type.
-        if (! decl.type().toClass().isLocal())
+        if (! decl.type().isLocal())
             throw new InternalCompilerError("Non-local " + decl.type() +
                                             " found in method body.");
-        c.addNamed(decl.type().toClass());
+        c.addNamed(decl.type().asType());
     }
 
     public String toString() {

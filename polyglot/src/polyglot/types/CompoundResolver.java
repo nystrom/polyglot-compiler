@@ -7,9 +7,6 @@
 
 package polyglot.types;
 
-import polyglot.ast.*;
-import polyglot.util.*;
-import java.util.*;
 
 /**
  * An <code>CompoundResolver</code> resolves names using more than one

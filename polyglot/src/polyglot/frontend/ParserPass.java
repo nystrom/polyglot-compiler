@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.io.Reader;
 
 import polyglot.ast.Node;
-import polyglot.frontend.goals.Goal;
-import polyglot.frontend.goals.SourceFileGoal;
 import polyglot.main.Report;
 import polyglot.util.ErrorInfo;
 import polyglot.util.ErrorQueue;
@@ -27,20 +25,20 @@ public class ParserPass extends AbstractPass
 {
     protected Compiler compiler;
 
-    public ParserPass(Compiler compiler, Goal goal) {
-        super(goal);
+    public ParserPass(Goal goal, Compiler compiler, Job job) {
+        super(goal, job, "Parser");
 	this.compiler = compiler;
     }
 
     public boolean run() {
 	ErrorQueue eq = compiler.errorQueue();
         
-	FileSource source = (FileSource) goal.job().source();
+	FileSource source = (FileSource) job().source();
 
 	try {
 	    Reader reader = source.open();
             
-            Parser p = goal.job().extensionInfo().parser(reader, source, eq);
+            Parser p = job().extensionInfo().parser(reader, source, eq);
 
 	    if (Report.should_report(Report.frontend, 2))
 		Report.report(2, "Using parser " + p);
@@ -50,7 +48,7 @@ public class ParserPass extends AbstractPass
 	    source.close();
 
 	    if (ast != null) {
-		goal.job().ast(ast);
+		job().ast(ast);
 		return true;
 	    }
 
@@ -58,14 +56,14 @@ public class ParserPass extends AbstractPass
 	}
 	catch (IOException e) {
 	    eq.enqueue(ErrorInfo.IO_ERROR, e.getMessage(),
-                new Position(goal.job().source().path(),
-                             goal.job().source().name(), 1, 1, 1, 1));
+                new Position(job().source().path(),
+                             job().source().name(), 1, 1, 1, 1));
 
             return false;
 	}
     }
 
     public String toString() {
-	return super.toString() + "(" + goal.job().source() + ")";
+	return super.toString() + "(" + job().source() + ")";
     }
 }

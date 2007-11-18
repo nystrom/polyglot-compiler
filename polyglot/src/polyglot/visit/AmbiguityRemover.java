@@ -7,22 +7,21 @@
 
 package polyglot.visit;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
 
 import polyglot.ast.*;
-import polyglot.frontend.*;
 import polyglot.frontend.Job;
-import polyglot.frontend.MissingDependencyException;
-import polyglot.frontend.goals.Goal;
 import polyglot.main.Report;
-import polyglot.types.*;
+import polyglot.types.SemanticException;
+import polyglot.types.TypeSystem;
 import polyglot.util.*;
 
 /**
  * A visitor which traverses the AST and remove ambiguities found in fields,
  * method signatures and the code itself.
  */
-public class AmbiguityRemover extends DisambiguationDriver
+public class AmbiguityRemover extends ContextVisitor
 {
     protected boolean visitSigs;
     protected boolean visitBodies;
@@ -60,18 +59,6 @@ public class AmbiguityRemover extends DisambiguationDriver
                 Report.report(2, "<< " + this + "::override " + n + " -> " + m + (m != null ? (" (" + m.getClass().getName() + ")") : ""));
             
             return m;
-        }
-        catch (MissingDependencyException e) {
-            if (Report.should_report(Report.frontend, 3))
-                e.printStackTrace();
-            Scheduler scheduler = job.extensionInfo().scheduler();
-            Goal g = scheduler.currentGoal();
-            scheduler.addDependencyAndEnqueue(g, e.goal(), e.prerequisite());
-            g.setUnreachableThisRun();
-            if (this.rethrowMissingDependencies) {
-                throw e;
-            }
-            return n;
         }
         catch (SemanticException e) {
             if (e.getMessage() != null) {
@@ -132,37 +119,5 @@ public class AmbiguityRemover extends DisambiguationDriver
         throw new InternalCompilerError("AmbiguityRemover does not support bypassing. " +
                                         "Implement any required functionality using " +
                                         "Node.disambiguateOverride(Node, AmbiguityRemover).");
-    }
-
-    public boolean isASTDisambiguated(Node n) {
-        return astAmbiguityCount(n) == 0;
-    }
-
-    protected static class AmbChecker extends NodeVisitor {
-        public int notOkCount;
-
-        public Node override(Node parent, Node n) {
-            final Collection TOPICS = Arrays.asList(new String[] { Report.types, Report.frontend, "disam-check" });
-
-            // Don't check if New is disambiguated; this is handled
-            // during type-checking.
-            if (n instanceof New) {
-                return n;
-            }
-
-            if (! n.isDisambiguated()) {
-                if (Report.should_report(TOPICS, 3))
-                    Report.report(3, "  not ok at " + n + " (" + n.getClass().getName() + ")");
-                notOkCount++;
-            }
-            
-            return null;
-        }
-    }
-    
-    public static int astAmbiguityCount(Node n) {
-        AmbChecker ac = new AmbChecker();
-        n.visit(ac);
-        return ac.notOkCount;
     }
 }

@@ -9,7 +9,6 @@ package polyglot.visit;
 
 import polyglot.ast.*;
 import polyglot.types.TypeSystem;
-import polyglot.frontend.Job;
 import polyglot.util.Position;
 
 /** Visitor which performs constant folding. */

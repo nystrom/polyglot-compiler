@@ -95,14 +95,14 @@ public class Throw_c extends Stmt_c implements Throw
         return expr;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         v.visitCFG(expr, this, EXIT);
 
         // Throw edges will be handled by visitor.
         return Collections.EMPTY_LIST;
     }
 
-    public List throwTypes(TypeSystem ts) {
+    public List<Type> throwTypes(TypeSystem ts) {
         // if the exception that a throw statement is given to throw is null,
         // then a NullPointerException will be thrown.
         return CollectionUtil.list(expr.type(), ts.NullPointerException());

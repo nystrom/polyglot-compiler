@@ -7,9 +7,10 @@
 
 package polyglot.types;
 
-import polyglot.util.*;
-import polyglot.main.Report;
 import java.util.*;
+
+import polyglot.main.Report;
+import polyglot.util.*;
 
 /**
  * A <code>ClassContextResolver</code> looks up type names qualified with a class name.
@@ -37,7 +38,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
      * Find a type object in the context of the class.
      * @param name The name to search for.
      */
-    public Named find(String name, ClassType accessor) throws SemanticException {
+    public Named find(String name, ClassDef accessor) throws SemanticException {
         if (Report.should_report(TOPICS, 2))
 	    Report.report(2, "Looking for " + name + " in " + this);
 
@@ -52,7 +53,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
         Named m;
 
         String fullName = type.fullName() + "." + name;
-        String rawName = ts.getTransformedClassName(type) + "$" + name;
+        String rawName = ts.getTransformedClassName(type.def()) + "$" + name;
 
         // First check the system resolver.
         m = ts.systemResolver().check(fullName);
@@ -147,8 +148,8 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             Set containers = new HashSet(acceptable.size());
             for (Iterator i = acceptable.iterator(); i.hasNext(); ) {
                 Named n = (Named) i.next();
-                if (n instanceof MemberInstance) {
-                    MemberInstance mi = (MemberInstance) n;
+                if (n instanceof MemberDef) {
+                    MemberDef mi = (MemberDef) n;
                     containers.add(mi.container());
                 }
             }
@@ -176,9 +177,9 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
         return t;
     }
 
-    protected boolean canAccess(Named n, ClassType accessor) {
-        if (n instanceof MemberInstance) {
-            return accessor == null || ts.isAccessible((MemberInstance) n, accessor);
+    protected boolean canAccess(Named n, ClassDef accessor) {
+        if (n instanceof MemberType) {
+            return accessor == null || ts.isAccessible((MemberType) n, accessor);
         }
         return true;
     }

@@ -11,11 +11,22 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
 import polyglot.main.Options;
 import polyglot.types.reflect.ClassFileLoader;
-import polyglot.util.*;
+import polyglot.util.CodeWriter;
+import polyglot.util.ErrorInfo;
+import polyglot.util.ErrorLimitError;
+import polyglot.util.ErrorQueue;
+import polyglot.util.InternalCompilerError;
+import polyglot.util.OptimalCodeWriter;
+import polyglot.util.SimpleCodeWriter;
+import polyglot.util.StdErrorQueue;
 
 /**
  * This is the main entry point for the compiler. It contains a work list that
@@ -144,30 +155,37 @@ public class Compiler
      * used to obtain the output of the compilation.  This is the main entry
      * point for the compiler, called from main().
      */
-    public boolean compile(Collection sources) {
+    public boolean compile(Collection<Source> sources) {
 	boolean okay = false;
     
 	try {
 	    try {
                 Scheduler scheduler = sourceExtension().scheduler();
-                List jobs = new ArrayList();
+                List<Job> jobs = new ArrayList<Job>();
 
-                // First, create a goal to compile every source file.
-                for (Iterator i = sources.iterator(); i.hasNext(); ) {
-                    Source source = (Source) i.next();
-                    
+                // Create a job for each source file.
+                for (Source source : sources) {
                     // Add a new SourceJob for the given source. If a Job for the source
                     // already exists, then we will be given the existing job.
                     Job job = scheduler.addJob(source);
                     jobs.add(job);
-                    
-                    // Now, add a goal for completing the job.
-                    scheduler.addGoal(sourceExtension().getCompileGoal(job));
                 }
 
                 scheduler.setCommandLineJobs(jobs);
-                
-                // Then, compile the files to completion.
+
+                for (Job job : jobs) {
+                    scheduler.addDependenciesForJob(job, true);
+                }
+
+                // Create a goal to compile every source file.
+                if (Globals.Options().compile_command_line_only) {
+                    scheduler.enqueue(scheduler.EndCommandLine());
+                }
+                else {
+                    scheduler.enqueue(scheduler.EndAll());
+                }
+
+                // Compile the files to completion.
                 okay = scheduler.runToCompletion();
 	    }
 	    catch (InternalCompilerError e) {
@@ -259,19 +277,19 @@ public class Compiler
     }
     
     public static CodeWriter createCodeWriter(OutputStream w) {
-        return createCodeWriter(w, Options.global.output_width);
+        return createCodeWriter(w, Globals.Options().output_width);
     }
     public static CodeWriter createCodeWriter(OutputStream w, int width) {
-        if (Options.global.use_simple_code_writer)
+        if (Globals.Options().use_simple_code_writer)
             return new SimpleCodeWriter(w, width);
         else
 	    return new OptimalCodeWriter(w, width);
     }
     public static CodeWriter createCodeWriter(Writer w) {
-        return createCodeWriter(w, Options.global.output_width);
+        return createCodeWriter(w, Globals.Options().output_width);
     }
     public static CodeWriter createCodeWriter(Writer w, int width) {
-        if (Options.global.use_simple_code_writer)
+        if (Globals.Options().use_simple_code_writer)
             return new SimpleCodeWriter(w, width);
         else
             return new OptimalCodeWriter(w, width);

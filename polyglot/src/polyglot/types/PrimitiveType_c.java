@@ -7,9 +7,6 @@
 
 package polyglot.types;
 
-import polyglot.types.*;
-import polyglot.util.InternalCompilerError;
-import java.util.*;
 
 /**
  * An <code>PrimitiveType_c</code> represents a primitive type.
@@ -38,7 +35,6 @@ public class PrimitiveType_c extends Type_c implements PrimitiveType
             return kind.toString();
     }
 
-    public boolean isCanonical() { return true; }
     public boolean isPrimitive() { return true; }
     public PrimitiveType toPrimitive() { return this; }
 

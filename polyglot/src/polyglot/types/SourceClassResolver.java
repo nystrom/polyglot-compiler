@@ -9,10 +9,9 @@ package polyglot.types;
 
 import polyglot.frontend.*;
 import polyglot.frontend.Compiler;
-import polyglot.frontend.goals.Goal;
 import polyglot.main.Report;
-import polyglot.types.reflect.*;
-import polyglot.util.InternalCompilerError;
+import polyglot.types.reflect.ClassFile;
+import polyglot.types.reflect.ClassFileLoader;
 
 /**
  * Loads class information from source files, class files, or serialized
@@ -146,11 +145,11 @@ public class SourceClassResolver extends LoadedClassResolver
       }
     }
 
-    // Now, try and find the source file.
+    // Now, try to find the source file.
     source = ext.sourceLoader().classSource(name);
 
     // Check if a job for the source already exists.
-    if (ext.scheduler().sourceHasJob(source)) {
+    if (source != null && ext.scheduler().sourceHasJob(source)) {
         // the source has already been compiled; what are we doing here?
         return getTypeFromSource(source, name);
     }
@@ -213,7 +212,8 @@ public class SourceClassResolver extends LoadedClassResolver
     if (result == null && clazz != null && this.allowRawClasses) {
       if (Report.should_report(report_topics, 4))
 	Report.report(4, "Using raw class file for " + name);
-      result = ts.classFileLazyClassInitializer(clazz).type();
+      ClassDef cd = ts.classFileLazyClassInitializer(clazz).type();
+      result = cd.asType();
     }
 
     if (result == null && source != null) {
@@ -225,12 +225,7 @@ public class SourceClassResolver extends LoadedClassResolver
     // Verify that the type we loaded has the right name.  This prevents,
     // for example, requesting a type through its mangled (class file) name.
     if (result != null) {
-        if (name.equals(result.fullName())) {
-            return result;
-        }
-        if (result instanceof ClassType && name.equals(ts.getTransformedClassName((ClassType) result))) {
-            return result;
-        }
+        return result;
     }
     
     if (clazz != null && !this.allowRawClasses) {
@@ -242,6 +237,7 @@ public class SourceClassResolver extends LoadedClassResolver
             ext.compilerName() + ". Try using " + ext.compilerName() 
             + " to recompile the source code.");
     }
+    
     throw new NoClassException(name);
   }
 
@@ -265,9 +261,9 @@ public class SourceClassResolver extends LoadedClassResolver
         }
         
         Goal g = scheduler.TypesInitialized(job);
-        
+
         if (! scheduler.reached(g)) {
-            throw new MissingDependencyException(g);
+            scheduler.attempt(g);
         }
     }
   

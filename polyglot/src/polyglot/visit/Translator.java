@@ -9,29 +9,14 @@ package polyglot.visit;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Writer;
-import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
-import polyglot.ast.Import;
-import polyglot.ast.Node;
-import polyglot.ast.NodeFactory;
-import polyglot.ast.SourceCollection;
-import polyglot.ast.SourceFile;
-import polyglot.ast.TopLevelDecl;
+import polyglot.ast.*;
 import polyglot.frontend.Job;
 import polyglot.frontend.TargetFactory;
-import polyglot.types.ClassType;
-import polyglot.types.Context;
+import polyglot.types.*;
 import polyglot.types.Package;
-import polyglot.types.TypeSystem;
 import polyglot.util.*;
-import polyglot.util.Copy;
-import polyglot.util.ErrorInfo;
-import polyglot.util.InternalCompilerError;
 
 /**
  * A Translator generates output code from the processed AST.
@@ -133,30 +118,20 @@ public class Translator extends PrettyPrinter implements Copy
         Translator tr = this;
         
         if (context != null) {
-            if (child.isDisambiguated() && child.isTypeChecked()) {
-                if (parent == null) {
-                    Context c = child.del().enterScope(context);
-                    tr = this.context(c);
-                }
-                else if (parent.isDisambiguated() && parent.isTypeChecked()) {
-                    Context c = parent.del().enterChildScope(child, context);
-                    tr = this.context(c);
-                }
-                else {
-                    tr = this.context(null);
-                }
+            if (parent == null) {
+                Context c = child.del().enterScope(context);
+                tr = this.context(c);
             }
             else {
-                tr = this.context(null);
+                Context c = parent.del().enterChildScope(child, context);
+                tr = this.context(c);
             }
         }
-        
+
         child.del().translate(w, tr);
         
         if (context != null) {
-            if (child.isDisambiguated() && child.isTypeChecked()) {
-                child.addDecls(context);
-            }
+            child.addDecls(context);
         }
     }
     
@@ -206,7 +181,7 @@ public class Translator extends PrettyPrinter implements Copy
     	    String pkg = "";
     	    
     	    if (sfn.package_() != null) {
-    	        Package p = sfn.package_().package_();
+    	        Package p = sfn.package_().package_().get();
     	        pkg = p.fullName();
     	    }
     	    
@@ -268,13 +243,8 @@ public class Translator extends PrettyPrinter implements Copy
      */
     protected void translateTopLevelDecl(CodeWriter w, SourceFile source, TopLevelDecl decl) {
         Translator tr;
-        if (source.isDisambiguated() && source.isTypeChecked()) {
-            Context c = source.del().enterScope(context);
-            tr = this.context(c);
-        }
-        else {
-            tr = this.context(null);
-        }
+        Context c = source.del().enterScope(context);
+        tr = this.context(c);
         decl.del().translate(w, tr);
     }
 

@@ -113,7 +113,7 @@ public class Synchronized_c extends Stmt_c implements Synchronized
         return expr;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         v.visitCFG(expr, body, ENTRY);
         v.visitCFG(body, this, EXIT);
         return succs;

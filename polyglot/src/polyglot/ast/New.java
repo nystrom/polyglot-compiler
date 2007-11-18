@@ -7,7 +7,8 @@
 
 package polyglot.ast;
 
-import polyglot.types.ConstructorInstance;
+import polyglot.types.ClassDef;
+import polyglot.types.ConstructorType;
 import polyglot.types.ParsedClassType;
 import java.util.List;
 
@@ -21,16 +22,16 @@ import java.util.List;
 public interface New extends Expr, ProcedureCall
 {
     /** The type object for anonymous classes, or null. */
-    ParsedClassType anonType();
+    ClassDef anonType();
 
     /** Set the type object for anonymous classes. */
-    New anonType(ParsedClassType anonType);
+    New anonType(ClassDef anonType);
 
     /** The constructor invoked by this expression. */
-    ConstructorInstance constructorInstance();
+    ConstructorType constructorInstance();
 
     /** Set the constructor invoked by this expression. */
-    New constructorInstance(ConstructorInstance ci);
+    New constructorInstance(ConstructorType ci);
 
     /**
      * The qualifier expression for the type, or null. If non-null, this
@@ -50,12 +51,12 @@ public interface New extends Expr, ProcedureCall
     /** Actual arguments to pass to the constructor.
      * @return A list of {@link polyglot.ast.Expr Expr}.
      */
-    List arguments();
+    List<Expr> arguments();
 
     /** Set the actual arguments to pass to the constructor.
      * @param arguments A list of {@link polyglot.ast.Expr Expr}.
      */
-    ProcedureCall arguments(List arguments);
+    ProcedureCall arguments(List<Expr> arguments);
 
     /** The class body for anonymous classes, or null. */
     ClassBody body();

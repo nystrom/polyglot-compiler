@@ -8,6 +8,7 @@
 
 package polyglot.ast;
 
+import polyglot.frontend.Globals;
 import polyglot.types.*;
 import polyglot.visit.*;
 import polyglot.util.*;
@@ -23,7 +24,7 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
   public AmbTypeNode_c(Position pos, QualifierNode qual,
                        Id name) {
     super(pos);
-assert(name != null); // qual may be null
+    assert(name != null); // qual may be null
     this.qual = qual;
     this.name = name;
   }
@@ -38,14 +39,6 @@ assert(name != null); // qual may be null
       return n;
   }
   
-  public String name() {
-    return this.name.id();
-  }
-
-  public AmbTypeNode name(String name) {
-      return id(this.name.id(name));
-  }
-
   public QualifierNode qual() {
     return this.qual;
   }
@@ -68,7 +61,8 @@ assert(name != null); // qual may be null
   }
 
   public Node buildTypes(TypeBuilder tb) throws SemanticException {
-    return type(tb.typeSystem().unknownType(position()));
+      TypeRef<? extends Type> sym = tb.typeSystem().symbolTable().typeRef(tb.typeSystem().unknownType(position()), Globals.Scheduler().Disambiguated(tb.job()));
+      return type(sym);
   }
 
   public Node visitChildren(NodeVisitor v) {
@@ -78,14 +72,12 @@ assert(name != null); // qual may be null
   }
 
   public Node disambiguate(AmbiguityRemover sc) throws SemanticException {
-      if (qual != null && ! qual.isDisambiguated()) {
-          return this;
-      }
-
       Node n = sc.nodeFactory().disamb().disambiguate(this, sc, position(), qual,
                                                       name);
       
       if (n instanceof TypeNode) {
+          TypeNode tn = (TypeNode) n;
+          ((Symbol<Type>) type).update(tn.theType().get());
           return n;
       }
       
@@ -93,17 +85,6 @@ assert(name != null); // qual may be null
                                   (qual == null ? name.toString() : qual.toString() + "." + name.toString()) +
                                   "\".", position());
   }
-
-  public Node typeCheck(TypeChecker tc) throws SemanticException {
-      // Didn't finish disambiguation; just return.
-      return this;
-  }
-
-  public Node exceptionCheck(ExceptionChecker ec) throws SemanticException {
-    throw new InternalCompilerError(position(),
-                                    "Cannot exception check ambiguous node "
-                                    + this + ".");
-  } 
 
   public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
     if (qual != null) {

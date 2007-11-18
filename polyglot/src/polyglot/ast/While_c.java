@@ -114,7 +114,7 @@ public class While_c extends Loop_c implements While
         return cond;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         if (condIsConstantTrue()) {
             v.visitCFG(cond, body, ENTRY);
         }

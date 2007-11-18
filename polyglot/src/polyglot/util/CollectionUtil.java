@@ -13,7 +13,7 @@ import java.util.*;
 public class CollectionUtil
 {
 	/** Append <code>o</code> to <code>l</code>, returning <code>l</code>. */
-	public static List add(List l, Object o) {
+	public static <T> List<T> add(List<T> l, T o) {
 		l.add(o);
 		return l;
 	}
@@ -23,7 +23,7 @@ public class CollectionUtil
 	 * pointer equal, or if iterators over both return the same
 	 * sequence of pointer equal elements.
 	 */
-	public static boolean equals(Collection a, Collection b) {
+	public static <T> boolean equals(Collection<? extends T> a, Collection<? extends T> b) {
 		if (a == b) {
 			return true;
 		}
@@ -33,12 +33,12 @@ public class CollectionUtil
 			return false;
 		}
 		
-		Iterator i = a.iterator();
-		Iterator j = b.iterator();
+		Iterator<? extends T> i = a.iterator();
+		Iterator<? extends T> j = b.iterator();
 
 		while (i.hasNext() && j.hasNext()) {
-			Object o = i.next();
-			Object p = j.next();
+			T o = i.next();
+			T p = j.next();
 
 			if (o != p) {
 				return false;
@@ -53,54 +53,38 @@ public class CollectionUtil
 	}
 
 	/** Return an empty list. */
-	public static List list() {
-		return Collections.EMPTY_LIST;
+	public static <T> List<T> list() {
+		return Collections.<T>emptyList();
 	}
 	
 	/** Return a singleton list containing <code>o</code>. */
-	public static List list(Object o) {
-		return Collections.singletonList(o);
+	public static <T> List<T> list(T o) {
+		return Collections.<T>singletonList(o);
 	}
 
 	/** Return a list containing <code>o1</code> and <code>o2</code>. */
-	public static List list(Object o1, Object o2) {
-		List l = new ArrayList(2);
+	public static <T> List<T> list(T o1, T o2, T... o3s) {
+		List<T> l = new ArrayList<T>(2+o3s.length);
 		l.add(o1);
 		l.add(o2);
+		for (T o3 : o3s) {
+		    l.add(o3);
+		}
 		return l;
 	}
 
-	/** Return a list containing <code>o1</code>, ..., <code>o3</code>. */
-	public static List list(Object o1, Object o2, Object o3) {
-		List l = new ArrayList(3);
-		l.add(o1);
-		l.add(o2);
-		l.add(o3);
-		return l;
-	}
-
-	/** Return a list containing <code>o1</code>, ..., <code>o4</code>. */
-	public static List list(Object o1, Object o2, Object o3, Object o4) {
-		List l = new ArrayList(3);
-		l.add(o1);
-		l.add(o2);
-		l.add(o3);
-		l.add(o4);
-		return l;
-	}
-
-        public static Object firstOrElse(Collection l, Object alt) {
-                Iterator i = l.iterator();
+        public static <T> T firstOrElse(Collection<? extends T> l, T alt) {
+                Iterator<? extends T> i = l.iterator();
                 if (i.hasNext()) return i.next();
                 return alt;
         }
 
 
-        public static Iterator pairs(Collection l) {
-                List x = new LinkedList();
+        public static <T> Iterator<Object[]> pairs(Collection<T> l) {
+            if (l.size() == 0) return Collections.<Object[]>emptyList().iterator();
+                List<Object[]> x = new ArrayList<Object[]>(l.size()-1);
                 Object prev = null;
-                for (Iterator i = l.iterator(); i.hasNext(); ) {
-                    Object curr = i.next();
+                for (T curr : l) {
                     if (prev != null) x.add(new Object[] { prev, curr });
                     prev = curr;
                 }
@@ -113,9 +97,9 @@ public class CollectionUtil
 	 * @return A list containing the result of each transformation,
 	 * in the same order as the original elements.
 	 */
-	public static List map(List l, Transformation t) {
-		List m = new ArrayList(l.size());
-		for (Iterator i = new TransformingIterator(l.iterator(), t); 
+	public static <S,T> List<T> map(List<S> l, Transformation<S,T> t) {
+		List<T> m = new ArrayList<T>(l.size());
+		for (Iterator<T> i = new TransformingIterator<S,T>(l.iterator(), t); 
 			i.hasNext(); )
 		{
 			m.add(i.next());
@@ -129,9 +113,9 @@ public class CollectionUtil
 	 * @param l a possibly null list
 	 * @return a non-null list
 	 */
-	public static List nonNullList(List l) {
+	public static <T> List<T> nonNullList(List<T> l) {
 		if (l != null)
 			return l;
-		return Collections.EMPTY_LIST;
+		return Collections.<T>emptyList();
 	}
 }

@@ -102,7 +102,7 @@ public class Try_c extends Stmt_c implements Try
 	throws SemanticException
     {
         ec = (ExceptionChecker) super.exceptionCheckEnter(ec);
-        return ec.bypassChildren(this);
+        return new PruningVisitor();
     }
 
     /**
@@ -246,7 +246,7 @@ public class Try_c extends Stmt_c implements Try
         return tryBlock;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         // Add edges from the try entry to any catch blocks for Error and
         // RuntimeException.
         TypeSystem ts = v.typeSystem();

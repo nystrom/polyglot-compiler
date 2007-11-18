@@ -7,8 +7,16 @@
 
 package polyglot.frontend;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
 import polyglot.main.Report;
 import polyglot.util.InternalCompilerError;
 

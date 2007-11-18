@@ -20,7 +20,7 @@ import java.util.*;
  */
 public class Formal_c extends Term_c implements Formal
 {
-    protected LocalInstance li;
+    protected LocalDef li;
     protected Flags flags;
     protected TypeNode type;
     protected Id name;
@@ -34,10 +34,6 @@ public class Formal_c extends Term_c implements Formal
         this.flags = flags;
         this.type = type;
         this.name = name;
-    }
-
-    public boolean isDisambiguated() {
-        return li != null && li.isCanonical() && super.isDisambiguated();
     }
 
     /** Get the type of the formal. */
@@ -93,12 +89,12 @@ public class Formal_c extends Term_c implements Formal
     }
 
     /** Get the local instance of the formal. */
-    public LocalInstance localInstance() {
+    public LocalDef localInstance() {
         return li;
     }
 
     /** Set the local instance of the formal. */
-    public Formal localInstance(LocalInstance li) {
+    public Formal localInstance(LocalDef li) {
         if (li == this.li) return this;
         Formal_c n = (Formal_c) copy();
 	n.li = li;
@@ -125,7 +121,7 @@ public class Formal_c extends Term_c implements Formal
     }
 
     public void addDecls(Context c) {
-        c.addVariable(li);
+        c.addVariable(li.asType());
     }
 
     /** Write the formal to an output file. */
@@ -142,22 +138,13 @@ public class Formal_c extends Term_c implements Formal
 
         TypeSystem ts = tb.typeSystem();
 
-        LocalInstance li = ts.localInstance(position(), flags(),
-                                            ts.unknownType(position()), name());
-
-        return n.localInstance(li);
-    }
-
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
-        if (li.isCanonical()) {
-            return this;
-        }
-        if (declType().isCanonical()) {
-            li.setType(declType());
-        }
+        LocalDef li = ts.localInstance(position(), flags(), type.theType(), name.id());
+        ts.symbolTable().symbol(li);
+        
+        // Formal parameters are never compile-time constants.
         li.setNotConstant();
 
-        return this;
+        return n.localInstance(li);
     }
 
     /** Type check the formal. */
@@ -165,7 +152,7 @@ public class Formal_c extends Term_c implements Formal
         // Check if the variable is multiply defined.
         Context c = tc.context();
 
-        LocalInstance outerLocal = null;
+        LocalType outerLocal = null;
 
         try {
             outerLocal = c.findLocal(li.name());
@@ -197,7 +184,7 @@ public class Formal_c extends Term_c implements Formal
         return type;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         v.visitCFG(type, this, EXIT);        
         return succs;
     }

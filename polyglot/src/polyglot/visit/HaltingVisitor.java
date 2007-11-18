@@ -7,9 +7,9 @@
 
 package polyglot.visit;
 
-import polyglot.ast.Node;
-import polyglot.util.*;
 import java.util.*;
+
+import polyglot.ast.Node;
 
 /**
  * A HaltingVisitor is used to prune the traversal of the AST at a

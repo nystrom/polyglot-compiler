@@ -8,7 +8,7 @@
 
 package polyglot.ast;
 
-import polyglot.types.CodeInstance;
+import polyglot.types.CodeDef;
 
 /**
  * A code node.  A "code" is the supertype of methods,
@@ -20,5 +20,5 @@ public interface CodeNode extends Term
     Term codeBody();
 
     /** The CodeInstance of the method, constructor, or initializer. */
-    CodeInstance codeInstance();
+    CodeDef codeInstance();
 }

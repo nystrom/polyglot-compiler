@@ -11,7 +11,6 @@ import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
 import polyglot.frontend.Job;
 import polyglot.frontend.TargetFactory;
-import polyglot.types.Context;
 import polyglot.types.TypeSystem;
 import polyglot.util.CodeWriter;
 import polyglot.util.InternalCompilerError;
@@ -34,16 +33,6 @@ public class TypedTranslator extends Translator {
     public void print(Node parent, Node child, CodeWriter w) {
         if (context == null) {
             throw new InternalCompilerError("Null context found during type-directed code generation.", child.position());
-        }
-        
-        if (parent != null && 
-                (! parent.isDisambiguated() || ! parent.isTypeChecked())) {
-            throw new InternalCompilerError("Untyped AST node found during type-directed code generation.", parent.position());
-        }
-        
-        if (child != null && 
-                (! child.isDisambiguated() || ! child.isTypeChecked())) {
-            throw new InternalCompilerError("Untyped AST node found during type-directed code generation.", child.position());
         }
         
         super.print(parent, child, w);

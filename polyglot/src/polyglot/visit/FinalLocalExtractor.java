@@ -17,10 +17,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import polyglot.ast.*;
-import polyglot.ast.Node;
-import polyglot.ast.NodeFactory;
 import polyglot.frontend.Job;
-import polyglot.types.LocalInstance;
+import polyglot.types.LocalDef;
 import polyglot.types.TypeSystem;
 
 /**
@@ -65,7 +63,7 @@ public class FinalLocalExtractor extends NodeVisitor {
     public NodeVisitor enter(Node parent, Node n) {
         if (n instanceof Formal) {
             Formal d = (Formal) n;
-            LocalInstance li = d.localInstance();
+            LocalDef li = d.localInstance();
             if (! li.flags().isFinal()) {
                 li.setFlags(li.flags().Final());
             }
@@ -75,7 +73,7 @@ public class FinalLocalExtractor extends NodeVisitor {
         }
         if (n instanceof LocalDecl) {
             LocalDecl d = (LocalDecl) n;
-            LocalInstance li = d.localInstance();
+            LocalDef li = d.localInstance();
             if (! li.flags().isFinal()) {
                 li.setFlags(li.flags().Final());
             }
@@ -87,10 +85,10 @@ public class FinalLocalExtractor extends NodeVisitor {
             Unary u = (Unary) n;
             if (u.expr() instanceof Local) {
                 Local l = (Local) u.expr();
-                LocalInstance li = l.localInstance().orig();
+                LocalDef li = l.localInstance().def();
                 if (u.operator() == Unary.PRE_DEC || u.operator() == Unary.POST_DEC ||
                     u.operator() == Unary.PRE_INC || u.operator() == Unary.POST_INC) {
-                    if (! isFinal.contains(li.orig())) {
+                    if (! isFinal.contains(li)) {
                         li.setFlags(li.flags().clearFinal());
                     }
                 }
@@ -99,7 +97,7 @@ public class FinalLocalExtractor extends NodeVisitor {
         if (n instanceof Assign) {
             Assign a = (Assign) n;
             if (a.left() instanceof Local) {
-                LocalInstance li = ((Local) a.left()).localInstance().orig();
+                LocalDef li = ((Local) a.left()).localInstance().def();
                 if (! isFinal.contains(li)) {
                     li.setFlags(li.flags().clearFinal());
                 }

@@ -25,41 +25,41 @@ public interface ReferenceType extends Type
      * @return A list of <code>Type</code>.
      * @see polyglot.types.Type
      */
-    List interfaces();
+    List<Type> interfaces();
 
     /**
      * Return a list of a all the type's members.
      * @return A list of <code>MemberInstance</code>.
-     * @see polyglot.types.MemberInstance
+     * @see polyglot.types.MemberDef
      */
-    List members();
+    List<MemberType> members();
     
     /**
      * Return the type's fields.
      * @return A list of <code>FieldInstance</code>.
-     * @see polyglot.types.FieldInstance
+     * @see polyglot.types.FieldDef
      */
-    List fields();
+    List<FieldType> fields();
+    
+    /**
+     * Return the field named <code>name</code>, or null.
+     */
+    FieldType fieldNamed(String name);
 
     /**
      * Return the type's methods.
      * @return A list of <code>MethodInstance</code>.
-     * @see polyglot.types.MethodInstance
+     * @see polyglot.types.MethodDef
      */
-    List methods();
-
-    /**
-     * Return the field named <code>name</code>, or null.
-     */
-    FieldInstance fieldNamed(String name);
+    List<MethodType> methods();
 
     /**
      * Return the methods named <code>name</code>, if any.
      * @param name Name of the method to search for.
      * @return A list of <code>MethodInstance</code>.
-     * @see polyglot.types.MethodInstance
+     * @see polyglot.types.MethodDef
      */
-    List methodsNamed(String name);
+    List<MethodType> methodsNamed(String name);
 
     /**
      * Return the methods named <code>name</code> with the given formal
@@ -68,17 +68,12 @@ public interface ReferenceType extends Type
      * @param argTypes A list of <code>Type</code>.
      * @return A list of <code>MethodInstance</code>.
      * @see polyglot.types.Type
-     * @see polyglot.types.MethodInstance
+     * @see polyglot.types.MethodDef
      */
-    List methods(String name, List argTypes);
+    List<MethodType> methods(String name, List<Type> argTypes);
 
     /**
      * Return the true if the type has the given method.
      */
-    boolean hasMethod(MethodInstance mi);
-
-    /**
-     * Return the true if the type has the given method.
-     */
-    boolean hasMethodImpl(MethodInstance mi);
+    boolean hasMethod(MethodType mi);
 }

@@ -7,6 +7,7 @@
 
 package polyglot.ast;
 
+import polyglot.types.Ref;
 import polyglot.types.TypeSystem;
 import polyglot.types.Qualifier;
 import polyglot.types.SemanticException;
@@ -19,5 +20,5 @@ import polyglot.types.SemanticException;
 public interface QualifierNode extends Prefix
 {
     /** The qualifier type object. */
-    Qualifier qualifier();
+    Ref<? extends Qualifier> qualifier();
 }

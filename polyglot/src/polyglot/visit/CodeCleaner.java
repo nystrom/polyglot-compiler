@@ -7,8 +7,9 @@
 
 package polyglot.visit;
 
-import polyglot.ast.*;
 import java.util.*;
+
+import polyglot.ast.*;
 
 /**
  * The <code>CodeCleaner</code> runs over the AST and performs some trivial
@@ -46,7 +47,7 @@ public class CodeCleaner extends NodeVisitor {
 
       Block b = (Block)l.statement();
       if ( b.statements().size() != 1 ) {
-	if ( labelRefs(b).contains(l.label()) ) {
+	if ( labelRefs(b).contains(l.labelNode().id()) ) {
 	  return n;
 	}
 
@@ -57,7 +58,7 @@ public class CodeCleaner extends NodeVisitor {
 
       // Alpha-rename local decls in the block that we're flattening.
       b = (Block)b.visit(alphaRen);
-      return nf.Labeled( l.position(), l.label(),
+      return nf.Labeled( l.position(), l.labelNode(),
                          (Stmt)b.statements().get(0) );
     }
 
@@ -113,12 +114,12 @@ public class CodeCleaner extends NodeVisitor {
   /**
    * Traverses a Block and determines the set of label references.
    **/
-  protected Set labelRefs( Block b ) {
-    final Set result = new HashSet();
+  protected Set<String> labelRefs( Block b ) {
+    final Set<String> result = new HashSet();
     b.visit( new NodeVisitor() {
 	public Node leave( Node old, Node n, NodeVisitor v ) {
 	  if ( n instanceof Branch ) {
-	    result.add( ((Branch)n).label() );
+	    result.add( ((Branch)n).labelNode().id() );
 	  }
 
 	  return n;

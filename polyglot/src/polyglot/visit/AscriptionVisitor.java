@@ -8,10 +8,8 @@
 package polyglot.visit;
 
 import polyglot.ast.*;
-import polyglot.types.*;
-import polyglot.util.*;
 import polyglot.frontend.Job;
-import java.util.*;
+import polyglot.types.*;
 
 /** Visitor which allows type information to be utilized to perform AST 
     modifications.  

@@ -28,7 +28,7 @@ import java.util.*;
  *
  * This is a poor substitute for PolyJ.
  **/
-public class TypedList implements List, java.io.Serializable, Cloneable
+public class TypedList<T> implements List<T>, java.io.Serializable, Cloneable
 {
   static final long serialVersionUID = -1390984392613203018L;
 
@@ -40,10 +40,10 @@ public class TypedList implements List, java.io.Serializable, Cloneable
    * null, no typing restriction is made.  If <immutable> is true, no
    * modifications are allowed.
    **/
-  public static TypedList copy(List list, Class c, boolean immutable) {
+  public static <T> TypedList<T> copy(List<T> list, Class<? super T> c, boolean immutable) {
     if (list == null)
       return null;
-    return new TypedList(new ArrayList(list), c, immutable);
+    return new TypedList<T>(new ArrayList<T>(list), c, immutable);
   }
 
   /**
@@ -55,7 +55,7 @@ public class TypedList implements List, java.io.Serializable, Cloneable
    * Throws an UnsupportedOperationException if any member of <list>
    * may not be cast to class <c>.
    **/
-  public static TypedList copyAndCheck(List list, Class c, boolean immutable) {
+  public static <T> TypedList<T> copyAndCheck(List<T> list, Class<? super T> c, boolean immutable) {
     if (c != null)
       check(list,c);
     return copy(list,c,immutable);
@@ -65,11 +65,11 @@ public class TypedList implements List, java.io.Serializable, Cloneable
    * Throws an UnsupportedOperationException if any member of <list>
    * may not be cast to class <c>. Otherwise does nothing.
    **/
-  public static void check(List list, Class c) {
+  public static <T> void check(List<T> list, Class<? super T> c) {
     if (list == null)
       return;
-    for (Iterator i = list.iterator(); i.hasNext(); ) {
-      Object o = i.next();
+    for (Iterator<T> i = list.iterator(); i.hasNext(); ) {
+      T o = i.next();
       if (o != null && !c.isAssignableFrom(o.getClass())) {
 	throw new UnsupportedOperationException(
 		     "Tried to add a " + o.getClass().getName() +
@@ -87,7 +87,7 @@ public class TypedList implements List, java.io.Serializable, Cloneable
    * restriction is made.  If <immutable> is true, no modifications
    * are allowed.
    **/
-  public TypedList(List list, Class c, boolean immutable) {
+  public TypedList(List<T> list, Class<? super T> c, boolean immutable) {
     this.immutable = immutable;
     this.allowed_type = c;
     this.backing_list = list;
@@ -96,21 +96,21 @@ public class TypedList implements List, java.io.Serializable, Cloneable
   /**
    * Gets the allowed type for this list.
    **/
-  public Class getAllowedType(){
+  public Class<? super T> getAllowedType(){
     return allowed_type;
   }
 
   /**
    * Copies this list.
    **/
-  public TypedList copy() {
-      return (TypedList) clone();
+  public TypedList<T> copy() {
+      return (TypedList<T>) clone();
   }
 
   public Object clone() {
       try {
-          TypedList l = (TypedList) super.clone();
-          l.backing_list = new ArrayList(backing_list);
+          TypedList<T> l = (TypedList<T>) super.clone();
+          l.backing_list = new ArrayList<T>(backing_list);
           return l;
       }
       catch (CloneNotSupportedException e) {
@@ -118,33 +118,33 @@ public class TypedList implements List, java.io.Serializable, Cloneable
       }
   }
 
-  public void add(int idx, Object o) {
+  public void add(int idx, T o) {
     tryIns(o);
     backing_list.add(idx,o);
   }
-  public boolean add(Object o) {
+  public boolean add(T o) {
     tryIns(o);
     return backing_list.add(o);
   }
-  public boolean addAll(int idx, Collection coll) {
+  public boolean addAll(int idx, Collection<? extends T> coll) {
     tryIns(coll);
     return backing_list.addAll(idx, coll);
   }
-  public boolean addAll(Collection coll) {
+  public boolean addAll(Collection<? extends T> coll) {
     tryIns(coll);
     return backing_list.addAll(coll);
   }
-  public ListIterator listIterator() {
-    return new TypedListIterator(backing_list.listIterator(),
+  public ListIterator<T> listIterator() {
+    return new TypedListIterator<T>(backing_list.listIterator(),
 				 allowed_type,
 				 immutable);
   }
-  public ListIterator listIterator(int idx) {
-    return new TypedListIterator(backing_list.listIterator(idx),
+  public ListIterator<T> listIterator(int idx) {
+    return new TypedListIterator<T>(backing_list.listIterator(idx),
 				 allowed_type,
 				 immutable);
   }
-  public Object set(int idx, Object o) {
+  public T set(int idx, T o) {
     tryIns(o);
     return backing_list.set(idx, o);
   }
@@ -161,7 +161,7 @@ public class TypedList implements List, java.io.Serializable, Cloneable
     { return backing_list.containsAll(coll); }
   public boolean equals(Object o)
     { return backing_list.equals(o); }
-  public Object get(int idx)
+  public T get(int idx)
     { return backing_list.get(idx); }
   public int hashCode()
     { return backing_list.hashCode(); }
@@ -169,11 +169,11 @@ public class TypedList implements List, java.io.Serializable, Cloneable
     { return backing_list.indexOf(o); }
   public boolean isEmpty()
     { return backing_list.isEmpty(); }
-  public Iterator iterator()
+  public Iterator<T> iterator()
     { return listIterator(); }
   public int lastIndexOf(Object o)
     { return backing_list.lastIndexOf(o); }
-  public Object remove(int idx)
+  public T remove(int idx)
     { tryMod(); return backing_list.remove(idx); }
   public boolean remove(Object o)
     { tryMod(); return backing_list.remove(o); }
@@ -185,12 +185,12 @@ public class TypedList implements List, java.io.Serializable, Cloneable
     { return backing_list.size(); }
   public Object[] toArray() 
     { return backing_list.toArray(); }
-  public Object[] toArray(Object[] oa)
+  public <S> S[] toArray(S[] oa)
     { return backing_list.toArray(oa); }
   public String toString()
     { return backing_list.toString(); }
 
-  private final void tryIns(Object o) {
+  private final void tryIns(T o) {
     if (immutable) 
       throw new UnsupportedOperationException(
 			         "Add to an immutable TypedListIterator");
@@ -203,13 +203,13 @@ public class TypedList implements List, java.io.Serializable, Cloneable
     }    
   }
 
-  private final void tryIns(Collection coll) {
+  private final void tryIns(Collection<? extends T> coll) {
     if (immutable) 
       throw new UnsupportedOperationException(
 			         "Add to an immutable TypedListIterator");
     
-    for (Iterator it = coll.iterator(); it.hasNext(); ) {
-      Object o = it.next();
+    for (Iterator<? extends T> it = coll.iterator(); it.hasNext(); ) {
+      T o = it.next();
       tryIns(o);
     }
   }
@@ -221,8 +221,8 @@ public class TypedList implements List, java.io.Serializable, Cloneable
   }
 
   // RI: allowed_type may be null.
-  private Class allowed_type;
+  private Class<? super T> allowed_type;
   private boolean immutable;
-  private List backing_list;
+  private List<T> backing_list;
 }
 

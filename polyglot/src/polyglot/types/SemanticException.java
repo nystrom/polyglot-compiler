@@ -7,9 +7,8 @@
 
 package polyglot.types;
 
-import polyglot.util.Position;
 import polyglot.main.Report;
-import java.util.*;
+import polyglot.util.Position;
 
 /**
  * Thrown during any number of phases of the compiler during which a semantic

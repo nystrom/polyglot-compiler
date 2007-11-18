@@ -22,12 +22,12 @@ import java.util.Iterator;
  *
  *     Does not support Remove.
  **/
-public final class ConcatenatedIterator implements Iterator {
+public final class ConcatenatedIterator<T> implements Iterator<T> {
   /**
    * Constructs a new ConcatenatedIterator which yields all of the
    * elements of <iter1>, followed by all the elements of <iter2>.
    **/
-  public ConcatenatedIterator(Iterator iter1, Iterator iter2) {
+  public ConcatenatedIterator(Iterator<? extends T> iter1, Iterator<? extends T> iter2) {
     this(new Iterator[]{iter1, iter2});
   }
 
@@ -44,13 +44,13 @@ public final class ConcatenatedIterator implements Iterator {
    * Constructs a new ConcatenatedIterator which yields every element, in
    * order, of every element of the collection iters, in order.
    **/
-  public ConcatenatedIterator(java.util.Collection iters) {
+  public ConcatenatedIterator(java.util.Collection<Iterator<? extends T>> iters) {
     this.backing_iterators = (Iterator[])iters.toArray(new Iterator[0]);
     findNextItem();
   }
 
-  public Object next() {
-    Object res = next_item;
+  public T next() {
+    T res = next_item;
     if (res == null)
       throw new java.util.NoSuchElementException();
     findNextItem();
@@ -68,7 +68,7 @@ public final class ConcatenatedIterator implements Iterator {
   // Advances the internal iterator.
   private void findNextItem() {
     while(index < backing_iterators.length) {
-      Iterator it = backing_iterators[index];
+      Iterator<? extends T> it = backing_iterators[index];
       if (it.hasNext()) {
 	next_item = it.next();
 	return;
@@ -83,7 +83,7 @@ public final class ConcatenatedIterator implements Iterator {
   //      otherwise, this iterator will yield next_item, followed by the 
   //      remaining elements of backing_iterators[index], followed by the
   //      elements of backing_iterators[index+1]...
-  protected Object next_item;
+  protected T next_item;
   protected Iterator[] backing_iterators;
   protected int index;
 }

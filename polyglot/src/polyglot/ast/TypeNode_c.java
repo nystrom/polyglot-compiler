@@ -21,28 +21,28 @@ import polyglot.visit.*;
  */
 public abstract class TypeNode_c extends Term_c implements TypeNode
 {
-    protected Type type;
+    protected Ref<? extends Type> type;
 
     public TypeNode_c(Position pos) {
-	super(pos);
+    	super(pos);
     }
     
-    public boolean isDisambiguated() {
-        return super.isDisambiguated() && type != null && type.isCanonical();
-    }
-
     /** Get the type as a qualifier. */
-    public Qualifier qualifier() {
-        return type();
+    public Ref<? extends Qualifier> qualifier() {
+        return theType();
     }
 
     /** Get the type this node encapsulates. */
-    public Type type() {
+    public Ref<? extends Type> theType() {
 	return this.type;
     }
 
+    public Type type() {
+        return TypeObject_c.get(this.type);
+    }
+
     /** Set the type this node encapsulates. */
-    public TypeNode type(Type type) {
+    public TypeNode type(Ref<? extends Type> type) {
 	TypeNode_c n = (TypeNode_c) copy();
 	n.type = type;
 	return n;
@@ -51,7 +51,7 @@ public abstract class TypeNode_c extends Term_c implements TypeNode
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         if (type == null) {
             TypeSystem ts = tb.typeSystem();
-            return type(ts.unknownType(position()));
+            return type(new ErrorRef_c<Type>(ts, position()));
         }
         else {
             return this;
@@ -62,7 +62,7 @@ public abstract class TypeNode_c extends Term_c implements TypeNode
         return null;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         return succs;
     }
 

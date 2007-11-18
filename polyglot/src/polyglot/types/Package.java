@@ -13,12 +13,12 @@ import polyglot.util.CodeWriter;
 /**
  * An <code>Package</code> represents a Java package.
  */
-public interface Package extends Qualifier, Named, Declaration
+public interface Package extends Qualifier, Named, Def
 {
     /**
      * The package's outer package.
      */
-    Package prefix();
+    Ref<? extends Package> prefix();
 
     /**
      * Return a string that is the translation of this package.

@@ -9,7 +9,7 @@ package polyglot.ast;
 
 import polyglot.types.Type;
 import polyglot.types.Flags;
-import polyglot.types.LocalInstance;
+import polyglot.types.LocalDef;
 import polyglot.types.SemanticException;
 
 /**
@@ -29,14 +29,11 @@ public interface VarDecl extends Term
 
     /** Get the declaration's name. */
     Id id();
-    
-    /** Get the declaration's name. */
-    String name();
 
     /**
      * Get the type object for the local we are declaring.  This field may
      * not be valid until after signature disambiguation.
      */
-    LocalInstance localInstance();
+    LocalDef localInstance();
 
 }

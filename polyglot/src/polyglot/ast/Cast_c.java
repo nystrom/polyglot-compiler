@@ -134,15 +134,15 @@ public class Cast_c extends Expr_c implements Cast
         return expr;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         v.visitCFG(expr, castType, ENTRY);
         v.visitCFG(castType, this, EXIT);
         return succs;
     }
 
-    public List throwTypes(TypeSystem ts) {
+    public List<Type> throwTypes(TypeSystem ts) {
         if (expr.type().isReference()) {
-            return Collections.singletonList(ts.ClassCastException());
+            return Collections.<Type>singletonList(ts.ClassCastException());
         }
 
         return Collections.EMPTY_LIST;

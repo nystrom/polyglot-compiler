@@ -8,8 +8,9 @@
 package polyglot.ast;
 
 import java.util.List;
+
+import polyglot.types.ClassDef;
 import polyglot.types.Flags;
-import polyglot.types.ParsedClassType;
 
 /**
  * A <code>ClassDecl</code> represents a top-level, member, or local class
@@ -20,12 +21,12 @@ public interface ClassDecl extends Term, TopLevelDecl, ClassMember
     /**
      * The type of the class declaration.
      */
-    ParsedClassType type();
+    ClassDef type();
 
     /**
      * Set the type of the class declaration.
      */
-    ClassDecl type(ParsedClassType type);
+    ClassDecl type(ClassDef type);
 
     /**
      * The class declaration's flags.
@@ -46,16 +47,6 @@ public interface ClassDecl extends Term, TopLevelDecl, ClassMember
      * Set the class declaration's name.
      */
     ClassDecl id(Id name);
-    
-    /**
-     * The class declaration's name.
-     */
-    String name();
-
-    /**
-     * Set the class declaration's name.
-     */
-    ClassDecl name(String name);
 
     /**
      * The class's super class.
@@ -71,13 +62,13 @@ public interface ClassDecl extends Term, TopLevelDecl, ClassMember
      * The class's interface list.
      * @return A list of {@link polyglot.ast.TypeNode TypeNode}.
      */
-    List interfaces();
+    List<TypeNode> interfaces();
 
     /**
      * Set the class's interface list.
      * @param interfaces A list of {@link polyglot.ast.TypeNode TypeNode}.
      */
-    ClassDecl interfaces(List interfaces);
+    ClassDecl interfaces(List<TypeNode> interfaces);
 
     /**
      * The class's body.

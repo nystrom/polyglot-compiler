@@ -12,7 +12,6 @@ import java.util.*;
 import polyglot.main.Report;
 import polyglot.util.CollectionUtil;
 import polyglot.util.StringUtil;
-import polyglot.util.InternalCompilerError;
 
 /**
  * Loads member classes using a TopLevelResolver that can only handle

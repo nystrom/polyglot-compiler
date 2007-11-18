@@ -7,14 +7,8 @@
 
 package polyglot.types;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import polyglot.frontend.*;
-import polyglot.frontend.goals.*;
-import polyglot.main.Report;
-import polyglot.types.*;
-import polyglot.util.InternalCompilerError;
+import polyglot.frontend.Job;
+import polyglot.frontend.Scheduler;
 
 /**
  * A LazyClassInitializer is responsible for initializing members of a class
@@ -26,8 +20,9 @@ import polyglot.util.InternalCompilerError;
  */
 public class SchedulerClassInitializer implements LazyClassInitializer {
     protected TypeSystem ts;
-    protected ParsedClassType ct;
+    protected ClassDef ct;
     protected Scheduler scheduler;
+    protected Job job;
 
     protected boolean init;
     protected boolean superclassInitialized;
@@ -45,7 +40,7 @@ public class SchedulerClassInitializer implements LazyClassInitializer {
         this.scheduler = ts.extensionInfo().scheduler();
     }
     
-    public void setClass(ParsedClassType ct) {
+    public void setClass(ClassDef ct) {
         this.ct = ct;
     }
 
@@ -62,101 +57,101 @@ public class SchedulerClassInitializer implements LazyClassInitializer {
     }
 
     public void initSuperclass() {
-        if (!superclassInitialized) {
-            if (ct.supertypesResolved()) {
-                this.superclassInitialized = true;
-            }
-            else {
-                throw new MissingDependencyException(scheduler.SupertypesResolved(ct));
-            }
-        }
+//        if (!superclassInitialized) {
+//            if (ct.supertypesResolved()) {
+//                this.superclassInitialized = true;
+//            }
+//            else {
+//                scheduler.runPass(scheduler.SupertypesResolved(ct));
+//            }
+//        }
     }
 
     public void initInterfaces() {
-        if (!interfacesInitialized) {
-            if (ct.supertypesResolved()) {
-                this.interfacesInitialized = true;
-            }
-            else {
-                throw new MissingDependencyException(scheduler.SupertypesResolved(ct));
-            }
-        }
+//        if (!interfacesInitialized) {
+//            if (ct.supertypesResolved()) {
+//                this.interfacesInitialized = true;
+//            }
+//            else {
+//                scheduler.runPass(scheduler.SupertypesResolved(ct));
+//            }
+//        }
     }
 
     public void initMemberClasses() {
-        if (!memberClassesInitialized) {
-            if (ct.membersAdded()) {
-                this.memberClassesInitialized = true;
-            }
-            else {
-                throw new MissingDependencyException(scheduler.MembersAdded(ct));
-            }
-        }
+//        if (!memberClassesInitialized) {
+//            if (ct.membersAdded()) {
+//                this.memberClassesInitialized = true;
+//            }
+//            else {
+//                scheduler.runPass(scheduler.MembersAdded(ct));
+//            }
+//        }
     }
 
     public void canonicalConstructors() {
-        if (!constructorsCanonicalized) {
-            if (ct.signaturesResolved()) {
-                this.constructorsCanonicalized = true;
-            }
-            else {
-                throw new MissingDependencyException(scheduler.SignaturesResolved(ct));
-            }
-        }
+//        if (!constructorsCanonicalized) {
+//            if (ct.signaturesResolved()) {
+//                this.constructorsCanonicalized = true;
+//            }
+//            else {
+//                scheduler.runPass(scheduler.SignaturesResolved(ct));
+//            }
+//        }
     }
 
     public void canonicalMethods() {
-        if (!methodsCanonicalized) {
-            if (ct.signaturesResolved()) {
-                this.methodsCanonicalized = true;
-            }
-            else {
-                throw new MissingDependencyException(scheduler.SignaturesResolved(ct));
-            }
-        }
+//        if (!methodsCanonicalized) {
+//            if (ct.signaturesResolved()) {
+//                this.methodsCanonicalized = true;
+//            }
+//            else {
+//                scheduler.runPass(scheduler.SignaturesResolved(ct));
+//            }
+//        }
     }
 
     public void canonicalFields() {
-        if (!fieldsCanonicalized) {
-            if (ct.signaturesResolved()) {
-                this.fieldsCanonicalized = true;
-            }
-            else {
-                throw new MissingDependencyException(scheduler.SignaturesResolved(ct));
-            }
-        }
+//        if (!fieldsCanonicalized) {
+//            if (ct.signaturesResolved()) {
+//                this.fieldsCanonicalized = true;
+//            }
+//            else {
+//                scheduler.runPass(scheduler.SignaturesResolved(ct));
+//            }
+//        }
     }
     
     public void initConstructors() {
-        if (!constructorsInitialized) {
-            if (ct.membersAdded()) {
-                this.constructorsInitialized = true;
-            }
-            else {
-                throw new MissingDependencyException(scheduler.MembersAdded(ct));
-            }
-        }
+//        if (!constructorsInitialized) {
+//            if (ct.membersAdded()) {
+//                this.constructorsInitialized = true;
+//            }
+//            else {
+//                scheduler.runPass(scheduler.MembersAdded(ct));
+//            }
+//        }
     }
 
     public void initMethods() {
-        if (!methodsInitialized) {
-            if (ct.membersAdded()) {
-                this.methodsInitialized = true;
-            }
-            else {
-                throw new MissingDependencyException(scheduler.MembersAdded(ct));
-            }
-        }
+//        if (!methodsInitialized) {
+//            if (ct.membersAdded()) {
+//                this.methodsInitialized = true;
+//            }
+//            else {
+//                scheduler.runPass(scheduler.MembersAdded(ct));
+//            }
+//        }
     }
 
     public void initFields() {
-        if (!fieldsInitialized) {
-            if (ct.membersAdded()) {
-                this.fieldsInitialized = true;
-            }
-            else {
-                throw new MissingDependencyException(scheduler.MembersAdded(ct));
-            }
-        }
+//        if (!fieldsInitialized) {
+//            if (ct.membersAdded()) {
+//                this.fieldsInitialized = true;
+//            }
+//            else {
+//                scheduler.runPass(scheduler.MembersAdded(ct));
+//            }
+//        }
     }
 }

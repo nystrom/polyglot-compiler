@@ -8,12 +8,10 @@
 package polyglot.visit;
 
 import polyglot.ast.*;
-import polyglot.types.*;
 import polyglot.frontend.ExtensionInfo;
-import polyglot.util.*;
+import polyglot.types.*;
 import polyglot.types.Package;
-
-import java.util.*;
+import polyglot.util.InternalCompilerError;
 
 /**
  * This visitor overwrites all extension object refs with null,
@@ -113,9 +111,9 @@ public class ExtensionCleaner extends NodeVisitor {
             }
         }
 
-        // Must be an AmbTypeNode
+        // Must be an ambiguous TypeNode
 
-        if (t != null && t.isCanonical()) {
+        if (t != null) {
             if (t.typeSystem() == ts) {
                 return nf.CanonicalTypeNode(n.position(), t);
             }
@@ -127,14 +125,14 @@ public class ExtensionCleaner extends NodeVisitor {
     }
 
     protected PackageNode convert(PackageNode n) {
-        Package p = n.package_();
+        Package p = TypeObject_c.get(n.package_());
 
-        if (p != null && p.isCanonical()) {
+        if (p != null) {
             if (p.typeSystem() == ts) {
-                return nf.PackageNode(n.position(), p);
+                return nf.PackageNode(n.position(), Ref_c.ref(p));
             }
         }
                   
-        return nf.PackageNode(n.position(), ts.createPackage(n.toString()));
+        return nf.PackageNode(n.position(), Ref_c.ref(ts.createPackage(n.toString())));
     }
 }

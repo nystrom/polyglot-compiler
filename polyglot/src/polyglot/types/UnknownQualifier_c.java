@@ -7,9 +7,6 @@
 
 package polyglot.types;
 
-import polyglot.types.*;
-import polyglot.types.Package;
-import polyglot.util.Position;
 
 /**
  * An unknown type qualifier.  This is used as a place-holder until types
@@ -21,7 +18,6 @@ public class UnknownQualifier_c extends TypeObject_c implements UnknownQualifier
         super(ts);
     }
 
-    public boolean isCanonical() { return false; }
     public boolean isPackage() { return false; }
     public boolean isType() { return false; }
 

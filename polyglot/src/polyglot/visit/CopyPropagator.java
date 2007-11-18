@@ -7,13 +7,13 @@
 
 package polyglot.visit;
 
+import java.util.*;
+
 import polyglot.ast.*;
 import polyglot.frontend.Job;
 import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.util.InternalCompilerError;
-
-import java.util.*;
 
 /**
  * Visitor which performs copy propagation.
@@ -45,19 +45,19 @@ public class CopyPropagator extends DataFlow {
 	    for (Iterator it = dfi.map.entrySet().iterator(); it.hasNext(); ) {
 		Map.Entry e = (Map.Entry)it.next();
 
-		LocalInstance li = (LocalInstance)e.getKey();
+		LocalDef li = (LocalDef)e.getKey();
 		CopyInfo ci = (CopyInfo)e.getValue();
 		if (ci.from != null) add(ci.from.li, li);
 	    }
 	}
 
 	protected static class CopyInfo {
-	    final public LocalInstance li; // Local instance this node pertains to.
+	    final public LocalDef li; // Local instance this node pertains to.
 	    public CopyInfo from;    // In edge.
 	    public Set to;	      // Out edges.
 	    public CopyInfo root;    // Root CopyInfo node for this tree.
 
-	    protected CopyInfo(LocalInstance li) {
+	    protected CopyInfo(LocalDef li) {
 		if (li == null) {
 		    throw new InternalCompilerError("Null local instance "
 			+ "encountered during copy propagation.");
@@ -98,7 +98,7 @@ public class CopyPropagator extends DataFlow {
 	    }
 	}
 
-	protected void add(LocalInstance from, LocalInstance to) {
+	protected void add(LocalDef from, LocalDef to) {
 	    // Get the 'to' node.
 	    boolean newTo = !map.containsKey(to);
 	    CopyInfo ciTo;
@@ -142,7 +142,7 @@ public class CopyPropagator extends DataFlow {
 
 	    for (Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
 		Map.Entry e = (Map.Entry)it.next();
-		LocalInstance li = (LocalInstance)e.getKey();
+		LocalDef li = (LocalDef)e.getKey();
 		CopyInfo ci = (CopyInfo)e.getValue();
 
 		if (!dfi.map.containsKey(li)) {
@@ -200,7 +200,7 @@ public class CopyPropagator extends DataFlow {
 	    }
 	}
 
-	public void kill(LocalInstance var) {
+	public void kill(LocalDef var) {
 	    if (!map.containsKey(var)) return;
 
 	    CopyInfo ci = (CopyInfo)map.get(var);
@@ -219,7 +219,7 @@ public class CopyPropagator extends DataFlow {
 	    }
 	}
 
-	public LocalInstance getRoot(LocalInstance var) {
+	public LocalDef getRoot(LocalDef var) {
 	    if (!map.containsKey(var)) return null;
 	    return ((CopyInfo)map.get(var)).root.li;
 	}
@@ -233,7 +233,7 @@ public class CopyPropagator extends DataFlow {
 	    for (Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
 		Map.Entry e = (Map.Entry)it.next();
 
-		LocalInstance li = (LocalInstance)e.getKey();
+		LocalDef li = (LocalDef)e.getKey();
 		CopyInfo ci = (CopyInfo)e.getValue();
 
 		if (li != ci.li) die();
@@ -332,11 +332,11 @@ public class CopyPropagator extends DataFlow {
 	    Expr right = n.right();
 
 	    if (left instanceof Local) {
-		LocalInstance to = ((Local)left).localInstance().orig();
+		LocalDef to = ((Local)left).localInstance().def();
 		result.kill(to);
 
 		if (right instanceof Local && op == Assign.ASSIGN) {
-		    LocalInstance from = ((Local)right).localInstance().orig();
+		    LocalDef from = ((Local)right).localInstance().def();
 		    result.add(from, to);
 		}
 	    }
@@ -349,12 +349,12 @@ public class CopyPropagator extends DataFlow {
 		|| op == Unary.POST_DEC || op == Unary.PRE_INC
 		|| op == Unary.PRE_DEC)) {
 
-		result.kill(((Local)expr).localInstance().orig());
+		result.kill(((Local)expr).localInstance().def());
 	    }
 	} else if (t instanceof LocalDecl) {
 	    LocalDecl n = (LocalDecl)t;
 
-	    LocalInstance to = n.localInstance();
+	    LocalDef to = n.localInstance();
 	    result.kill(to);
 
 	    // It's a copy if we're initializing a non-final local declaration
@@ -362,7 +362,7 @@ public class CopyPropagator extends DataFlow {
 	    // non-final local declarations because final locals have special
 	    // use in local classes.
 	    if (!n.flags().isFinal() && n.init() instanceof Local) {
-		LocalInstance from = ((Local)n.init()).localInstance().orig();
+		LocalDef from = ((Local)n.init()).localInstance().def();
 		result.add(from, to);
 	    }
 	} else if (t instanceof Block) {
@@ -433,9 +433,9 @@ public class CopyPropagator extends DataFlow {
 	    DataFlowItem in = (DataFlowItem)confluence(items, l, false, g);
 	    if (in == null) return n;
 
-	    LocalInstance root = in.getRoot(l.localInstance().orig());
+	    LocalDef root = in.getRoot(l.localInstance().def());
 	    if (root == null) return n;
-	    return l.name(root.name()).localInstance(root);
+	    return l.name(root.name()).localInstance(root.asType());
 	}
 
 	if (n instanceof Unary) {

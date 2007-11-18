@@ -176,7 +176,7 @@ public class NewArray_c extends Expr_c implements NewArray
         return baseType;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         if (init != null) {
             v.visitCFG(baseType, listChild(dims, init), ENTRY);
             v.visitCFGList(dims, init, ENTRY);
@@ -189,7 +189,7 @@ public class NewArray_c extends Expr_c implements NewArray
         return succs;
     }
     
-    public List throwTypes(TypeSystem ts) {
+    public List<Type> throwTypes(TypeSystem ts) {
         if (dims != null && !dims.isEmpty()) {
             // if dimension expressions are given, then
             // a NegativeArraySizeException may be thrown.

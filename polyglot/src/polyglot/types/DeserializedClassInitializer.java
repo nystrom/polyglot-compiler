@@ -7,10 +7,6 @@
 
 package polyglot.types;
 
-import polyglot.frontend.*;
-import polyglot.frontend.goals.*;
-import polyglot.types.*;
-import polyglot.util.InternalCompilerError;
 import java.util.Iterator;
 
 /**
@@ -20,14 +16,14 @@ import java.util.Iterator;
  */
 public class DeserializedClassInitializer implements LazyClassInitializer {
     protected TypeSystem ts;
-    protected ParsedClassType ct;
+    protected ClassDef ct;
     protected boolean init;
     
     public DeserializedClassInitializer(TypeSystem ts) {
         this.ts = ts;
     }
     
-    public void setClass(ParsedClassType ct) {
+    public void setClass(ClassDef ct) {
         this.ct = ct;
     }
 
@@ -38,12 +34,12 @@ public class DeserializedClassInitializer implements LazyClassInitializer {
     public void initTypeObject() {
         if (this.init) return;
         if (ct.isMember() && ct.outer() instanceof ParsedClassType) {
-            ParsedClassType outer = (ParsedClassType) ct.outer();
-            outer.addMemberClass(ct);
+            ClassDef outer = ct.outer().get();
+            outer.addMemberClass(Ref_c.ref(ct.asType()));
         }
         for (Iterator i = ct.memberClasses().iterator(); i.hasNext(); ) {
-            ParsedClassType ct = (ParsedClassType) i.next();
-            ct.initializer().initTypeObject();
+            ClassType ct = (ClassType) i.next();
+            ct.def().initializer().initTypeObject();
         }
         this.init = true;
     }

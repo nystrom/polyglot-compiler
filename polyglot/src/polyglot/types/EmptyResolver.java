@@ -7,7 +7,6 @@
 
 package polyglot.types;
 
-import polyglot.ast.*;
 
 /**
  * An <code>EmptyResolver</code> is a resolver that always fails.

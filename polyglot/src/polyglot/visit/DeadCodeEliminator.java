@@ -7,14 +7,14 @@
 
 package polyglot.visit;
 
+import java.util.*;
+
 import polyglot.ast.*;
 import polyglot.frontend.Job;
 import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
-
-import java.util.*;
 
 /**
  * Visitor which performs dead code elimination.  (Note that "dead code" is not
@@ -51,7 +51,7 @@ public class DeadCodeEliminator extends DataFlow {
 	    liveDecls = new HashSet(dfi.liveDecls);
 	}
 
-	public void add(LocalInstance li) {
+	public void add(LocalDef li) {
 	    liveVars.add(li);
 	    liveDecls.add(li);
 	}
@@ -61,7 +61,7 @@ public class DeadCodeEliminator extends DataFlow {
 	    liveDecls.addAll(lis);
 	}
 
-	public void remove(LocalInstance li) {
+	public void remove(LocalDef li) {
 	    liveVars.remove(li);
 	}
 
@@ -69,7 +69,7 @@ public class DeadCodeEliminator extends DataFlow {
 	    liveVars.removeAll(lis);
 	}
 
-	public void removeDecl(LocalInstance li) {
+	public void removeDecl(LocalDef li) {
 	    liveVars.remove(li);
 	    liveDecls.remove(li);
 	}
@@ -79,11 +79,11 @@ public class DeadCodeEliminator extends DataFlow {
 	    liveDecls.addAll(dfi.liveDecls);
 	}
 
-	protected boolean needDecl(LocalInstance li) {
+	protected boolean needDecl(LocalDef li) {
 	    return liveDecls.contains(li);
 	}
 
-	protected boolean needDef(LocalInstance li) {
+	protected boolean needDef(LocalDef li) {
 	    return liveVars.contains(li);
 	}
 
@@ -147,7 +147,7 @@ public class DeadCodeEliminator extends DataFlow {
 	if (t instanceof LocalDecl) {
 	    LocalDecl n = (LocalDecl)t;
 
-	    LocalInstance to = n.localInstance();
+	    LocalDef to = n.localInstance();
 	    result.removeDecl(to);
 
 	    du = getDefUse(n.init());
@@ -238,7 +238,7 @@ public class DeadCodeEliminator extends DataFlow {
 	    }
 
 	    DataFlowItem in = getItem(eval);
-	    if (in == null || in.needDef(local.localInstance().orig())) return n;
+	    if (in == null || in.needDef(local.localInstance().def())) return n;
 
 	    if (right != null) {
 		return getEffects(right);
@@ -300,11 +300,11 @@ public class DeadCodeEliminator extends DataFlow {
 
 	public Node leave(Node old, Node n, NodeVisitor v) {
 	    if (n instanceof Local) {
-		use.add(((Local)n).localInstance().orig());
+		use.add(((Local)n).localInstance().def());
 	    } else if (n instanceof Assign) {
 		Expr left = ((Assign)n).left();
 		if (left instanceof Local) {
-		    def.add(((Local)left).localInstance().orig());
+		    def.add(((Local)left).localInstance().def());
 		}
 	    }
 

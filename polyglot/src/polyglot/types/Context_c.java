@@ -8,18 +8,10 @@
 package polyglot.types;
 
 import java.util.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Collection;
-import java.util.Map;
 
-import polyglot.frontend.goals.Goal;
 import polyglot.main.Report;
-import polyglot.types.*;
-import polyglot.types.Package;
-import polyglot.util.CollectionUtil;
+import polyglot.util.*;
 import polyglot.util.Enum;
-import polyglot.util.InternalCompilerError;
 
 /**
  * This class maintains a context for looking up named variables, types,
@@ -87,8 +79,8 @@ public class Context_c implements Context
     protected ImportTable it;
     protected Kind kind;
     protected ClassType type;
-    protected ParsedClassType scope;
-    protected CodeInstance code;
+    protected ClassDef scope;
+    protected CodeDef code;
     protected Map types;
     protected Map vars;
     protected boolean inCode;
@@ -109,7 +101,7 @@ public class Context_c implements Context
 
     /** The current package, or null if not in a package. */
     public Package package_() {
-        return importTable().package_();
+        return TypeObject_c.get(importTable().package_());
     }
 
     /**
@@ -142,7 +134,7 @@ public class Context_c implements Context
      * Looks up a method with name "name" and arguments compatible with
      * "argTypes".
      */
-    public MethodInstance findMethod(String name, List argTypes) throws SemanticException {
+    public MethodType findMethod(String name, List<Type> argTypes) throws SemanticException {
         if (Report.should_report(TOPICS, 3))
           Report.report(3, "find-method " + name + argTypes + " in " + this);
 
@@ -158,7 +150,7 @@ public class Context_c implements Context
             // Found a class which has a method of the right name.
             // Now need to check if the method is of the correct type.
             return ts.findMethod(this.currentClass(),
-                                 name, argTypes, this.currentClass());
+                                 name, argTypes, this.currentClassScope());
         }
 
         if (outer != null) {
@@ -171,11 +163,11 @@ public class Context_c implements Context
     /**
      * Gets a local of a particular name.
      */
-    public LocalInstance findLocal(String name) throws SemanticException {
-	VarInstance vi = findVariableSilent(name);
+    public LocalType findLocal(String name) throws SemanticException {
+	VarType vi = findVariableSilent(name);
 
-	if (vi instanceof LocalInstance) {
-	    return (LocalInstance) vi;
+	if (vi instanceof LocalType) {
+	    return (LocalType) vi;
 	}
 
         throw new SemanticException("Local " + name + " not found.");
@@ -188,9 +180,9 @@ public class Context_c implements Context
         if (Report.should_report(TOPICS, 3))
           Report.report(3, "find-field-scope " + name + " in " + this);
 
-	VarInstance vi = findVariableInThisScope(name);
+	VarType vi = findVariableInThisScope(name);
 
-        if (vi instanceof FieldInstance) {
+        if (vi instanceof FieldType) {
             if (Report.should_report(TOPICS, 3))
               Report.report(3, "find-field-scope " + name + " in " + vi);
             return type;
@@ -227,13 +219,13 @@ public class Context_c implements Context
     /**
      * Gets a field of a particular name.
      */
-    public FieldInstance findField(String name) throws SemanticException {
-	VarInstance vi = findVariableSilent(name);
+    public FieldType findField(String name) throws SemanticException {
+	VarType vi = findVariableSilent(name);
 
-	if (vi instanceof FieldInstance) {
-	    FieldInstance fi = (FieldInstance) vi;
+	if (vi instanceof FieldType) {
+	    FieldType fi = (FieldType) vi;
 
-	    if (! ts.isAccessible(fi, this)) {
+	    if (! ts.isAccessible(fi, this.currentClassScope())) {
                 throw new SemanticException("Field " + name + " not accessible.");
 	    }
 
@@ -248,8 +240,8 @@ public class Context_c implements Context
     /**
      * Gets a local or field of a particular name.
      */
-    public VarInstance findVariable(String name) throws SemanticException {
-	VarInstance vi = findVariableSilent(name);
+    public VarType findVariable(String name) throws SemanticException {
+        VarType vi = findVariableSilent(name);
 
 	if (vi != null) {
             if (Report.should_report(TOPICS, 3))
@@ -263,11 +255,11 @@ public class Context_c implements Context
     /**
      * Gets a local or field of a particular name.
      */
-    public VarInstance findVariableSilent(String name) {
+    public VarType findVariableSilent(String name) {
         if (Report.should_report(TOPICS, 3))
           Report.report(3, "find-var " + name + " in " + this);
 
-        VarInstance vi = findVariableInThisScope(name);
+        VarType vi = findVariableInThisScope(name);
 
         if (vi != null) {
             if (Report.should_report(TOPICS, 3))
@@ -344,7 +336,7 @@ public class Context_c implements Context
      * @return A new context with a new scope and which maps the short name
      * of type to type.
      */
-    public Context pushClass(ParsedClassType classScope, ClassType type) {
+    public Context pushClass(ClassDef classScope, ClassType type) {
         if (Report.should_report(TOPICS, 4))
           Report.report(4, "push class " + classScope + " " + classScope.position());
         Context_c v = push();
@@ -386,21 +378,21 @@ public class Context_c implements Context
     /**
      * enters a method
      */
-    public Context pushCode(CodeInstance ci) {
+    public Context pushCode(CodeDef ci) {
         if (Report.should_report(TOPICS, 4))
           Report.report(4, "push code " + ci + " " + ci.position());
         Context_c v = push();
         v.kind = CODE;
         v.code = ci;
         v.inCode = true;
-        v.staticContext = ci.flags().isStatic();
+        v.staticContext = ci instanceof MemberDef && ((MemberDef) ci).flags().isStatic();
         return v;
     }
 
     /**
      * Gets the current method
      */
-    public CodeInstance currentCode() {
+    public CodeDef currentCode() {
         return code;
     }
 
@@ -436,27 +428,17 @@ public class Context_c implements Context
     /**
      * Gets current class
      */
-    public ParsedClassType currentClassScope() {
+    public ClassDef currentClassScope() {
         return scope;
     }
 
     /**
      * Adds a symbol to the current scoping level.
      */
-    public void addVariable(VarInstance vi) {
+    public void addVariable(VarType vi) {
         if (Report.should_report(TOPICS, 3))
           Report.report(3, "Adding " + vi + " to context.");
         addVariableToThisScope(vi);
-    }
-
-    /**
-     * Adds a method to the current scoping level.
-     * Actually, this does nothing now.
-     * @deprecated
-     */
-    public void addMethod(MethodInstance mi) {
-        if (Report.should_report(TOPICS, 3))
-          Report.report(3, "Adding " + mi + " to context.");
     }
 
     /**
@@ -480,7 +462,7 @@ public class Context_c implements Context
             }
             else {
                 try {
-                    return ts.findMemberClass(this.type, name, this.type);
+                    return ts.findMemberClass(this.currentClass(), name, this.currentClassScope());
                 }
                 catch (SemanticException e) {
                 }
@@ -501,14 +483,16 @@ public class Context_c implements Context
         return null;
     }
 
-    public VarInstance findVariableInThisScope(String name) {
-        VarInstance vi = null;
+    public VarType findVariableInThisScope(String name) {
+        VarType vi = null;
+        
         if (vars != null) {
-            vi = (VarInstance) vars.get(name);
+            vi = (VarType) vars.get(name);
         }
+        
         if (vi == null && isClass()) {
             try {
-                return ts.findField(this.type, name, this.type);
+                return ts.findField(this.currentClass(), name, this.currentClassScope());
             }
             catch (SemanticException e) {
                 return null;
@@ -517,7 +501,7 @@ public class Context_c implements Context
         return vi;
     }
 
-    public void addVariableToThisScope(VarInstance var) {
+    public void addVariableToThisScope(VarType var) {
         if (vars == null) vars = new HashMap();
         vars.put(var.name(), var);
     }

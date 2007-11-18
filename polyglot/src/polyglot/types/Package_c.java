@@ -7,8 +7,6 @@
 
 package polyglot.types;
 
-import polyglot.types.*;
-import polyglot.types.Package;
 import polyglot.util.CodeWriter;
 
 /**
@@ -18,7 +16,7 @@ import polyglot.util.CodeWriter;
  */
 public class Package_c extends TypeObject_c implements Package
 {
-    protected Package prefix;
+    protected Ref<? extends Package> prefix;
     protected String name;
     /**
      * The full name is computed lazily from the prefix and name.
@@ -36,11 +34,10 @@ public class Package_c extends TypeObject_c implements Package
         this(ts, null, name);
     }
 
-    public Package_c(TypeSystem ts, Package prefix, String name) {
+    public Package_c(TypeSystem ts, Ref<? extends Package> prefix, String name) {
         super(ts);
         this.prefix = prefix;
         this.name = name;
-        this.decl = this;
     }
     
     protected transient Resolver memberCache;
@@ -58,16 +55,6 @@ public class Package_c extends TypeObject_c implements Package
         return n;
     }
     
-    protected Package decl;
-    
-    public Declaration declaration() {
-        return decl;
-    }
-    
-    public void setDeclaration(Declaration decl) {
-        this.decl = (Package) decl;        
-    }
-    
     public boolean equalsImpl(TypeObject o) {
         if (o instanceof Package) {
             Package p = (Package) o;
@@ -75,7 +62,7 @@ public class Package_c extends TypeObject_c implements Package
                 if (prefix == null)
                     return p.prefix() == null;
                 else
-                    return ts.equals(prefix, p.prefix());
+                    return prefix.equals(p.prefix());
             }
         }
         return false;
@@ -90,7 +77,7 @@ public class Package_c extends TypeObject_c implements Package
             if (prefix == null)
                 return p.prefix() == null;
             else
-                return ts.packageEquals(prefix, p.prefix());
+                return ts.packageEquals(get(prefix), get(p.prefix()));
         }
         return false;
     }
@@ -100,7 +87,7 @@ public class Package_c extends TypeObject_c implements Package
     public Type toType() { return null; }
     public Package toPackage() { return this; }
 
-    public Package prefix() {
+    public Ref<? extends Package> prefix() {
 	return prefix;
     }
 
@@ -113,12 +100,12 @@ public class Package_c extends TypeObject_c implements Package
           return name();
         }
 
-        return prefix().translate(c) + "." + name();
+        return prefix().get().translate(c) + "." + name();
     }
 
     public String fullName() {
         if (fullname == null) {
-            fullname = prefix() == null ? name : prefix().fullName() + "." + name;
+            fullname = prefix() == null ? name : prefix().get().fullName() + "." + name;
         }
         return fullname;
     }
@@ -128,7 +115,7 @@ public class Package_c extends TypeObject_c implements Package
     }
     public void print(CodeWriter w) {
 	if (prefix() != null) {
-	    prefix().print(w);
+	    prefix().get().print(w);
 	    w.write(".");
 	    w.allowBreak(2, 3, "", 0);
 	}
@@ -137,9 +124,5 @@ public class Package_c extends TypeObject_c implements Package
 
     public int hashCode() {
         return name.hashCode();
-    }
-
-    public boolean isCanonical() {
-	return true;
     }
 }

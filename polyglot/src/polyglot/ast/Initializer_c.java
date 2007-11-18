@@ -28,7 +28,7 @@ public class Initializer_c extends Term_c implements Initializer
 {
     protected Flags flags;
     protected Block body;
-    protected InitializerInstance ii;
+    protected InitializerDef ii;
 
     public Initializer_c(Position pos, Flags flags, Block body) {
 	super(pos);
@@ -37,11 +37,7 @@ public class Initializer_c extends Term_c implements Initializer
 	this.body = body;
     }
     
-    public boolean isDisambiguated() {
-        return ii != null && ii.isCanonical() && super.isDisambiguated();
-    }
-
-    public MemberInstance memberInstance() {
+    public MemberDef memberInstance() {
         return ii;
     }
 
@@ -59,16 +55,16 @@ public class Initializer_c extends Term_c implements Initializer
     }
 
     /** Get the initializer instance of the initializer. */
-    public InitializerInstance initializerInstance() {
+    public InitializerDef initializerInstance() {
         return ii;
     }
 
-    public CodeInstance codeInstance() {
+    public CodeDef codeInstance() {
 	return initializerInstance();
     }
 
     /** Set the initializer instance of the initializer. */
-    public Initializer initializerInstance(InitializerInstance ii) {
+    public Initializer initializerInstance(InitializerDef ii) {
         if (ii == this.ii) return this;
 	Initializer_c n = (Initializer_c) copy();
 	n.ii = ii;
@@ -124,7 +120,7 @@ public class Initializer_c extends Term_c implements Initializer
         return body();
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         v.visitCFG(body(), this, EXIT);
         return succs;
     }
@@ -132,8 +128,8 @@ public class Initializer_c extends Term_c implements Initializer
     /** Build type objects for the method. */
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         TypeSystem ts = tb.typeSystem();
-        ClassType ct = tb.currentClass();
-        InitializerInstance ii = ts.initializerInstance(position(), ct, flags);
+        ClassDef ct = tb.currentClass();
+        InitializerDef ii = ts.initializerInstance(position(), Ref_c.ref(ct.asType()), flags);
         return initializerInstance(ii);
     }
 
@@ -150,7 +146,7 @@ public class Initializer_c extends Term_c implements Initializer
 
         // check that inner classes do not declare static initializers
         if (flags().isStatic() &&
-              initializerInstance().container().toClass().isInnerClass()) {
+              initializerInstance().container().get().toClass().isInnerClass()) {
             // it's a static initializer in an inner class.
             throw new SemanticException("Inner classes cannot declare " + 
                     "static initializers.", this.position());             
@@ -164,7 +160,7 @@ public class Initializer_c extends Term_c implements Initializer
             return ec.push(new ExceptionChecker.CodeTypeReporter("static initializer block"));
         }
         
-        if (!initializerInstance().container().toClass().isAnonymous()) {
+        if (!initializerInstance().container().get().toClass().isAnonymous()) {
             ec = ec.push(new ExceptionChecker.CodeTypeReporter("instance initializer block"));
 
             // An instance initializer of a named class may not throw
@@ -174,9 +170,9 @@ public class Initializer_c extends Term_c implements Initializer
             // one explicitly declared constructor.
             SubtypeSet allowed = null;
             Type throwable = ec.typeSystem().Throwable();
-            ClassType container = initializerInstance().container().toClass();
-            for (Iterator iter = container.constructors().iterator(); iter.hasNext(); ) {
-                ConstructorInstance ci = (ConstructorInstance)iter.next();
+            ClassType container = initializerInstance().container().get().toClass();
+            for (Iterator<ConstructorType> iter = container.constructors().iterator(); iter.hasNext(); ) {
+                ConstructorType ci = (ConstructorType)iter.next();
                 if (allowed == null) {
                     allowed = new SubtypeSet(throwable);
                     allowed.addAll(ci.throwTypes());
@@ -186,14 +182,14 @@ public class Initializer_c extends Term_c implements Initializer
                     SubtypeSet other = new SubtypeSet(throwable);
                     other.addAll(ci.throwTypes());
                     SubtypeSet inter = new SubtypeSet(throwable);
-                    for (Iterator i = allowed.iterator(); i.hasNext(); ) {
+                    for (Iterator<Type> i = allowed.iterator(); i.hasNext(); ) {
                         Type t = (Type)i.next();
                         if (other.contains(t)) {
                             // t or a supertype is thrown by other.
                             inter.add(t);
                         }
                     }
-                    for (Iterator i = other.iterator(); i.hasNext(); ) {
+                    for (Iterator<Type> i = other.iterator(); i.hasNext(); ) {
                         Type t = (Type)i.next();
                         if (allowed.contains(t)) {
                             // t or a supertype is thrown by the allowed.

@@ -7,7 +7,7 @@
 
 package polyglot.ast;
 
-import polyglot.types.MemberInstance;
+import polyglot.types.MemberDef;
 
 /**
  * A <code>ClassMember</code> is a method, a constructor, a field, an
@@ -16,5 +16,5 @@ import polyglot.types.MemberInstance;
  */
 public interface ClassMember extends Term 
 {
-    public MemberInstance memberInstance();
+    public MemberDef memberInstance();
 }

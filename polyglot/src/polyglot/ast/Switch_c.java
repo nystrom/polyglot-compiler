@@ -93,7 +93,7 @@ public class Switch_c extends Stmt_c implements Switch
         return this;
     }
 
-    public Node checkConstants(ConstantChecker cc) throws SemanticException {
+    public Node checkConstants(TypeChecker tc) throws SemanticException {
         Collection labels = new HashSet();
 
         // Check for duplicate labels.
@@ -184,7 +184,7 @@ public class Switch_c extends Stmt_c implements Switch
         return expr;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         SwitchElement prev = null;
 
         List cases = new LinkedList();

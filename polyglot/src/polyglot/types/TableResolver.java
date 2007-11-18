@@ -7,9 +7,11 @@
 
 package polyglot.types;
 
-import polyglot.util.*;
-import polyglot.main.Report;
 import java.util.*;
+
+import polyglot.main.Report;
+import polyglot.util.CollectionUtil;
+import polyglot.util.InternalCompilerError;
 
 /** A class resolver implemented as a map from names to types. */
 public class TableResolver implements TopLevelResolver {

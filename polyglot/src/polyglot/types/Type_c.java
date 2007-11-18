@@ -7,10 +7,8 @@
 
 package polyglot.types;
 
-import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.types.Package;
-import java.io.*;
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
 
 /**
  * Abstract implementation of a <code>Type</code>.  This implements most of
@@ -45,8 +43,6 @@ public abstract class Type_c extends TypeObject_c implements Type
     public Package toPackage() { return null; }
 
     /* To be filled in by subtypes. */
-    public boolean isCanonical() { return false; }
-
     public boolean isPrimitive() { return false; }
     public boolean isNumeric() { return false; }
     public boolean isIntOrLess() { return false; }
@@ -119,53 +115,28 @@ public abstract class Type_c extends TypeObject_c implements Type
 	return ts.arrayOf(this);
     }  
     
-    public final boolean typeEquals(Type t) {
-        return ts.typeEquals(this, t);
-    }
-    
-    public boolean typeEqualsImpl(Type t) {
+    public boolean typeEquals(Type t) {
         return this == t;
     }
     
     /**
      * Return true if this type is a subtype of <code>ancestor</code>.
      */
-    public final boolean isSubtype(Type t) {
-	return ts.isSubtype(this, t);
-    }
-
-    /**
-     * Return true if this type is a subtype of <code>ancestor</code>.
-     */
-    public boolean isSubtypeImpl(Type t) {
+    public boolean isSubtype(Type t) {
 	return ts.typeEquals(this, t) || ts.descendsFrom(this, t);
     }
     
     /**
      * Return true if this type descends from <code>ancestor</code>.
      */
-    public final boolean descendsFrom(Type t) {
-        return ts.descendsFrom(this, t);
-    }
-
-    /**
-     * Return true if this type descends from <code>ancestor</code>.
-     */
-    public boolean descendsFromImpl(Type t) {
+    public boolean descendsFrom(Type t) {
         return false;
     }
 
     /**
      * Return true if this type can be cast to <code>toType</code>.
      */
-    public final boolean isCastValid(Type toType) {
-	return ts.isCastValid(this, toType);
-    }
-    
-    /**
-     * Return true if this type can be cast to <code>toType</code>.
-     */
-    public boolean isCastValidImpl(Type toType) {
+    public boolean isCastValid(Type toType) {
 	return false;
     }
     
@@ -173,15 +144,7 @@ public abstract class Type_c extends TypeObject_c implements Type
      * Return true if a value of this type can be assigned to a variable of
      * type <code>toType</code>.
      */
-    public final boolean isImplicitCastValid(Type toType) {
-        return ts.isImplicitCastValid(this, toType);
-    }
-
-    /**
-     * Return true if a value of this type can be assigned to a variable of
-     * type <code>toType</code>.
-     */
-    public boolean isImplicitCastValidImpl(Type toType) {
+    public boolean isImplicitCastValid(Type toType) {
         return false;
     }
 
@@ -189,29 +152,14 @@ public abstract class Type_c extends TypeObject_c implements Type
      * Return true a literal <code>value</code> can be converted to this type.
      * This method should be removed.  It is kept for backward compatibility.
      */
-    public final boolean numericConversionValid(long value) {
-        return ts.numericConversionValid(this, value);
-    }
-    
-    /**
-     * Return true a literal <code>value</code> can be converted to this type.
-     * This method should be removed.  It is kept for backward compatibility.
-     */
-    public boolean numericConversionValidImpl(long value) {
+    public boolean numericConversionValid(long value) {
         return false;
     }
     
     /**
      * Return true a literal <code>value</code> can be converted to this type.
      */
-    public final boolean numericConversionValid(Object value) {
-        return ts.numericConversionValid(this, value);
-    }
-    
-    /**
-     * Return true a literal <code>value</code> can be converted to this type.
-     */
-    public boolean numericConversionValidImpl(Object value) {
+    public boolean numericConversionValid(Object value) {
         return false;
     }
     
@@ -235,6 +183,7 @@ public abstract class Type_c extends TypeObject_c implements Type
      * in error messages and generated output.
      */
     public abstract String toString();
+
     public void print(CodeWriter w) {
 	w.write(toString());
     }

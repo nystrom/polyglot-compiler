@@ -7,18 +7,15 @@
 
 package polyglot.frontend;
 
-import java.io.Reader;
-import java.io.OutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 
 import polyglot.ast.NodeFactory;
-import polyglot.frontend.goals.Goal;
 import polyglot.main.Options;
 import polyglot.types.TypeSystem;
 import polyglot.types.reflect.ClassFile;
 import polyglot.util.ErrorQueue;
-import polyglot.util.CodeWriter;
 
 /**
  * <code>ExtensionInfo</code> is the main interface for defining language
@@ -35,12 +32,6 @@ public interface ExtensionInfo {
 
     /** Returns the pass scheduler. */
     Scheduler scheduler();
-    
-    /**
-     * Return the goal for compiling a particular compilation unit.
-     * The goal may have subgoals on which it depends.
-     */
-    Goal getCompileGoal(Job job);
     
     /** 
      * Return an Options object, which will be given the command line to parse.

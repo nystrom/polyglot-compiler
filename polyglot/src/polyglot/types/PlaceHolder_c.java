@@ -7,10 +7,7 @@
 
 package polyglot.types;
 
-import polyglot.frontend.*;
-import polyglot.frontend.goals.Goal;
-import polyglot.types.*;
-import polyglot.util.*;
+import polyglot.util.CannotResolvePlaceHolderException;
 
 /**
  * A place holder type when serializing the Polylgot type information. 
@@ -61,29 +58,11 @@ public class PlaceHolder_c implements NamedPlaceHolder
     }
     
     public TypeObject resolveUnsafe(TypeSystem ts) throws CannotResolvePlaceHolderException {
-        Scheduler scheduler = ts.extensionInfo().scheduler();
-        Goal g = scheduler.TypeExists(name);
-        
         try {
             return ts.systemResolver().find(name);
         }
-        catch (MissingDependencyException e) {
-            // The type is in a source file that hasn't been parsed yet.
-            g = e.goal();
-            scheduler.currentGoal().setUnreachableThisRun();
-            scheduler.addDependencyAndEnqueue(scheduler.currentGoal(), g, false);
-            throw new CannotResolvePlaceHolderException(e);
-        }
-        catch (SchedulerException e) {
-            // Some other scheduler error occurred.
-            scheduler.currentGoal().setUnreachableThisRun();
-            scheduler.addDependencyAndEnqueue(scheduler.currentGoal(), g, false);
-            throw new CannotResolvePlaceHolderException(e);
-        }
         catch (SemanticException e) {
             // The type could not be found.
-            scheduler.currentGoal().setUnreachableThisRun();
-            scheduler.addDependencyAndEnqueue(scheduler.currentGoal(), g, false);
             throw new CannotResolvePlaceHolderException(e);
         }
     }
@@ -96,14 +75,7 @@ public class PlaceHolder_c implements NamedPlaceHolder
             return n;
         }
 
-        // The class has not been loaded yet.  Set up a dependency
-        // to load the class (coreq, in case this pass is the one to load it).
-        Scheduler scheduler = ts.extensionInfo().scheduler();
-        scheduler.currentGoal().setUnreachableThisRun();
-        scheduler.addDependencyAndEnqueue(scheduler.currentGoal(),
-                                          scheduler.TypeExists(name),
-                                          false);
-
+        // The class has not been loaded yet.
         throw new CannotResolvePlaceHolderException("Could not resolve " + name);
     }
     
