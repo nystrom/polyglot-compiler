@@ -11,12 +11,8 @@
 
 package polyglot.util;
 
-import java.util.Map;
-import java.util.AbstractMap;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.Iterator;
-import java.util.AbstractSet;
+import java.util.*;
+import polyglot.util.FilteringIterator;
 
 /**
  * A NestedMap is a map which, when it cannot find an element in itself,
@@ -31,14 +27,14 @@ import java.util.AbstractSet;
  * It is used to implement nested namespaces, such as those which store
  * local-variable bindings.
  **/
-public class NestedMap extends AbstractMap implements Map {
+public class NestedMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
   /**
    * Creates a new nested map, which defers to <containing>.  If containing
    * is null, it defaults to a NilMap.
    **/
-  public NestedMap(Map containing) {
-    this.superMap = containing == null ? NilMap.EMPTY_MAP : containing;
-    this.myMap = new HashMap();
+  public NestedMap(Map<K,V> containing) {
+    this.superMap = containing;
+    this.myMap = new HashMap<K,V>();
     setView = new EntrySet();
     nShadowed = 0;
   }
@@ -49,8 +45,8 @@ public class NestedMap extends AbstractMap implements Map {
   /**
    * Returns the map to which this map defers, or null for none.
    **/
-  public Map getContainingMap() {
-    return superMap instanceof NilMap ? null : superMap;
+  public Map<K,V> getContainingMap() {
+    return superMap;
   }
 
   /**
@@ -64,7 +60,7 @@ public class NestedMap extends AbstractMap implements Map {
   /**
    * Returns the map containing the elements for this level of nesting.
    **/
-  public Map getInnerMap() {
+  public Map<K,V> getInnerMap() {
     return myMap;
   }
 
@@ -72,7 +68,7 @@ public class NestedMap extends AbstractMap implements Map {
   // Methods required for AbstractMap.
   /////
 
-  public Set entrySet() {
+  public Set<Map.Entry<K,V>> entrySet() {
     return setView;
   }
 
@@ -84,25 +80,25 @@ public class NestedMap extends AbstractMap implements Map {
     return myMap.containsKey(key) || superMap.containsKey(key);
   }
 
-  public Object get(Object key) {
+  public V get(Object key) {
     if (myMap.containsKey(key))
       return myMap.get(key);
     else 
       return superMap.get(key);
   }
   
-  public Object put(Object key, Object value) {
+  public V put(K key, V value) {
     if (myMap.containsKey(key)) {
       return myMap.put(key,value);
     } else {
-      Object oldV = superMap.get(key);
+      V oldV = superMap.get(key);
       myMap.put(key,value);
       nShadowed++;
       return oldV;
     }
   }  
 
-  public Object remove(Object key) {
+  public V remove(Object key) {
     throw new UnsupportedOperationException("Remove from NestedMap");
   }
 
@@ -110,11 +106,11 @@ public class NestedMap extends AbstractMap implements Map {
     throw new UnsupportedOperationException("Clear in NestedMap");
   }
 
-  public final class KeySet extends AbstractSet {
-    public Iterator iterator() {
-      return new ConcatenatedIterator(
-	   myMap.keySet().iterator(),
-	   new FilteringIterator(superMap.keySet(), keyNotInMyMap));
+  public final class KeySet extends AbstractSet<K> {
+    public Iterator<K> iterator() {
+      return new ConcatenatedIterator<K>(
+              myMap.keySet().iterator(),
+              new FilteringIterator<K>(superMap.keySet(), keyNotInMyMap));
     }
     public int size() {
       return NestedMap.this.size();
@@ -129,9 +125,9 @@ public class NestedMap extends AbstractMap implements Map {
     }
   }
 
-  private final class EntrySet extends AbstractSet {    
-    public Iterator iterator() {
-      return new ConcatenatedIterator(
+  private final class EntrySet extends AbstractSet<Map.Entry<K,V>> {    
+    public Iterator<Map.Entry<K,V>> iterator() {
+      return new ConcatenatedIterator<Map.Entry<K,V>>(
 	  myMap.entrySet().iterator(),
 	  new FilteringIterator(superMap.entrySet(), entryKeyNotInMyMap));
     }
@@ -141,11 +137,11 @@ public class NestedMap extends AbstractMap implements Map {
     // No add; it's not meaningful.
     public boolean contains(Object o) {
       if (! (o instanceof Map.Entry)) return false;
-      Map.Entry ent = (Map.Entry) o;
-      Object entKey = ent.getKey();
-      Object entVal = ent.getValue();
+      Map.Entry<K,V> ent = (Map.Entry<K,V>) o;
+      K entKey = ent.getKey();
+      V entVal = ent.getValue();
       if (entVal != null) {
-	Object val = NestedMap.this.get(entKey);
+	V val = NestedMap.this.get(entKey);
 	return (val != null) && val.equals(entVal);
       } else {
 	return NestedMap.this.containsKey(entKey) &&
@@ -158,18 +154,17 @@ public class NestedMap extends AbstractMap implements Map {
     }
   }
  
-  private HashMap myMap;
+  private HashMap<K,V> myMap;
   private int nShadowed;
-  private Set setView; // the set view of this.
-  private Map superMap;
-  private Predicate entryKeyNotInMyMap = new Predicate() {
-    public boolean isTrue(Object o) {
-      Map.Entry ent = (Map.Entry) o;
+  private Set<Map.Entry<K,V>> setView; // the set view of this.
+  private Map<K,V> superMap;
+  private Predicate<Map.Entry<K,V>> entryKeyNotInMyMap = new Predicate<Map.Entry<K,V>>() {
+    public boolean isTrue(Map.Entry<K,V> ent) {
       return ! myMap.containsKey(ent.getKey());
     }
   };
-  private Predicate keyNotInMyMap = new Predicate() {
-    public boolean isTrue(Object o) {
+  private Predicate<K> keyNotInMyMap = new Predicate<K>() {
+    public boolean isTrue(K o) {
       return ! myMap.containsKey(o);
     }
   };

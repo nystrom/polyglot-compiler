@@ -8,10 +8,10 @@
 
 package polyglot.types;
 
-import polyglot.util.*;
-import polyglot.main.Report;
-
 import java.util.*;
+
+import polyglot.main.Report;
+import polyglot.util.*;
 
 
 /**
@@ -41,7 +41,7 @@ public class ImportTable implements Resolver
     /** Position to use for error reporting */
     protected Position sourcePos;
     /** Our package */
-    protected Package pkg;
+    protected Ref<? extends Package> pkg;
 
     private static final Object NOT_FOUND = "NOT FOUND";
     
@@ -50,7 +50,7 @@ public class ImportTable implements Resolver
      * @param ts The type system
      * @param pkg The package of the source we are importing types into.
      */
-    public ImportTable(TypeSystem ts, Package pkg) {
+    public ImportTable(TypeSystem ts, Ref<? extends Package> pkg) {
         this(ts, pkg, null);
     }
 
@@ -60,7 +60,7 @@ public class ImportTable implements Resolver
      * @param pkg The package of the source we are importing types into.
      * @param src The name of the source file we are importing into.
      */
-    public ImportTable(TypeSystem ts, Package pkg, String src) {
+    public ImportTable(TypeSystem ts, Ref<? extends Package> pkg, String src) {
         this.ts = ts;
         this.sourceName = src;
         this.sourcePos = src != null ? new Position(null, src) : null;
@@ -76,7 +76,7 @@ public class ImportTable implements Resolver
     /**
      * The package of the source we are importing types into.
      */
-    public Package package_() {
+    public Ref<? extends Package> package_() {
         return pkg;
     }
 
@@ -113,7 +113,7 @@ public class ImportTable implements Resolver
     public void addPackageImport(String pkgName) {
         // don't add the import if it is the same as the current package,
         // the same as a default import, or has already been imported
-        if ((pkg != null && pkg.fullName().equals(pkgName)) ||
+        if ((pkg != null && pkg.get().fullName().equals(pkgName)) ||
                 ts.defaultPackageImports().contains(pkgName) ||
                 packageImports.contains(pkgName)) {
             return;
@@ -192,7 +192,7 @@ public class ImportTable implements Resolver
                 // "type-import-on-demand" declarations as they are called in
                 // the JLS), so even if another package defines the same name,
                 // there is no conflict. See Section 6.5.2 of JLS, 2nd Ed.
-                Named n = findInPkg(name, pkg.fullName());
+                Named n = findInPkg(name, pkg.get().fullName());
                 if (n != null) {
                     if (Report.should_report(TOPICS, 3))
                        Report.report(3, this + ".find(" + name + "): found in current package");
@@ -298,7 +298,7 @@ public class ImportTable implements Resolver
     protected boolean isVisibleFrom(Named n, String pkgName) {
         boolean isVisible = false;
         boolean inSamePackage = this.pkg != null 
-                && this.pkg.fullName().equals(pkgName)
+                && this.pkg.get().fullName().equals(pkgName)
             || this.pkg == null 
                 && pkgName.equals("");
         if (n instanceof Type) {

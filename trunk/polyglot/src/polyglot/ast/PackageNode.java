@@ -8,6 +8,7 @@
 package polyglot.ast;
 
 import polyglot.types.Package;
+import polyglot.types.Ref;
 
 /**
  * A <code>PackageNode</code> is the syntactic representation of a 
@@ -16,7 +17,7 @@ import polyglot.types.Package;
 public interface PackageNode extends Node, Prefix, QualifierNode
 {
     /** The package type object. */
-    Package package_();
+    Ref<? extends Package> package_();
     /** Set the package type object. */
-    PackageNode package_(Package p);
+    PackageNode package_(Ref<? extends Package> p);
 }

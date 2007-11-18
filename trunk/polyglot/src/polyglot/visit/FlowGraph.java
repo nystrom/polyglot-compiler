@@ -7,10 +7,13 @@
 
 package polyglot.visit;
 
-import polyglot.ast.*;
-import polyglot.types.*;
-import polyglot.util.*;
 import java.util.*;
+
+import polyglot.ast.Node;
+import polyglot.ast.Term;
+import polyglot.types.Type;
+import polyglot.util.CollectionUtil;
+import polyglot.util.IdentityKey;
 
 public class FlowGraph {
 

@@ -25,7 +25,7 @@ public class Field_c extends Expr_c implements Field
 {
   protected Receiver target;
   protected Id name;
-  protected FieldInstance fi;
+  protected FieldType fi;
   protected boolean targetImplicit;
   
   public Field_c(Position pos, Receiver target, Id name) {
@@ -88,17 +88,17 @@ public class Field_c extends Expr_c implements Field
   }
 
   /** Get the field instance of the field. */
-  public VarInstance varInstance() {
+  public VarType varInstance() {
     return fi;
   }
 
   /** Get the field instance of the field. */
-  public FieldInstance fieldInstance() {
+  public FieldType fieldInstance() {
     return fi;
   }
 
   /** Set the field instance of the field. */
-  public Field fieldInstance(FieldInstance fi) {
+  public Field fieldInstance(FieldType fi) {
     if (fi == this.fi) return this;
     Field_c n = (Field_c) copy();
     n.fi = fi;
@@ -139,8 +139,7 @@ public class Field_c extends Expr_c implements Field
 
       TypeSystem ts = tb.typeSystem();
 
-      FieldInstance fi = ts.fieldInstance(position(), ts.Object(), Flags.NONE,
-                                          ts.unknownType(position()), name.id());
+      FieldType fi = new FieldType_c(ts, position(), new ErrorRef_c<FieldDef>(ts, position()));
       return n.fieldInstance(fi);
   }
 
@@ -150,14 +149,14 @@ public class Field_c extends Expr_c implements Field
       TypeSystem ts = tc.typeSystem();
       
       if (target.type().isReference()) {
-	  FieldInstance fi = ts.findField(target.type().toReference(), name.id(), c.currentClass());
+	  FieldType fi = ts.findField(target.type().toReference(), name.id(), c.currentClassScope());
 	  
 	  if (fi == null) {
 	      throw new InternalCompilerError("Cannot access field on node of type " +
 	                                      target.getClass().getName() + ".");
 	  }
 	  
-	  Field_c f = (Field_c)fieldInstance(fi).type(fi.type());  
+	  Field_c f = (Field_c) fieldInstance(fi).type(fi.type());  
 	  f.checkConsistency(c);
 	  
 	  return f; 
@@ -171,7 +170,7 @@ public class Field_c extends Expr_c implements Field
                                                   target.type() + "\".", target.position());
   }
   
-  public Node checkConstants(ConstantChecker cc) throws SemanticException {
+  public Node checkConstants(TypeChecker tc) throws SemanticException {
       // Just check if the field is constant to force a dependency to be
       // created.
       isConstant();
@@ -230,7 +229,7 @@ public class Field_c extends Expr_c implements Field
       return null;
   }
 
-  public List acceptCFG(CFGBuilder v, List succs) {
+  public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
       if (target instanceof Term) {
           v.visitCFG((Term) target, this, EXIT);
       }
@@ -244,9 +243,9 @@ public class Field_c extends Expr_c implements Field
   }
 
 
-  public List throwTypes(TypeSystem ts) {
+  public List<Type> throwTypes(TypeSystem ts) {
       if (target instanceof Expr && ! (target instanceof Special)) {
-          return Collections.singletonList(ts.NullPointerException());
+          return Collections.<Type>singletonList(ts.NullPointerException());
       }
 
       return Collections.EMPTY_LIST;
@@ -286,20 +285,20 @@ public class Field_c extends Expr_c implements Field
    */
   protected void checkConsistency(Context c) {
       if (targetImplicit) {
-          VarInstance vi = c.findVariableSilent(name.id());
-          if (vi instanceof FieldInstance) {
-              FieldInstance rfi = (FieldInstance) vi;
+          VarType vi = c.findVariableSilent(name.id());
+          if (vi instanceof FieldType) {
+              FieldType rfi = (FieldType) vi;
               // Compare the original (declaration) fis, not the actuals.
               // We do this because some extensions that do type substitutions
               // perform the substitution
               // on the fi after lookup and some extensions modify lookup
               // itself to do the substitution.
-              if (c.typeSystem().equals(rfi.orig(), fi.orig())) {
+              if (c.typeSystem().equals(rfi.def(), fi.def())) {
                   // all is OK.
                   return;
               }
-              System.out.println("(found) rfi is " + rfi.orig());
-              System.out.println("(actual) fi is " + fi.orig());
+              System.out.println("(found) rfi is " + rfi.def());
+              System.out.println("(actual) fi is " + fi.def());
           }
           throw new InternalCompilerError("Field " + this + " has an " +
                "implicit target, but the name " + name.id() + " resolves to " +

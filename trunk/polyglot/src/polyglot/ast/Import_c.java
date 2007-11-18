@@ -11,6 +11,7 @@ package polyglot.ast;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
+import polyglot.frontend.Globals;
 import polyglot.main.Options;
 
 /**
@@ -108,7 +109,7 @@ public class Import_c extends Node_c implements Import
 
     /** Write the import to an output file. */
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-	if (! Options.global.fully_qualified_names) {
+	if (! Globals.Options().fully_qualified_names) {
 	    w.write("import ");
 	    w.write(name);
 

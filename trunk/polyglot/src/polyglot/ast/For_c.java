@@ -226,7 +226,7 @@ public class For_c extends Loop_c implements For
         return listChild(inits, cond != null ? (Term) cond : body);
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         v.visitCFGList(inits, cond != null ? (Term) cond : body, ENTRY);
 
         if (cond != null) {

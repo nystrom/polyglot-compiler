@@ -18,5 +18,5 @@ public interface AccessControlResolver extends Resolver {
      * Find a type object by name, checking if the object is accessible from the accessor class.
      * A null accessor indicates no access check should be performed.
      */
-    public Named find(String name, ClassType accessor) throws SemanticException;
+    public Named find(String name, ClassDef accessor) throws SemanticException;
 }

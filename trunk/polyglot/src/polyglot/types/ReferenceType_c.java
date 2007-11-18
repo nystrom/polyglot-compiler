@@ -7,9 +7,9 @@
 
 package polyglot.types;
 
-import polyglot.types.*;
-import polyglot.util.*;
 import java.util.*;
+
+import polyglot.util.Position;
 
 /**
  * A <code>ReferenceType</code> represents a reference type --
@@ -45,13 +45,13 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
      * Returns a list of MethodInstances for all the methods declared in this.
      * It does not return methods declared in supertypes.
      */
-    public abstract List methods();
+    public abstract List<MethodType> methods();
 
     /**
      * Returns a list of FieldInstances for all the fields declared in this.
      * It does not return fields declared in supertypes.
      */
-    public abstract List fields();
+    public abstract List<FieldType> fields();
 
     /** 
      * Returns the supertype of this class.  For every class except Object,
@@ -62,17 +62,12 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
     /**
      * Returns a list of the types of this class's interfaces.
      */
-    public abstract List interfaces();
+    public abstract List<Type> interfaces();
 
     /** Return true if t has a method mi */
-    public final boolean hasMethod(MethodInstance mi) {
-        return ts.hasMethod(this, mi);
-    }
-
-    /** Return true if t has a method mi */
-    public boolean hasMethodImpl(MethodInstance mi) {
+    public boolean hasMethod(MethodType mi) {
         for (Iterator j = methods().iterator(); j.hasNext(); ) {
-            MethodInstance mj = (MethodInstance) j.next();
+            MethodType mj = (MethodType) j.next();
 
             if (ts.isSameMethod(mi, mj)) {
                 return true;
@@ -82,11 +77,7 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
         return false;
     }
 
-    public boolean descendsFromImpl(Type ancestor) {
-        if (! ancestor.isCanonical()) {
-            return false;
-        }
-
+    public boolean descendsFrom(Type ancestor) {
         if (ancestor.isNull()) {
             return false;
         }
@@ -104,7 +95,7 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
         }
 
         // Next check interfaces.
-        for (Iterator i = interfaces().iterator(); i.hasNext(); ) {
+        for (Iterator<Type> i = interfaces().iterator(); i.hasNext(); ) {
             Type parentType = (Type) i.next();
 
             if (ts.isSubtype(parentType, ancestor)) {
@@ -119,11 +110,11 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
         return ts.isSubtype(this, toType);
     }
 
-    public List methodsNamed(String name) {
-        List l = new LinkedList();
+    public List<MethodType> methodsNamed(String name) {
+        List<MethodType> l = new LinkedList();
 
-        for (Iterator i = methods().iterator(); i.hasNext(); ) {
-            MethodInstance mi = (MethodInstance) i.next();
+        for (Iterator<MethodType> i = methods().iterator(); i.hasNext(); ) {
+            MethodType mi = (MethodType) i.next();
             if (mi.name().equals(name)) {
                 l.add(mi);
             }
@@ -132,11 +123,11 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
         return l;
     }
 
-    public List methods(String name, List argTypes) {
-        List l = new LinkedList();
+    public List<MethodType> methods(String name, List<Type> argTypes) {
+        List<MethodType> l = new LinkedList();
 
-        for (Iterator i = methodsNamed(name).iterator(); i.hasNext(); ) {
-            MethodInstance mi = (MethodInstance) i.next();
+        for (Iterator<MethodType> i = methodsNamed(name).iterator(); i.hasNext(); ) {
+            MethodType mi = (MethodType) i.next();
             if (mi.hasFormals(argTypes)) {
                 l.add(mi);
             }
@@ -151,7 +142,7 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
      * Returns true iff a cast from this to toType is valid; in other
      * words, some non-null members of this are also members of toType.
      **/
-    public boolean isCastValidImpl(Type toType) {
+    public boolean isCastValid(Type toType) {
         if (! toType.isReference()) return false;
         return ts.isSubtype(this, toType) || ts.isSubtype(toType, this);
     }

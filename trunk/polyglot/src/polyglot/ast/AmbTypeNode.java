@@ -32,14 +32,4 @@ public interface AmbTypeNode extends TypeNode, Ambiguous
      * Set the ambiguous name.
      */
     AmbTypeNode id(Id name);
-
-    /**
-     * Ambiguous name.
-     */
-    String name();
-
-    /**
-     * Set the ambiguous name.
-     */
-    AmbTypeNode name(String name);
 }

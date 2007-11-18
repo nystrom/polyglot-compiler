@@ -7,6 +7,7 @@
 
 package polyglot.ast;
 
+import polyglot.types.Ref;
 import polyglot.types.Type;
 
 /**
@@ -15,8 +16,14 @@ import polyglot.types.Type;
  */
 public interface TypeNode extends Receiver, QualifierNode, Term
 {
+    /**
+     * Return the type of this node, or null if no type has been
+     * assigned yet.
+     */
+    Ref<? extends Type> theType();
+    
     /** Set the type object for this node. */
-    TypeNode type(Type type);
+    TypeNode type(Ref<? extends Type> type);
     
     /** Short name of the type, or null if not a <code>Named</code> type. */
     String name();

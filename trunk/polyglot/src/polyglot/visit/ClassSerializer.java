@@ -75,10 +75,12 @@ public class ClassSerializer extends NodeVisitor
         return createSerializationMembers(cd.type());
     }
     
-    public List createSerializationMembers(ClassType ct) {
+    public List createSerializationMembers(ClassDef cd) {
 	try {
 	    byte[] b;
             List newMembers = new ArrayList(3);
+            
+            ClassType ct = cd.asType();
 
             // HACK: force class members to get created from lazy class
             // initializer.
@@ -112,8 +114,8 @@ public class ClassSerializer extends NodeVisitor
 	    Flags flags = Flags.PUBLIC.set(Flags.STATIC).set(Flags.FINAL);
 
 	    FieldDecl f;
-            FieldInstance fi;
-            InitializerInstance ii;
+            FieldDef fi;
+            InitializerDef ii;
 
 	    /* Add the compiler version number. */
 	    String version = ver.major() + "." +
@@ -122,11 +124,11 @@ public class ClassSerializer extends NodeVisitor
 
             Position pos = Position.COMPILER_GENERATED;
 
-	    fi = ts.fieldInstance(pos, ct,
-                                  flags, ts.String(),
+	    fi = ts.fieldInstance(pos, Ref_c.ref(new ParsedClassType_c(cd)),
+                                  flags, Ref_c.ref(ts.String()),
                                   "jlc$CompilerVersion$" + suffix);
             fi.setConstantValue(version);
-            ii = ts.initializerInstance(pos, ct, Flags.STATIC);
+            ii = ts.initializerInstance(pos, Ref_c.ref(new ParsedClassType_c(cd)), Flags.STATIC);
 	    f = nf.FieldDecl(fi.position(), fi.flags(),
 		             nf.CanonicalTypeNode(fi.position(), fi.type()),
                              nf.Id(fi.position(), fi.name()),
@@ -139,11 +141,11 @@ public class ClassSerializer extends NodeVisitor
 	    /* Add the date of the last source file modification. */
 	    long time = date.getTime();
 
-	    fi = ts.fieldInstance(pos, ct,
-                                  flags, ts.Long(),
+	    fi = ts.fieldInstance(pos, Ref_c.ref(new ParsedClassType_c(cd)),
+                                  flags, Ref_c.ref(ts.Long()),
                                   "jlc$SourceLastModified$" + suffix);
             fi.setConstantValue(new Long(time));
-            ii = ts.initializerInstance(pos, ct, Flags.STATIC);
+            ii = ts.initializerInstance(pos, Ref_c.ref(new ParsedClassType_c(cd)), Flags.STATIC);
 	    f = nf.FieldDecl(fi.position(), fi.flags(),
 		             nf.CanonicalTypeNode(fi.position(), fi.type()),
                              nf.Id(fi.position(), fi.name()),
@@ -166,11 +168,11 @@ public class ClassSerializer extends NodeVisitor
                 // add an additional suffix to distinguish fields.
                 String additionalFieldSuffix = numberETIFields==0?"":("$" + numberETIFields);
                 String encoded = encodedTypeInfo.substring(etiStart, etiEnd);
-                fi = ts.fieldInstance(pos, ct,
-                                      flags, ts.String(),
+                fi = ts.fieldInstance(pos, Ref_c.ref(new ParsedClassType_c(cd)),
+                                      flags, Ref_c.ref(ts.String()),
                                       "jlc$ClassType$" + suffix + additionalFieldSuffix);
                 fi.setConstantValue(encoded);
-                ii = ts.initializerInstance(pos, ct, Flags.STATIC);
+                ii = ts.initializerInstance(pos, Ref_c.ref(new ParsedClassType_c(cd)), Flags.STATIC);
 
                 f = nf.FieldDecl(fi.position(), fi.flags(),
                                  nf.CanonicalTypeNode(fi.position(), fi.type()),

@@ -36,10 +36,6 @@ public class SourceFile_c extends Node_c implements SourceFile
 	this.imports = TypedList.copyAndCheck(imports, Import.class, true);
 	this.decls = TypedList.copyAndCheck(decls, TopLevelDecl.class, true);
     }
-    
-    public boolean isDisambiguated() {
-        return super.isDisambiguated() && this.importTable != null;
-    }
 
     /** Get the source of the source file. */
     public Source source() {
@@ -129,7 +125,7 @@ public class SourceFile_c extends Node_c implements SourceFile
     public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
         TypeSystem ts = tb.typeSystem();
         if (package_ != null) {
-            return tb.pushPackage(package_.package_());
+            return tb.pushPackage(TypeObject_c.get(package_.package_()));
         }
         return tb;
     }

@@ -20,7 +20,7 @@ public interface LazyClassInitializer extends LazyInitializer
     public boolean fromClassFile();
 
     /** Set the class type we're initializing. */
-    public void setClass(ParsedClassType ct);
+    public void setClass(ClassDef ct);
     
     /**
      * Initialize <code>ct</code>'s superclass.

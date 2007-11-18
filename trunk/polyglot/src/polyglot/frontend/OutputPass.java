@@ -8,8 +8,6 @@
 package polyglot.frontend;
 
 import polyglot.ast.Node;
-import polyglot.frontend.goals.Goal;
-import polyglot.frontend.goals.SourceFileGoal;
 import polyglot.util.InternalCompilerError;
 import polyglot.visit.Translator;
 
@@ -22,13 +20,13 @@ public class OutputPass extends AbstractPass
      * Create a Translator.  The output of the visitor is a collection of files
      * whose names are added to the collection <code>outputFiles</code>.
      */
-    public OutputPass(Goal goal, Translator translator) {
-	super(goal);
+    public OutputPass(Goal goal, Job job, Translator translator) {
+	super(goal, job);
         this.translator = translator;
     }
 
     public boolean run() {
-        Node ast = goal.job().ast();
+        Node ast = job().ast();
 
         if (ast == null) {
             throw new InternalCompilerError("AST is null");

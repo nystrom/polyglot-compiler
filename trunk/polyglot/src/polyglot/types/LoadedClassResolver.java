@@ -10,16 +10,11 @@ package polyglot.types;
 import java.io.InvalidClassException;
 import java.util.*;
 
-import polyglot.frontend.Scheduler;
 import polyglot.frontend.SchedulerException;
 import polyglot.main.Report;
 import polyglot.main.Version;
 import polyglot.types.reflect.*;
-import polyglot.util.CollectionUtil;
-import polyglot.util.ObjectDumper;
-import polyglot.util.SimpleCodeWriter;
-import polyglot.util.TypeEncoder;
-import polyglot.util.InternalCompilerError;
+import polyglot.util.*;
 
 /**
  * Loads class information from class files, or serialized class infomation
@@ -138,7 +133,7 @@ public class LoadedClassResolver implements TopLevelResolver
         if (name.equals(result.fullName())) {
             return result;
         }
-        if (result instanceof ClassType && name.equals(ts.getTransformedClassName((ClassType) result))) {
+        if (result instanceof ClassType && name.equals(ts.getTransformedClassName(((ClassType) result).def()))) {
             return result;
         }
     }
@@ -166,7 +161,7 @@ public class LoadedClassResolver implements TopLevelResolver
 
     // Check to see if it has serialized info. If so then check the
     // version.
-    FieldInstance field;
+    FieldDef field;
     
     int comp = checkCompilerVersion(clazz.compilerVersion(version.name()));
 
@@ -234,49 +229,42 @@ public class LoadedClassResolver implements TopLevelResolver
             }
 
             if (Report.should_report(Report.serialize, 2)) {
-                LazyInitializer init = null;
-
                 // Save and restore the initializer to print the members.
                 // We can't access the members of ct until after we return from
                 // the resolver because the initializer may set up goals on ct,
                 // which may get discarded because of a missing dependency.
-                if (ct instanceof ParsedClassType) {
-                    ParsedClassType pct = (ParsedClassType) ct;
-                    init = pct.initializer();
-                    pct.setInitializer(new LazyClassInitializer() {
-                        public boolean fromClassFile() { return false; }
-                        public void setClass(ParsedClassType ct) { }
-                        public void initTypeObject() { }
-                        public boolean isTypeObjectInitialized() { return true; }
-                        public void initSuperclass() { }
-                        public void initInterfaces() { }
-                        public void initMemberClasses() { }
-                        public void initConstructors() { }
-                        public void initMethods() { }
-                        public void initFields() { }
-                        public void canonicalConstructors() { }
-                        public void canonicalMethods() { }
-                        public void canonicalFields() { }
-                    });
-                }
+                LazyInitializer init = ct.def().initializer();
+               
+                ct.def().setInitializer(new LazyClassInitializer() {
+                    public boolean fromClassFile() { return false; }
+                    public void setClass(ClassDef ct) { }
+                    public void initTypeObject() { }
+                    public boolean isTypeObjectInitialized() { return true; }
+                    public void initSuperclass() { }
+                    public void initInterfaces() { }
+                    public void initMemberClasses() { }
+                    public void initConstructors() { }
+                    public void initMethods() { }
+                    public void initFields() { }
+                    public void canonicalConstructors() { }
+                    public void canonicalMethods() { }
+                    public void canonicalFields() { }
+                });
 
-                for (Iterator i = ct.methods().iterator(); i.hasNext(); ) {
-                    MethodInstance mi = (MethodInstance) i.next();
+                for (Iterator<MethodType> i = ct.methods().iterator(); i.hasNext(); ) {
+                    MethodType mi = (MethodType) i.next();
                     Report.report(2, "* " + mi);
                 }
-                for (Iterator i = ct.fields().iterator(); i.hasNext(); ) {
-                    FieldInstance fi = (FieldInstance) i.next();
+                for (Iterator<FieldType> i = ct.fields().iterator(); i.hasNext(); ) {
+                    FieldType fi = (FieldType) i.next();
                     Report.report(2, "* " + fi);
                 }
-                for (Iterator i = ct.constructors().iterator(); i.hasNext(); ) {
-                    ConstructorInstance ci = (ConstructorInstance) i.next();
+                for (Iterator<ConstructorType> i = ct.constructors().iterator(); i.hasNext(); ) {
+                    ConstructorType ci = (ConstructorType) i.next();
                     Report.report(2, "* " + ci);
                 }
 
-                if (ct instanceof ParsedClassType) {
-                    ParsedClassType pct = (ParsedClassType) ct;
-                    pct.setInitializer(init);
-                }
+                ct.def().setInitializer(init);
             }
 
             if (Report.should_report(report_topics, 2))

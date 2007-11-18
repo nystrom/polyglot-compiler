@@ -223,7 +223,7 @@ public abstract class Assign_c extends Expr_c implements Assign
 
   abstract public Term firstChild();
 
-  public List acceptCFG(CFGBuilder v, List succs) {
+  public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
       if (operator() == ASSIGN) {
           acceptCFGAssign(v);          
       }
@@ -243,7 +243,7 @@ public abstract class Assign_c extends Expr_c implements Assign
    */
   protected abstract void acceptCFGOpAssign(CFGBuilder v);
   
-  public List throwTypes(TypeSystem ts) {
+  public List<Type> throwTypes(TypeSystem ts) {
     List l = new LinkedList();
 
     if (throwsArithmeticException()) {

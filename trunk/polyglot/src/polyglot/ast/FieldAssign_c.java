@@ -91,7 +91,7 @@ public class FieldAssign_c extends Assign_c implements FieldAssign
       v.visitCFG(right(), this, EXIT);
   }
 
-  public List throwTypes(TypeSystem ts) {
+  public List<Type> throwTypes(TypeSystem ts) {
       List l = new ArrayList(super.throwTypes(ts));
 
       Field f = (Field)left();

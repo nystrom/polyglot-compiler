@@ -7,7 +7,7 @@
 
 package polyglot.ast;
 
-import polyglot.types.ConstructorInstance;
+import polyglot.types.ConstructorDef;
 import java.util.List;
 import polyglot.types.Flags;
 
@@ -44,29 +44,29 @@ public interface ConstructorDecl extends ProcedureDecl
     /** The constructor's formal parameters.
      * @return A list of {@link polyglot.ast.Formal Formal}.
      */
-    List formals();
+    List<Formal> formals();
 
     /** Set the constructor's formal parameters.
      * @param formals A list of {@link polyglot.ast.Formal Formal}.
      */
-    ConstructorDecl formals(List formals);
+    ConstructorDecl formals(List<Formal> formals);
 
     /** The constructor's exception throw types.
      * @return A list of {@link polyglot.ast.TypeNode TypeNode}.
      */
-    List throwTypes();
+    List<TypeNode> throwTypes();
 
     /** Set the constructor's exception throw types.
      * @param throwTypes A list of {@link polyglot.ast.TypeNode TypeNode}.
      */
-    ConstructorDecl throwTypes(List throwTypes);
+    ConstructorDecl throwTypes(List<TypeNode> throwTypes);
 
     /**
      * The constructor type object.  This field may not be valid until
      * after signature disambiguation.
      */
-    ConstructorInstance constructorInstance();
+    ConstructorDef constructorInstance();
 
     /** Set the constructor's type object. */
-    ConstructorDecl constructorInstance(ConstructorInstance ci);
+    ConstructorDecl constructorInstance(ConstructorDef ci);
 }

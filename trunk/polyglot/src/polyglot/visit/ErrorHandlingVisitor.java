@@ -8,16 +8,15 @@
 package polyglot.visit;
 
 import polyglot.ast.*;
-import polyglot.types.*;
-import polyglot.util.*;
 import polyglot.frontend.Job;
-import polyglot.frontend.goals.Goal;
 import polyglot.main.Report;
-import java.util.*;
+import polyglot.types.SemanticException;
+import polyglot.types.TypeSystem;
+import polyglot.util.*;
 
 /**
  */
-public class ErrorHandlingVisitor extends HaltingVisitor
+public class ErrorHandlingVisitor extends ReentrantVisitor
 {
     protected boolean error;
     protected Job job;
@@ -25,7 +24,7 @@ public class ErrorHandlingVisitor extends HaltingVisitor
     protected NodeFactory nf;
 
     public ErrorHandlingVisitor(Job job, TypeSystem ts, NodeFactory nf) {
-        this.job = job;
+        super(job); 
         this.ts = ts;
         this.nf = nf;
     }

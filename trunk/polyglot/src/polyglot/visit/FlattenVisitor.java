@@ -7,10 +7,10 @@
 
 package polyglot.visit;
 
+import java.util.*;
+
 import polyglot.ast.*;
 import polyglot.types.*;
-
-import java.util.*;
 
 /**
  * The FlattenVisitor flattens the AST,
@@ -201,19 +201,19 @@ public class FlattenVisitor extends NodeVisitor
 	    String name = newID();
 	    LocalDecl def = nf.LocalDecl(e.position(), Flags.FINAL,
 					 nf.CanonicalTypeNode(e.position(),
-					                      e.type()),
-					 name, e);
-	    def = def.localInstance(ts.localInstance(e.position(), Flags.FINAL,
-						     e.type(), name));
+					                      Ref_c.<Type>ref(e.type())),
+					 nf.Id(e.position(), name), e);
+	    LocalDef li = ts.localInstance(e.position(), Flags.FINAL,
+        		     Ref_c.<Type>ref(e.type()), name);
+	    def = def.localInstance(li);
 
 	    List l = (List) stack.getFirst();
 	    l.add(def);
 
 	    // return the local temp instead of the complex expression
-	    Local use = nf.Local(e.position(), name);
+	    Local use = nf.Local(e.position(), nf.Id(e.position(), name));
 	    use = (Local) use.type(e.type());
-	    use = use.localInstance(ts.localInstance(e.position(), Flags.FINAL,
-						     e.type(), name));
+	    use = use.localInstance(li.asType());
 	    return use;
 	}
 

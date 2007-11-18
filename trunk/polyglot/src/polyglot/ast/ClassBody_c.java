@@ -21,19 +21,19 @@ import polyglot.visit.*;
  */
 public class ClassBody_c extends Term_c implements ClassBody
 {
-    protected List members;
+    protected List<ClassMember> members;
 
-    public ClassBody_c(Position pos, List members) {
+    public ClassBody_c(Position pos, List<ClassMember> members) {
         super(pos);
         assert(members != null);
         this.members = TypedList.copyAndCheck(members, ClassMember.class, true);
     }
 
-    public List members() {
+    public List<ClassMember> members() {
         return this.members;
     }
 
-    public ClassBody members(List members) {
+    public ClassBody members(List<ClassMember> members) {
         ClassBody_c n = (ClassBody_c) copy();
         n.members = TypedList.copyAndCheck(members, ClassMember.class, true);
         return n;
@@ -41,15 +41,15 @@ public class ClassBody_c extends Term_c implements ClassBody
 
     public ClassBody addMember(ClassMember member) {
         ClassBody_c n = (ClassBody_c) copy();
-        List l = new ArrayList(this.members.size() + 1);
+        List<ClassMember> l = new ArrayList<ClassMember>(this.members.size() + 1);
         l.addAll(this.members);
         l.add(member);
         n.members = TypedList.copyAndCheck(l, ClassMember.class, true);
         return n;
     }
 
-    protected ClassBody_c reconstruct(List members) {
-        if (! CollectionUtil.equals(members, this.members)) {
+    protected ClassBody_c reconstruct(List<ClassMember> members) {
+        if (! CollectionUtil.<ClassMember>equals(members, this.members)) {
             ClassBody_c n = (ClassBody_c) copy();
             n.members = TypedList.copyAndCheck(members,
                                                ClassMember.class, true);
@@ -60,7 +60,7 @@ public class ClassBody_c extends Term_c implements ClassBody
     }
 
     public Node visitChildren(NodeVisitor v) {
-        List members = visitList(this.members, v);
+        List<ClassMember> members = visitList(this.members, v);
         return reconstruct(members);
     }
 
@@ -73,15 +73,15 @@ public class ClassBody_c extends Term_c implements ClassBody
     }
 
     protected void duplicateFieldCheck(TypeChecker tc) throws SemanticException {
-        ClassType type = tc.context().currentClass();
+        ClassDef type = tc.context().currentClassScope();
 
         ArrayList l = new ArrayList(type.fields());
 
         for (int i = 0; i < l.size(); i++) {
-            FieldInstance fi = (FieldInstance) l.get(i);
+            FieldDef fi = (FieldDef) l.get(i);
 
             for (int j = i+1; j < l.size(); j++) {
-                FieldInstance fj = (FieldInstance) l.get(j);
+                FieldDef fj = (FieldDef) l.get(j);
 
                 if (fi.name().equals(fj.name())) {
                     throw new SemanticException("Duplicate field \"" + fj + "\".", fj.position());
@@ -91,17 +91,20 @@ public class ClassBody_c extends Term_c implements ClassBody
     }
 
     protected void duplicateConstructorCheck(TypeChecker tc) throws SemanticException {
-        ClassType type = tc.context().currentClass();
+        ClassDef type = tc.context().currentClassScope();
+        TypeSystem ts = tc.typeSystem();
 
-        ArrayList l = new ArrayList(type.constructors());
+        ArrayList<ConstructorDef> l = new ArrayList<ConstructorDef>(type.constructors());
 
         for (int i = 0; i < l.size(); i++) {
-            ConstructorInstance ci = (ConstructorInstance) l.get(i);
+            ConstructorDef ci = l.get(i);
+            ConstructorType ti = ci.asType();
 
             for (int j = i+1; j < l.size(); j++) {
-                ConstructorInstance cj = (ConstructorInstance) l.get(j);
+                ConstructorDef cj = l.get(j);
+                ConstructorType tj = new ConstructorType_c(ts, cj.position(), Ref_c.<ConstructorDef>ref(cj));
 
-                if (ci.hasFormals(cj.formalTypes())) {
+                if (ti.hasFormals(tj.formalTypes())) {
                     throw new SemanticException("Duplicate constructor \"" + cj + "\".", cj.position());
                 }
             }
@@ -109,18 +112,20 @@ public class ClassBody_c extends Term_c implements ClassBody
     }
 
     protected void duplicateMethodCheck(TypeChecker tc) throws SemanticException {
-        ClassType type = tc.context().currentClass();
+        ClassDef type = tc.context().currentClassScope();
         TypeSystem ts = tc.typeSystem();
 
-        ArrayList l = new ArrayList(type.methods());
+        ArrayList<MethodDef> l = new ArrayList<MethodDef>(type.methods());
 
         for (int i = 0; i < l.size(); i++) {
-            MethodInstance mi = (MethodInstance) l.get(i);
+            MethodDef mi = l.get(i);
+            MethodType ti = mi.asType();
 
             for (int j = i+1; j < l.size(); j++) {
-                MethodInstance mj = (MethodInstance) l.get(j);
+                MethodDef mj = l.get(j);
+                MethodType tj = new MethodType_c(ts, mj.position(), Ref_c.<MethodDef>ref(mj));
 
-                if (isSameMethod(ts, mi, mj)) {
+                if (ti.isSameMethod(tj)) {
                     throw new SemanticException("Duplicate method \"" + mj + "\".", mj.position());
                 }
             }
@@ -128,15 +133,15 @@ public class ClassBody_c extends Term_c implements ClassBody
     }
 
     protected void duplicateMemberClassCheck(TypeChecker tc) throws SemanticException {
-        ClassType type = tc.context().currentClass();
+        ClassDef type = tc.context().currentClassScope();
 
-        ArrayList l = new ArrayList(type.memberClasses());
+        ArrayList<ClassDef> l = new ArrayList<ClassDef>(type.memberClasses());
 
         for (int i = 0; i < l.size(); i++) {
-            ClassType mi = (ClassType) l.get(i);
+            ClassDef mi = l.get(i);
 
             for (int j = i+1; j < l.size(); j++) {
-                ClassType mj = (ClassType) l.get(j);
+                ClassDef mj = l.get(j);
 
                 if (mi.name().equals(mj.name())) {
                     throw new SemanticException("Duplicate member type \"" + mj + "\".", mj.position());
@@ -145,8 +150,8 @@ public class ClassBody_c extends Term_c implements ClassBody
         }
     }
 
-    protected boolean isSameMethod(TypeSystem ts, MethodInstance mi,
-                                   MethodInstance mj) {
+    protected boolean isSameMethod(TypeSystem ts, MethodType mi,
+                                   MethodType mj) {
         return mi.isSameMethod(mj);
     }
 
@@ -169,8 +174,8 @@ public class ClassBody_c extends Term_c implements ClassBody
             w.begin(0);
 	    ClassMember prev = null;
 
-            for (Iterator i = members.iterator(); i.hasNext(); ) {
-                ClassMember member = (ClassMember) i.next();
+            for (Iterator<ClassMember> i = members.iterator(); i.hasNext(); ) {
+                ClassMember member = i.next();
 		if ((member instanceof polyglot.ast.CodeDecl) ||
 		    (prev instanceof polyglot.ast.CodeDecl)) {
 			w.newline(0);
@@ -199,14 +204,14 @@ public class ClassBody_c extends Term_c implements ClassBody
     /**
      * Visit this term in evaluation order.
      */
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         return succs;
     }
     public Node copy(NodeFactory nf) {
         return nf.ClassBody(this.position, this.members);
     }
 
-    private static final Collection TOPICS = 
+    private static final Collection<String> TOPICS = 
                 CollectionUtil.list(Report.types, Report.context);
      
 }

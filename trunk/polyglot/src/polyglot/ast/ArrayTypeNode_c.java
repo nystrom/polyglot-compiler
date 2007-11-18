@@ -8,6 +8,7 @@
 
 package polyglot.ast;
 
+import polyglot.frontend.Globals;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -46,36 +47,21 @@ public class ArrayTypeNode_c extends TypeNode_c implements ArrayTypeNode
 	return this;
     }
     
-    public boolean isDisambiguated() {
-        return false;
-    }
-    
     public Node visitChildren(NodeVisitor v) {
         TypeNode base = (TypeNode) visitChild(this.base, v);
 	return reconstruct(base);
     }
 
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
-	TypeSystem ts = tb.typeSystem();
-        return type(ts.arrayOf(position(), base.type()));
+	TypeRef<? extends Type> sym = tb.typeSystem().symbolTable().typeRef(base.type(), Globals.Scheduler().Disambiguated(tb.job()));
+	return type(sym);
     }
 
     public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
 	TypeSystem ts = ar.typeSystem();
 	NodeFactory nf = ar.nodeFactory();
-
-        if (! base.isDisambiguated()) {
-            return this;
-        }
-
-        Type baseType = base.type();
-
-        if (! baseType.isCanonical()) {
-            return this;
-	}
-
         return nf.CanonicalTypeNode(position(),
-		                    ts.arrayOf(position(), baseType));
+		                    ts.arrayOf(position(), base.type()));
     }
 
     public Node typeCheck(TypeChecker tc) throws SemanticException {

@@ -7,9 +7,8 @@
 
 package polyglot.types;
 
-import polyglot.ast.*;
-import polyglot.util.*;
-import polyglot.types.Package;
+import polyglot.util.InternalCompilerError;
+import polyglot.util.StringUtil;
 
 /**
  * A <code>PackageContextResolver</code> is responsible for looking up types
@@ -46,7 +45,7 @@ public class PackageContextResolver extends AbstractAccessControlResolver
     /**
      * Find a type object by name.
      */
-    public Named find(String name, ClassType accessor) throws SemanticException {
+    public Named find(String name, ClassDef accessor) throws SemanticException {
 	if (! StringUtil.isNameShort(name)) {
 	    throw new InternalCompilerError(
 		"Cannot lookup qualified name " + name);
@@ -75,7 +74,7 @@ public class PackageContextResolver extends AbstractAccessControlResolver
         return n;
     }
 
-    protected boolean canAccess(Named n, ClassType accessor) {
+    protected boolean canAccess(Named n, ClassDef accessor) {
         if (n instanceof ClassType) {
             return accessor == null || ts.classAccessible((ClassType) n, accessor);
         }

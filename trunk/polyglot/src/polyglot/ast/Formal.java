@@ -8,7 +8,7 @@
 package polyglot.ast;
 
 import polyglot.types.Flags;
-import polyglot.types.LocalInstance;
+import polyglot.types.LocalDef;
 
 /**
  * A <code>Formal</code> represents a formal parameter to a method
@@ -34,16 +34,13 @@ public interface Formal extends VarDecl
     
     /** Set the name of the formal. */
     public Formal id(Id name);
-
-    /** Get the name of the formal. */
-    public String name();
     
     /** Set the name of the formal. */
     public Formal name(String name);
 
     /** Get the local instance of the formal. */
-    public LocalInstance localInstance();
+    public LocalDef localInstance();
 
     /** Set the local instance of the formal. */
-    public Formal localInstance(LocalInstance li);
+    public Formal localInstance(LocalDef li);
 }

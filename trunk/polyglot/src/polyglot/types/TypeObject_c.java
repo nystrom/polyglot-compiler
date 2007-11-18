@@ -7,9 +7,11 @@
 
 package polyglot.types;
 
-import polyglot.types.*;
-import polyglot.util.*;
 import java.io.*;
+
+import polyglot.frontend.GoalSet;
+import polyglot.frontend.Scheduler;
+import polyglot.util.*;
 
 /**
  * Abstract implementation of a type object.  Contains a reference to the
@@ -19,6 +21,27 @@ public abstract class TypeObject_c implements TypeObject
 {
     protected transient TypeSystem ts;
     protected Position position;
+    protected GoalSet phase;
+    protected Symbol<? extends TypeObject> sym;
+
+    public static <T> T get(Ref<T> ref) {
+        return ref != null ? ref.get() : null;
+    }
+    
+    public void complete(GoalSet phase) { }
+
+    public void setPhase(GoalSet phase) {
+        this.phase = phase;    
+    }
+
+    public GoalSet phase() {
+        return phase;
+    }
+
+    public void bringUpTo(GoalSet phase) {
+        Scheduler scheduler = ts.extensionInfo().scheduler();
+        assert false;
+    }
 
     /** Used for deserializing types. */
     protected TypeObject_c() {
@@ -84,10 +107,18 @@ public abstract class TypeObject_c implements TypeObject
     }
 
     /**
-     * Overload equalsImpl to find inadvertant overridding errors.
+     * Overload equalsImpl to find inadvertent overriding errors.
      * Make package-scope and void to break callers.
      */ 
     final void equalsImpl(Object o) { }
     final void typeEqualsImpl(Object o) { }
     final void typeEqualsImpl(TypeObject o) { }
+
+    public <T extends TypeObject> Symbol<T> symbol() {
+        return (Symbol<T>) sym;
+    }
+
+    public void setSymbol(Symbol<? extends TypeObject> sym) {
+        this.sym = sym;
+    }
 }

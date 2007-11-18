@@ -7,7 +7,7 @@
 
 package polyglot.ast;
 
-import polyglot.types.ConstructorInstance;
+import polyglot.types.ConstructorType;
 import polyglot.util.Enum;
 import java.util.List;
 
@@ -41,20 +41,20 @@ public interface ConstructorCall extends Stmt, ProcedureCall
      * Actual arguments.
      * @return A list of {@link polyglot.ast.Expr Expr}.
      */
-    List arguments();
+    List<Expr> arguments();
 
     /**
      * Set the actual arguments.
      * @param arguments A list of {@link polyglot.ast.Expr Expr}.
      */
-    ProcedureCall arguments(List arguments);
+    ProcedureCall arguments(List<Expr> arguments);
 
     /**
      * The constructor that is called.  This field may not be valid until
      * after type checking.
      */
-    ConstructorInstance constructorInstance();
+    ConstructorType constructorInstance();
 
     /** Set the constructor to call. */
-    ConstructorCall constructorInstance(ConstructorInstance ci);
+    ConstructorCall constructorInstance(ConstructorType ci);
 }

@@ -7,16 +7,12 @@
 
 package polyglot.types;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
+import polyglot.frontend.Globals;
 import polyglot.frontend.Job;
 import polyglot.main.Options;
-import polyglot.util.CodeWriter;
-import polyglot.util.InternalCompilerError;
-import polyglot.util.Position;
+import polyglot.util.*;
 
 /**
  * A <code>ClassType</code> represents a class -- either loaded from a
@@ -24,18 +20,38 @@ import polyglot.util.Position;
  */
 public abstract class ClassType_c extends ReferenceType_c implements ClassType
 {
+    Ref<ClassDef> def;
+    
     /** Used for deserializing types. */
     protected ClassType_c() { }
 
-    public ClassType_c(TypeSystem ts) {
-        this(ts, null);
-    }
-
-    public ClassType_c(TypeSystem ts, Position pos) {
+    public ClassType_c(TypeSystem ts, Position pos, Ref<ClassDef> def) {
         super(ts, pos);
-        this.decl = this;
+        this.def = def;
     }
     
+    public ClassDef def() {
+        return def.get();
+    }
+    
+    public boolean equals(TypeObject t) {
+        if (t instanceof ClassType_c) {
+            Ref<ClassDef> thisDef = def;
+            Ref<ClassDef> thatDef = ((ClassType_c) t).def;
+            return thisDef == thatDef;
+        }
+        return false;
+    }
+
+    public boolean typeEquals(Type t) {
+        if (t instanceof ClassType) {
+            ClassDef thisDef = def();
+            ClassDef thatDef = ((ClassType) t).def();
+            return thisDef.equals(thatDef);
+        }
+        return false;
+    }
+
     protected transient Resolver memberCache;
     
     public Resolver resolver() {
@@ -51,20 +67,10 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         return n;
     }
     
-    protected ClassType decl;
-    
-    public Declaration declaration() {
-        return decl;
-    }
-    
-    public void setDeclaration(Declaration decl) {
-        this.decl = (ClassType) decl;        
-    }
-
     public abstract Job job();
     
     /** Get the class's kind. */
-    public abstract Kind kind();
+    public abstract ClassDef.Kind kind();
 
     /** Get the class's outer class, or null if a top-level class. */
     public abstract ClassType outer();
@@ -98,23 +104,15 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         }
     }
 
-    public boolean isTopLevel() { return kind() == TOP_LEVEL; }
-    public boolean isMember() { return kind() == MEMBER; }
-    public boolean isLocal() { return kind() == LOCAL; }
-    public boolean isAnonymous() { return kind() == ANONYMOUS; }
-
-    /**
-    * @deprecated Was incorrectly defined. Use isNested for nested classes, 
-    *          and isInnerClass for inner classes.
-    */
-    public final boolean isInner() {
-        return isNested();
-    }
+    public boolean isTopLevel() { return kind() == ClassDef.TOP_LEVEL; }
+    public boolean isMember() { return kind() == ClassDef.MEMBER; }
+    public boolean isLocal() { return kind() == ClassDef.LOCAL; }
+    public boolean isAnonymous() { return kind() == ClassDef.ANONYMOUS; }
 
     public boolean isNested() {
         // Implement this way rather than with ! isTopLevel() so that
         // extensions can add more kinds.
-        return kind() == MEMBER || kind() == LOCAL || kind() == ANONYMOUS;
+        return kind() == ClassDef.MEMBER || kind() == ClassDef.LOCAL || kind() == ClassDef.ANONYMOUS;
     }
     
     public boolean isInnerClass() {
@@ -123,7 +121,6 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         return !flags().isInterface() && isNested() && !flags().isStatic() && !inStaticContext();
     }
     
-    public boolean isCanonical() { return true; }
     public boolean isClass() { return true; }
     public ClassType toClass() { return this; }
 
@@ -134,25 +131,25 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     public abstract Flags flags();
 
     /** Get the class's constructors. */
-    public abstract List constructors();
+    public abstract List<ConstructorType> constructors();
 
     /** Get the class's member classes. */
-    public abstract List memberClasses();
+    public abstract List<ClassType> memberClasses();
 
     /** Get the class's methods. */
-    public abstract List methods();
+    public abstract List<MethodType> methods();
 
     /** Get the class's fields. */
-    public abstract List fields();
+    public abstract List<FieldType> fields();
 
     /** Get the class's interfaces. */
-    public abstract List interfaces();
+    public abstract List<Type> interfaces();
 
     /** Get the class's super type. */
     public abstract Type superType();
     
     /** Get a list of all the class's MemberInstances. */
-    public List members() {
+    public List<MemberType> members() {
         List l = new ArrayList();
         l.addAll(methods());
         l.addAll(fields());
@@ -162,9 +159,9 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     }
 
     /** Get a field of the class by name. */
-    public FieldInstance fieldNamed(String name) {
+    public FieldType fieldNamed(String name) {
         for (Iterator i = fields().iterator(); i.hasNext(); ) {
-	    FieldInstance fi = (FieldInstance) i.next();
+	    FieldType fi = (FieldType) i.next();
 	    if (fi.name().equals(name)) {
 	        return fi;
 	    }
@@ -185,11 +182,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
 	return null;
     }
 
-    public boolean descendsFromImpl(Type ancestor) {
-        if (! ancestor.isCanonical()) {
-            return false;
-        }
-
+    public boolean descendsFrom(Type ancestor) {
         if (ancestor.isNull()) {
             return false;
         }
@@ -222,8 +215,8 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         }
 
         // Next check interfaces.
-        for (Iterator i = interfaces().iterator(); i.hasNext(); ) {
-            Type parentType = (Type) i.next();
+        for (Iterator<Type> i = interfaces().iterator(); i.hasNext(); ) {
+            Type parentType = i.next();
 
             if (ts.isSubtype(parentType, ancestor)) {
                 return true;
@@ -264,8 +257,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
      * Returns true iff a cast from this to toType is valid; in other
      * words, some non-null members of this are also members of toType.
      **/
-    public boolean isCastValidImpl(Type toType) {
-	if (! toType.isCanonical()) return false;
+    public boolean isCastValid(Type toType) {
 	if (! toType.isReference()) return false;
 
 	if (toType.isArray()) {
@@ -317,14 +309,6 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
 	}
     }
 
-    public final boolean isEnclosed(ClassType maybe_outer) {
-        return ts.isEnclosed(this, maybe_outer);
-    }
-
-    public final boolean hasEnclosingInstance(ClassType encl) {
-        return ts.hasEnclosingInstance(this, encl);
-    }
-
     public String translate(Resolver c) {
         if (isTopLevel()) {
             if (package_() == null) {
@@ -332,7 +316,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
             }
 
             // Use the short name if it is unique.
-            if (c != null && !Options.global.fully_qualified_names) {
+            if (c != null && !Globals.Options().fully_qualified_names) {
                 try {
                     Named x = c.find(name());
 
@@ -353,7 +337,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
             }
 
             // Use the short name if it is unique.
-            if (c != null && !Options.global.fully_qualified_names) {
+            if (c != null && !Globals.Options().fully_qualified_names) {
                 try {
                     Named x = c.find(name());
 
@@ -420,7 +404,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         }
     }
 
-    public boolean isEnclosedImpl(ClassType maybe_outer) {
+    public boolean isEnclosed(ClassType maybe_outer) {
         if (isTopLevel())
             return false;
         else if (outer() != null)
@@ -435,7 +419,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
      * Return true if an object of the class has
      * an enclosing instance of <code>encl</code>. 
      */
-    public boolean hasEnclosingInstanceImpl(ClassType encl) {
+    public boolean hasEnclosingInstance(ClassType encl) {
         if (this.equals(encl)) {
             // object o is the zeroth lexically enclosing instance of itself. 
             return true;

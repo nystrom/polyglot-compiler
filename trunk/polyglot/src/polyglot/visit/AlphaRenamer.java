@@ -7,10 +7,12 @@
 
 package polyglot.visit;
 
-import polyglot.ast.*;
-import polyglot.types.LocalInstance;
-import polyglot.util.*;
 import java.util.*;
+
+import polyglot.ast.*;
+import polyglot.types.LocalDef;
+import polyglot.util.InternalCompilerError;
+import polyglot.util.UniqueID;
 
 /**
  * The <code>AlphaRenamer</code> runs over the AST and alpha-renames any local
@@ -22,12 +24,12 @@ public class AlphaRenamer extends NodeVisitor {
 
   // Each set in this stack tracks the set of local decls in a block that
   // we're traversing.
-  protected Stack setStack;
+  protected Stack<Set<String>> setStack;
 
-  protected Map renamingMap;
+  protected Map<String,String> renamingMap;
 
   // Tracks the set of variables known to be fresh.
-  protected Set freshVars;
+  protected Set<String> freshVars;
 
   /**
    * Creates a visitor for alpha-renaming locals.
@@ -37,22 +39,22 @@ public class AlphaRenamer extends NodeVisitor {
   public AlphaRenamer(NodeFactory nf) {
     this.nf = nf;
 
-    this.setStack = new Stack();
-    this.setStack.push( new HashSet() );
+    this.setStack = new Stack<Set<String>>();
+    this.setStack.push( new HashSet<String>() );
 
-    this.renamingMap = new HashMap();
-    this.freshVars = new HashSet();
+    this.renamingMap = new HashMap<String,String>();
+    this.freshVars = new HashSet<String>();
   }
 
   public NodeVisitor enter( Node n ) {
     if ( n instanceof Block ) {
       // Push a new, empty set onto the stack.
-      setStack.push( new HashSet() );
+      setStack.push( new HashSet<String>() );
     }
 
     if ( n instanceof LocalDecl ) {
       LocalDecl l = (LocalDecl)n;
-      String name = l.name();
+      String name = l.id().id();
 
       if ( !freshVars.contains(name) ) {
 	// Add a new entry to the current renaming map.
@@ -60,7 +62,7 @@ public class AlphaRenamer extends NodeVisitor {
 
 	freshVars.add(name_);
 
-	((Set)setStack.peek()).add( name );
+	setStack.peek().add( name );
 	renamingMap.put( name, name_ );
       }
     }
@@ -72,7 +74,7 @@ public class AlphaRenamer extends NodeVisitor {
     if ( n instanceof Block ) {
       // Pop the current name set off the stack and remove the corresponding
       // entries from the renaming map.
-      Set s = (Set)setStack.pop();
+      Set<String> s = setStack.pop();
       renamingMap.keySet().removeAll(s);
       return n;
     }
@@ -87,9 +89,9 @@ public class AlphaRenamer extends NodeVisitor {
       }
       
       // Update the local instance as necessary.
-      String newName = (String) renamingMap.get(name);
-      LocalInstance li = l.localInstance();
-      if (li != null) li.setName(newName);
+      String newName = renamingMap.get(name);
+//      LocalType li = l.localInstance();
+//      if (li != null) li.setName(newName);
 
       return l.name(newName);
     }
@@ -97,7 +99,7 @@ public class AlphaRenamer extends NodeVisitor {
     if ( n instanceof LocalDecl ) {
       // Rename the local decl.
       LocalDecl l = (LocalDecl)n;
-      String name = l.name();
+      String name = l.id().id();
 
       if ( freshVars.contains(name) ) {
 	return n;
@@ -109,10 +111,10 @@ public class AlphaRenamer extends NodeVisitor {
       }
 
       // Update the local instance as necessary.
-      String newName = (String) renamingMap.get(name);
-      LocalInstance li = l.localInstance();
+      String newName = renamingMap.get(name);
+      LocalDef li = l.localInstance();
       if (li != null) li.setName(newName);
-      return l.name(newName);
+      return l.id(l.id().id(newName));
     }
 
     return n;

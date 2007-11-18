@@ -9,7 +9,6 @@ package polyglot.types;
 
 import java.util.List;
 
-import polyglot.frontend.goals.Goal;
 import polyglot.util.Copy;
 
 /**
@@ -27,10 +26,7 @@ public interface Context extends Resolver, Copy
     TypeSystem typeSystem();
 
     /** Add a variable to the current scope. */
-    void addVariable(VarInstance vi);
-
-    /** Add a method to the current scope. */
-    void addMethod(MethodInstance mi);
+    void addVariable(VarType vi);
 
     /** Add a named type object to the current scope. */
     void addNamed(Named t);
@@ -39,19 +35,19 @@ public interface Context extends Resolver, Copy
      * @param formalTypes A list of <code>Type</code>.
      * @see polyglot.types.Type
      */
-    MethodInstance findMethod(String name, List formalTypes) throws SemanticException;
+    MethodType findMethod(String name, List<Type> argTypes) throws SemanticException;
 
     /** Looks up a local variable or field in the current scope. */
-    VarInstance findVariable(String name) throws SemanticException;
+    VarType findVariable(String name) throws SemanticException;
 
     /** Looks up a local variable or field in the current scope. */
-    VarInstance findVariableSilent(String name);
+    VarType findVariableSilent(String name);
 
     /** Looks up a local variable in the current scope. */
-    LocalInstance findLocal(String name) throws SemanticException;
+    LocalType findLocal(String name) throws SemanticException;
 
     /** Looks up a field in the current scope. */
-    FieldInstance findField(String name) throws SemanticException;
+    FieldType findField(String name) throws SemanticException;
 
     /**
      * Finds the class which added a field to the scope.
@@ -68,20 +64,14 @@ public interface Context extends Resolver, Copy
     /** Get import table currently in scope. */
     ImportTable importTable();
 
-    /** Get the outer-most resolver for the source file currently in scope.
-     * This is usually just the system resolver.
-     * @deprecated
-     */
-    Resolver outerResolver();
-
     /** Enter the scope of a source file. */
     Context pushSource(ImportTable it);
 
     /** Enter the scope of a class. */
-    Context pushClass(ParsedClassType scope, ClassType type);
+    Context pushClass(ClassDef scope, ClassType type);
 
     /** Enter the scope of a method or constructor. */
-    Context pushCode(CodeInstance f);
+    Context pushCode(CodeDef f);
 
     /** Enter the scope of a block. */
     Context pushBlock();
@@ -116,10 +106,10 @@ public interface Context extends Resolver, Copy
     ClassType currentClass();
  
     /** Return the innermost class in scope. */
-    ParsedClassType currentClassScope();
+    ClassDef currentClassScope();
 
     /** Return the innermost method or constructor in scope. */
-    CodeInstance currentCode();
+    CodeDef currentCode();
 
     /** The current package, or null if not in a package. */
     Package package_();

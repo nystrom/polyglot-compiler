@@ -42,14 +42,4 @@ public interface Branch extends Stmt
      * Set the target label of the branch.
      */
     Branch labelNode(Id label);
-
-    /**
-     * Target label of the branch.
-     */
-    String label();
-
-    /**
-     * Set the target label of the branch.
-     */
-    Branch label(String label);
 }

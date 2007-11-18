@@ -15,12 +15,13 @@ public interface ArrayType extends ReferenceType
     /**
      * Base type of the array.
      */
+    Ref<? extends Type> theBaseType();
     Type base();
 
     /**
      * Set the base type of the array, returning a new type.
      */
-    ArrayType base(Type base);
+    ArrayType base(Ref<? extends Type> base);
 
     /**
      * The ultimate base of the array.  Guaranteed not to be an array type.
@@ -30,12 +31,12 @@ public interface ArrayType extends ReferenceType
     /**
      * The array's length field.
      */
-    FieldInstance lengthField();
+    FieldType lengthField();
 
     /**
      * The array's clone() method.
      */
-    MethodInstance cloneMethod();
+    MethodType cloneMethod();
 
     /**
      * Return the number of dimensions in this array type.

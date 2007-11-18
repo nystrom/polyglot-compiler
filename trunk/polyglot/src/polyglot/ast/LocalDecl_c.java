@@ -10,12 +10,24 @@ package polyglot.ast;
 
 import java.util.List;
 
-import polyglot.frontend.*;
-import polyglot.frontend.goals.Goal;
-import polyglot.types.*;
+import polyglot.types.Context;
+import polyglot.types.Flags;
+import polyglot.types.LocalDef;
+import polyglot.types.LocalType;
+import polyglot.types.LocalType_c;
+import polyglot.types.Ref_c;
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
+import polyglot.types.TypeSystem;
+import polyglot.types.VarDef;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.AscriptionVisitor;
+import polyglot.visit.CFGBuilder;
+import polyglot.visit.NodeVisitor;
+import polyglot.visit.PrettyPrinter;
+import polyglot.visit.TypeBuilder;
+import polyglot.visit.TypeChecker;
 
 /**
  * A <code>LocalDecl</code> is an immutable representation of the declaration
@@ -26,7 +38,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     protected TypeNode type;
     protected Id name;
     protected Expr init;
-    protected LocalInstance li;
+    protected LocalDef li;
 
     public LocalDecl_c(Position pos, Flags flags, TypeNode type,
                        Id name, Expr init)
@@ -39,10 +51,6 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         this.init = init;
     }
     
-    public boolean isDisambiguated() {
-        return li != null && li.isCanonical() && super.isDisambiguated();
-    }
-
     /** Get the type of the declaration. */
     public Type declType() {
         return type.type();
@@ -86,16 +94,6 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         return n;
     }
 
-    /** Get the name of the declaration. */
-    public String name() {
-        return name.id();
-    }
-
-    /** Set the name of the declaration. */
-    public LocalDecl name(String name) {
-        return id(this.name.id(name));
-    }
-
     /** Get the initializer of the declaration. */
     public Expr init() {
         return init;
@@ -110,7 +108,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     }
 
     /** Set the local instance of the declaration. */
-    public LocalDecl localInstance(LocalInstance li) {
+    public LocalDecl localInstance(LocalDef li) {
         if (li == this.li) return this;
         LocalDecl_c n = (LocalDecl_c) copy();
         n.li = li;
@@ -118,11 +116,11 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     }
 
     /** Get the local instance of the declaration. */
-    public LocalInstance localInstance() {
+    public LocalDef localInstance() {
         return li;
     }
     
-    public VarInstance varInstance() {
+    public VarDef varInstance() {
         return li;
     }
 
@@ -153,7 +151,8 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
      */
     public Context enterChildScope(Node child, Context c) {
         if (child == init) {
-            c.addVariable(li);
+            c = c.pushBlock();
+            addDecls(c);
         }
         return super.enterChildScope(child, c);
     }
@@ -161,7 +160,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     public void addDecls(Context c) {
         // Add the declaration of the variable in case we haven't already done
         // so in enterScope, when visiting the initializer.
-        c.addVariable(li);
+        c.addVariable(li.asType());
     }
 
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
@@ -169,23 +168,12 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
 
         TypeSystem ts = tb.typeSystem();
 
-        LocalInstance li = ts.localInstance(position(), flags(),
-                                            ts.unknownType(position()), name());
+        LocalDef li = ts.localInstance(position(), flags(), type.theType(), name.id());
         return n.localInstance(li);
     }
 
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
-        if (li.isCanonical()) {
-            return this;
-        }
-        if (declType().isCanonical()) {
-            li.setType(declType());
-        }
-        return this;
-    }
-
     /**
-     * Override superclass behaviour to check if the variable is multiply
+     * Override superclass behavior to check if the variable is multiply
      * defined.
      */
     public NodeVisitor typeCheckEnter(TypeChecker tc) throws SemanticException {
@@ -195,7 +183,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         // initializer.
         Context c = tc.context();
 
-        LocalInstance outerLocal = null;
+        LocalType outerLocal = null;
 
         try {
             outerLocal = c.findLocal(li.name());
@@ -218,7 +206,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     public Node typeCheck(TypeChecker tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
-        LocalInstance li = this.li;
+        LocalDef li = this.li;
 
         try {
             ts.checkLocalFlags(flags);
@@ -248,43 +236,8 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
 
         return localInstance(li);
     }
-
-    protected static class AddDependenciesVisitor extends NodeVisitor {
-        protected ConstantChecker cc;
-        protected LocalInstance li;
-
-        AddDependenciesVisitor(ConstantChecker cc, LocalInstance li) {
-            this.cc = cc;
-            this.li = li;
-        }
-        
-        public Node leave(Node old, Node n, NodeVisitor v) {
-            if (n instanceof Field) {
-                Field f = (Field) n;
-                if (! f.fieldInstance().orig().constantValueSet()) {
-                    Scheduler scheduler = cc.job().extensionInfo().scheduler();
-                    Goal g = scheduler.FieldConstantsChecked(f.fieldInstance().orig());
-                    throw new MissingDependencyException(g);
-                }
-            }
-            if (n instanceof Local) {
-                Local l = (Local) n;
-                if (! l.localInstance().orig().constantValueSet()) {
-                    // Undefined variable or forward reference.
-                    li.setNotConstant();
-                }
-            }
-            return n;
-        }
-    }
     
-    public Node checkConstants(ConstantChecker cc) throws SemanticException {
-        if (init != null && ! init.constantValueSet()) {
-            // HACK to add dependencies for computing the constant value.
-            init.visit(new AddDependenciesVisitor(cc, li));
-            return this;
-        }
-        
+    public Node checkConstants(TypeChecker tc) throws SemanticException {
         if (init == null || ! init.isConstant() || ! li.flags().isFinal()) {
             li.setNotConstant();
         }
@@ -361,7 +314,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         return type();
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         if (init() != null) {
             v.visitCFG(type(), init(), ENTRY);
             v.visitCFG(init(), this, EXIT);

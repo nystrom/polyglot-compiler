@@ -8,7 +8,6 @@
 package polyglot.frontend;
 
 import polyglot.ast.Node;
-import polyglot.frontend.goals.Goal;
 import polyglot.util.CodeWriter;
 import polyglot.visit.PrettyPrinter;
 
@@ -22,14 +21,14 @@ public class PrettyPrintPass extends AbstractPass
      * Create a PrettyPrinter.  The output of the visitor is a collection of files
      * whose names are added to the collection <code>outputFiles</code>.
      */
-    public PrettyPrintPass(Goal goal, CodeWriter w, PrettyPrinter pp) {
-	super(goal);
+    public PrettyPrintPass(Goal goal, Job job, CodeWriter w, PrettyPrinter pp) {
+	super(goal, job);
         this.pp = pp;
         this.w = w;
     }
 
     public boolean run() {
-        Node ast = goal.job().ast();
+        Node ast = this.job().ast();
 
         if (ast == null) {
             w.write("<<<< null AST >>>>");

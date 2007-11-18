@@ -28,7 +28,8 @@ import java_cup.runtime.*;
 import polyglot.ast.*;
 import polyglot.lex.*;
 import polyglot.util.*;
-import polyglot.types.*;
+import polyglot.types.TypeSystem;
+import polyglot.types.Flags;
 import polyglot.ast.Assert;
 
 /** Java Parser for CUP */
@@ -240,7 +241,8 @@ non terminal For for_statement, for_statement_no_short_if;
 non terminal List for_init_opt, for_init;
 non terminal List for_update_opt, for_update;
 non terminal List statement_expression_list;
-non terminal Name identifier_opt;
+non terminal Id identifier_opt;
+non terminal Id identifier;
 non terminal Branch break_statement, continue_statement;
 non terminal Return return_statement;
 non terminal Throw throw_statement;
@@ -407,13 +409,13 @@ name    ::=
     ;
 simple_name ::=
                     // Name
-        IDENTIFIER:a
-            {: RESULT = new Name(parser.nf, parser.ts, parser.pos(a), parser.nf.Id(parser.pos(a), a.getIdentifier())); :}
+        identifier:a
+            {: RESULT = new Name(parser.nf, parser.ts, parser.pos(a), a); :}
     ;
 qualified_name ::=
                     // Name
-        name:a DOT IDENTIFIER:b
-            {: RESULT = new Name(parser.nf, parser.ts, parser.pos(a, b), a, parser.nf.Id(parser.pos(b), b.getIdentifier())); :}
+        name:a DOT identifier:b
+            {: RESULT = new Name(parser.nf, parser.ts, parser.pos(a, b), a, b); :}
     ;
 // 19.6) Packages
 compilation_unit ::=
@@ -550,10 +552,10 @@ modifier ::=
 // 19.8.1) Class Declarations
 class_declaration ::=
                     // ClassDecl
-        modifiers_opt:a CLASS:n IDENTIFIER:b 
+        modifiers_opt:a CLASS:n identifier:b 
                 super_opt:c interfaces_opt:d class_body:e
             {: RESULT = parser.nf.ClassDecl(parser.pos(n, e),
-                a, parser.nf.Id(parser.pos(b), b.getIdentifier()), c, d, e); :}
+                a, b, c, d, e); :}
     ;
 super ::=
                     // TypeNode
@@ -640,11 +642,11 @@ class_member_declaration ::=
                l.add(a);
                RESULT = l; :}
         /* repeat the prod for 'class_declaration' here: */
-    |   modifiers_opt:a CLASS:n IDENTIFIER:b
+    |   modifiers_opt:a CLASS:n identifier:b
                     super_opt:c interfaces_opt:d class_body:e
             {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
                l.add(parser.nf.ClassDecl(parser.pos(n, e),
-                        a, parser.nf.Id(parser.pos(b), b.getIdentifier()), c, d, e));
+                        a, b, c, d, e));
                RESULT = l; :}
     |   interface_declaration:a
             {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
@@ -685,9 +687,8 @@ variable_declarator ::=
     ;
 variable_declarator_id ::=
                 // VarDeclarator
-        IDENTIFIER:a
-            {: RESULT = new VarDeclarator(parser.pos(a),
-                            parser.nf.Id(parser.pos(a), a.getIdentifier())); :}
+        identifier:a
+            {: RESULT = new VarDeclarator(parser.pos(a), a); :}
     |   variable_declarator_id:a LBRACK RBRACK
             {: RESULT = a;
                a.dims++; :}
@@ -708,16 +709,16 @@ method_declaration ::=
     ;
 method_header ::=
                     // MethodDecl
-        modifiers_opt:a type:b IDENTIFIER:c LPAREN 
+        modifiers_opt:a type:b identifier:c LPAREN 
                 formal_parameter_list_opt:d RPAREN:g dims_opt:e throws_opt:f
             {: RESULT = parser.nf.MethodDecl(parser.pos(b, g, c), a,
-                parser.array(b, e.intValue()), parser.nf.Id(parser.pos(c), c.getIdentifier()),
+                parser.array(b, e.intValue()), c,
                 d, f, null); :}
-    |   modifiers_opt:a VOID:b IDENTIFIER:c LPAREN
+    |   modifiers_opt:a VOID:b identifier:c LPAREN
                 formal_parameter_list_opt:d RPAREN:g throws_opt:f
             {: RESULT = parser.nf.MethodDecl(parser.pos(b, g, c), a,
                 parser.nf.CanonicalTypeNode(parser.pos(b),
-                parser.ts.Void()), parser.nf.Id(parser.pos(c), c.getIdentifier()), d, f, null); :}
+                parser.ts.Void()), c, d, f, null); :}
     ;
 formal_parameter_list_opt ::=        
                     // List of Formal
@@ -823,11 +824,11 @@ explicit_constructor_invocation ::=
 // 19.9.1) Interface Declarations
 interface_declaration ::=
                     // ClassDecl
-        modifiers_opt:a INTERFACE:n IDENTIFIER:b
+        modifiers_opt:a INTERFACE:n identifier:b
                 extends_interfaces_opt:c interface_body:d
             {: RESULT = parser.nf.ClassDecl(
                     parser.pos(n, d), a.Interface(),
-                        parser.nf.Id(parser.pos(b), b.getIdentifier()), null, c, d); :}
+                        b, null, c, d); :}
     ;
 extends_interfaces_opt ::=
                     // List of TypeNode
@@ -1031,15 +1032,15 @@ empty_statement ::=
     ;
 labeled_statement ::=
                     // Labeled
-        IDENTIFIER:a COLON statement:b
+        identifier:a COLON statement:b
             {: RESULT = parser.nf.Labeled(parser.pos(a, b),
-                                      parser.nf.Id(parser.pos(a), a.getIdentifier()), b); :}
+                                      a, b); :}
     ;
 labeled_statement_no_short_if ::=
                     // Labeled
-        IDENTIFIER:a COLON statement_no_short_if:b
+        identifier:a COLON statement_no_short_if:b
             {: RESULT = parser.nf.Labeled(parser.pos(a, b),
-                                      parser.nf.Id(parser.pos(a), a.getIdentifier()), b); :}
+                                      a, b); :}
     ;
 expression_statement ::=
                     // Stmt
@@ -1202,9 +1203,8 @@ statement_expression_list ::=
 identifier_opt ::=
                     // Name
             {: RESULT = null; :}
-    |   IDENTIFIER:a
-            {: RESULT = new Name(parser.nf, parser.ts, parser.pos(a), 
-                parser.nf.Id(parser.pos(a), a.getIdentifier())); :}
+    |   identifier:a
+            {: RESULT = a; :}
     ;
 
 break_statement ::=
@@ -1213,7 +1213,7 @@ break_statement ::=
             {: if (a == null)
                    RESULT = parser.nf.Break(parser.pos(n, d));
                else
-                   RESULT = parser.nf.Break(parser.pos(n, d), parser.nf.Id(parser.pos(a), a.toString())); :}
+                   RESULT = parser.nf.Break(parser.pos(n, d), a); :}
     ;
 
 continue_statement ::=
@@ -1222,7 +1222,7 @@ continue_statement ::=
             {: if (a == null)
                    RESULT = parser.nf.Continue(parser.pos(n, d));
                else
-                   RESULT = parser.nf.Continue(parser.pos(n, d), parser.nf.Id(parser.pos(a), a.toString())); :}
+                   RESULT = parser.nf.Continue(parser.pos(n, d), a); :}
     ;
 return_statement ::=
                     // Return
@@ -1398,17 +1398,17 @@ dims ::=
     ;
 field_access ::=
                     // Field
-        primary:a DOT IDENTIFIER:b
+        primary:a DOT identifier:b
             {: RESULT = parser.nf.Field(parser.pos(a, b, b), a,
-                parser.nf.Id(parser.pos(b), b.getIdentifier())); :}
-    |   SUPER:n DOT IDENTIFIER:a
+                b); :}
+    |   SUPER:n DOT identifier:a
             {: RESULT = parser.nf.Field(parser.pos(a),
                 parser.nf.Super(parser.pos(n)),
-                parser.nf.Id(parser.pos(a), a.getIdentifier())); :}
-    |   name:a DOT SUPER:n DOT IDENTIFIER:b
+                a); :}
+    |   name:a DOT SUPER:n DOT identifier:b
             {: RESULT = parser.nf.Field(parser.pos(b),
                 parser.nf.Super(parser.pos(n), a.toType()),
-                parser.nf.Id(parser.pos(b), b.getIdentifier())); :}
+                b); :}
     ;
 method_invocation ::=
                     // Call
@@ -1416,17 +1416,17 @@ method_invocation ::=
             {: RESULT = parser.nf.Call(parser.pos(a,d),
                 a.prefix == null ? null : a.prefix.toReceiver(),
                 a.name, b); :}
-    |   primary:a DOT IDENTIFIER:b LPAREN argument_list_opt:c RPAREN:d
+    |   primary:a DOT identifier:b LPAREN argument_list_opt:c RPAREN:d
             {: RESULT = parser.nf.Call(parser.pos(b,d), a,
-                parser.nf.Id(parser.pos(b), b.getIdentifier()), c); :}
-    |   SUPER:a DOT IDENTIFIER:b LPAREN argument_list_opt:c RPAREN:d
+                b, c); :}
+    |   SUPER:a DOT identifier:b LPAREN argument_list_opt:c RPAREN:d
             {: RESULT = parser.nf.Call(parser.pos(a,d, b),
                 parser.nf.Super(parser.pos(a)),
-                parser.nf.Id(parser.pos(b), b.getIdentifier()), c); :}
-    |   name:a DOT SUPER:n DOT IDENTIFIER:b LPAREN argument_list_opt:c RPAREN:d
+                b, c); :}
+    |   name:a DOT SUPER:n DOT identifier:b LPAREN argument_list_opt:c RPAREN:d
             {: RESULT = parser.nf.Call(parser.pos(b,d),
                 parser.nf.Super(parser.pos(n), a.toType()),
-                parser.nf.Id(parser.pos(b), b.getIdentifier()), c); :}
+                b, c); :}
     ;
 array_access ::=
                     // ArrayAccess
@@ -1686,4 +1686,8 @@ constant_expression ::=
                     // Expr
         expression:a
             {: RESULT = a; :}
+    ;
+identifier ::=
+        IDENTIFIER:a
+            {: RESULT = parser.nf.Id(parser.pos(a), a.getIdentifier()); :}
     ;

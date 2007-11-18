@@ -7,13 +7,11 @@
 
 package polyglot.visit;
 
+import java.util.*;
+
 import polyglot.ast.*;
 import polyglot.frontend.Compiler;
-import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.util.*;
-
-import java.util.*;
+import polyglot.util.CodeWriter;
 
 /**
  * The <code>NodeScrambler</code> is test case generator of sorts. Since it

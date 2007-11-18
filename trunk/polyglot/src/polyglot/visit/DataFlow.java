@@ -13,17 +13,9 @@ import java.util.*;
 import polyglot.ast.*;
 import polyglot.frontend.Job;
 import polyglot.main.Report;
-import polyglot.types.MemberInstance;
-import polyglot.types.SemanticException;
-import polyglot.types.Type;
-import polyglot.types.TypeSystem;
-import polyglot.util.IdentityKey;
-import polyglot.util.InternalCompilerError;
-import polyglot.util.StringUtil;
-import polyglot.visit.FlowGraph.Edge;
-import polyglot.visit.FlowGraph.EdgeKey;
-import polyglot.visit.FlowGraph.ExceptionEdgeKey;
-import polyglot.visit.FlowGraph.Peer;
+import polyglot.types.*;
+import polyglot.util.*;
+import polyglot.visit.FlowGraph.*;
 
 /**
  * Abstract dataflow Visitor, to allow simple dataflow equations to be easily
@@ -1255,8 +1247,8 @@ public abstract class DataFlow extends ErrorHandlingVisitor
         if (graph.root() instanceof CodeNode) {
             CodeNode cd = (CodeNode)graph.root();
             rootName = cd.codeInstance().toString();
-            if (cd.codeInstance() instanceof MemberInstance) {
-                rootName += " in " + ((MemberInstance) cd.codeInstance()).container().toString();
+            if (cd.codeInstance() instanceof MemberDef) {
+                rootName += " in " + ((MemberDef) cd.codeInstance()).container().toString();
             }
         }
 

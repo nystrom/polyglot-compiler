@@ -7,12 +7,11 @@
 
 package polyglot.frontend;
 
-import java.io.Reader;
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 
 import polyglot.ast.NodeFactory;
-import polyglot.frontend.goals.Goal;
 import polyglot.main.Options;
 import polyglot.main.Version;
 import polyglot.types.TypeSystem;
@@ -32,7 +31,6 @@ public abstract class AbstractExtensionInfo implements ExtensionInfo {
     protected Stats stats;
     protected Scheduler scheduler;
 
-    public abstract Goal getCompileGoal(Job job);
     public abstract String compilerName();
     public abstract String defaultFileExtension();
     public abstract Version version();

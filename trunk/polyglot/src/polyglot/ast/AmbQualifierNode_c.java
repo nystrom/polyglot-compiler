@@ -8,6 +8,7 @@
 
 package polyglot.ast;
 
+import polyglot.frontend.Globals;
 import polyglot.types.*;
 import polyglot.visit.*;
 import polyglot.util.*;
@@ -18,7 +19,7 @@ import polyglot.util.*;
  */
 public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 {
-    protected Qualifier qualifier;
+    protected Ref<? extends Qualifier> qualifier;
     protected QualifierNode qual;
     protected Id name;
 
@@ -30,7 +31,7 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 	this.name = name;
     }
     
-    public Qualifier qualifier() {
+    public Ref<? extends Qualifier> qualifier() {
 	return this.qualifier;
     }
     
@@ -62,7 +63,7 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 	return n;
     }
 
-    public AmbQualifierNode qualifier(Qualifier qualifier) {
+    public AmbQualifierNode qualifier(Ref<? extends Qualifier> qualifier) {
 	AmbQualifierNode_c n = (AmbQualifierNode_c) copy();
 	n.qualifier = qualifier;
 	return n;
@@ -85,17 +86,16 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
     }
 
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        return qualifier(tb.typeSystem().unknownQualifier(position()));
+        TypeRef<? extends Qualifier> sym = tb.typeSystem().symbolTable().typeRef(tb.typeSystem().unknownQualifier(position()), Globals.Scheduler().Disambiguated(tb.job()));
+        return qualifier(sym);
     }
 
     public Node disambiguate(AmbiguityRemover sc) throws SemanticException {
-        if (qual != null && ! qual.isDisambiguated()) {
-            return this;
-        }
-        
 	Node n = sc.nodeFactory().disamb().disambiguate(this, sc, position(), qual, name);
 
 	if (n instanceof QualifierNode) {
+	    QualifierNode qn = (QualifierNode) n;
+	    ((Symbol<Qualifier>) qualifier).update(qn.qualifier().get());
 	    return n;
 	}
 

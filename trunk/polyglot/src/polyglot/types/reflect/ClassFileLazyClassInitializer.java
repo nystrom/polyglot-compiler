@@ -10,27 +10,26 @@ package polyglot.types.reflect;
 import java.io.*;
 import java.util.*;
 
+import polyglot.frontend.Globals;
+import polyglot.frontend.Scheduler;
 import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.types.reflect.InnerClasses.Info;
 import polyglot.util.*;
 
 /**
- * ClassFile basically represents a Java classfile as it is found on disk. The
- * classfile is modeled according to the Java Virtual Machine Specification.
- * Methods are provided to edit the classfile at a very low level.
+ * A lazy initializer for classes loaded from a .class file.
  * 
- * @see polyglot.types.reflect Attribute
- * @see polyglot.types.reflect Constant
- * @see polyglot.types.reflect Field
- * @see polyglot.types.reflect Method
+ * @author nystrom
  * 
- * @author Nate Nystrom
+ * IMPORTANT: to avoid infinite loops, this code should not call any code that
+ * might load a class (in particular, this one). ts.Object() should not be
+ * called.
  */
 public class ClassFileLazyClassInitializer implements LazyClassInitializer {
     protected ClassFile clazz;
     protected TypeSystem ts;
-    protected ParsedClassType ct;
+    protected ClassDef ct;
 
     protected boolean init;
     protected boolean constructorsInitialized;
@@ -47,7 +46,7 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
         this.ts = ts;
     }
     
-    public void setClass(ParsedClassType ct) {
+    public void setClass(ClassDef ct) {
         this.ct = ct;
     }
 
@@ -65,7 +64,7 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
     /**
      * Create the type for this class file.
      */
-    protected ParsedClassType createType() throws SemanticException {
+    protected ClassDef createType() throws SemanticException {
         // The name is of the form "p.q.C$I$J".
         String name = clazz.classNameCP(clazz.getThisClass());
 
@@ -73,7 +72,9 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
             Report.report(2, "creating ClassType for " + name);
 
         // Create the ClassType.
-        ParsedClassType ct = ts.createClassType(this);
+        ClassDef ct = ts.createClassType(this);
+        Symbol<ClassDef> sym = ts.symbolTable().symbol(ct);
+
         ct.flags(ts.flagsForBits(clazz.getModifiers()));
         ct.position(position());
 
@@ -82,7 +83,7 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
 
         // Set the ClassType's package.
         if (!packageName.equals("")) {
-            ct.package_(ts.packageForName(packageName));
+            ct.package_(Ref_c.ref(ts.packageForName(packageName)));
         }
 
         // This is the "C$I$J" part.
@@ -94,35 +95,21 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
         outerName = name;
         innerName = null;
 
-        while (true) {
-            int dollar = outerName.lastIndexOf('$');
+        int dollar = outerName.lastIndexOf('$');
 
-            if (dollar >= 0) {
-                outerName = name.substring(0, dollar);
-                innerName = name.substring(dollar + 1);
-            }
-            else {
-                outerName = name;
-                innerName = null;
-                break;
-            }
+        if (dollar >= 0) {
+            outerName = name.substring(0, dollar);
+            innerName = name.substring(dollar + 1);
 
-            // Try loading the outer class.
-            // This will recursively load its outer class, if any.
-            try {
-                if (Report.should_report(verbose, 2))
-                    Report.report(2, "resolving " + outerName + " for " + name);
-                ct.outer(this.typeForName(outerName));
-                break;
-            }
-            catch (SemanticException e) {
-                // Failed. The class probably has a '$' in its name.
-                if (Report.should_report(verbose, 3))
-                    Report.report(2, "error resolving " + outerName);
-            }
+            // Lazily load the outer class.
+            ct.outer(defForName(outerName));
+        }
+        else {
+            outerName = name;
+            innerName = null;
         }
 
-        ClassType.Kind kind = ClassType.TOP_LEVEL;
+        ClassDef.Kind kind = ClassDef.TOP_LEVEL;
 
         if (innerName != null) {
             // A nested class. Parse the class name to determine what kind.
@@ -133,15 +120,15 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
 
                 if (Character.isDigit(s.charAt(0))) {
                     // Example: C$1
-                    kind = ClassType.ANONYMOUS;
+                    kind = ClassDef.ANONYMOUS;
                 }
-                else if (kind == ClassType.ANONYMOUS) {
+                else if (kind == ClassDef.ANONYMOUS) {
                     // Example: C$1$D
-                    kind = ClassType.LOCAL;
+                    kind = ClassDef.LOCAL;
                 }
                 else {
                     // Example: C$D
-                    kind = ClassType.MEMBER;
+                    kind = ClassDef.MEMBER;
                 }
             }
         }
@@ -157,10 +144,15 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
         else if (ct.isMember() || ct.isLocal()) {
             ct.name(innerName);
         }
+        
+        initSuperclass();
+        initInterfaces();
 
-        // Add unresolved class into the cache to avoid circular resolving.
-        ts.systemResolver().addNamed(name, ct);
-        ts.systemResolver().addNamed(ct.fullName(), ct);
+        initMemberClasses();
+
+        initFields();
+        initMethods();
+        initConstructors();
 
         return ct;
     }
@@ -168,8 +160,10 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
     /**
      * Create the type for this class file.
      */
-    public ParsedClassType type() throws SemanticException {
-        ParsedClassType ct = createType();
+    public ClassDef type() throws SemanticException {
+        if (ct == null) {
+            ct = createType();
+        }
         return ct;
     }
 
@@ -179,12 +173,22 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
      * @param dims The number of dimensions of the array.
      * @return An array type.
      */
-    protected Type arrayOf(Type t, int dims) {
+    protected Ref<? extends Type> arrayOf(Type t, int dims) {
+        return arrayOf(Ref_c.<Type>ref(t), dims);
+    }
+    
+    /**
+     * Return an array type.
+     * @param t The array base type.
+     * @param dims The number of dimensions of the array.
+     * @return An array type.
+     */
+    protected Ref<? extends Type> arrayOf(Ref<? extends Type> t, int dims) {
         if (dims == 0) {
             return t;
         }
         else {
-            return ts.arrayOf(t, dims);
+            return Ref_c.<Type>ref(ts.arrayOf(t, dims));
         }
     }
 
@@ -193,8 +197,8 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
      * @param str The type descriptor.
      * @return The corresponding list of types.
      */
-    protected List typeListForString(String str) {
-        List types = new ArrayList();
+    protected List<Ref<? extends Type>> typeListForString(String str) {
+        List<Ref<? extends Type>> types = new ArrayList<Ref<? extends Type>>();
 
         for (int i = 0; i < str.length(); i++) {
             int dims = 0;
@@ -238,7 +242,7 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
                         if (str.charAt(i) == ';') {
                             String s = str.substring(start, i);
                             s = s.replace('/', '.');
-                            types.add(arrayOf(this.quietTypeForName(s), dims));
+                            types.add(arrayOf(this.typeForName(s), dims));
                             break;
                         }
 
@@ -259,11 +263,11 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
      * @param str The type descriptor.
      * @return The corresponding type.
      */
-    protected Type typeForString(String str) {
-        List l = typeListForString(str);
+    protected Ref<? extends Type> typeForString(String str) {
+        List<Ref<? extends Type>> l = typeListForString(str);
 
         if (l.size() == 1) {
-            return (Type) l.get(0);
+            return l.get(0);
         }
 
         throw new InternalCompilerError("Bad type string: \"" + str + "\"");
@@ -275,28 +279,35 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
      * @return A ClassType with the given name.
      * @throws InternalCompilerError if the class does not exist.
      */
-    protected ClassType quietTypeForName(String name) {
+    protected Ref<ClassDef> defForName(String name) {
+        return defForName(name, null);
+    }
+    
+    protected Ref<ClassDef> defForName(String name, Flags flags) {
         if (Report.should_report(verbose, 2))
             Report.report(2, "resolving " + name);
-
-        try {
-            return (ClassType) ts.systemResolver().find(name);
+        
+        TypeRef<ClassDef> sym = ts.symbolTable().typeRef();
+        if (flags == null) {
+            sym.setResolver(Globals.Scheduler().LookupGlobalTypeDef(sym, name));
         }
-        catch (SemanticException e) {
-            throw new InternalCompilerError("could not load " + name, e);
+        else {
+            sym.setResolver(Globals.Scheduler().LookupGlobalTypeDefAndSetFlags(sym, name, flags));
         }
+        return sym;
+    }
+    
+    /**
+     * Looks up a class by name, assuming the class exists.
+     * @param name Name of the class to find.
+     * @return A Ref to a Type with the given name.
+     */
+    protected Ref<? extends Type> typeForName(String name) {
+        return typeForName(name, null);
     }
 
-    /**
-     * Looks up a class by name.
-     * @param name Name of the class to find.
-     * @return A ClassType with the given name.
-     * @throws SemanticException if the class does not exist.
-     */
-    protected ClassType typeForName(String name) throws SemanticException {
-        if (Report.should_report(verbose, 2))
-            Report.report(2, "resolving " + name);
-        return (ClassType) ts.systemResolver().find(name);
+    protected Ref<? extends Type> typeForName(String name, Flags flags) {
+        return Ref_c.<Type>ref(new ParsedClassType_c(ts, position(), defForName(name, flags)));
     }
 
     public void initTypeObject() {
@@ -312,17 +323,17 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
             return;
         }
 
-        if (ts.equals(ct, ts.Object())) {
+        if (clazz.name().equals("java/lang/Object")) {
             ct.superType(null);
         }
         else {
             String superName = clazz.classNameCP(clazz.getSuperClass());
 
             if (superName != null) {
-                ct.superType(quietTypeForName(superName));
+                ct.superType(typeForName(superName));
             }
             else {
-                ct.superType(ts.Object());
+                ct.superType(typeForName("java.lang.Object"));
             }
         }
 
@@ -341,7 +352,8 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
         int[] interfaces = clazz.getInterfaces();
         for (int i = 0; i < interfaces.length; i++) {
             String name = clazz.classNameCP(interfaces[i]);
-            ct.addInterface(quietTypeForName(name));
+            ct.addInterface(typeForName(name));
+            // ### should be a lazy ref that rather than eager
         }
         
         interfacesInitialized = true;
@@ -373,27 +385,12 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
                     }
 
                     // A member class of this class
-                    ClassType t = quietTypeForName(name);
+                    Ref<? extends Type> t = typeForName(name, ts.flagsForBits(c.modifiers));
 
-                    if (t.isMember()) {
-                        if (Report.should_report(verbose, 3))
-                            Report.report(3, "adding member " + t + " to " + ct);
+                    if (Report.should_report(verbose, 3))
+                        Report.report(3, "adding member " + t + " to " + ct);
 
-                        ct.addMemberClass(t);
-
-                        // Set the access flags of the member class
-                        // using the modifier bits of the InnerClass attribute.
-                        // The flags in the class file for the member class are
-                        // not correct! Stupid Java.
-                        if (t instanceof ParsedClassType) {
-                            ParsedClassType pt = (ParsedClassType) t;
-                            pt.flags(ts.flagsForBits(c.modifiers));
-                        }
-                    }
-                    else {
-                        throw new InternalCompilerError(name
-                                + " should be a member class.");
-                    }
+                    ct.addMemberClass(t);
                 }
             }
         }
@@ -426,7 +423,7 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
         for (int i = 0; i < fields.length; i++) {
             if (!fields[i].name().startsWith("jlc$")
                     && !fields[i].isSynthetic()) {
-                FieldInstance fi = this.fieldInstance(fields[i], ct);
+                FieldDef fi = this.fieldInstance(fields[i], ct);
                 if (Report.should_report(verbose, 3))
                     Report.report(3, "adding " + fi + " to " + ct);
                 ct.addField(fi);
@@ -450,7 +447,7 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
             if (!methods[i].name().equals("<init>")
                     && !methods[i].name().equals("<clinit>")
                     && !methods[i].isSynthetic()) {
-                MethodInstance mi = this.methodInstance(methods[i], ct);
+                MethodDef mi = this.methodInstance(methods[i], ct);
                 if (Report.should_report(verbose, 3))
                     Report.report(3, "adding " + mi + " to " + ct);
                 ct.addMethod(mi);
@@ -473,7 +470,7 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
         for (int i = 0; i < methods.length; i++) {
             if (methods[i].name().equals("<init>")
                     && !methods[i].isSynthetic()) {
-                ConstructorInstance ci = this.constructorInstance(methods[i],
+                ConstructorDef ci = this.constructorInstance(methods[i],
                                                                   ct,
                                                                   clazz.getFields());
                 if (Report.should_report(verbose, 3))
@@ -500,7 +497,7 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
      * @param method The JVM Method data structure.
      * @param ct The class containing the method.
      */
-    protected MethodInstance methodInstance(Method method, ClassType ct) {
+    protected MethodDef methodInstance(Method method, ClassDef ct) {
         Constant[] constants = clazz.getConstants();
         String name = (String) constants[method.getName()].value();
         String type = (String) constants[method.getType()].value();
@@ -510,21 +507,21 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
         }
     
         int index = type.indexOf(')', 1);
-        List argTypes = typeListForString(type.substring(1, index));
-        Type returnType = typeForString(type.substring(index+1));
+        List<Ref<? extends Type>> argTypes = typeListForString(type.substring(1, index));
+        Ref<? extends Type> returnType = typeForString(type.substring(index+1));
     
-        List excTypes = new ArrayList();
+        List<Ref<? extends Type>> excTypes = new ArrayList<Ref<? extends Type>>();
     
         Exceptions exceptions = method.getExceptions();
         if (exceptions != null) {
             int[] throwTypes = exceptions.getThrowTypes();
             for (int i = 0; i < throwTypes.length; i++) {
                 String s = clazz.classNameCP(throwTypes[i]);
-                excTypes.add(quietTypeForName(s));
+                excTypes.add(typeForName(s));
             }
         }
     
-        return ts.methodInstance(ct.position(), ct,
+        return ts.methodInstance(ct.position(), Ref_c.ref(ct.asType()),
                                  ts.flagsForBits(method.getModifiers()),
                                  returnType, name, argTypes, excTypes);
       }
@@ -536,11 +533,11 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
      * @param fields The constructor's fields, needed to remove parameters
      * passed to initialize synthetic fields.
      */
-    protected ConstructorInstance constructorInstance(Method method, ClassType ct, Field[] fields) {
+    protected ConstructorDef constructorInstance(Method method, ClassDef ct, Field[] fields) {
         // Get a method instance for the <init> method.
-        MethodInstance mi = methodInstance(method, ct);
+        MethodDef mi = methodInstance(method, ct);
     
-        List formals = mi.formalTypes();
+        List<Ref<? extends Type>> formals = mi.formalTypes();
     
         if (ct.isInnerClass()) {
             // If an inner class, the first argument may be a reference to an
@@ -562,7 +559,7 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
             }
         }
         
-        return ts.constructorInstance(mi.position(), ct, mi.flags(),
+        return ts.constructorInstance(mi.position(), Ref_c.ref(ct.asType()), mi.flags(),
                                       formals, mi.throwTypes());
     }
 
@@ -571,12 +568,12 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
      * @param field The JVM Field data structure for the field.
      * @param ct The class containing the field.
      */
-    protected FieldInstance fieldInstance(Field field, ClassType ct) {
+    protected FieldDef fieldInstance(Field field, ClassDef ct) {
       Constant[] constants = clazz.getConstants();
       String name = (String) constants[field.getName()].value();
       String type = (String) constants[field.getType()].value();
     
-      FieldInstance fi = ts.fieldInstance(ct.position(), ct,
+      FieldDef fi = ts.fieldInstance(ct.position(), Ref_c.ref(ct.asType()),
                                           ts.flagsForBits(field.getModifiers()),
                                           typeForString(type), name);
     

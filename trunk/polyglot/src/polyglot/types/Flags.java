@@ -7,9 +7,6 @@
 
 package polyglot.types;
 
-import polyglot.util.InternalCompilerError;
-import polyglot.util.Enum;
-
 import java.io.Serializable;
 import java.util.*;
 

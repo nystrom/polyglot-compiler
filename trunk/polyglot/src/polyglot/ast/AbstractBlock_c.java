@@ -10,7 +10,6 @@ package polyglot.ast;
 
 import polyglot.types.*;
 import polyglot.util.*;
-import polyglot.util.CodeWriter;
 import polyglot.visit.*;
 
 import java.util.*;
@@ -21,21 +20,21 @@ import java.util.*;
  */
 public abstract class AbstractBlock_c extends Stmt_c implements Block
 {
-    protected List statements;
+    protected List<Stmt> statements;
 
-    public AbstractBlock_c(Position pos, List statements) {
+    public AbstractBlock_c(Position pos, List<Stmt> statements) {
 	super(pos);
 	assert(statements != null);
 	this.statements = TypedList.copyAndCheck(statements, Stmt.class, true);
     }
 
     /** Get the statements of the block. */
-    public List statements() {
+    public List<Stmt> statements() {
 	return this.statements;
     }
 
     /** Set the statements of the block. */
-    public Block statements(List statements) {
+    public Block statements(List<Stmt> statements) {
 	AbstractBlock_c n = (AbstractBlock_c) copy();
 	n.statements = TypedList.copyAndCheck(statements, Stmt.class, true);
 	return n;
@@ -43,7 +42,7 @@ public abstract class AbstractBlock_c extends Stmt_c implements Block
 
     /** Append a statement to the block. */
     public Block append(Stmt stmt) {
-	List l = new ArrayList(statements.size()+1);
+	List<Stmt> l = new ArrayList<Stmt>(statements.size()+1);
 	l.addAll(statements);
 	l.add(stmt);
 	return statements(l);
@@ -51,14 +50,14 @@ public abstract class AbstractBlock_c extends Stmt_c implements Block
 
     /** Prepend a statement to the block. */
     public Block prepend(Stmt stmt) {
-        List l = new ArrayList(statements.size()+1);
+        List<Stmt> l = new ArrayList<Stmt>(statements.size()+1);
         l.add(stmt);
         l.addAll(statements);
         return statements(l);
     }
 
     /** Reconstruct the block. */
-    protected AbstractBlock_c reconstruct(List statements) {
+    protected AbstractBlock_c reconstruct(List<Stmt> statements) {
 	if (! CollectionUtil.equals(statements, this.statements)) {
 	    AbstractBlock_c n = (AbstractBlock_c) copy();
 	    n.statements = TypedList.copyAndCheck(statements, Stmt.class, true);
@@ -70,7 +69,7 @@ public abstract class AbstractBlock_c extends Stmt_c implements Block
 
     /** Visit the children of the block. */
     public Node visitChildren(NodeVisitor v) {
-        List statements = visitList(this.statements, v);
+        List<Stmt> statements = visitList(this.statements, v);
 	return reconstruct(statements);
     }
 
@@ -82,8 +81,8 @@ public abstract class AbstractBlock_c extends Stmt_c implements Block
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
 	w.begin(0);
 
-	for (Iterator i = statements.iterator(); i.hasNext(); ) {
-	    Stmt n = (Stmt) i.next();
+	for (Iterator<Stmt> i = statements.iterator(); i.hasNext(); ) {
+	    Stmt n = i.next();
 	    printBlock(n, w, tr);
 
 	    if (i.hasNext()) {
@@ -98,7 +97,7 @@ public abstract class AbstractBlock_c extends Stmt_c implements Block
         return listChild(statements, null);
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         v.visitCFGList(statements, this, EXIT);
         return succs;
     }
@@ -109,13 +108,13 @@ public abstract class AbstractBlock_c extends Stmt_c implements Block
 
         int count = 0;
 
-        for (Iterator i = statements.iterator(); i.hasNext(); ) {
+        for (Iterator<Stmt> i = statements.iterator(); i.hasNext(); ) {
             if (count++ > 2) {
                 sb.append(" ...");
                 break;
             }
 
-            Stmt n = (Stmt) i.next();
+            Stmt n = i.next();
             sb.append(" ");
             sb.append(n.toString());
         }

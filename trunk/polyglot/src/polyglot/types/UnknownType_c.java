@@ -7,10 +7,7 @@
 
 package polyglot.types;
 
-import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.types.Package;
-import java.io.*;
+import polyglot.util.InternalCompilerError;
 
 /**
  * An unknown type.  This is used as a place-holder until types are
@@ -24,10 +21,6 @@ public class UnknownType_c extends Type_c implements UnknownType
     /** Creates a new type in the given a TypeSystem. */
     public UnknownType_c(TypeSystem ts) {
         super(ts);
-    }
-
-    public boolean isCanonical() {
-        return false;
     }
 
     public String translate(Resolver c) {

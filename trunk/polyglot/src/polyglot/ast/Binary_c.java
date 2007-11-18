@@ -540,7 +540,7 @@ public class Binary_c extends Expr_c implements Binary
     return left;
   }
 
-  public List acceptCFG(CFGBuilder v, List succs) {
+  public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
     if (op == COND_AND || op == COND_OR) {
       // short-circuit
       if (left instanceof BooleanLit) {
@@ -586,9 +586,9 @@ public class Binary_c extends Expr_c implements Binary
     return succs;
   }
 
-  public List throwTypes(TypeSystem ts) {
+  public List<Type> throwTypes(TypeSystem ts) {
     if (throwsArithmeticException()) {
-      return Collections.singletonList(ts.ArithmeticException());
+      return Collections.<Type>singletonList(ts.ArithmeticException());
     }
 
     return Collections.EMPTY_LIST;

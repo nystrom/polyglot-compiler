@@ -1,0 +1,20 @@
+package polyglot.types;
+
+import polyglot.util.Position;
+
+public class Def_c extends TypeObject_c {
+
+    public Def_c() { }
+    
+    public Def_c(TypeSystem ts) {
+        super(ts);
+    }
+    
+    public Def_c(TypeSystem ts, Position pos) {
+        super(ts, pos);
+    }
+
+    public boolean equalsImpl(TypeObject o) {
+        return this == o;
+    }
+}

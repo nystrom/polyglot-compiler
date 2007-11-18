@@ -9,6 +9,7 @@
 package polyglot.ast;
 
 import polyglot.ast.Assert;
+import polyglot.frontend.Globals;
 import polyglot.types.*;
 import polyglot.visit.*;
 import polyglot.util.*;
@@ -69,7 +70,7 @@ public class Assert_c extends Stmt_c implements Assert
     public Node typeCheck(TypeChecker tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
-        if (! Options.global.assertions) {
+        if (! Globals.Options().assertions) {
             ErrorQueue eq = tc.errorQueue();
             eq.enqueue(ErrorInfo.WARNING,
                        "assert statements are disabled. Recompile " +
@@ -137,7 +138,7 @@ public class Assert_c extends Stmt_c implements Assert
     }
 
     public void translate(CodeWriter w, Translator tr) {
-        if (! Options.global.assertions) {
+        if (! Globals.Options().assertions) {
             w.write(";");
         }
         else {
@@ -149,7 +150,7 @@ public class Assert_c extends Stmt_c implements Assert
         return cond;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         if (errorMessage != null) {
             v.visitCFG(cond, errorMessage, ENTRY);
             v.visitCFG(errorMessage, this, EXIT);

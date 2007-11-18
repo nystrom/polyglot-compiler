@@ -7,8 +7,7 @@
 
 package polyglot.types;
 
-import polyglot.types.*;
-import polyglot.util.*;
+import polyglot.util.InternalCompilerError;
 
 /**
  * A <code>NullType</code> represents the type of the Java keyword
@@ -39,7 +38,6 @@ public class NullType_c extends Type_c implements NullType
 	return 6060842;
     }
 
-    public boolean isCanonical() { return true; }
     public boolean isNull() { return true; }
 
     public NullType toNull() { return this; }

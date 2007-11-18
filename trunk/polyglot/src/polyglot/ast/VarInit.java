@@ -13,7 +13,7 @@
  */
 package polyglot.ast;
 
-import polyglot.types.VarInstance;
+import polyglot.types.VarDef;
 
 /**
  * <code>VarInit</code> should be implemented by any node that could declare and
@@ -21,7 +21,7 @@ import polyglot.types.VarInstance;
  */
 public interface VarInit {
     /** The variable being initialized. */
-    VarInstance varInstance();
+    VarDef varInstance();
     
     /** Whether the initializer has been determined to be constant or not. */
     boolean constantValueSet();

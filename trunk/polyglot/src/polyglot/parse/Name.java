@@ -9,7 +9,8 @@
 package polyglot.parse;
 
 import polyglot.ast.*;
-import polyglot.types.TypeSystem;
+import polyglot.types.*;
+import polyglot.types.Package;
 import polyglot.util.*;
 
 /**
@@ -104,10 +105,10 @@ public class Name {
     // package
     public PackageNode toPackage() {
         if (prefix == null) {
-            return nf.PackageNode(pos, ts.createPackage(null, name.id()));
+            return nf.PackageNode(pos, Ref_c.ref(ts.createPackage((Ref<? extends Package>) null, name.id())));
         }
         else {
-            return nf.PackageNode(pos, ts.createPackage(prefix.toPackage().package_(), name.id()));
+            return nf.PackageNode(pos, Ref_c.ref(ts.createPackage(prefix.toPackage().package_(), name.id())));
         }
     }
 

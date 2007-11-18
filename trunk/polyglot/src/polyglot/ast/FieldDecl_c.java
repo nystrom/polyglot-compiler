@@ -8,14 +8,33 @@
 
 package polyglot.ast;
 
-import java.util.Iterator;
 import java.util.List;
 
-import polyglot.frontend.*;
-import polyglot.frontend.goals.Goal;
-import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.visit.*;
+import polyglot.types.ClassDef;
+import polyglot.types.ClassType;
+import polyglot.types.CodeDef;
+import polyglot.types.Context;
+import polyglot.types.ErrorRef_c;
+import polyglot.types.FieldDef;
+import polyglot.types.Flags;
+import polyglot.types.InitializerDef;
+import polyglot.types.MemberDef;
+import polyglot.types.ParsedClassType_c;
+import polyglot.types.Ref_c;
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
+import polyglot.types.TypeSystem;
+import polyglot.types.VarDef;
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
+import polyglot.visit.AmbiguityRemover;
+import polyglot.visit.AscriptionVisitor;
+import polyglot.visit.CFGBuilder;
+import polyglot.visit.ExceptionChecker;
+import polyglot.visit.NodeVisitor;
+import polyglot.visit.PrettyPrinter;
+import polyglot.visit.TypeBuilder;
+import polyglot.visit.TypeChecker;
 
 /**
  * A <code>FieldDecl</code> is an immutable representation of the declaration
@@ -26,8 +45,8 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     protected TypeNode type;
     protected Id name;
     protected Expr init;
-    protected FieldInstance fi;
-    protected InitializerInstance ii;
+    protected FieldDef fi;
+    protected InitializerDef ii;
 
     public FieldDecl_c(Position pos, Flags flags, TypeNode type,
                        Id name, Expr init)
@@ -40,29 +59,25 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         this.init = init;
     }
 
-    public boolean isDisambiguated() {
-        return fi != null && fi.isCanonical() && (init == null || (ii != null && ii.isCanonical())) && super.isDisambiguated();
-    }
-    
-    public MemberInstance memberInstance() {
+    public MemberDef memberInstance() {
         return fi;
     }
 
-    public VarInstance varInstance() {
+    public VarDef varInstance() {
         return fi;
     }
     
-    public CodeInstance codeInstance() {
+    public CodeDef codeInstance() {
         return ii;
     }
 
     /** Get the initializer instance of the initializer. */
-    public InitializerInstance initializerInstance() {
+    public InitializerDef initializerInstance() {
         return ii;
     }
 
     /** Set the initializer instance of the initializer. */
-    public FieldDecl initializerInstance(InitializerInstance ii) {
+    public FieldDecl initializerInstance(InitializerDef ii) {
         if (ii == this.ii) return this;
         FieldDecl_c n = (FieldDecl_c) copy();
         n.ii = ii;
@@ -138,7 +153,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     }
 
     /** Set the field instance of the declaration. */
-    public FieldDecl fieldInstance(FieldInstance fi) {
+    public FieldDecl fieldInstance(FieldDef fi) {
         if (fi == this.fi) return this;
         FieldDecl_c n = (FieldDecl_c) copy();
         n.fi = fi;
@@ -146,7 +161,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     }
 
     /** Get the field instance of the declaration. */
-    public FieldInstance fieldInstance() {
+    public FieldDef fieldInstance() {
         return fi;
     }
 
@@ -178,49 +193,38 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         TypeSystem ts = tb.typeSystem();
 
-        ParsedClassType ct = tb.currentClass();
+        ClassDef cd = tb.currentClass();
 
-        if (ct == null) {
+        if (cd == null) {
             return this;
         }
 
-        Flags f = flags;
+        ClassType ct = cd.asType();
 
-        if (ct.flags().isInterface()) {
-            f = f.Public().Static().Final();
+        Flags flags = this.flags;
+
+        if (cd.flags().isInterface()) {
+            flags = flags.Public().Static().Final();
         }
         
         FieldDecl n;
 
         if (init != null) {
-            Flags iflags = f.isStatic() ? Flags.STATIC : Flags.NONE;
-            InitializerInstance ii = ts.initializerInstance(init.position(),
-                                                            ct, iflags);
+            Flags iflags = flags.isStatic() ? Flags.STATIC : Flags.NONE;
+            InitializerDef ii = ts.initializerInstance(init.position(),
+                                                            Ref_c.<ClassType>ref(ct), iflags);
             n = initializerInstance(ii);
         }
         else {
             n = this;
         }
 
-        // XXX: MutableFieldInstance
-        FieldInstance fi = ts.fieldInstance(position(), ct, f,
-                                            ts.unknownType(position()), name.id());
-        ct.addField(fi);
-
-        return n.flags(f).fieldInstance(fi);
-    }
-
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
-        if (this.fi.isCanonical()) {
-            // Nothing to do.
-            return this;
-        }
-
-        if (declType().isCanonical()) {
-            this.fi.setType(declType());
-        }
+        FieldDef fi = ts.fieldInstance(position(), Ref_c.<ClassType>ref(ct), flags, type.theType(), name.id());
+        ts.symbolTable().<FieldDef>symbol(fi);
         
-        return this;
+        cd.addField(fi);
+
+        return n.flags(flags).fieldInstance(fi);
     }
 
     public Context enterScope(Context c) {
@@ -230,44 +234,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         return c;
     }
    
-    public static class AddDependenciesVisitor extends NodeVisitor {
-        protected Scheduler scheduler;
-        protected FieldInstance fi;
-        
-        AddDependenciesVisitor(Scheduler scheduler, FieldInstance fi) {
-            this.scheduler = scheduler;
-            this.fi = fi;
-        }
-        
-        public Node leave(Node old, Node n, NodeVisitor v) {
-            if (n instanceof Field) {
-                Field f = (Field) n;
-                if (!f.fieldInstance().orig().constantValueSet()) {
-                    Goal newGoal = scheduler.FieldConstantsChecked(f.fieldInstance().orig());
-                    Goal myGoal = scheduler.FieldConstantsChecked(this.fi);
-                    
-                    for (Iterator i = newGoal.prerequisiteGoals(scheduler).iterator(); i.hasNext();) {
-                        Goal g = (Goal) i.next();
-                        if (scheduler.prerequisiteDependsOn(g, myGoal)) {
-                            this.fi.setNotConstant();
-                            return n;
-                        }
-                    }
-                    throw new MissingDependencyException(newGoal, true);
-                }
-            }
-            return n;
-        }   
-    }
-
-    public Node checkConstants(ConstantChecker cc) throws SemanticException {
-        if (init != null && ! init.constantValueSet()) {
-            // HACK to add dependencies for computing the constant value.
-            Scheduler scheduler = cc.typeSystem().extensionInfo().scheduler();
-            init.visit(new AddDependenciesVisitor(scheduler, this.fi));
-            return this;
-        }
-        
+    public Node checkConstants(TypeChecker tc) throws SemanticException {
         if (init == null || ! init.isConstant() || ! fi.flags().isFinal()) {
             fi.setNotConstant();
         }
@@ -327,7 +294,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         // check that inner classes do not declare static fields, unless they
         // are compile-time constants
         if (flags().isStatic() &&
-              fieldInstance().container().toClass().isInnerClass()) {
+              fieldInstance().container().get().toClass().isInnerClass()) {
             // it's a static field in an inner class.
             if (!flags().isFinal() || init == null || !init.isConstant()) {
                 throw new SemanticException("Inner classes cannot declare " +
@@ -365,7 +332,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         return type;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         if (init != null) {
             v.visitCFG(type, init, ENTRY);
             v.visitCFG(init, this, EXIT);
@@ -384,7 +351,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
 
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
         boolean isInterface = fi != null && fi.container() != null &&
-                              fi.container().toClass().flags().isInterface();
+                              fi.container().get().toClass().flags().isInterface();
 
         Flags f = flags;
 

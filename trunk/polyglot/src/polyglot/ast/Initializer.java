@@ -7,7 +7,7 @@
 
 package polyglot.ast;
 
-import polyglot.types.InitializerInstance;
+import polyglot.types.InitializerDef;
 import polyglot.types.Flags;
 
 /**
@@ -28,8 +28,8 @@ public interface Initializer extends CodeDecl
      * Get the initializer's type object.  This field may not be valid until
      * after signature disambiguation.
      */
-    InitializerInstance initializerInstance();
+    InitializerDef initializerInstance();
 
     /** Set the initializer's type object. */
-    Initializer initializerInstance(InitializerInstance ii);
+    Initializer initializerInstance(InitializerDef ii);
 }

@@ -7,7 +7,6 @@
 
 package polyglot.types;
 
-import polyglot.util.Position;
 import polyglot.util.CodeWriter;
 
 /**
@@ -69,16 +68,6 @@ public interface Type extends Qualifier
     boolean typeEquals(Type t);
     
     /**
-     * Return true if this type is equivalent to t.
-     * Usually this is the same as equalsImpl(TypeObject), but that
-     * method should return true only if the types are
-     * <i>structurally equal</i>.
-     * @param t Type to compare to
-     * @return True if this type is equivalent to t.
-     */
-    boolean typeEqualsImpl(Type t);
-    
-    /**
      * Return true if this type is a subtype of <code>ancestor</code>.
      */
     boolean isSubtype(Type ancestor);
@@ -108,38 +97,6 @@ public interface Type extends Qualifier
      * Return true a literal <code>value</code> can be converted to this type.
      */
     boolean numericConversionValid(long value);
-
-    /**
-     * Return true if this type is a subtype of <code>ancestor</code>.
-     */
-    boolean isSubtypeImpl(Type t);
-
-    /**
-     * Return true if this type descends from <code>ancestor</code>.
-     */
-    boolean descendsFromImpl(Type t);
-
-    /**
-     * Return true if this type can be cast to <code>toType</code>.
-     */
-    boolean isCastValidImpl(Type t);
-
-    /**
-     * Return true if a value of this type can be assigned to a variable of
-     * type <code>toType</code>.
-     */
-    boolean isImplicitCastValidImpl(Type t);
-
-    /**
-     * Return true a literal <code>value</code> can be converted to this type.
-     */
-    boolean numericConversionValidImpl(Object value);
-
-    /**
-     * Return true a literal <code>value</code> can be converted to this type.
-     * This method should be removed.  It is kept for backward compatibility.
-     */
-    boolean numericConversionValidImpl(long value);
 
     /**
      * Return true if a primitive type.
@@ -254,5 +211,6 @@ public interface Type extends Qualifier
      * in error messages and generated output.
      */
     String toString();
+    
     void print(CodeWriter w);
 }

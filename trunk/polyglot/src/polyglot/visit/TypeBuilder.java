@@ -8,17 +8,12 @@
 
 package polyglot.visit;
 
-import java.util.*;
-import java.util.HashSet;
-import java.util.Stack;
+import java.util.Iterator;
+import java.util.LinkedList;
 
-import polyglot.ast.*;
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
-import polyglot.frontend.*;
 import polyglot.frontend.Job;
-import polyglot.frontend.goals.Goal;
-import polyglot.frontend.goals.TypeExists;
 import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.types.Package;
@@ -35,7 +30,7 @@ public class TypeBuilder extends NodeVisitor
     protected boolean inCode; // true if the last scope pushed as not a class.
     protected boolean global; // true if all scopes pushed have been classes.
     protected Package package_;
-    protected ParsedClassType type; // last class pushed.
+    protected ClassDef type; // last class pushed.
 
     public TypeBuilder(Job job, TypeSystem ts, NodeFactory nf) {
         this.job = job;
@@ -170,65 +165,66 @@ public class TypeBuilder extends NodeVisitor
         return tb;
     }
 
-    protected TypeBuilder pushClass(ParsedClassType type) throws SemanticException {
+    protected TypeBuilder pushClass(ClassDef classDef) throws SemanticException {
         if (Report.should_report(Report.visit, 4))
-	    Report.report(4, "TB pushing class " + type + ": " + context());
+	    Report.report(4, "TB pushing class " + classDef + ": " + context());
 
         TypeBuilder tb = push();
-        tb.type = type;
+        tb.type = classDef;
         tb.inCode = false;
 
 	// Make sure the import table finds this class.
-        if (importTable() != null && type.isTopLevel()) {
-	    tb.importTable().addClassImport(type.fullName());
+        if (importTable() != null && classDef.isTopLevel()) {
+	    tb.importTable().addClassImport(classDef.fullName());
 	}
         
         return tb;
     }
 
-    protected ParsedClassType newClass(Position pos, Flags flags, String name)
+    protected ClassDef newClass(Position pos, Flags flags, String name)
         throws SemanticException
     {
 	TypeSystem ts = typeSystem();
 
-        ParsedClassType ct = ts.createClassType(job().source());
-        
+        ClassDef ct = ts.createClassType(job().source());
+        LazyClassInitializer init = (LazyClassInitializer) ct.initializer();
+
         ct.position(pos);
         ct.flags(flags);
         ct.name(name);
-//        ct.superType(ts.unknownType(pos));
+        ct.superType(new ErrorRef_c<Type>(ts, pos));
 
 	if (inCode) {
-            ct.kind(ClassType.LOCAL);
-	    ct.outer(currentClass());
+            ct.kind(ClassDef.LOCAL);
+	    ct.outer(Ref_c.ref(currentClass()));
 	    ct.setJob(job());
 
 	    if (currentPackage() != null) {
-	      	ct.package_(currentPackage());
+	      	ct.package_(Ref_c.<Package>ref(currentPackage()));
 	    }
 
 	    return ct;
 	}
 	else if (currentClass() != null) {
-            ct.kind(ClassType.MEMBER);
-	    ct.outer(currentClass());
+            ct.kind(ClassDef.MEMBER);
+            ct.outer(Ref_c.ref(currentClass()));
 	    ct.setJob(job());
 
-	    currentClass().addMemberClass(ct);
+	    currentClass().addMemberClass(Ref_c.<ClassType>ref(ct.asType()));
 
 	    if (currentPackage() != null) {
-	      	ct.package_(currentPackage());
+	      	ct.package_(Ref_c.<Package>ref(currentPackage()));
 	    }
 
             // if all the containing classes for this class are member
             // classes or top level classes, then add this class to the
             // parsed resolver.
-            ClassType container = ct.outer();
+            ClassDef container = currentClass();
             boolean allMembers = (container.isMember() || container.isTopLevel());
             while (container.isMember()) {
-                container = container.outer();
+                container = container.outer().get();
                 allMembers = allMembers && 
-                        (container.isMember() || container.isTopLevel());
+                (container.isMember() || container.isTopLevel());
             }
 
             if (allMembers) {
@@ -242,11 +238,11 @@ public class TypeBuilder extends NodeVisitor
             return ct;
 	}
 	else {
-            ct.kind(ClassType.TOP_LEVEL);
+            ct.kind(ClassDef.TOP_LEVEL);
             ct.setJob(job());
 
 	    if (currentPackage() != null) {
-	      	ct.package_(currentPackage());
+	      	ct.package_(Ref_c.<Package>ref(currentPackage()));
 	    }
 
             Named dup = typeSystem().systemResolver().check(ct.fullName());
@@ -260,7 +256,6 @@ public class TypeBuilder extends NodeVisitor
 
 	    return ct;
 	}
-    
     }
 
     public TypeBuilder pushAnonClass(Position pos) throws SemanticException {
@@ -274,14 +269,14 @@ public class TypeBuilder extends NodeVisitor
 
 	TypeSystem ts = typeSystem();
 
-        ParsedClassType ct = ts.createClassType(this.job().source());
-        ct.kind(ClassType.ANONYMOUS);
-        ct.outer(currentClass());
+        ClassDef ct = ts.createClassType(this.job().source());
+        ct.kind(ClassDef.ANONYMOUS);
+        ct.outer(Ref_c.ref(currentClass()));
         ct.position(pos);
         ct.setJob(job());
 
         if (currentPackage() != null) {
-            ct.package_(currentPackage());
+            ct.package_(Ref_c.<Package>ref(currentPackage()));
         }
         
 //        ct.superType(ts.unknownType(pos));
@@ -292,11 +287,11 @@ public class TypeBuilder extends NodeVisitor
     public TypeBuilder pushClass(Position pos, Flags flags, String name)
     	throws SemanticException {
 
-        ParsedClassType t = newClass(pos, flags, name);
+        ClassDef t = newClass(pos, flags, name);
         return pushClass(t);
     }
 
-    public ParsedClassType currentClass() {
+    public ClassDef currentClass() {
         return this.type;
     }
 

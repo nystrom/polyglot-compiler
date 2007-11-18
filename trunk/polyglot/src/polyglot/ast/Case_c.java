@@ -97,7 +97,7 @@ public class Case_c extends Stmt_c implements Case
 	return this;
     }
     
-    public Node checkConstants(ConstantChecker cc) throws SemanticException {
+    public Node checkConstants(TypeChecker tc) throws SemanticException {
         if (expr == null) {
             return this;
         }
@@ -160,7 +160,7 @@ public class Case_c extends Stmt_c implements Case
         return null;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         if (expr != null) {
             v.visitCFG(expr, this, EXIT);
         }

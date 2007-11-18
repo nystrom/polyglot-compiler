@@ -129,15 +129,15 @@ public class ArrayAccess_c extends Expr_c implements ArrayAccess
         return array;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         v.visitCFG(array, index, ENTRY);
         v.visitCFG(index, this, EXIT);
         return succs;
     }
 
-    public List throwTypes(TypeSystem ts) {
-        return CollectionUtil.list(ts.OutOfBoundsException(),
-                                   ts.NullPointerException());
+    public List<Type> throwTypes(TypeSystem ts) {
+        return CollectionUtil.<Type>list(ts.OutOfBoundsException(),
+                                         ts.NullPointerException());
     }
     public Node copy(NodeFactory nf) {
         return nf.ArrayAccess(this.position, this.array, this.index);

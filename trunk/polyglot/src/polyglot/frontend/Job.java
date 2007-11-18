@@ -7,6 +7,8 @@
 
 package polyglot.frontend;
 
+import java.util.*;
+
 import polyglot.ast.Node;
 import polyglot.util.CodeWriter;
 
@@ -28,6 +30,9 @@ public class Job
 
     /** The AST constructed from the source file. */
     protected Node ast;
+    
+    /** Substitution map for ast nodes. */
+    protected Map<Node,Node> astMap;
 
     /** The pass currently running over the job, or null. */
     protected Pass runningPass;
@@ -49,11 +54,27 @@ public class Job
         this.ext = ext;
         this.source = source;
         this.ast = ast;
+        this.astMap = null;
 
         this.runningPass = null;
         this.status = true;
         this.initialErrorCount = 0;
         this.reportedErrors = false;
+    }
+    
+    public List<Pass> passes() {
+        return Collections.EMPTY_LIST;
+    }
+
+    public void setAstMap(Map<Node,Node> map) {
+        this.astMap = map;
+    }
+
+    public Map<Node,Node> astMap() {
+        if (astMap == null) {
+            astMap = new HashMap<Node,Node>();
+        }
+        return astMap;
     }
 
     public JobExt ext() {

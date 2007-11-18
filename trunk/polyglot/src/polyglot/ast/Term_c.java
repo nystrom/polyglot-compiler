@@ -29,7 +29,7 @@ public abstract class Term_c extends Node_c implements Term
     /**
      * Visit this term in evaluation order.
      */
-    public abstract List acceptCFG(CFGBuilder v, List succs);
+    public abstract List<Term> acceptCFG(CFGBuilder v, List<Term> succs);
 
     /**
      * Return true if this term is eachable.  This attribute is not
@@ -55,7 +55,7 @@ public abstract class Term_c extends Node_c implements Term
     }
 
     /** Utility function to get the first entry of a list, or else alt. */
-    public static Term listChild(List l, Term alt) {
+    public static Term listChild(List<? extends Term> l, Term alt) {
         Term c = (Term) CollectionUtil.firstOrElse(l, alt);
         return c;
     }

@@ -26,7 +26,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     protected List formals;
     protected List throwTypes;
     protected Block body;
-    protected MethodInstance mi;
+    protected MethodDef mi;
 
     public MethodDecl_c(Position pos, Flags flags, TypeNode returnType, Id name, List formals, List throwTypes, Block body) {
 	super(pos);
@@ -39,11 +39,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	this.body = body;
     }
 
-    public boolean isDisambiguated() {
-        return mi != null && mi.isCanonical() && super.isDisambiguated();
-    }
-
-    public MemberInstance memberInstance() {
+    public MemberDef memberInstance() {
         return mi;
     }
 
@@ -95,24 +91,24 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     }
 
     /** Get the formals of the method. */
-    public List formals() {
+    public List<Formal> formals() {
 	return Collections.unmodifiableList(this.formals);
     }
 
     /** Set the formals of the method. */
-    public MethodDecl formals(List formals) {
+    public MethodDecl formals(List<Formal> formals) {
 	MethodDecl_c n = (MethodDecl_c) copy();
 	n.formals = TypedList.copyAndCheck(formals, Formal.class, true);
 	return n;
     }
 
     /** Get the exception types of the method. */
-    public List throwTypes() {
+    public List<TypeNode> throwTypes() {
 	return Collections.unmodifiableList(this.throwTypes);
     }
 
     /** Set the exception types of the method. */
-    public MethodDecl throwTypes(List throwTypes) {
+    public MethodDecl throwTypes(List<TypeNode> throwTypes) {
 	MethodDecl_c n = (MethodDecl_c) copy();
 	n.throwTypes = TypedList.copyAndCheck(throwTypes, TypeNode.class, true);
 	return n;
@@ -135,24 +131,24 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     }
 
     /** Get the method instance of the method. */
-    public MethodInstance methodInstance() {
+    public MethodDef methodInstance() {
 	return mi;
     }
 
     /** Set the method instance of the method. */
-    public MethodDecl methodInstance(MethodInstance mi) {
+    public MethodDecl methodInstance(MethodDef mi) {
         if (mi == this.mi) return this;
 	MethodDecl_c n = (MethodDecl_c) copy();
 	n.mi = mi;
 	return n;
     }
 
-    public CodeInstance codeInstance() {
+    public CodeDef codeInstance() {
 	return procedureInstance();
     }
 
     /** Get the procedure instance of the method. */
-    public ProcedureInstance procedureInstance() {
+    public ProcedureDef procedureInstance() {
 	return mi;
     }
 
@@ -188,20 +184,20 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         TypeSystem ts = tb.typeSystem();
 
-        ParsedClassType ct = tb.currentClass();
+        ClassDef ct = tb.currentClass();
 
         if (ct == null) {
             return this;
         }
 
-        List formalTypes = new ArrayList(formals.size());
-        for (int i = 0; i < formals.size(); i++) {
-            formalTypes.add(ts.unknownType(position()));
+        List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(formals.size());
+        for (Formal f : formals()) {
+            formalTypes.add(f.type().theType());
         }
 
-        List throwTypes = new ArrayList(throwTypes().size());
-        for (int i = 0; i < throwTypes().size(); i++) {
-            throwTypes.add(ts.unknownType(position()));
+        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(throwTypes().size());
+        for (TypeNode tn : throwTypes()) {
+            throwTypes.add(tn.theType());
         }
 
 	Flags f = this.flags;
@@ -210,49 +206,11 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	    f = f.Public().Abstract();
 	}
 
-        MethodInstance mi = ts.methodInstance(position(), ct, f,
-                                              ts.unknownType(position()),
-                                              name.id(), formalTypes, throwTypes);
-        ct.addMethod(mi);
+	MethodDef mi =
+	    ts.methodInstance(position(), Ref_c.ref(ct.asType()), f, returnType.theType(), name.id(), formalTypes, throwTypes);
+
+	ct.addMethod(mi);
         return methodInstance(mi);
-    }
-
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
-        if (this.mi.isCanonical()) {
-            // already done
-            return this;
-        }
-
-        if (! returnType.isDisambiguated()) {
-            return this;
-        }
-
-        mi.setReturnType(returnType.type());
-
-        List formalTypes = new LinkedList();
-        List throwTypes = new LinkedList();
-
-        for (Iterator i = formals.iterator(); i.hasNext(); ) {
-            Formal f = (Formal) i.next();
-            if (! f.isDisambiguated()) {
-                return this;
-            }
-            formalTypes.add(f.declType());
-        }
-
-        mi.setFormalTypes(formalTypes);
-
-        for (Iterator i = throwTypes().iterator(); i.hasNext(); ) {
-            TypeNode tn = (TypeNode) i.next();
-            if (! tn.isDisambiguated()) {
-                return this;
-            }
-            throwTypes.add(tn.type());
-        }
-
-        mi.setThrowTypes(throwTypes);
-
-        return this;
     }
 
     public Context enterScope(Context c) {
@@ -298,7 +256,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 		"A native method cannot have a body.", position());
 	}
 
-        for (Iterator i = throwTypes().iterator(); i.hasNext(); ) {
+        for (Iterator<TypeNode> i = throwTypes().iterator(); i.hasNext(); ) {
             TypeNode tn = (TypeNode) i.next();
             Type t = tn.type();
             if (! t.isThrowable()) {
@@ -310,7 +268,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 
         // check that inner classes do not declare static methods
         if (flags.isStatic() &&
-              methodInstance().container().toClass().isInnerClass()) {
+              methodInstance().container().get().toClass().isInnerClass()) {
             // it's a static method in an inner class.
             throw new SemanticException("Inner classes cannot declare " + 
                     "static methods.", this.position());             
@@ -324,8 +282,9 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     protected void overrideMethodCheck(TypeChecker tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
-        for (Iterator j = mi.implemented().iterator(); j.hasNext(); ) {
-            MethodInstance mj = (MethodInstance) j.next();
+        MethodType mi = this.mi.asType();
+        for (Iterator<MethodType> j = mi.implemented().iterator(); j.hasNext(); ) {
+            MethodType mj = (MethodType) j.next();
 
             if (! ts.isAccessible(mj, tc.context())) {
                 continue;
@@ -416,7 +375,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
         return listChild(formals(), returnType());
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         v.visitCFGList(formals(), returnType(), ENTRY);
         
         if (body() == null) {

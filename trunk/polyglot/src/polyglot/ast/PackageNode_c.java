@@ -8,12 +8,13 @@
 
 package polyglot.ast;
 
-import polyglot.ast.*;
 import polyglot.frontend.ExtensionInfo;
 import polyglot.types.*;
-import polyglot.visit.*;
-import polyglot.util.*;
 import polyglot.types.Package;
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
+import polyglot.visit.PrettyPrinter;
+import polyglot.visit.Translator;
 
 /**
  * A <code>PackageNode</code> is the syntactic representation of a 
@@ -21,30 +22,26 @@ import polyglot.types.Package;
  */
 public class PackageNode_c extends Node_c implements PackageNode
 {
-    protected Package package_;
+    protected Ref<? extends Package> package_;
 
-    public PackageNode_c(Position pos, Package package_) {
+    public PackageNode_c(Position pos, Ref<? extends Package> package_) {
 	super(pos);
 	assert(package_ != null);
 	this.package_ = package_;
     }
     
-    public boolean isDisambiguated() {
-        return package_ != null && package_.isCanonical() && super.isDisambiguated();
-    }
-
     /** Get the package as a qualifier. */
-    public Qualifier qualifier() {
+    public Ref<? extends Qualifier> qualifier() {
         return this.package_;
     }
 
     /** Get the package. */
-    public Package package_() {
+    public Ref<? extends Package> package_() {
 	return this.package_;
     }
 
     /** Set the package. */
-    public PackageNode package_(Package package_) {
+    public PackageNode package_(Ref<? extends Package> package_) {
 	PackageNode_c n = (PackageNode_c) copy();
 	n.package_ = package_;
 	return n;
@@ -56,12 +53,12 @@ public class PackageNode_c extends Node_c implements PackageNode
             w.write("<unknown-package>");
         }
         else {
-	    package_.print(w);
+	    package_.get().print(w);
         }
     }
     
     public void translate(CodeWriter w, Translator tr) {
-        w.write(package_.translate(tr.context()));
+        w.write(package_.get().translate(tr.context()));
     }
 
     public String toString() {
@@ -73,8 +70,9 @@ public class PackageNode_c extends Node_c implements PackageNode
     }
     public Node copy(ExtensionInfo extInfo) throws SemanticException {
         PackageNode pn = (PackageNode)this.del().copy(extInfo.nodeFactory());
-        if (pn.package_() != null) {
-            pn = pn.package_(extInfo.typeSystem().packageForName(pn.package_().fullName()));
+        Package p = TypeObject_c.get(pn.package_());
+        if (p != null) {
+            pn = pn.package_(Ref_c.ref(extInfo.typeSystem().packageForName(p.fullName())));
         }
         return pn;
     }

@@ -7,7 +7,7 @@
 
 package polyglot.ast;
 
-import polyglot.types.MethodInstance;
+import polyglot.types.MethodDef;
 import polyglot.types.Flags;
 import java.util.List;
 
@@ -33,39 +33,33 @@ public interface MethodDecl extends ProcedureDecl
     
     /** Set the method's name. */
     MethodDecl id(Id name);
-    
-    /** The method's name. */
-    String name();
-
-    /** Set the method's name. */
-    MethodDecl name(String name);
 
     /** The method's formal parameters.
      * @return A list of {@link polyglot.ast.Formal Formal}.
      */
-    List formals();
+    List<Formal> formals();
 
     /** Set the method's formal parameters.
      * @param formals A list of {@link polyglot.ast.Formal Formal}.
      */
-    MethodDecl formals(List formals);
+    MethodDecl formals(List<Formal> formals);
 
     /** The method's exception throw types.
      * @return A list of {@link polyglot.ast.TypeNode TypeNode}.
      */
-    List throwTypes();
+    List<TypeNode> throwTypes();
 
     /** Set the method's exception throw types.
      * @param throwTypes A list of {@link polyglot.ast.TypeNode TypeNode}.
      */
-    MethodDecl throwTypes(List throwTypes);
+    MethodDecl throwTypes(List<TypeNode> throwTypes);
 
     /**
      * The method type object.  This field may not be valid until
      * after signature disambiguation.
      */
-    MethodInstance methodInstance();
+    MethodDef methodInstance();
 
     /** Set the method's type object. */
-    MethodDecl methodInstance(MethodInstance mi);
+    MethodDecl methodInstance(MethodDef mi);
 }

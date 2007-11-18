@@ -7,11 +7,11 @@
 
 package polyglot.types;
 
-import polyglot.util.*;
+import java.util.*;
+
 import polyglot.frontend.ExtensionInfo;
 import polyglot.main.Report;
-import polyglot.types.Package;
-import java.util.*;
+import polyglot.util.*;
 
 /**
  * The <code>SystemResolver</code> is the main resolver for
@@ -123,7 +123,8 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
     protected void cachePackage(Package p) {
         if (p != null) {
             packageCache.put(p.fullName(), Boolean.TRUE);
-            cachePackage(p.prefix());
+            Package prefix = TypeObject_c.get(p.prefix());
+            cachePackage(prefix);
         }
     }
 
@@ -252,8 +253,9 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
             Package p = (Package) q;
             cachePackage(p);
             String containerName = StringUtil.getPackageComponent(name);
-            if (p.prefix() != null && containerName.equals(p.prefix().fullName())) {
-                addNamed(containerName, p.prefix());
+            Package prefix = TypeObject_c.get(p.prefix());
+            if (prefix != null && containerName.equals(prefix.fullName())) {
+                addNamed(containerName, prefix);
             }
         }
 

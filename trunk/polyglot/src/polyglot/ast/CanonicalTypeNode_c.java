@@ -9,7 +9,6 @@
 package polyglot.ast;
 
 import polyglot.frontend.ExtensionInfo;
-import polyglot.main.Options;
 import polyglot.types.*;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
@@ -20,7 +19,7 @@ import polyglot.visit.*;
  */
 public class CanonicalTypeNode_c extends TypeNode_c implements CanonicalTypeNode
 {
-  public CanonicalTypeNode_c(Position pos, Type type) {
+  public CanonicalTypeNode_c(Position pos, Ref<? extends Type> type) {
     super(pos);
     assert(type != null);
     this.type = type;
@@ -30,8 +29,8 @@ public class CanonicalTypeNode_c extends TypeNode_c implements CanonicalTypeNode
   public Node typeCheck(TypeChecker tc) throws SemanticException {
       TypeSystem ts = tc.typeSystem();
 
-      if (type.isClass()) {
-          ClassType ct = type.toClass();
+      if (type.get().isClass()) {
+          ClassType ct = type.get().toClass();
           if (ct.isTopLevel() || ct.isMember()) {
               if (! ts.classAccessible(ct, tc.context())) {
                   throw new SemanticException("Cannot access class \"" +
@@ -48,7 +47,7 @@ public class CanonicalTypeNode_c extends TypeNode_c implements CanonicalTypeNode
     if (type == null) {
         w.write("<unknown-type>");
     } else {
-        type.print(w);
+        type.get().print(w);
     }
   }
   
@@ -60,7 +59,7 @@ public class CanonicalTypeNode_c extends TypeNode_c implements CanonicalTypeNode
    * source file is used.
    */
   public void translate(CodeWriter w, Translator tr) {
-      w.write(type.translate(tr.context()));
+      w.write(type.get().translate(tr.context()));
   }
 
   public String toString() {
@@ -123,10 +122,9 @@ public class CanonicalTypeNode_c extends TypeNode_c implements CanonicalTypeNode
               // return an amb type node?
           }
 
-          tn = tn.type(t);
+          tn = tn.type(Ref_c.ref(t));
       }
 
       return tn;
   }
-
 }

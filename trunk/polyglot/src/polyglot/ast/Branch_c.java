@@ -100,7 +100,7 @@ public class Branch_c extends Stmt_c implements Branch
         return null;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         v.visitBranchTarget(this);
         return Collections.EMPTY_LIST;
     }

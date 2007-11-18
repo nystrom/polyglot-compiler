@@ -24,12 +24,12 @@ public class Call_c extends Expr_c implements Call
 {
   protected Receiver target;
   protected Id name;
-  protected List arguments;
-  protected MethodInstance mi;
+  protected List<Expr> arguments;
+  protected MethodType mi;
   protected boolean targetImplicit;
 
   public Call_c(Position pos, Receiver target, Id name,
-                List arguments) {
+                List<Expr> arguments) {
     super(pos);
     assert(name != null && arguments != null); // target may be null
     this.target = target;
@@ -77,17 +77,17 @@ public class Call_c extends Expr_c implements Call
       return id(this.name.id(name));
   }
 
-  public ProcedureInstance procedureInstance() {
+  public ProcedureType procedureInstance() {
       return methodInstance();
   }
 
   /** Get the method instance of the call. */
-  public MethodInstance methodInstance() {
+  public MethodType methodInstance() {
     return this.mi;
   }
 
   /** Set the method instance of the call. */
-  public Call methodInstance(MethodInstance mi) {
+  public Call methodInstance(MethodType mi) {
     if (mi == this.mi) return this;
     Call_c n = (Call_c) copy();
     n.mi = mi;
@@ -109,19 +109,19 @@ public class Call_c extends Expr_c implements Call
   }
 
   /** Get the actual arguments of the call. */
-  public List arguments() {
+  public List<Expr> arguments() {
     return this.arguments;
   }
 
   /** Set the actual arguments of the call. */
-  public ProcedureCall arguments(List arguments) {
+  public ProcedureCall arguments(List<Expr> arguments) {
     Call_c n = (Call_c) copy();
     n.arguments = TypedList.copyAndCheck(arguments, Expr.class, true);
     return n;
   }
 
   /** Reconstruct the call. */
-  protected Call_c reconstruct(Receiver target, Id name, List arguments) {
+  protected Call_c reconstruct(Receiver target, Id name, List<Expr> arguments) {
     if (target != this.target || name != this.name || ! CollectionUtil.equals(arguments,
                                                          this.arguments)) {
       Call_c n = (Call_c) copy();
@@ -142,7 +142,7 @@ public class Call_c extends Expr_c implements Call
   public Node visitChildren(NodeVisitor v) {
       Receiver target = (Receiver) visitChild(this.target, v);
       Id name = (Id) visitChild(this.name, v);
-      List arguments = visitList(this.arguments, v);
+      List<Expr> arguments = visitList(this.arguments, v);
       return reconstruct(target, name, arguments);
   }
 
@@ -151,20 +151,11 @@ public class Call_c extends Expr_c implements Call
 
     TypeSystem ts = tb.typeSystem();
 
-    List l = new ArrayList(arguments.size());
-    for (int i = 0; i < arguments.size(); i++) {
-      l.add(ts.unknownType(position()));
-    }
-
-    MethodInstance mi = ts.methodInstance(position(), ts.Object(),
-                                          Flags.NONE,
-                                          ts.unknownType(position()),
-                                          name.id(), l,
-                                          Collections.EMPTY_LIST);
+    MethodType mi = new MethodType_c(ts, position(), new ErrorRef_c<MethodDef>(ts, position()));
     return n.methodInstance(mi);
   }
-
-    /**
+  
+  /**
      * Typecheck the Call when the target is null. This method finds
      * an appropriate target, and then type checks accordingly.
      * 
@@ -179,12 +170,12 @@ public class Call_c extends Expr_c implements Call
         // let's find the target, using the context, and
         // set the target appropriately, and then type check
         // the result
-        MethodInstance mi =  c.findMethod(this.name.id(), argTypes);
+        MethodType mi = c.findMethod(this.name.id(), argTypes);
         
         Receiver r;
         if (mi.flags().isStatic()) {
             Type container = findContainer(ts, mi);            
-            r = nf.CanonicalTypeNode(position().startOf(), container).type(container);
+            r = nf.CanonicalTypeNode(position().startOf(), container).type(Ref_c.ref(container));
         } else {
             // The method is non-static, so we must prepend with "this", but we
             // need to determine if the "this" should be qualified.  Get the
@@ -212,8 +203,8 @@ public class Call_c extends Expr_c implements Call
      * Should return the container of the method instance. 
      * 
      */
-    protected Type findContainer(TypeSystem ts, MethodInstance mi) {
-        return ts.staticTarget(mi.container());    
+    protected Type findContainer(TypeSystem ts, MethodType mi) {
+        return mi.container();
     }
 
     /** Type check the call. */
@@ -221,13 +212,10 @@ public class Call_c extends Expr_c implements Call
         TypeSystem ts = tc.typeSystem();
         Context c = tc.context();
 
-        List argTypes = new ArrayList(this.arguments.size());
+        List<Type> argTypes = new ArrayList<Type>(this.arguments.size());
 
-        for (Iterator i = this.arguments.iterator(); i.hasNext(); ) {
+        for (Iterator<Expr> i = this.arguments.iterator(); i.hasNext(); ) {
             Expr e = (Expr) i.next();
-            if (! e.type().isCanonical()) {
-                return this;
-            }
             argTypes.add(e.type());
         }
 
@@ -235,15 +223,11 @@ public class Call_c extends Expr_c implements Call
             return this.typeCheckNullTarget(tc, argTypes);
         }
         
-        if (! this.target.type().isCanonical()) {
-            return this;
-        }
-        
         ReferenceType targetType = this.findTargetType();
-        MethodInstance mi = ts.findMethod(targetType, 
+        MethodType mi = ts.findMethod(targetType, 
                                           this.name.id(), 
                                           argTypes, 
-                                          c.currentClass());
+                                          c.currentClassScope());
         
         /* This call is in a static context if and only if
          * the target (possibly implicit) is a type node.
@@ -412,7 +396,7 @@ public class Call_c extends Expr_c implements Call
       return listChild(arguments, null);
   }
 
-  public List acceptCFG(CFGBuilder v, List succs) {
+  public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
       if (target instanceof Term) {
           Term t = (Term) target;
           
@@ -439,8 +423,8 @@ public class Call_c extends Expr_c implements Call
   }
 
 
-  public List throwTypes(TypeSystem ts) {
-    List l = new LinkedList();
+  public List<Type> throwTypes(TypeSystem ts) {
+    List<Type> l = new LinkedList();
 
     l.addAll(mi.throwTypes());
     l.addAll(ts.uncheckedExceptions());
@@ -461,7 +445,7 @@ public class Call_c extends Expr_c implements Call
           
           // as exception will be thrown if no appropriate method
           // exists. 
-          MethodInstance ctxtMI = c.findMethod(name.id(), mi.formalTypes());
+          MethodType ctxtMI = c.findMethod(name.id(), mi.formalTypes());
           
           // cannot perform this check due to the context's findMethod returning a 
           // different method instance than the typeSystem in some situations

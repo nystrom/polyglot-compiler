@@ -12,9 +12,7 @@ import java.util.*;
 
 import polyglot.ast.*;
 import polyglot.main.Report;
-import polyglot.types.MemberInstance;
-import polyglot.types.Type;
-import polyglot.types.TypeSystem;
+import polyglot.types.*;
 import polyglot.util.*;
 
 /**
@@ -137,10 +135,10 @@ public class CFGBuilder implements Copy
           }
         }
 
-        if (b.label() != null) {
+        if (b.labelNode() != null) {
           if (c instanceof Labeled) {
             Labeled l = (Labeled) c;
-            if (l.label().equals(b.label())) {
+            if (l.labelNode().id().equals(b.labelNode().id())) {
               if (b.kind() == Branch.BREAK) {
                 edge(last_visitor, last, l, Term.EXIT, FlowGraph.EDGE_KEY_OTHER);
               }
@@ -221,8 +219,8 @@ public class CFGBuilder implements Copy
             if (graph.root() instanceof CodeNode) {
                 CodeNode cd = (CodeNode)graph.root();
                 rootName = cd.codeInstance().toString();
-                if (cd.codeInstance() instanceof MemberInstance) {
-                    rootName += " in " + ((MemberInstance) cd.codeInstance()).container().toString();
+                if (cd.codeInstance() instanceof MemberDef) {
+                    rootName += " in " + ((MemberDef) cd.codeInstance()).container().toString();
                 }
             }
 

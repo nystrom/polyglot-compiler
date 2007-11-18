@@ -29,7 +29,7 @@ public abstract class Lit_c extends Expr_c implements Lit
         return null;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         return succs;
     }
 

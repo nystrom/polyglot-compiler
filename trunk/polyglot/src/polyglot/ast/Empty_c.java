@@ -30,7 +30,7 @@ public class Empty_c extends Stmt_c implements Empty
         return null;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         return succs;
     }
 

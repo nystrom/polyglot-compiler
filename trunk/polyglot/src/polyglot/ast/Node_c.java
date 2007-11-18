@@ -146,15 +146,7 @@ public abstract class Node_c implements Node
 	n.position = position;
 	return n;
     }
-        
-    public boolean isDisambiguated() {
-        return !(this instanceof Ambiguous);
-    }
-    
-    public boolean isTypeChecked() {
-        return isDisambiguated();
-    }
-    
+
     public boolean error() {
         return error;
     }
@@ -312,7 +304,7 @@ public abstract class Node_c implements Node
 	return this;
     }
     
-    public Node checkConstants(ConstantChecker cc) throws SemanticException {
+    public Node checkConstants(TypeChecker tc) throws SemanticException {
         return this;
     }
 
@@ -332,7 +324,7 @@ public abstract class Node_c implements Node
     	return this;
     }
 
-    public List throwTypes(TypeSystem ts) {
+    public List<Type> throwTypes(TypeSystem ts) {
        return Collections.EMPTY_LIST;
     }
     

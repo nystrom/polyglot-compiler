@@ -7,7 +7,6 @@
 
 package polyglot.frontend;
 
-import polyglot.frontend.goals.Goal;
 
 
 /** A <code>Pass</code> represents a compiler pass.
@@ -16,26 +15,29 @@ import polyglot.frontend.goals.Goal;
  */
 public interface Pass
 {
-    /** The goal the pass is trying to satisfy. */
-    public Goal goal();
+    /** The goal that should be reached should this pass complete sucessfully. */
+    Goal goal();
+    
+    /** The job that created the pass, or null. */
+    Job job();
     
     /** Return a user-readable name for the pass. */
-    public String name();
+    String name();
 
     /** Run the pass. */
-    public boolean run();
+    boolean run();
 
     /** Reset the pass timers to 0. */
-    public void resetTimers();
+    void resetTimers();
 
     /** Start/stop the pass timers. */
-    public void toggleTimers(boolean exclusive_only);
+    void toggleTimers(boolean exclusive_only);
 
     /** The total accumulated time in ms since the last timer reset
       * that the pass was running, including spawned passes. */
-    public long inclusiveTime();
+    long inclusiveTime();
 
     /** The total accumulated time in ms since the last timer reset
       * that the pass was running, excluding spawned passes. */
-    public long exclusiveTime();
+    long exclusiveTime();
 }

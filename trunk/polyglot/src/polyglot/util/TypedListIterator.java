@@ -29,7 +29,7 @@ import java.lang.UnsupportedOperationException;
  *
  * This is a poor substitute for PolyJ.
  **/
-public class TypedListIterator implements ListIterator {
+public class TypedListIterator<T> implements ListIterator<T> {
   /**
    * Requires: <iter> not null
    * Creates a new TypedIterator around <iter> which restricts all
@@ -37,7 +37,7 @@ public class TypedListIterator implements ListIterator {
    * restriction is made.  If <immutable> is true, no modifications
    * are allowed.
    **/
-  public TypedListIterator(ListIterator iter, Class c, boolean immutable) {
+  public TypedListIterator(ListIterator<T> iter, Class<? super T> c, boolean immutable) {
     this.immutable = immutable;
     this.allowed_type = c;
     this.backing_iterator = iter;
@@ -46,25 +46,25 @@ public class TypedListIterator implements ListIterator {
   /**
    * Gets the allowed type for this ListIterator.
    **/
-  public Class getAllowedType(){
+  public Class<? super T> getAllowedType(){
     return allowed_type;
   }
 
-  public void add(Object o) {
+  public void add(T o) {
     tryIns(o);
     backing_iterator.add(o);
   }
 
-  public void set(Object o) {
+  public void set(T o) {
     tryIns(o);
     backing_iterator.set(o);   
   }
 
   public boolean hasNext()     { return backing_iterator.hasNext(); }
   public boolean hasPrevious() { return backing_iterator.hasPrevious(); }
-  public Object next()         { return backing_iterator.next(); }
+  public T next()         { return backing_iterator.next(); }
   public int nextIndex()       { return backing_iterator.nextIndex(); }
-  public Object previous()     { return backing_iterator.previous(); }
+  public T previous()     { return backing_iterator.previous(); }
   public int previousIndex()   { return backing_iterator.previousIndex(); }
   public void remove()         { 
     if (immutable) 
@@ -74,7 +74,7 @@ public class TypedListIterator implements ListIterator {
     backing_iterator.remove();
   }
 
-  private final void tryIns(Object o) {
+  private final void tryIns(T o) {
     if (immutable) 
       throw new UnsupportedOperationException(
 			         "Add to an immutable TypedListIterator");
@@ -88,8 +88,8 @@ public class TypedListIterator implements ListIterator {
   }
 
   // RI: allowed_type may be null.
-  private Class allowed_type;
+  private Class<? super T> allowed_type;
   private boolean immutable;
-  private ListIterator backing_iterator;
+  private ListIterator<T> backing_iterator;
 }
 

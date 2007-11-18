@@ -71,8 +71,8 @@ public class ArrayAccessAssign_c extends Assign_c implements ArrayAccessAssign
       v.visitCFG(right(), this, EXIT);
   }
 
-  public List throwTypes(TypeSystem ts) {
-      List l = new ArrayList(super.throwTypes(ts));
+  public List<Type> throwTypes(TypeSystem ts) {
+      List<Type> l = new ArrayList<Type>(super.throwTypes(ts));
       
       if (throwsArrayStoreException()) {
           l.add(ts.ArrayStoreException());

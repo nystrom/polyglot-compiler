@@ -9,8 +9,8 @@ package polyglot.ast;
 
 import polyglot.types.Type;
 import polyglot.types.Flags;
-import polyglot.types.FieldInstance;
-import polyglot.types.InitializerInstance;
+import polyglot.types.FieldDef;
+import polyglot.types.InitializerDef;
 
 /**
  * A <code>FieldDecl</code> is an immutable representation of the declaration
@@ -37,11 +37,6 @@ public interface FieldDecl extends ClassMember, VarInit, CodeNode
     /** Set the declaration's name. */
     FieldDecl id(Id name);
 
-    /** Get the declaration's name. */
-    String name();
-    /** Set the declaration's name. */
-    FieldDecl name(String name);
-
     /** Get the declaration's initializer, or null. */
     Expr init();
     /** Set the declaration's initializer. */
@@ -51,20 +46,20 @@ public interface FieldDecl extends ClassMember, VarInit, CodeNode
      * Get the type object for the field we are declaring.  This field may
      * not be valid until after signature disambiguation.
      */
-    FieldInstance fieldInstance();
+    FieldDef fieldInstance();
 
     /** Set the type object for the field we are declaring. */
-    FieldDecl fieldInstance(FieldInstance fi);
+    FieldDecl fieldInstance(FieldDef fi);
 
     /**
      * Get the type object for the initializer expression, or null.
      * We evaluate the initializer expression as if it were in an
      * initializer block (e.g., <code>{ }</code> or </code>static { }<code>).
      */ 
-    InitializerInstance initializerInstance();
+    InitializerDef initializerInstance();
 
     /** Set the type object for the initializer expression. */
-    FieldDecl initializerInstance(InitializerInstance fi);
+    FieldDecl initializerInstance(InitializerDef fi);
     
     boolean constantValueSet();
 }

@@ -7,16 +7,11 @@
 
 package polyglot.visit;
 
+import java.io.*;
+
 import polyglot.ast.Node;
 import polyglot.frontend.Compiler;
 import polyglot.util.CodeWriter;
-import polyglot.util.SimpleCodeWriter;
-import polyglot.types.SemanticException;
-
-import java.io.IOException;
-import java.io.FileWriter;
-import java.io.Writer;
-import java.io.PrintWriter;
 
 
 /** Visitor which dumps the AST to a file. */

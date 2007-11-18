@@ -7,7 +7,6 @@
 
 package polyglot.frontend;
 
-import polyglot.frontend.goals.Goal;
 
 /**
  * An <code>EmptyPass</code> does nothing.
@@ -15,7 +14,11 @@ import polyglot.frontend.goals.Goal;
 public class EmptyPass extends AbstractPass
 {
     public EmptyPass(Goal goal) {
-      	super(goal);
+        super(goal);
+    }
+
+    public EmptyPass(Goal goal, Job job) {
+        super(goal, job);
     }
 
     public boolean run() {

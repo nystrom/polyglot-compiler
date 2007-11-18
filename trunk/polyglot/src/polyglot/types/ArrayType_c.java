@@ -7,24 +7,24 @@
 
 package polyglot.types;
 
-import polyglot.types.*;
-import polyglot.util.*;
 import java.util.*;
+
+import polyglot.util.*;
 
 /**
  * An <code>ArrayType</code> represents an array of base java types.
  */
 public class ArrayType_c extends ReferenceType_c implements ArrayType
 {
-    protected Type base;
-    protected List fields;
-    protected List methods;
-    protected List interfaces;
+    protected Ref<? extends Type> base;
+    protected List<Ref<? extends FieldDef>> fields;
+    protected List<Ref<? extends MethodDef>> methods;
+    protected List<Ref<? extends Type>> interfaces;
 
     /** Used for deserializing types. */
     protected ArrayType_c() { }
 
-    public ArrayType_c(TypeSystem ts, Position pos, Type base) {
+    public ArrayType_c(TypeSystem ts, Position pos, Ref<? extends Type> base) {
 	super(ts, pos);
 	this.base = base;
 
@@ -38,42 +38,51 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
             methods = new ArrayList(1);
 
             // Add method public Object clone()
-            methods.add(ts.methodInstance(position(),
-                                          this,
+            MethodDef mi = ts.methodInstance(position(),
+                                          Ref_c.<ArrayType_c>ref(this),
                                           ts.Public(),
-                                          ts.Object(),
+                                          Ref_c.<ClassType>ref(ts.Object()),
                                           "clone",
                                           Collections.EMPTY_LIST,
-                                          Collections.EMPTY_LIST));
+                                          Collections.EMPTY_LIST);
+            methods.add(Ref_c.<MethodDef>ref(mi));
         }
 
         if (fields == null) {
             fields = new ArrayList(1);
 
             // Add field public final int length
-            FieldInstance fi = ts.fieldInstance(position(),
-                                        this,
+            FieldDef fi = ts.fieldInstance(position(),
+                                        Ref_c.<ArrayType_c>ref(this),
                                         ts.Public().Final(),
-                                        ts.Int(),
+                                        Ref_c.<PrimitiveType>ref(ts.Int()),
                                         "length");
             fi.setNotConstant();
-            fields.add(fi);
+            fields.add(Ref_c.<FieldDef>ref(fi));
         }
 
         if (interfaces == null) {
             interfaces = new ArrayList(2);
-            interfaces.add(ts.Cloneable());
-            interfaces.add(ts.Serializable());
+            interfaces.add(Ref_c.<ClassType>ref(ts.Cloneable()));
+            interfaces.add(Ref_c.<ClassType>ref(ts.Serializable()));
         }
     }
 
+    public Ref<? extends Type> theBaseType() {
+        return base;
+    }
+    
     /** Get the base type of the array. */
     public Type base() {
-        return base;
+        return get(base);
     }
 
     /** Set the base type of the array. */
     public ArrayType base(Type base) {
+        return base(Ref_c.ref(base));
+    }
+    
+    public ArrayType base(Ref<? extends Type> base) {
         if (base == this.base)
             return this;
 	ArrayType_c n = (ArrayType_c) copy();
@@ -108,40 +117,35 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
         return base().translate(c) + "[]"; 
     }
 
-    /** Returns true iff the type is canonical. */
-    public boolean isCanonical() {
-	return base().isCanonical();
-    }
-
     public boolean isArray() { return true; }
     public ArrayType toArray() { return this; }
 
     /** Get the methods implemented by the array type. */
-    public List methods() {
+    public List<MethodType> methods() {
         init();
-	return Collections.unmodifiableList(methods);
+        return new TransformingList(methods, new SymbolTransform());
     }
 
     /** Get the fields of the array type. */
-    public List fields() {
+    public List<FieldType> fields() {
         init();
-	return Collections.unmodifiableList(fields);
+        return new TransformingList(fields, new SymbolTransform());
     }
 
     /** Get the clone() method. */
-    public MethodInstance cloneMethod() {
-	return (MethodInstance) methods().get(0);
+    public MethodType cloneMethod() {
+	return methods().get(0);
     }
 
     /** Get a field of the type by name. */
-    public FieldInstance fieldNamed(String name) {
-        FieldInstance fi = lengthField();
+    public FieldType fieldNamed(String name) {
+        FieldType fi = lengthField();
         return name.equals(fi.name()) ? fi : null;
     }
 
     /** Get the length field. */
-    public FieldInstance lengthField() {
-	return (FieldInstance) fields().get(0);
+    public FieldType lengthField() {
+	return fields().get(0);
     }
 
     /** Get the super type of the array type. */

@@ -116,7 +116,7 @@ public class AmbExpr_c extends Expr_c implements AmbExpr
   /**
    * Visit this term in evaluation order.
    */
-  public List acceptCFG(CFGBuilder v, List succs) {
+  public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
       return succs;
   }
   public Node copy(NodeFactory nf) {

@@ -502,20 +502,15 @@ public class NodeFactory_c extends AbstractNodeFactory_c
         n = (ArrayTypeNode)n.del(delFactory.delArrayTypeNode());
         return n;
     }
-    
-    public CanonicalTypeNode CanonicalTypeNode(Position pos, Type type) {
-        if (! type.isCanonical()) {
-            throw new InternalCompilerError("Cannot construct a canonical " +
-                "type node for a non-canonical type.");
-        }
 
+    public CanonicalTypeNode CanonicalTypeNode(Position pos, Ref<? extends Type> type) {
         CanonicalTypeNode n = new CanonicalTypeNode_c(pos, type);
         n = (CanonicalTypeNode)n.ext(extFactory.extCanonicalTypeNode());
         n = (CanonicalTypeNode)n.del(delFactory.delCanonicalTypeNode());
         return n;
     }
 
-    public PackageNode PackageNode(Position pos, Package p) {
+    public PackageNode PackageNode(Position pos, Ref<? extends Package> p) {
         PackageNode n = new PackageNode_c(pos, p);
         n = (PackageNode)n.ext(extFactory.extPackageNode());
         n = (PackageNode)n.del(delFactory.delPackageNode());

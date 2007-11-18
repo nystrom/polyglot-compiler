@@ -7,12 +7,14 @@
 
 package polyglot.frontend;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import polyglot.ast.Node;
-import polyglot.frontend.goals.Goal;
-import polyglot.frontend.goals.SourceFileGoal;
 import polyglot.main.Report;
 import polyglot.util.ErrorQueue;
 import polyglot.util.InternalCompilerError;
+import polyglot.util.StringUtil;
 import polyglot.visit.NodeVisitor;
 
 /** A pass which runs a visitor. */
@@ -20,12 +22,12 @@ public class VisitorPass extends AbstractPass
 {
     protected NodeVisitor v;
 
-    public VisitorPass(Goal goal) {
-	this(goal, null);
+    public VisitorPass(Goal goal, Job job) {
+	this(goal, job, null);
     }
 
-    public VisitorPass(Goal goal, NodeVisitor v) {
-        super(goal);
+    public VisitorPass(Goal goal, Job job, NodeVisitor v) {
+        super(goal, job, StringUtil.getShortNameComponent(v.getClass().getName()));
         this.v = v;
     }
 
@@ -38,38 +40,45 @@ public class VisitorPass extends AbstractPass
     }
   
     public boolean run() {
-	Node ast = goal.job().ast();
-
+	Node ast = job().ast();
 	if (ast == null) {
-	    throw new InternalCompilerError("Null AST for job " + goal.job() + ": did the parser run?");
+	    throw new InternalCompilerError("Null AST for job " + this.job() + ": did the parser run?");
 	}
 
-        NodeVisitor v_ = v.begin();
-        
-        if (v_ != null) {
-	    ErrorQueue q = goal.job().compiler().errorQueue();
-	    int nErrsBefore = q.errorCount();
+	Map<Node,Node> oldAstMap = job().astMap();
+	HashMap<Node,Node> map = new HashMap<Node, Node>(oldAstMap);
+	job().setAstMap(map);
+	
+	try {
+	    NodeVisitor v_ = v.begin();
 
-            if (Report.should_report(Report.frontend, 3))
-                Report.report(3, "Running " + v_ + " on " + ast);
+	    if (v_ != null) {
+	        ErrorQueue q = job().compiler().errorQueue();
+	        int nErrsBefore = q.errorCount();
 
-            ast = ast.visit(v_);
-            v_.finish(ast);
+	        if (Report.should_report(Report.frontend, 3))
+	            Report.report(3, "Running " + v_ + " on " + ast);
 
-            int nErrsAfter = q.errorCount();
+	        ast = ast.visit(v_);
+	        v_.finish(ast);
 
-            goal.job().ast(ast);
+	        int nErrsAfter = q.errorCount();
 
-            if (nErrsBefore != nErrsAfter) {
-                // because, if they're equal, no new errors occurred,
-                // so the run was successful.
-                return false;
-            }
-           
-            return true;
-        }
+	        if (nErrsBefore != nErrsAfter) {
+	            // because, if they're equal, no new errors occurred,
+	            // so the run was successful.
+	            return false;
+	        }
 
-        return false;
+	        return true;
+	    }
+
+	    return false;
+	}
+	finally {
+	    job().ast(ast);
+	    job().setAstMap(oldAstMap);
+	}
     }
     
     public String name() {
