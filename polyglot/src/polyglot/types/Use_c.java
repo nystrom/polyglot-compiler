@@ -13,4 +13,8 @@ public class Use_c<T extends Def> extends TypeObject_c implements Use<T> {
     public T def() {
         return def.get();
     }
+    
+    public String toString() {
+        return def.toString();
+    }
 }

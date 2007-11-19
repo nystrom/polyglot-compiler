@@ -179,7 +179,7 @@ public class ErrorHandlingVisitor extends ReentrantVisitor
 
         try {
             // should copy the visitor
-            return (ErrorHandlingVisitor) enterCall(parent, n);
+            return enterCall(parent, n);
         }
 	catch (SemanticException e) {
             if (e.getMessage() != null) {

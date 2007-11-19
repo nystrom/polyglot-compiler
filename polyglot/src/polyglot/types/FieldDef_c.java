@@ -49,17 +49,37 @@ public class FieldDef_c extends VarDef_c implements FieldDef
         }
     }
     
+    boolean recursive = false;
+    
     void setConstant() {
         if (! constantValueSet) {
             if (! flags.isFinal()) {
                 setNotConstant();
+                return;
+            }
+            
+            if (recursive) {
+                // The field is not constant if the initializer is recursive.
+                //
+                // But, we could be checking if the field is constant for another
+                // reference in the same file:
+                //
+                // m() { use x; }
+                // final int x = 1;
+                //
+                // So this is incorrect.  The goal below needs to be refined to only visit the initializer.
+                setNotConstant();
             }
             else {
+                recursive = true;
+                
                 Scheduler scheduler = typeSystem().extensionInfo().scheduler();
                 Goal g = scheduler.FieldConstantsChecked(this.<FieldDef>symbol());
                 scheduler.attempt(g);
                 assert g.hasBeenReached();
                 assert constantValueSet;
+            
+                recursive = false;
             }
         }
     }

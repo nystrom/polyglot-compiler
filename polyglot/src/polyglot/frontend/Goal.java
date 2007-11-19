@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface Goal {
     public static enum Status {
-        NEW, RUNNING, SUCCESS, FAIL, UNREACHABLE;
+        NEW, RUNNING, SUCCESS, FAIL, UNREACHABLE, RUNNING_RECURSIVE;
     };
 
     Goal intern(Scheduler s);

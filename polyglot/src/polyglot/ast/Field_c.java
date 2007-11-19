@@ -34,13 +34,6 @@ public class Field_c extends Expr_c implements Field
     this.target = target;
     this.name = name;
     this.targetImplicit = false;
-
-    if (target == null) {
-      throw new InternalCompilerError("Cannot create a field with a null "
-                                      + "target.  Use AmbExpr or prefix "
-                                      + "with the appropriate type node or "
-                                      + "this.");
-    }
   }
 
   /** Get the precedence of the field. */

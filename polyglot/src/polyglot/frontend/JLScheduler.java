@@ -244,6 +244,15 @@ public class JLScheduler extends Scheduler {
     }
 
     public Goal FieldConstantsChecked(Symbol<FieldDef> f) {
+        final FieldDef fd = f.get(GoalSet.EMPTY);
+        ReferenceType t = fd.container() != null ? fd.container().get(GoalSet.EMPTY) : null;
+        if (t instanceof ClassType) {
+            ClassType ct = (ClassType) t;
+            ClassDef cd = ct.def();
+            if (cd.job() != null) {
+                return TypeChecked(cd.job());
+            }
+        }
         return new FieldConstantsChecked(f);
     }
 
@@ -305,34 +314,16 @@ public class JLScheduler extends Scheduler {
         protected FieldConstantsChecked(Ref<FieldDef> v) {
             super(v);
         }
-
+        
         public Pass createPass() {
-            final FieldDef f = typeRef().get();
-            ReferenceType t = f.container().get();
-            if (t instanceof ClassType) {
-                ClassType ct = (ClassType) t;
-                ClassDef cd = ct.def();
-                if (cd.job() != null) {
-                    TypeSystem ts = Globals.Extension().typeSystem();
-                    NodeFactory nf = Globals.Extension().nodeFactory();
-                    final Goal goal = this;
-                    return new ReadonlyVisitorPass(this, cd.job(), new TypeChecker(cd.job(), ts, nf)) {
-                      public boolean run() {
-                          boolean result = false;
-                          try {
-                              result = super.run();
-                              return result;
-                          }
-                          finally {
-                              if (result && hasBeenReached()) {
-                                  f.<FieldDef>symbol().update(f, goal);
-                              }
-                          }
-                      }
-                    };
+            final FieldDef f = typeRef().get(GoalSet.EMPTY);
+            return new AbstractPass(this) {
+                public boolean run() {
+                    f.setNotConstant();
+                    f.<FieldDef>symbol().update(f, goal);
+                    return true;
                 }
-            }
-            throw new InternalCompilerError("Don't know how to check constants for " + f + ".");
+            };
         }
     }
 
