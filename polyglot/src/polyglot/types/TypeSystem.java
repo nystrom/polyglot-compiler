@@ -228,13 +228,13 @@ public interface TypeSystem {
     /**
      * Checks whether a class member can be accessed from <code>context</code>.
      */
-    boolean isAccessible(MemberType<? extends MemberDef> mi, Context context);
+    boolean isAccessible(MemberInstance<? extends MemberDef> mi, Context context);
 
     /**
      * Checks whether a class member can be accessed from the body of
      * class <code>contextClass</code>.
      */
-    boolean isAccessible(MemberType<? extends MemberDef> mi, ClassDef contextClass);
+    boolean isAccessible(MemberInstance<? extends MemberDef> mi, ClassDef contextClass);
 
 
     /**
@@ -312,7 +312,7 @@ public interface TypeSystem {
      * @exception SemanticException if the field cannot be found or is
      * inaccessible.
      */
-    FieldType findField(ReferenceType container, String name, ClassDef currClass)
+    FieldInstance findField(ReferenceType container, String name, ClassDef currClass)
         throws SemanticException;
 
     /**
@@ -320,7 +320,7 @@ public interface TypeSystem {
      * @exception SemanticException if the field cannot be found or is
      * inaccessible.
      */
-    FieldType findField(ReferenceType container, String name)
+    FieldInstance findField(ReferenceType container, String name)
 	throws SemanticException;
 
     /**
@@ -332,7 +332,7 @@ public interface TypeSystem {
      * @exception SemanticException if the method cannot be found or is
      * inaccessible.
      */
-    MethodType findMethod(ReferenceType container,
+    MethodInstance findMethod(ReferenceType container,
                               String name, List<Type> argTypes,
                               ClassDef currClass) throws SemanticException;
 
@@ -344,7 +344,7 @@ public interface TypeSystem {
      * @exception SemanticException if the constructor cannot be found or is
      * inaccessible.
      */
-    ConstructorType findConstructor(ClassType container, List<Type> argTypes,
+    ConstructorInstance findConstructor(ClassType container, List<Type> argTypes,
                                         ClassDef currClass) throws SemanticException;
 
     /**
@@ -384,12 +384,12 @@ public interface TypeSystem {
      * Returns true iff <code>m1</code> throws fewer exceptions than
      * <code>m2</code>.
      */
-    <T extends ProcedureDef> boolean throwsSubset(ProcedureType<T> p1, ProcedureType<T> p2);
+    <T extends ProcedureDef> boolean throwsSubset(ProcedureInstance<T> p1, ProcedureInstance<T> p2);
 
     /**
      * Returns true iff <code>t</code> has the method <code>mi</code>.
      */
-    boolean hasMethod(ReferenceType t, MethodType mi);
+    boolean hasMethod(ReferenceType t, MethodInstance mi);
 
     /**
      * Returns true iff <code>t</code> has a method with name <code>name</code>
@@ -400,18 +400,18 @@ public interface TypeSystem {
     /**
      * Returns true iff <code>m1</code> is the same method as <code>m2</code>.
      */
-    boolean isSameMethod(MethodType m1, MethodType m2);
+    boolean isSameMethod(MethodInstance m1, MethodInstance m2);
 
     /**
      * Returns true iff <code>m1</code> is more specific than <code>m2</code>.
      */
-    <T extends ProcedureDef> boolean moreSpecific(ProcedureType<T> p1, ProcedureType<T> p2);
+    <T extends ProcedureDef> boolean moreSpecific(ProcedureInstance<T> p1, ProcedureInstance<T> p2);
 
     /**
      * Returns true iff <code>p</code> has exactly the formal arguments
      * <code>formalTypes</code>.
      */
-    boolean hasFormals(ProcedureType<? extends ProcedureDef> p, List<Type> formalTypes);
+    boolean hasFormals(ProcedureInstance<? extends ProcedureDef> p, List<Type> formalTypes);
 
     ////
     // Functions which yield particular types.
@@ -601,34 +601,14 @@ public interface TypeSystem {
     AccessControlResolver createClassContextResolver(ClassType ct);
 
     /**
-     * The default lazy class initializer.
+     * Create a new empty class.
      */
-    LazyClassInitializer defaultClassInitializer();
-
-    /**
-     * The lazy class initializer for deserialized classes.
-     */
-    LazyClassInitializer deserializedClassInitializer();
+    ClassDef createClassDef();
 
     /**
      * Create a new empty class.
      */
-    ClassDef createClassType(LazyClassInitializer init);
-
-    /**
-     * Create a new empty class.
-     */
-    ClassDef createClassType();
-
-    /**
-     * Create a new empty class.
-     */
-    ClassDef createClassType(LazyClassInitializer init, Source fromSource);
-
-    /**
-     * Create a new empty class.
-     */
-    ClassDef createClassType(Source fromSource);
+    ClassDef createClassDef(Source fromSource);
 
     /**
      * Return the set of objects that should be serialized into the
@@ -640,7 +620,7 @@ public interface TypeSystem {
      * and the usual class resolvers can't otherwise find them) they
      * should be returned in the set in addition to object.
      */
-    Set getTypeEncoderRootSet(TypeObject o);
+    Set<Object> getTypeEncoderRootSet(TypeObject o);
 
     /**
      * Get the transformed class name of a class.
@@ -693,37 +673,37 @@ public interface TypeSystem {
      * Return true if <code>mi</code> can be called with name <code>name</code>
      * and actual parameters of types <code>actualTypes</code>.
      */
-    boolean methodCallValid(MethodType mi, String name, List<Type> argTypes);
+    boolean methodCallValid(MethodInstance mi, String name, List<Type> argTypes);
 
     /**
      * Return true if <code>pi</code> can be called with 
      * actual parameters of types <code>actualTypes</code>.
      */
-    boolean callValid(ProcedureType<? extends ProcedureDef> mi, List<Type> argTypes);
+    boolean callValid(ProcedureInstance<? extends ProcedureDef> mi, List<Type> argTypes);
 
     /**
      * Get the list of methods <code>mi</code> (potentially) overrides, in
      * order from this class (that is, including <code>this</code>) to super
      * classes.
      */
-    List<MethodType> overrides(MethodType mi);
+    List<MethodInstance> overrides(MethodInstance mi);
 
     /**
      * Return true if <code>mi</code> can override <code>mj</code>.
      */
-    boolean canOverride(MethodType mi, MethodType mj);
+    boolean canOverride(MethodInstance mi, MethodInstance mj);
 
     /**
      * Throw a SemanticException if <code>mi</code> cannot override 
      * <code>mj</code>.
      */
-    void checkOverride(MethodType mi, MethodType mj) throws SemanticException;
+    void checkOverride(MethodInstance mi, MethodInstance mj) throws SemanticException;
 
     /**
      * Get the list of methods <code>mi</code> implements, in no
      * specified order.
      */
-    List<MethodType> implemented(MethodType mi);
+    List<MethodInstance> implemented(MethodInstance mi);
     
     /**
      * Return the primitive with the given name.
@@ -833,7 +813,7 @@ public interface TypeSystem {
      * @return a suitable implementation of the method mi in the class
      *         <code>ct</code> or a supertype thereof, null if none exists.
      */
-    public MethodType findImplementingMethod(ClassType ct, MethodType mi);
+    public MethodInstance findImplementingMethod(ClassType ct, MethodInstance mi);
 
     /**
      * Given the JVM encoding of a set of flags, returns the Flags object

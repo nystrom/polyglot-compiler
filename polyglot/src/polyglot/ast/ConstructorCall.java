@@ -7,7 +7,7 @@
 
 package polyglot.ast;
 
-import polyglot.types.ConstructorType;
+import polyglot.types.ConstructorInstance;
 import polyglot.util.Enum;
 import java.util.List;
 
@@ -53,8 +53,8 @@ public interface ConstructorCall extends Stmt, ProcedureCall
      * The constructor that is called.  This field may not be valid until
      * after type checking.
      */
-    ConstructorType constructorInstance();
+    ConstructorInstance constructorInstance();
 
     /** Set the constructor to call. */
-    ConstructorCall constructorInstance(ConstructorType ci);
+    ConstructorCall constructorInstance(ConstructorInstance ci);
 }

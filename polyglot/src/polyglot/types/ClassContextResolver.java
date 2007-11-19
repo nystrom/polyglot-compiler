@@ -178,8 +178,8 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
     }
 
     protected boolean canAccess(Named n, ClassDef accessor) {
-        if (n instanceof MemberType) {
-            return accessor == null || ts.isAccessible((MemberType) n, accessor);
+        if (n instanceof MemberInstance) {
+            return accessor == null || ts.isAccessible((MemberInstance) n, accessor);
         }
         return true;
     }

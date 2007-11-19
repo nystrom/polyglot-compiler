@@ -5,8 +5,8 @@ import java.util.List;
 
 import polyglot.util.*;
 
-public class ProcedureType_c<T extends ProcedureDef> extends Use_c<T> implements ProcedureType<T> {
-    ProcedureType_c(TypeSystem ts, Position pos, Ref<T> def) {
+public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implements ProcedureInstance<T> {
+    ProcedureInstance_c(TypeSystem ts, Position pos, Ref<T> def) {
         super(ts, pos, def);
     }
 
@@ -19,19 +19,19 @@ public class ProcedureType_c<T extends ProcedureDef> extends Use_c<T> implements
      * does not include any info regarding Java 1.2, so all inner class
      * rules are found empirically using jikes and javac.
      */
-    public boolean moreSpecific(ProcedureType<T> p) {
-        ProcedureType<T> p1 = this;
-        ProcedureType<T> p2 = p;
+    public boolean moreSpecific(ProcedureInstance<T> p) {
+        ProcedureInstance<T> p1 = this;
+        ProcedureInstance<T> p2 = p;
 
         // rule 1:
         Type t1 = null;
         Type t2 = null;
         
-        if (p1 instanceof MemberType) {
-            t1 = ((MemberType<T>) p1).container();
+        if (p1 instanceof MemberInstance) {
+            t1 = ((MemberInstance<T>) p1).container();
         }
-        if (p2 instanceof MemberType) {
-            t2 = ((MemberType<T>) p2).container();
+        if (p2 instanceof MemberInstance) {
+            t2 = ((MemberInstance<T>) p2).container();
         }
         
         if (t1 != null && t2 != null) {
@@ -74,7 +74,7 @@ public class ProcedureType_c<T extends ProcedureDef> extends Use_c<T> implements
 
     /** Returns true iff <code>this</code> throws fewer exceptions than
      * <code>p</code>. */
-    public boolean throwsSubset(ProcedureType<T> p) {
+    public boolean throwsSubset(ProcedureInstance<T> p) {
         SubtypeSet s1 = new SubtypeSet(ts.Throwable());
         SubtypeSet s2 = new SubtypeSet(ts.Throwable());
 

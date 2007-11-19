@@ -8,7 +8,7 @@
 
 package polyglot.ast;
 
-import polyglot.frontend.Globals;
+import polyglot.frontend.*;
 import polyglot.types.*;
 import polyglot.visit.*;
 import polyglot.util.*;
@@ -61,7 +61,8 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
   }
 
   public Node buildTypes(TypeBuilder tb) throws SemanticException {
-      TypeRef<? extends Type> sym = tb.typeSystem().symbolTable().typeRef(tb.typeSystem().unknownType(position()), Globals.Scheduler().Disambiguated(tb.job()));
+      TypeSystem ts = tb.typeSystem();
+      TypeRef<? extends Type> sym = ts.symbolTable().typeRef(ts.unknownType(position()), Globals.Scheduler().Disambiguated(tb.job()));
       return type(sym);
   }
 
@@ -72,12 +73,16 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
   }
 
   public Node disambiguate(AmbiguityRemover sc) throws SemanticException {
-      Node n = sc.nodeFactory().disamb().disambiguate(this, sc, position(), qual,
-                                                      name);
+      Node n = sc.nodeFactory().disamb().disambiguate(this, sc, position(), qual, name);
       
       if (n instanceof TypeNode) {
           TypeNode tn = (TypeNode) n;
-          ((Symbol<Type>) type).update(tn.theType().get());
+          TypeRef<Type> sym = (TypeRef<Type>) type;
+          sym.update(tn.typeRef().get());
+          // Reset the resolver goal to one that can run when the ref is deserialized.
+          Goal resolver = Globals.Scheduler().LookupGlobalType(sym);
+          Globals.Scheduler().markReached(resolver);
+          sym.setResolver(resolver);
           return n;
       }
       

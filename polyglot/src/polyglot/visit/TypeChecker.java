@@ -74,8 +74,12 @@ public class TypeChecker extends ContextVisitor
         Node m = n;
 
         //          System.out.println("running typeCheck for " + m);
-        m = m.del().typeCheck((TypeChecker) v);
-        m = m.del().checkConstants((TypeChecker) v);
+        TypeChecker tc = (TypeChecker) v;
+        AmbiguityRemover ar = new AmbiguityRemover(tc.job(), tc.typeSystem(), tc.nodeFactory());
+        ar = (AmbiguityRemover) ar.context(tc.context());
+        m = m.del().disambiguate(ar);
+        m = m.del().typeCheck(tc);
+        m = m.del().checkConstants(tc);
 
         //            if (! m.isTypeChecked()) {
         //                throw new InternalCompilerError("Type checking failed for " + m + " (" + m.getClass().getName() + ")", m.position());

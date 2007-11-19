@@ -35,7 +35,7 @@ public interface Context extends Resolver, Copy
      * @param formalTypes A list of <code>Type</code>.
      * @see polyglot.types.Type
      */
-    MethodType findMethod(String name, List<Type> argTypes) throws SemanticException;
+    MethodInstance findMethod(String name, List<Type> argTypes) throws SemanticException;
 
     /** Looks up a local variable or field in the current scope. */
     VarType findVariable(String name) throws SemanticException;
@@ -44,10 +44,10 @@ public interface Context extends Resolver, Copy
     VarType findVariableSilent(String name);
 
     /** Looks up a local variable in the current scope. */
-    LocalType findLocal(String name) throws SemanticException;
+    LocalInstance findLocal(String name) throws SemanticException;
 
     /** Looks up a field in the current scope. */
-    FieldType findField(String name) throws SemanticException;
+    FieldInstance findField(String name) throws SemanticException;
 
     /**
      * Finds the class which added a field to the scope.

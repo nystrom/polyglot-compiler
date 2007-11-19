@@ -126,7 +126,7 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
         // Check if we can assign each individual element.
         Type t = lhsType.toArray().base();
 
-        for (Iterator i = elements.iterator(); i.hasNext(); ) {
+        for (Iterator<Expr> i = elements.iterator(); i.hasNext(); ) {
             Expr e = (Expr) i.next();
             Type s = e.type();
 

@@ -93,17 +93,7 @@ public class MemberClassResolver implements TopLevelResolver
 
         n = find(prefix);
 
-        // This may be called during deserialization; n's
-        // member classes might not be initialized yet.
-        if (n instanceof ParsedTypeObject) {
-            if (true || ((ParsedTypeObject) n).initializer() != null &&
-                ((ParsedTypeObject) n).initializer().isTypeObjectInitialized()) {
-                return findMember(n, suffix);
-            }
-            else {
-                install = false;
-            }
-        }
+        return findMember(n, suffix);
     }
     catch (SemanticException e) {
     }

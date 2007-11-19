@@ -15,7 +15,7 @@ package polyglot.types;
  */
 public interface MethodDef extends FunctionDef, MemberDef, Def
 {
-    MethodType asType();
+    MethodInstance asReference();
     
     /**
      * The method's name.

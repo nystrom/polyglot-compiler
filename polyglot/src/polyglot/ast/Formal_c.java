@@ -121,7 +121,7 @@ public class Formal_c extends Term_c implements Formal
     }
 
     public void addDecls(Context c) {
-        c.addVariable(li.asType());
+        c.addVariable(li.asReference());
     }
 
     /** Write the formal to an output file. */
@@ -138,7 +138,7 @@ public class Formal_c extends Term_c implements Formal
 
         TypeSystem ts = tb.typeSystem();
 
-        LocalDef li = ts.localInstance(position(), flags(), type.theType(), name.id());
+        LocalDef li = ts.localInstance(position(), flags(), type.typeRef(), name.id());
         ts.symbolTable().symbol(li);
         
         // Formal parameters are never compile-time constants.
@@ -152,7 +152,7 @@ public class Formal_c extends Term_c implements Formal
         // Check if the variable is multiply defined.
         Context c = tc.context();
 
-        LocalType outerLocal = null;
+        LocalInstance outerLocal = null;
 
         try {
             outerLocal = c.findLocal(li.name());

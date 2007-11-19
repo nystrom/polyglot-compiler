@@ -18,14 +18,12 @@ import polyglot.util.Position;
  * A <code>ParsedClassType</code> represents a class loaded from a source file.
  * <code>ParsedClassType</code>s are mutable.
  */
-public interface ClassDef extends ParsedTypeObject, Named, MemberDef
+public interface ClassDef extends MemberDef
 {
-    /** @deprecated */
-    Job job();
-    /** @deprecated */
-    void setJob(Job job);
-    
     ClassType asType();
+    
+    String name();
+    String fullName();
 
     Ref<? extends Package> package_();
     
@@ -52,8 +50,6 @@ public interface ClassDef extends ParsedTypeObject, Named, MemberDef
     boolean isAnonymous();
     boolean isNested();
     boolean isInnerClass();
-
-    public boolean defaultConstructorNeeded();
 
     /**
      * Return the type's super type.
@@ -92,7 +88,7 @@ public interface ClassDef extends ParsedTypeObject, Named, MemberDef
      * A list of <code>ClassType</code>.
      * @see polyglot.types.ClassType
      */
-    List<ClassDef> memberClasses();
+    List<Ref<? extends Type>> memberClasses();
 
     /** The class's outer class if this is a nested class, or null. */
     Ref<? extends ClassDef> outer();
@@ -107,7 +103,16 @@ public interface ClassDef extends ParsedTypeObject, Named, MemberDef
      * was loaded from. Should be <code>null</code> if it was not loaded from
      * a <code>Source</code> during this compilation. 
      */
-    Source fromSource();
+    Source sourceFile();
+    Job job();
+    void setJob(Job job);
+    
+    boolean fromSourceFile();
+    void setFromSourceFile();
+    boolean fromEncodedClassFile();
+    void setFromEncodedClassFile();
+    boolean fromJavaClassFile();
+    void setFromJavaClassFile();
 
     /**
      * Set the class's package.

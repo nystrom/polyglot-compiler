@@ -7,7 +7,7 @@
 
 package polyglot.ast;
 
-import polyglot.types.FieldType;
+import polyglot.types.FieldInstance;
 
 /**
  * A <code>Field</code> is an immutable representation of a Java field
@@ -21,10 +21,10 @@ public interface Field extends NamedVariable
      * Get the type object for the field.  This field may not be valid until
      * after type checking.
      */
-    FieldType fieldInstance();
+    FieldInstance fieldInstance();
 
     /** Set the type object for the field. */
-    Field fieldInstance(FieldType fi);
+    Field fieldInstance(FieldInstance fi);
 
     /**
      * Get the field's container object or type.  May be null before

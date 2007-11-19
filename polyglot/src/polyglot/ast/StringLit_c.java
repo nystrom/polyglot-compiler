@@ -91,7 +91,7 @@ public class StringLit_c extends Lit_c implements StringLit
      * literals.  This avoids messing up the pretty printer and editors. 
      */
     protected List breakupString() {
-        List result = new LinkedList();
+        List<String> result = new LinkedList<String>();
         int n = value.length();
         int i = 0;
 

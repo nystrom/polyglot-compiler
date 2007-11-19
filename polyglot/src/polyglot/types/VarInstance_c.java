@@ -2,8 +2,8 @@ package polyglot.types;
 
 import polyglot.util.Position;
 
-public class VarType_c<T extends VarDef> extends Use_c<T> implements VarType<T> {
-    public VarType_c(TypeSystem ts, Position pos, Ref<T> def) {
+public class VarInstance_c<T extends VarDef> extends Use_c<T> implements VarType<T> {
+    public VarInstance_c(TypeSystem ts, Position pos, Ref<T> def) {
         super(ts, pos, def);
     }
     

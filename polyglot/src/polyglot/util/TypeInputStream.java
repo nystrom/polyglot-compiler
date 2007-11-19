@@ -7,6 +7,8 @@
 
 package polyglot.util;
 
+import polyglot.frontend.Globals;
+import polyglot.frontend.Goal;
 import polyglot.main.Report;
 import polyglot.types.*;
 
@@ -49,32 +51,6 @@ public class TypeInputStream extends ObjectInputStream {
     
     private final static Object UNRESOLVED = new Object();
     
-    public void installInPlaceHolderCache(PlaceHolder p, TypeObject t) {
-        cache.put(p, t);
-
-        if (t instanceof Named && p instanceof NamedPlaceHolder) {
-            NamedPlaceHolder pp = (NamedPlaceHolder) p;
-            if (Report.should_report(Report.serialize, 2))
-                Report.report(2, "Forcing " + pp.name() + " into system resolver"); 
-            ts.systemResolver().install(pp.name(), (Named) t);
-        }
-
-        String s = "";
-        if (Report.should_report(Report.serialize, 2)) {
-            try {
-                s = t.toString();
-            }
-            catch (NullPointerException e) {
-                s = "<NullPointerException thrown>";
-            }
-        }
-        
-        if (Report.should_report(Report.serialize, 2)) {
-            Report.report(2, "- Installing " + p
-                          + " -> " + s + " in place holder cache");         
-        }
-    }
-    
     public void enableReplace(boolean f) {
         this.enableReplace = f;
     }
@@ -96,57 +72,14 @@ public class TypeInputStream extends ObjectInputStream {
         if (! enableReplace) {
             return o;
         }
-
-        if (o instanceof PlaceHolder) {
-            if (failed) {
-                return null;
-            }
-
-            placeHoldersUsed.add(o);
-            
-            Object t = cache.get(o);
-            if (t == UNRESOLVED) {
-                // A place holder lower in the call stack is trying to resolve
-                // this place holder too.  Abort!
-                // The calling place holder should set up depedencies to ensure
-                // this pass is rerun.
-                failed = true;
-                return null;
-            }
-            else if (t == null) {
-                try {
-                    cache.put(o, UNRESOLVED);
-                    t = ((PlaceHolder) o).resolve(ts);
-                    if (t == null) {
-                        throw new InternalCompilerError("Resolved " + s + " to null.");
-                    }
-                    cache.put(o, t);
-                    if (Report.should_report(Report.serialize, 2)) {
-                        Report.report(2, "- Resolving " + s + " : " + o.getClass()
-                                      + " to " + t + " : " + t.getClass());      	
-                    }
-                }
-                catch (CannotResolvePlaceHolderException e) {
-                    failed = true;              
-                    if (Report.should_report(Report.serialize, 2)) {
-                        Report.report(2, "- Resolving " + s + " : " + o.getClass()
-                                      + " to " + e);      	
-                    }
-                }
-            }
-            else {
-                if (Report.should_report(Report.serialize, 2)) {
-                    Report.report(2, "- Resolving " + s + " : " + o.getClass()
-                                  + " to (cached) " + t + " : " + t.getClass());      	
-                }
-            }
-            return t;
-        }
         else if (o instanceof Internable) {
             if (Report.should_report(Report.serialize, 2)) {    
                 Report.report(2, "- Interning " + s + " : " + o.getClass());
             }
             return ((Internable) o).intern();
+        }
+        else if (o instanceof Goal) {
+            return ((Goal) o).intern(Globals.Scheduler());
         }
         else {
             if (Report.should_report(Report.serialize, 2)) {    

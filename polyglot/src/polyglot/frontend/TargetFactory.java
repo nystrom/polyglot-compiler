@@ -54,7 +54,7 @@ public class TargetFactory
 
 	if (! outputFile.getParentFile().exists()) {
 	    File parent = outputFile.getParentFile();
-	    parent.mkdirs();
+	    parent.mkdirs(); // ignore return; new FileWriter will check
 	}
 
 	return new UnicodeWriter(new FileWriter(outputFile));

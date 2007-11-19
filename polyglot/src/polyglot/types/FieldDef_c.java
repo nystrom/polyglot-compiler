@@ -27,8 +27,8 @@ public class FieldDef_c extends VarDef_c implements FieldDef
         this.container = container;
     }
     
-    public FieldType asType() {
-        return new FieldType_c(ts, position(), Ref_c.<FieldDef>ref(this));
+    public FieldInstance asReference() {
+        return new FieldInstance_c(ts, position(), Ref_c.<FieldDef>ref(this));
     }
 
     public Ref<? extends ReferenceType> container() {

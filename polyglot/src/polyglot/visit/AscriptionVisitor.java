@@ -27,7 +27,7 @@ import polyglot.types.*;
 public class AscriptionVisitor extends ContextVisitor
 {
     protected Type type;
-    protected AscriptionVisitor outer;
+    protected AscriptionVisitor outerAscriptionVisitor;
 
     /**
      *  Default constructor. See the constructor in <code> ErrorHandingVisitor
@@ -38,14 +38,14 @@ public class AscriptionVisitor extends ContextVisitor
     public AscriptionVisitor(Job job, TypeSystem ts, NodeFactory nf) {
         super(job, ts, nf);
         type = null;
-        outer = null;
+        outerAscriptionVisitor = null;
     }
 
     // FIXME: what does this do?
     /**
      */
     public AscriptionVisitor pop() {
-        return outer;
+        return outerAscriptionVisitor;
     }
 
     /** Returns the type that is expected of the expression that is being 
@@ -69,7 +69,7 @@ public class AscriptionVisitor extends ContextVisitor
         }
 
         AscriptionVisitor v = (AscriptionVisitor) copy();
-        v.outer = this;
+        v.outerAscriptionVisitor = this;
         v.type = t;
 
         return v;

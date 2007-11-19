@@ -38,11 +38,6 @@ public abstract class TypeObject_c implements TypeObject
         return phase;
     }
 
-    public void bringUpTo(GoalSet phase) {
-        Scheduler scheduler = ts.extensionInfo().scheduler();
-        assert false;
-    }
-
     /** Used for deserializing types. */
     protected TypeObject_c() {
     }

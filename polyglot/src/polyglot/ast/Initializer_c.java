@@ -171,8 +171,8 @@ public class Initializer_c extends Term_c implements Initializer
             SubtypeSet allowed = null;
             Type throwable = ec.typeSystem().Throwable();
             ClassType container = initializerInstance().container().get().toClass();
-            for (Iterator<ConstructorType> iter = container.constructors().iterator(); iter.hasNext(); ) {
-                ConstructorType ci = (ConstructorType)iter.next();
+            for (Iterator<ConstructorInstance> iter = container.constructors().iterator(); iter.hasNext(); ) {
+                ConstructorInstance ci = (ConstructorInstance)iter.next();
                 if (allowed == null) {
                     allowed = new SubtypeSet(throwable);
                     allowed.addAll(ci.throwTypes());

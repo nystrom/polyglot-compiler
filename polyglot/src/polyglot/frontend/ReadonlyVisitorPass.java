@@ -4,8 +4,8 @@ import polyglot.ast.Node;
 import polyglot.visit.NodeVisitor;
 
 public class ReadonlyVisitorPass extends VisitorPass {
-    public ReadonlyVisitorPass(Goal goal, Job job) {
-        super(goal, job);
+    public ReadonlyVisitorPass(Goal goal, Job job, String name) {
+        super(goal, job, name);
     }
     
     public ReadonlyVisitorPass(Goal goal, Job job, NodeVisitor v) {

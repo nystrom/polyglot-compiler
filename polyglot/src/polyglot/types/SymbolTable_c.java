@@ -30,13 +30,6 @@ public class SymbolTable_c implements SymbolTable {
         return sym;
     }
 
-//    public <T extends TypeObject> TypeRef<T> typeRef(T v) {
-//        TypeRef_c<T> sym = new TypeRef_c<T>(v);
-//        v.setSymbol(sym);
-//        map.put(sym.name, sym);
-//        return sym;
-//    }
-
     public <T extends TypeObject> TypeRef<T> typeRef(T v, Goal goal) {
         TypeRef_c<T> sym = new TypeRef_c<T>(v, goal);
         v.setSymbol(sym);

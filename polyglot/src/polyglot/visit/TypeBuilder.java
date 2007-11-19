@@ -186,8 +186,7 @@ public class TypeBuilder extends NodeVisitor
     {
 	TypeSystem ts = typeSystem();
 
-        ClassDef ct = ts.createClassType(job().source());
-        LazyClassInitializer init = (LazyClassInitializer) ct.initializer();
+        ClassDef ct = ts.createClassDef(job().source());
 
         ct.position(pos);
         ct.flags(flags);
@@ -228,11 +227,11 @@ public class TypeBuilder extends NodeVisitor
             }
 
             if (allMembers) {
-                typeSystem().systemResolver().addNamed(ct.fullName(), ct);
+                typeSystem().systemResolver().addNamed(ct.fullName(), ct.asType());
 
                 // Save in the cache using the name a class file would use.
                 String classFileName = typeSystem().getTransformedClassName(ct);
-                typeSystem().systemResolver().install(classFileName, ct);
+                typeSystem().systemResolver().install(classFileName, ct.asType());
             }
 
             return ct;
@@ -252,7 +251,7 @@ public class TypeBuilder extends NodeVisitor
                                             ct.fullName() + "\".", pos);
             }
 
-            typeSystem().systemResolver().addNamed(ct.fullName(), ct);
+            typeSystem().systemResolver().addNamed(ct.fullName(), ct.asType());
 
 	    return ct;
 	}
@@ -269,7 +268,7 @@ public class TypeBuilder extends NodeVisitor
 
 	TypeSystem ts = typeSystem();
 
-        ClassDef ct = ts.createClassType(this.job().source());
+        ClassDef ct = ts.createClassDef(this.job().source());
         ct.kind(ClassDef.ANONYMOUS);
         ct.outer(Ref_c.ref(currentClass()));
         ct.position(pos);

@@ -131,16 +131,16 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     public abstract Flags flags();
 
     /** Get the class's constructors. */
-    public abstract List<ConstructorType> constructors();
+    public abstract List<ConstructorInstance> constructors();
 
     /** Get the class's member classes. */
-    public abstract List<ClassType> memberClasses();
+    public abstract List<Type> memberClasses();
 
     /** Get the class's methods. */
-    public abstract List<MethodType> methods();
+    public abstract List<MethodInstance> methods();
 
     /** Get the class's fields. */
-    public abstract List<FieldType> fields();
+    public abstract List<FieldInstance> fields();
 
     /** Get the class's interfaces. */
     public abstract List<Type> interfaces();
@@ -149,7 +149,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     public abstract Type superType();
     
     /** Get a list of all the class's MemberInstances. */
-    public List<MemberType> members() {
+    public List<MemberInstance> members() {
         List l = new ArrayList();
         l.addAll(methods());
         l.addAll(fields());
@@ -159,9 +159,9 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     }
 
     /** Get a field of the class by name. */
-    public FieldType fieldNamed(String name) {
+    public FieldInstance fieldNamed(String name) {
         for (Iterator i = fields().iterator(); i.hasNext(); ) {
-	    FieldType fi = (FieldType) i.next();
+	    FieldInstance fi = (FieldInstance) i.next();
 	    if (fi.name().equals(name)) {
 	        return fi;
 	    }
@@ -246,7 +246,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         return false;
     }
 
-    public boolean isImplicitCastValidImpl(Type toType) {
+    public boolean isImplicitCastValid(Type toType) {
         if (! toType.isClass()) return false;
         return ts.isSubtype(this, toType);
     }

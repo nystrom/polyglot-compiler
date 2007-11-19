@@ -137,11 +137,11 @@ public class Binary_c extends Expr_c implements Binary
 
         // promote chars to ints.
         if (lv instanceof Character) {
-            lv = new Integer(((Character) lv).charValue());
+            lv = Integer.valueOf(((Character) lv).charValue());
         }
 
         if (rv instanceof Character) {
-            rv = new Integer(((Character) rv).charValue());
+            rv = Integer.valueOf(((Character) rv).charValue());
         }
 
         try {
@@ -149,11 +149,11 @@ public class Binary_c extends Expr_c implements Binary
                 if (lv instanceof Double || rv instanceof Double) {
                     double l = ((Number) lv).doubleValue();
                     double r = ((Number) rv).doubleValue();
-                    if (op == ADD) return new Double(l + r);
-                    if (op == SUB) return new Double(l - r);
-                    if (op == MUL) return new Double(l * r);
-                    if (op == DIV) return new Double(l / r);
-                    if (op == MOD) return new Double(l % r);
+                    if (op == ADD) return Double.valueOf(l + r);
+                    if (op == SUB) return Double.valueOf(l - r);
+                    if (op == MUL) return Double.valueOf(l * r);
+                    if (op == DIV) return Double.valueOf(l / r);
+                    if (op == MOD) return Double.valueOf(l % r);
                     if (op == EQ) return Boolean.valueOf(l == r);
                     if (op == NE) return Boolean.valueOf(l != r);
                     if (op == LT) return Boolean.valueOf(l < r);
@@ -166,11 +166,11 @@ public class Binary_c extends Expr_c implements Binary
                 if (lv instanceof Float || rv instanceof Float) {
                     float l = ((Number) lv).floatValue();
                     float r = ((Number) rv).floatValue();
-                    if (op == ADD) return new Float(l + r);
-                    if (op == SUB) return new Float(l - r);
-                    if (op == MUL) return new Float(l * r);
-                    if (op == DIV) return new Float(l / r);
-                    if (op == MOD) return new Float(l % r);
+                    if (op == ADD) return Float.valueOf(l + r);
+                    if (op == SUB) return Float.valueOf(l - r);
+                    if (op == MUL) return Float.valueOf(l * r);
+                    if (op == DIV) return Float.valueOf(l / r);
+                    if (op == MOD) return Float.valueOf(l % r);
                     if (op == EQ) return Boolean.valueOf(l == r);
                     if (op == NE) return Boolean.valueOf(l != r);
                     if (op == LT) return Boolean.valueOf(l < r);
@@ -183,28 +183,28 @@ public class Binary_c extends Expr_c implements Binary
                 if (lv instanceof Long && rv instanceof Number) {
                     long l = ((Long) lv).longValue();
                     long r = ((Number) rv).longValue();
-                    if (op == SHL) return new Long(l << r);
-                    if (op == SHR) return new Long(l >> r);
-                    if (op == USHR) return new Long(l >>> r);
+                    if (op == SHL) return Long.valueOf(l << r);
+                    if (op == SHR) return Long.valueOf(l >> r);
+                    if (op == USHR) return Long.valueOf(l >>> r);
                 }
 
                 if (lv instanceof Long || rv instanceof Long) {
                     long l = ((Number) lv).longValue();
                     long r = ((Number) rv).longValue();
-                    if (op == ADD) return new Long(l + r);
-                    if (op == SUB) return new Long(l - r);
-                    if (op == MUL) return new Long(l * r);
-                    if (op == DIV) return new Long(l / r);
-                    if (op == MOD) return new Long(l % r);
+                    if (op == ADD) return Long.valueOf(l + r);
+                    if (op == SUB) return Long.valueOf(l - r);
+                    if (op == MUL) return Long.valueOf(l * r);
+                    if (op == DIV) return Long.valueOf(l / r);
+                    if (op == MOD) return Long.valueOf(l % r);
                     if (op == EQ) return Boolean.valueOf(l == r);
                     if (op == NE) return Boolean.valueOf(l != r);
                     if (op == LT) return Boolean.valueOf(l < r);
                     if (op == LE) return Boolean.valueOf(l <= r);
                     if (op == GE) return Boolean.valueOf(l >= r);
                     if (op == GT) return Boolean.valueOf(l > r);
-                    if (op == BIT_AND) return new Long(l & r);
-                    if (op == BIT_OR) return new Long(l | r);
-                    if (op == BIT_XOR) return new Long(l ^ r);
+                    if (op == BIT_AND) return Long.valueOf(l & r);
+                    if (op == BIT_OR) return Long.valueOf(l | r);
+                    if (op == BIT_XOR) return Long.valueOf(l ^ r);
                     return null;
                 }
 
@@ -212,23 +212,23 @@ public class Binary_c extends Expr_c implements Binary
                 int l = ((Number) lv).intValue();
                 int r = ((Number) rv).intValue();
 
-                if (op == ADD) return new Integer(l + r);
-                if (op == SUB) return new Integer(l - r);
-                if (op == MUL) return new Integer(l * r);
-                if (op == DIV) return new Integer(l / r);
-                if (op == MOD) return new Integer(l % r);
+                if (op == ADD) return Integer.valueOf(l + r);
+                if (op == SUB) return Integer.valueOf(l - r);
+                if (op == MUL) return Integer.valueOf(l * r);
+                if (op == DIV) return Integer.valueOf(l / r);
+                if (op == MOD) return Integer.valueOf(l % r);
                 if (op == EQ) return Boolean.valueOf(l == r);
                 if (op == NE) return Boolean.valueOf(l != r);
                 if (op == LT) return Boolean.valueOf(l < r);
                 if (op == LE) return Boolean.valueOf(l <= r);
                 if (op == GE) return Boolean.valueOf(l >= r);
                 if (op == GT) return Boolean.valueOf(l > r);
-                if (op == BIT_AND) return new Integer(l & r);
-                if (op == BIT_OR) return new Integer(l | r);
-                if (op == BIT_XOR) return new Integer(l ^ r);
-                if (op == SHL) return new Integer(l << r);
-                if (op == SHR) return new Integer(l >> r);
-                if (op == USHR) return new Integer(l >>> r);
+                if (op == BIT_AND) return Integer.valueOf(l & r);
+                if (op == BIT_OR) return Integer.valueOf(l | r);
+                if (op == BIT_XOR) return Integer.valueOf(l ^ r);
+                if (op == SHL) return Integer.valueOf(l << r);
+                if (op == SHR) return Integer.valueOf(l >> r);
+                if (op == USHR) return Integer.valueOf(l >>> r);
                 return null;
             }
         }

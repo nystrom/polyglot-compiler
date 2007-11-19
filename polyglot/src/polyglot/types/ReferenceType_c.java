@@ -45,13 +45,13 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
      * Returns a list of MethodInstances for all the methods declared in this.
      * It does not return methods declared in supertypes.
      */
-    public abstract List<MethodType> methods();
+    public abstract List<MethodInstance> methods();
 
     /**
      * Returns a list of FieldInstances for all the fields declared in this.
      * It does not return fields declared in supertypes.
      */
-    public abstract List<FieldType> fields();
+    public abstract List<FieldInstance> fields();
 
     /** 
      * Returns the supertype of this class.  For every class except Object,
@@ -65,9 +65,9 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
     public abstract List<Type> interfaces();
 
     /** Return true if t has a method mi */
-    public boolean hasMethod(MethodType mi) {
+    public boolean hasMethod(MethodInstance mi) {
         for (Iterator j = methods().iterator(); j.hasNext(); ) {
-            MethodType mj = (MethodType) j.next();
+            MethodInstance mj = (MethodInstance) j.next();
 
             if (ts.isSameMethod(mi, mj)) {
                 return true;
@@ -106,15 +106,15 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
         return false;
     }
 
-    public boolean isImplicitCastValidImpl(Type toType) {
+    public boolean isImplicitCastValid(Type toType) {
         return ts.isSubtype(this, toType);
     }
 
-    public List<MethodType> methodsNamed(String name) {
-        List<MethodType> l = new LinkedList();
+    public List<MethodInstance> methodsNamed(String name) {
+        List<MethodInstance> l = new ArrayList<MethodInstance>();
 
-        for (Iterator<MethodType> i = methods().iterator(); i.hasNext(); ) {
-            MethodType mi = (MethodType) i.next();
+        for (Iterator<MethodInstance> i = methods().iterator(); i.hasNext(); ) {
+            MethodInstance mi = (MethodInstance) i.next();
             if (mi.name().equals(name)) {
                 l.add(mi);
             }
@@ -123,11 +123,11 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
         return l;
     }
 
-    public List<MethodType> methods(String name, List<Type> argTypes) {
-        List<MethodType> l = new LinkedList();
+    public List<MethodInstance> methods(String name, List<Type> argTypes) {
+        List<MethodInstance> l = new ArrayList<MethodInstance>();
 
-        for (Iterator<MethodType> i = methodsNamed(name).iterator(); i.hasNext(); ) {
-            MethodType mi = (MethodType) i.next();
+        for (Iterator<MethodInstance> i = methodsNamed(name).iterator(); i.hasNext(); ) {
+            MethodInstance mi = (MethodInstance) i.next();
             if (mi.hasFormals(argTypes)) {
                 l.add(mi);
             }

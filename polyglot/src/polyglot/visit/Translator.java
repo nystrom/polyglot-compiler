@@ -172,7 +172,7 @@ public class Translator extends PrettyPrinter implements Copy
     	// target file per public declaration.  If there are no public
     	// declarations, we'll use the source file name to derive the
     	// target file name.
-    	List exports = exports(sfn);
+    	List<TopLevelDecl> exports = exports(sfn);
     	
     	try {
     	    File of;
@@ -273,11 +273,11 @@ public class Translator extends PrettyPrinter implements Copy
     }
 
     /** Get the list of public top-level classes declared in the source file. */
-    protected List exports(SourceFile sfn) {
-	List exports = new LinkedList();
+    protected List<TopLevelDecl> exports(SourceFile sfn) {
+	List<TopLevelDecl> exports = new ArrayList<TopLevelDecl>();
 
-	for (Iterator i = sfn.decls().iterator(); i.hasNext(); ) {
-	    TopLevelDecl decl = (TopLevelDecl) i.next();
+	for (Iterator<TopLevelDecl> i = sfn.decls().iterator(); i.hasNext(); ) {
+	    TopLevelDecl decl = i.next();
 
 	    if (decl.flags().isPublic()) {
 		exports.add(decl);

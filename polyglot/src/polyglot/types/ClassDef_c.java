@@ -23,7 +23,6 @@ import polyglot.util.*;
  **/
 public class ClassDef_c extends Def_c implements ClassDef
 {
-    protected transient LazyClassInitializer init;
     protected transient Source fromSource;
 
     protected Ref<? extends Type> superType;
@@ -43,14 +42,6 @@ public class ClassDef_c extends Def_c implements ClassDef
 
     public ClassType asType() {
         return new ParsedClassType_c(this);
-    }
-    
-    public LazyClassInitializer init() {
-        return init;
-    }
-
-    public void setInit(LazyClassInitializer init) {
-        this.init = init;
     }
     
     /** Was the class declared in a static context? */
@@ -88,36 +79,51 @@ public class ClassDef_c extends Def_c implements ClassDef
 	super();
     }
 
-    public ClassDef_c(TypeSystem ts, LazyClassInitializer init, 
-                             Source fromSource) {
+    public ClassDef_c(TypeSystem ts, Source fromSource) {
         super(ts);
         this.fromSource = fromSource;
-
-        setInitializer(init);
+        this.interfaces = new ArrayList<Ref<? extends Type>>();
+        this.methods = new ArrayList<MethodDef>();
+        this.fields = new ArrayList<FieldDef>();
+        this.constructors = new ArrayList<ConstructorDef>();
+        this.memberClasses = new ArrayList<Ref<? extends Type>>();
         
-        this.interfaces = new LinkedList();
-        this.methods = new LinkedList();
-        this.fields = new LinkedList();
-        this.constructors = new LinkedList();
-        this.memberClasses = new LinkedList();
+        sourceKind = fromSource != null ? SourceKind.SOURCE : SourceKind.UNKNOWN;
     }
      
-    public LazyInitializer initializer() {
-        return this.init;
-    }
-
-    public void setInitializer(LazyInitializer init) {
-        this.init = (LazyClassInitializer) init;
-        ((LazyClassInitializer) init).setClass(this);
-    }
-        
-    public Source fromSource() {
+    public Source sourceFile() {
         return fromSource;
     }
+
+    protected enum SourceKind { SOURCE, JAVA, ENCODED, UNKNOWN };
+    protected SourceKind sourceKind;
     
+    public boolean fromSourceFile() {
+        return sourceKind == SourceKind.SOURCE;
+    }
+
+    public void setFromSourceFile() {
+        sourceKind = SourceKind.SOURCE;
+    }
+
+    public boolean fromEncodedClassFile() {
+        return sourceKind == SourceKind.ENCODED;
+    }
+
+    public void setFromEncodedClassFile() {
+        sourceKind = SourceKind.ENCODED;
+    }
+
+    public boolean fromJavaClassFile() {
+        return sourceKind == SourceKind.JAVA;
+    }
+
+    public void setFromJavaClassFile() {
+        sourceKind = SourceKind.JAVA;
+    }
+
     Job job;
     
-    /** @deprecated */
     public Job job() {
         return job;
     }
@@ -231,106 +237,52 @@ public class ClassDef_c extends Def_c implements ClassDef
     public void addMemberClass(Ref<? extends Type> t) {
 	memberClasses.add(t);
     }
-    
 
     public void setConstructors(List<? extends ConstructorDef> l) {
-        this.constructors = new ArrayList(l);
+        this.constructors = new ArrayList<ConstructorDef>(l);
     }
 
     public void setFields(List<? extends FieldDef> l) {
-        this.fields = new ArrayList(l);
+        this.fields = new ArrayList<FieldDef>(l);
     }
 
     public void setInterfaces(List<Ref<? extends Type>> l) {
-        this.interfaces = new ArrayList(l);
+        this.interfaces = new ArrayList<Ref<? extends Type>>(l);
     }
 
     public void setMemberClasses(List<Ref<? extends Type>> l) {
-        this.memberClasses = new ArrayList(l);
+        this.memberClasses = new ArrayList<Ref<? extends Type>>(l);
     }
 
     public void setMethods(List<? extends MethodDef> l) {
-        this.methods = new ArrayList(l);
-    }
-    
-                                          
-    public boolean defaultConstructorNeeded() {
-        init.initConstructors();
-        if (flags().isInterface()) {
-            return false;
-        }
-        return this.constructors.isEmpty();
+        this.methods = new ArrayList<MethodDef>(l);
     }
     
     /** Return an immutable list of constructors */
-    public List constructors() {
-        init.initConstructors();
+    public List<ConstructorDef> constructors() {
         return Collections.unmodifiableList(constructors);
     }
 
     /** Return an immutable list of member classes */
-    public List memberClasses() {
-        init.initMemberClasses();
-        return Collections.unmodifiableList(memberClasses);
+    public List<Ref<? extends Type>> memberClasses() {
+        return Collections.<Ref<? extends Type>>unmodifiableList(memberClasses);
     }
 
     /** Return an immutable list of methods. */
-    public List methods() {
-        init.initMethods();
+    public List<MethodDef> methods() {
         return Collections.unmodifiableList(methods);
     }
 
     /** Return an immutable list of fields */
-    public List fields() {
-        init.initFields();
+    public List<FieldDef> fields() {
         return Collections.unmodifiableList(fields);
     }
     
     /** Return an immutable list of interfaces */
-    public List interfaces() {
-        init.initInterfaces();
-        return Collections.unmodifiableList(interfaces);
+    public List<Ref<? extends Type>> interfaces() {
+        return Collections.<Ref<? extends Type>>unmodifiableList(interfaces);
     }
     
-    protected boolean membersAdded;
-    protected boolean supertypesResolved;
-    protected boolean signaturesResolved;
-
-    /**
-     * @return Returns the membersAdded.
-     */
-    public boolean membersAdded() {
-        return membersAdded;
-    }
-    /**
-     * @param membersAdded The membersAdded to set.
-     */
-    public void setMembersAdded(boolean membersAdded) {
-        this.membersAdded = membersAdded;
-    }
-    /**
-     * @param signaturesDisambiguated The signaturesDisambiguated to set.
-     */
-    public void setSignaturesResolved(boolean signaturesDisambiguated) {
-        this.signaturesResolved = signaturesDisambiguated;
-    }
-    /**
-     * @return Returns the supertypesResolved.
-     */
-    public boolean supertypesResolved() {
-        return supertypesResolved;
-    }
-    /**
-     * @param supertypesResolved The supertypesResolved to set.
-     */
-    public void setSupertypesResolved(boolean supertypesResolved) {
-        this.supertypesResolved = supertypesResolved;
-    }
-
-    public boolean signaturesResolved() {        
-        return signaturesResolved;
-    }
-
     public String toString() {
         if (kind() == null) {
             return "<unknown class " + name + ">";
@@ -353,50 +305,6 @@ public class ClassDef_c extends Def_c implements ClassDef
         else {
             return name;
         }
-    }
-
-    /**
-     * When serailizing, write out the place holder as well as the object itself.
-     * This should be done in TypeOutputStream, not here, but I couldn't get it working.
-     * --Nate
-     */
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        Object o = ts.placeHolder(this);
-        if (o instanceof PlaceHolder && o != this) {
-            out.writeBoolean(true);
-            out.writeObject(o);
-        }
-        else {
-            out.writeBoolean(false);
-        }
-        out.defaultWriteObject();
-    }
-    
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        if (in instanceof TypeInputStream) {
-            TypeInputStream tin = (TypeInputStream) in;
-
-            boolean b = tin.readBoolean();
-            
-            if (b) {
-                tin.enableReplace(false);
-                PlaceHolder p = (PlaceHolder) tin.readObject();
-                tin.installInPlaceHolderCache(p, this);
-                tin.enableReplace(true);
-            }
-
-            fromSource = null;
-           
-            init = tin.getTypeSystem().deserializedClassInitializer();
-            init.setClass(this);
-            
-            membersAdded = true;
-            supertypesResolved = true;
-            signaturesResolved = true;
-            memberClasses = new ArrayList();
-        }
-
-        in.defaultReadObject();
     }
 
     public void needSerialization(boolean b) {

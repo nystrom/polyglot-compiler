@@ -7,7 +7,7 @@
 
 package polyglot.ast;
 
-import polyglot.types.LocalType;
+import polyglot.types.LocalInstance;
 
 /** 
  * A local variable expression.
@@ -30,7 +30,7 @@ public interface Local extends NamedVariable
      * Get the type object for the local.  This field may not be valid until
      * after type checking.
      */
-    LocalType localInstance();
+    LocalInstance localInstance();
     /** Set the type object for the local. */
-    Local localInstance(LocalType li);
+    Local localInstance(LocalInstance li);
 }

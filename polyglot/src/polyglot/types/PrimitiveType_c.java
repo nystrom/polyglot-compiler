@@ -63,7 +63,7 @@ public class PrimitiveType_c extends Type_c implements PrimitiveType
         return false;
     }
 
-    public boolean typeEqualsImpl(Type t) {
+    public boolean typeEquals(Type t) {
         return ts.equals(this, t);
     }
 
@@ -79,11 +79,11 @@ public class PrimitiveType_c extends Type_c implements PrimitiveType
             return name();
     }
 
-    public boolean descendsFromImpl(Type ancestor) {
+    public boolean descendsFrom(Type ancestor) {
         return false;
     }
 
-    public boolean isImplicitCastValidImpl(Type toType) {
+    public boolean isImplicitCastValid(Type toType) {
         if (! toType.isPrimitive()) return false;
 
         PrimitiveType t = toType.toPrimitive();
@@ -129,7 +129,7 @@ public class PrimitiveType_c extends Type_c implements PrimitiveType
      * Returns true iff a cast from this to toType is valid; in other
      * words, some non-null members of this are also members of toType.
      **/
-    public boolean isCastValidImpl(Type toType) {
+    public boolean isCastValid(Type toType) {
 	if (isVoid() || toType.isVoid()) return false;
         if (ts.typeEquals(this, toType)) return true;
 	if (isNumeric() && toType.isNumeric()) return true;
@@ -141,15 +141,15 @@ public class PrimitiveType_c extends Type_c implements PrimitiveType
      * this primitive type.  This method should be removed.  It is kept
      * for backward compatibility.
      */
-    public boolean numericConversionValidImpl(long value) {
-        return numericConversionValidImpl(new Long(value));
+    public boolean numericConversionValid(long value) {
+        return numericConversionValid(Long.valueOf(value));
     }
 
     /**
      * Returns true if literal value <code>value</code> can be converted to
      * this primitive type.
      */
-    public boolean numericConversionValidImpl(Object value) {
+    public boolean numericConversionValid(Object value) {
         if (value == null)
             return false;
         if (value instanceof Float || value instanceof Double)

@@ -8,7 +8,7 @@
 package polyglot.ast;
 
 import polyglot.types.ClassDef;
-import polyglot.types.ConstructorType;
+import polyglot.types.ConstructorInstance;
 import polyglot.types.ParsedClassType;
 import java.util.List;
 
@@ -28,10 +28,10 @@ public interface New extends Expr, ProcedureCall
     New anonType(ClassDef anonType);
 
     /** The constructor invoked by this expression. */
-    ConstructorType constructorInstance();
+    ConstructorInstance constructorInstance();
 
     /** Set the constructor invoked by this expression. */
-    New constructorInstance(ConstructorType ci);
+    New constructorInstance(ConstructorInstance ci);
 
     /**
      * The qualifier expression for the type, or null. If non-null, this

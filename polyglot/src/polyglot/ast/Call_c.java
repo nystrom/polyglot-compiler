@@ -25,7 +25,7 @@ public class Call_c extends Expr_c implements Call
   protected Receiver target;
   protected Id name;
   protected List<Expr> arguments;
-  protected MethodType mi;
+  protected MethodInstance mi;
   protected boolean targetImplicit;
 
   public Call_c(Position pos, Receiver target, Id name,
@@ -77,17 +77,17 @@ public class Call_c extends Expr_c implements Call
       return id(this.name.id(name));
   }
 
-  public ProcedureType procedureInstance() {
+  public ProcedureInstance procedureInstance() {
       return methodInstance();
   }
 
   /** Get the method instance of the call. */
-  public MethodType methodInstance() {
+  public MethodInstance methodInstance() {
     return this.mi;
   }
 
   /** Set the method instance of the call. */
-  public Call methodInstance(MethodType mi) {
+  public Call methodInstance(MethodInstance mi) {
     if (mi == this.mi) return this;
     Call_c n = (Call_c) copy();
     n.mi = mi;
@@ -151,7 +151,7 @@ public class Call_c extends Expr_c implements Call
 
     TypeSystem ts = tb.typeSystem();
 
-    MethodType mi = new MethodType_c(ts, position(), new ErrorRef_c<MethodDef>(ts, position()));
+    MethodInstance mi = new MethodInstance_c(ts, position(), new ErrorRef_c<MethodDef>(ts, position()));
     return n.methodInstance(mi);
   }
   
@@ -170,7 +170,7 @@ public class Call_c extends Expr_c implements Call
         // let's find the target, using the context, and
         // set the target appropriately, and then type check
         // the result
-        MethodType mi = c.findMethod(this.name.id(), argTypes);
+        MethodInstance mi = c.findMethod(this.name.id(), argTypes);
         
         Receiver r;
         if (mi.flags().isStatic()) {
@@ -203,7 +203,7 @@ public class Call_c extends Expr_c implements Call
      * Should return the container of the method instance. 
      * 
      */
-    protected Type findContainer(TypeSystem ts, MethodType mi) {
+    protected Type findContainer(TypeSystem ts, MethodInstance mi) {
         return mi.container();
     }
 
@@ -224,7 +224,7 @@ public class Call_c extends Expr_c implements Call
         }
         
         ReferenceType targetType = this.findTargetType();
-        MethodType mi = ts.findMethod(targetType, 
+        MethodInstance mi = ts.findMethod(targetType, 
                                           this.name.id(), 
                                           argTypes, 
                                           c.currentClassScope());
@@ -424,7 +424,7 @@ public class Call_c extends Expr_c implements Call
 
 
   public List<Type> throwTypes(TypeSystem ts) {
-    List<Type> l = new LinkedList();
+    List<Type> l = new ArrayList<Type>();
 
     l.addAll(mi.throwTypes());
     l.addAll(ts.uncheckedExceptions());
@@ -445,7 +445,7 @@ public class Call_c extends Expr_c implements Call
           
           // as exception will be thrown if no appropriate method
           // exists. 
-          MethodType ctxtMI = c.findMethod(name.id(), mi.formalTypes());
+          MethodInstance ctxtMI = c.findMethod(name.id(), mi.formalTypes());
           
           // cannot perform this check due to the context's findMethod returning a 
           // different method instance than the typeSystem in some situations

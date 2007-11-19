@@ -42,7 +42,7 @@ public class JLScheduler extends Scheduler {
         goals.add(TypesInitialized(job));
         goals.add(TypesInitializedForCommandLine());
         goals.add(ImportTableInitialized(job));
-        goals.add(Disambiguated(job));
+//        goals.add(Disambiguated(job));
         goals.add(TypeChecked(job));
         goals.add(ReachabilityChecked(job));
         goals.add(ExceptionsChecked(job));
@@ -96,22 +96,23 @@ public class JLScheduler extends Scheduler {
     }
 
     public Goal Disambiguated(Job job) {
-        return new SourceGoal_c("Disambiguated", job) {
-            @Override
-            public GoalSet requiredView() {
-                return super.requiredView().union(new RuleBasedGoalSet() {
-                    public boolean contains(Goal g) {
-                        return g instanceof LookupGlobalTypeDefAndSetFlags;
-                    }
-                });
-            }
-
-            public Pass createPass() {
-                TypeSystem ts = extInfo.typeSystem();
-                NodeFactory nf = extInfo.nodeFactory();
-                return new VisitorPass(this, job, new AmbiguityRemover(job, ts, nf));
-            }
-        }.intern(this);
+        return TypeChecked(job);
+//        return new SourceGoal_c("Disambiguated", job) {
+//            @Override
+//            public GoalSet requiredView() {
+//                return super.requiredView().union(new RuleBasedGoalSet() {
+//                    public boolean contains(Goal g) {
+//                        return g instanceof LookupGlobalTypeDefAndSetFlags;
+//                    }
+//                });
+//            }
+//
+//            public Pass createPass() {
+//                TypeSystem ts = extInfo.typeSystem();
+//                NodeFactory nf = extInfo.nodeFactory();
+//                return new VisitorPass(this, job, new AmbiguityRemover(job, ts, nf));
+//            }
+//        }.intern(this);
     }
 
     public Goal TypeChecked(Job job) {
@@ -125,6 +126,8 @@ public class JLScheduler extends Scheduler {
                                g instanceof SignaturesResolved ||
                                g instanceof SupertypesResolved;
                     }
+                    
+                    public String toString() { return "TypeCheckRequirementsRuleSet"; }
                 });
             }
             
@@ -341,6 +344,13 @@ public class JLScheduler extends Scheduler {
             super(v);
             this.className = className;
             this.flags = flags;
+        }
+        
+        public String toString() {
+            if (flags == null)
+                return name + "(" + className + ")";
+            else 
+                return name + "(" + className + ", " + flags + ")";
         }
 
         public Pass createPass() {

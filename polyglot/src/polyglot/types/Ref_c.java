@@ -1,7 +1,6 @@
 package polyglot.types;
 
 import polyglot.frontend.GoalSet;
-import polyglot.frontend.Pass;
 
 /** Reference to a type object. */
 public class Ref_c<T extends TypeObject> extends TypeObject_c implements Ref<T> {

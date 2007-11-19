@@ -134,7 +134,7 @@ public class Context_c implements Context
      * Looks up a method with name "name" and arguments compatible with
      * "argTypes".
      */
-    public MethodType findMethod(String name, List<Type> argTypes) throws SemanticException {
+    public MethodInstance findMethod(String name, List<Type> argTypes) throws SemanticException {
         if (Report.should_report(TOPICS, 3))
           Report.report(3, "find-method " + name + argTypes + " in " + this);
 
@@ -163,11 +163,11 @@ public class Context_c implements Context
     /**
      * Gets a local of a particular name.
      */
-    public LocalType findLocal(String name) throws SemanticException {
+    public LocalInstance findLocal(String name) throws SemanticException {
 	VarType vi = findVariableSilent(name);
 
-	if (vi instanceof LocalType) {
-	    return (LocalType) vi;
+	if (vi instanceof LocalInstance) {
+	    return (LocalInstance) vi;
 	}
 
         throw new SemanticException("Local " + name + " not found.");
@@ -182,7 +182,7 @@ public class Context_c implements Context
 
 	VarType vi = findVariableInThisScope(name);
 
-        if (vi instanceof FieldType) {
+        if (vi instanceof FieldInstance) {
             if (Report.should_report(TOPICS, 3))
               Report.report(3, "find-field-scope " + name + " in " + vi);
             return type;
@@ -219,11 +219,11 @@ public class Context_c implements Context
     /**
      * Gets a field of a particular name.
      */
-    public FieldType findField(String name) throws SemanticException {
+    public FieldInstance findField(String name) throws SemanticException {
 	VarType vi = findVariableSilent(name);
 
-	if (vi instanceof FieldType) {
-	    FieldType fi = (FieldType) vi;
+	if (vi instanceof FieldInstance) {
+	    FieldInstance fi = (FieldInstance) vi;
 
 	    if (! ts.isAccessible(fi, this.currentClassScope())) {
                 throw new SemanticException("Field " + name + " not accessible.");

@@ -24,4 +24,8 @@ public class EmptyPass extends AbstractPass
     public boolean run() {
         return true;
     }
+    
+    public boolean isReentrant() {
+        return true;
+    }
 }
