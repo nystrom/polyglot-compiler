@@ -20,7 +20,7 @@ public interface TypeNode extends Receiver, QualifierNode, Term
      * Return the type of this node, or null if no type has been
      * assigned yet.
      */
-    Ref<? extends Type> theType();
+    Ref<? extends Type> typeRef();
     
     /** Set the type object for this node. */
     TypeNode type(Ref<? extends Type> type);

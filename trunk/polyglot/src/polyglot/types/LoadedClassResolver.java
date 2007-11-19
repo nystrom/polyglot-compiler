@@ -124,7 +124,7 @@ public class LoadedClassResolver implements TopLevelResolver
     if (allowRawClasses) {
       if (Report.should_report(report_topics, 4))
 	Report.report(4, "Using raw class file for " + name);
-      result = ts.classFileLazyClassInitializer(clazz).type();
+      result = ts.classFileLazyClassInitializer(clazz).type().asType();
     }
     
     // Verify that the type we loaded has the right name.  This prevents,
@@ -161,8 +161,6 @@ public class LoadedClassResolver implements TopLevelResolver
 
     // Check to see if it has serialized info. If so then check the
     // version.
-    FieldDef field;
-    
     int comp = checkCompilerVersion(clazz.compilerVersion(version.name()));
 
     if (comp == NOT_COMPATIBLE) {
@@ -229,42 +227,18 @@ public class LoadedClassResolver implements TopLevelResolver
             }
 
             if (Report.should_report(Report.serialize, 2)) {
-                // Save and restore the initializer to print the members.
-                // We can't access the members of ct until after we return from
-                // the resolver because the initializer may set up goals on ct,
-                // which may get discarded because of a missing dependency.
-                LazyInitializer init = ct.def().initializer();
-               
-                ct.def().setInitializer(new LazyClassInitializer() {
-                    public boolean fromClassFile() { return false; }
-                    public void setClass(ClassDef ct) { }
-                    public void initTypeObject() { }
-                    public boolean isTypeObjectInitialized() { return true; }
-                    public void initSuperclass() { }
-                    public void initInterfaces() { }
-                    public void initMemberClasses() { }
-                    public void initConstructors() { }
-                    public void initMethods() { }
-                    public void initFields() { }
-                    public void canonicalConstructors() { }
-                    public void canonicalMethods() { }
-                    public void canonicalFields() { }
-                });
-
-                for (Iterator<MethodType> i = ct.methods().iterator(); i.hasNext(); ) {
-                    MethodType mi = (MethodType) i.next();
+                for (Iterator<MethodInstance> i = ct.methods().iterator(); i.hasNext(); ) {
+                    MethodInstance mi = (MethodInstance) i.next();
                     Report.report(2, "* " + mi);
                 }
-                for (Iterator<FieldType> i = ct.fields().iterator(); i.hasNext(); ) {
-                    FieldType fi = (FieldType) i.next();
+                for (Iterator<FieldInstance> i = ct.fields().iterator(); i.hasNext(); ) {
+                    FieldInstance fi = (FieldInstance) i.next();
                     Report.report(2, "* " + fi);
                 }
-                for (Iterator<ConstructorType> i = ct.constructors().iterator(); i.hasNext(); ) {
-                    ConstructorType ci = (ConstructorType) i.next();
+                for (Iterator<ConstructorInstance> i = ct.constructors().iterator(); i.hasNext(); ) {
+                    ConstructorInstance ci = (ConstructorInstance) i.next();
                     Report.report(2, "* " + ci);
                 }
-
-                ct.def().setInitializer(init);
             }
 
             if (Report.should_report(report_topics, 2))

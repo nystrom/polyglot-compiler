@@ -5,9 +5,9 @@ import java.util.*;
 import polyglot.main.Report;
 import polyglot.util.Position;
 
-public class MethodType_c extends FunctionType_c<MethodDef> implements MethodType {
+public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements MethodInstance {
 
-    public MethodType_c(TypeSystem ts, Position pos, Ref<MethodDef> def) {
+    public MethodInstance_c(TypeSystem ts, Position pos, Ref<MethodDef> def) {
         super(ts, pos, def);
     }
     
@@ -24,7 +24,7 @@ public class MethodType_c extends FunctionType_c<MethodDef> implements MethodTyp
     }
     
     /** Returns true iff <this> is the same method as <m> */
-    public boolean isSameMethod(MethodType m) {
+    public boolean isSameMethod(MethodInstance m) {
         return this.name().equals(m.name()) && hasFormals(m.formalTypes());
     }
 
@@ -32,8 +32,8 @@ public class MethodType_c extends FunctionType_c<MethodDef> implements MethodTyp
         return name().equals(name) && this.callValid(argTypes);
     }
 
-    public List<MethodType> overrides() {
-        List<MethodType> l = new LinkedList();
+    public List<MethodInstance> overrides() {
+        List<MethodInstance> l = new ArrayList<MethodInstance>();
         ReferenceType rt = container();
 
         while (rt != null) {
@@ -52,7 +52,7 @@ public class MethodType_c extends FunctionType_c<MethodDef> implements MethodTyp
         return l;
     }
 
-    public final void checkOverride(MethodType mj) throws SemanticException {
+    public final void checkOverride(MethodInstance mj) throws SemanticException {
         canOverride(mj, false);
     }
 
@@ -60,7 +60,7 @@ public class MethodType_c extends FunctionType_c<MethodDef> implements MethodTyp
      * Leave this method in for historic reasons, to make sure that extensions
      * modify their code correctly.
      */
-    public boolean canOverride(MethodType mj) {
+    public boolean canOverride(MethodInstance mj) {
         try {
             return canOverride(mj, true);
         }
@@ -69,8 +69,8 @@ public class MethodType_c extends FunctionType_c<MethodDef> implements MethodTyp
         }
     }
     
-    public boolean canOverride(MethodType mj, boolean quiet) throws SemanticException {
-        MethodType mi = this;
+    public boolean canOverride(MethodInstance mj, boolean quiet) throws SemanticException {
+        MethodInstance mi = this;
 
         if (!(mi.name().equals(mj.name()) && mi.hasFormals(mj.formalTypes()))) {
             if (quiet) return false;
@@ -88,11 +88,8 @@ public class MethodType_c extends FunctionType_c<MethodDef> implements MethodTyp
         
         if (mj.container() instanceof ClassType) {
             ClassType ct = (ClassType) mj.container();
-            if (ct.def().initializer() instanceof LazyClassInitializer) {
-                LazyClassInitializer init = (LazyClassInitializer) ct.def().initializer();
-                if (init.fromClassFile()) {
-                    allowCovariantReturn = true;
-                }
+            if (ct.def().fromJavaClassFile()) {
+                allowCovariantReturn = true;
             }
         }
         
@@ -169,16 +166,16 @@ public class MethodType_c extends FunctionType_c<MethodDef> implements MethodTyp
         return true;
     }
     
-    public List<MethodType> implemented() {
+    public List<MethodInstance> implemented() {
         return implemented(container());
     }
 
-    public List<MethodType> implemented(ReferenceType rt) {
+    public List<MethodInstance> implemented(ReferenceType rt) {
         if (rt == null) {
-            return Collections.EMPTY_LIST;
+            return Collections.<MethodInstance>emptyList();
         }
 
-        List<MethodType> l = new LinkedList();
+        List<MethodInstance> l = new LinkedList<MethodInstance>();
         l.addAll(rt.methods(name(), formalTypes()));
 
         Type superType = rt.superType();

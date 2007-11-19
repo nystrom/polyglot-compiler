@@ -13,22 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import polyglot.main.Report;
-import polyglot.types.ClassDef;
-import polyglot.types.ClassType;
-import polyglot.types.ConstructorDef;
-import polyglot.types.Context;
-import polyglot.types.Flags;
-import polyglot.types.MemberDef;
-import polyglot.types.Named;
-import polyglot.types.ParsedClassType_c;
-import polyglot.types.Ref;
-import polyglot.types.Ref_c;
-import polyglot.types.ReferenceType;
-import polyglot.types.SemanticException;
-import polyglot.types.Symbol;
-import polyglot.types.SymbolTable;
-import polyglot.types.Type;
-import polyglot.types.TypeSystem;
+import polyglot.types.*;
 import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
 import polyglot.util.InternalCompilerError;
@@ -241,7 +226,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
             // This allows us to detect loops in the inheritance
             // hierarchy, but avoids an infinite loop.
             c = c.pushBlock();
-            c.addNamed(this.type);
+            c.addNamed(this.type.asType());
         }
         return super.enterChildScope(child, c);
     }
@@ -263,8 +248,10 @@ public class ClassDecl_c extends Term_c implements ClassDecl
     }
 
     protected void checkSupertypeCycles(TypeSystem ts) throws SemanticException {
-        if (type.superType() != null) {
-            Type t = type.superType().get();
+        Ref<? extends Type> stref = type.superType();
+        if (stref != null) {
+            Type t = stref.get();
+            assert ! (t instanceof UnknownType);
             if (! t.isClass() || t.toClass().flags().isInterface()) {
                 throw new SemanticException("Cannot extend type " +
                         t + "; not a class.",
@@ -274,13 +261,15 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         }
 
         for (Iterator<Ref<? extends Type>> i = type.interfaces().iterator(); i.hasNext(); ) {
-            Type it = i.next().get();
-            if (! it.isClass() || it.toClass().flags().isInterface()) {
+            Ref<? extends Type> tref = i.next();
+            Type t = tref.get();
+            assert ! (t instanceof UnknownType);
+            if (! t.isClass() || ! t.toClass().flags().isInterface()) {
                 String s = type.flags().isInterface() ? "extend" : "implement";
-                throw new SemanticException("Cannot " + s + " type " + it + "; not an interface.",
+                throw new SemanticException("Cannot " + s + " type " + t + "; not an interface.",
                         position());
             }
-            ts.checkCycles((ReferenceType) it);
+            ts.checkCycles((ReferenceType) t);
         }
     }
 
@@ -288,7 +277,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         TypeNode superClass = this.superClass;
 
         if (superClass != null) {
-            Ref<? extends Type> t = superClass.theType();
+            Ref<? extends Type> t = superClass.typeRef();
             if (Report.should_report(Report.types, 3))
                 Report.report(3, "setting superclass of " + this.type + " to " + t);
             thisType.superType(t);
@@ -313,7 +302,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         List<TypeNode> interfaces = this.interfaces;
         for (Iterator<TypeNode> i = interfaces.iterator(); i.hasNext(); ) {
             TypeNode tn = (TypeNode) i.next();
-            Ref<? extends Type> t = tn.theType();
+            Ref<? extends Type> t = tn.typeRef();
 
             if (Report.should_report(Report.types, 3))
                 Report.report(3, "adding interface of " + thisType + " to " + t);
@@ -323,10 +312,12 @@ public class ClassDecl_c extends Term_c implements ClassDecl
     }
 
     protected boolean defaultConstructorNeeded() {
+        if (flags.isInterface()) {
+            return false;
+        }
         for (Iterator<ClassMember> i = body().members().iterator(); i.hasNext(); ) {
             ClassMember cm = (ClassMember) i.next();
             if (cm instanceof ConstructorDecl) {
-                ConstructorDecl cd = (ConstructorDecl) cm;
                 return false;
             }
         }

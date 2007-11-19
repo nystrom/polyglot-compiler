@@ -50,6 +50,10 @@ public abstract class AbstractPass implements Pass
         this.job = job;
     }
 
+    public boolean isReentrant() {
+        return false;
+    }
+    
     public Goal goal() {
         return goal;
     }

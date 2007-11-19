@@ -219,7 +219,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
             n = this;
         }
 
-        FieldDef fi = ts.fieldInstance(position(), Ref_c.<ClassType>ref(ct), flags, type.theType(), name.id());
+        FieldDef fi = ts.fieldInstance(position(), Ref_c.<ClassType>ref(ct), flags, type.typeRef(), name.id());
         ts.symbolTable().<FieldDef>symbol(fi);
         
         cd.addField(fi);

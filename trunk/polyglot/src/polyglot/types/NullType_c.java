@@ -42,13 +42,13 @@ public class NullType_c extends Type_c implements NullType
 
     public NullType toNull() { return this; }
 
-    public boolean descendsFromImpl(Type ancestor) {
+    public boolean descendsFrom(Type ancestor) {
         if (ancestor.isNull()) return false;
         if (ancestor.isReference()) return true;
         return false;
     }
 
-    public boolean isImplicitCastValidImpl(Type toType) {
+    public boolean isImplicitCastValid(Type toType) {
         return toType.isNull() || toType.isReference();
     }
 
@@ -58,7 +58,7 @@ public class NullType_c extends Type_c implements NullType
      * Returns true iff a cast from this to toType is valid; in other
      * words, some non-null members of this are also members of toType.
      **/
-    public boolean isCastValidImpl(Type toType) {
+    public boolean isCastValid(Type toType) {
         return toType.isNull() || toType.isReference();
     }
 }

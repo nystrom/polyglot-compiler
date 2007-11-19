@@ -171,49 +171,49 @@ public class Cast_c extends Expr_c implements Cast
         if (v instanceof Double) {
             double vv = ((Double) v).doubleValue();
 
-            if (castType.type().isDouble()) return new Double((double) vv);
-            if (castType.type().isFloat()) return new Float((float) vv);
-            if (castType.type().isLong()) return new Long((long) vv);
-            if (castType.type().isInt()) return new Integer((int) vv);
-            if (castType.type().isChar()) return new Character((char) vv);
-            if (castType.type().isShort()) return new Short((short) vv);
-            if (castType.type().isByte()) return new Byte((byte) vv);
+            if (castType.type().isDouble()) return Double.valueOf((double) vv);
+            if (castType.type().isFloat()) return Float.valueOf((float) vv);
+            if (castType.type().isLong()) return Long.valueOf((long) vv);
+            if (castType.type().isInt()) return Integer.valueOf((int) vv);
+            if (castType.type().isChar()) return Character.valueOf((char) vv);
+            if (castType.type().isShort()) return Short.valueOf((short) vv);
+            if (castType.type().isByte()) return Byte.valueOf((byte) vv);
         }
 
         if (v instanceof Float) {
             float vv = ((Float) v).floatValue();
 
-            if (castType.type().isDouble()) return new Double((double) vv);
-            if (castType.type().isFloat()) return new Float((float) vv);
-            if (castType.type().isLong()) return new Long((long) vv);
-            if (castType.type().isInt()) return new Integer((int) vv);
-            if (castType.type().isChar()) return new Character((char) vv);
-            if (castType.type().isShort()) return new Short((short) vv);
-            if (castType.type().isByte()) return new Byte((byte) vv);
+            if (castType.type().isDouble()) return Double.valueOf((double) vv);
+            if (castType.type().isFloat()) return Float.valueOf((float) vv);
+            if (castType.type().isLong()) return Long.valueOf((long) vv);
+            if (castType.type().isInt()) return Integer.valueOf((int) vv);
+            if (castType.type().isChar()) return Character.valueOf((char) vv);
+            if (castType.type().isShort()) return Short.valueOf((short) vv);
+            if (castType.type().isByte()) return Byte.valueOf((byte) vv);
         }
 
         if (v instanceof Number) {
             long vv = ((Number) v).longValue();
 
-            if (castType.type().isDouble()) return new Double((double) vv);
-            if (castType.type().isFloat()) return new Float((float) vv);
-            if (castType.type().isLong()) return new Long((long) vv);
-            if (castType.type().isInt()) return new Integer((int) vv);
-            if (castType.type().isChar()) return new Character((char) vv);
-            if (castType.type().isShort()) return new Short((short) vv);
-            if (castType.type().isByte()) return new Byte((byte) vv);
+            if (castType.type().isDouble()) return Double.valueOf((double) vv);
+            if (castType.type().isFloat()) return Float.valueOf((float) vv);
+            if (castType.type().isLong()) return Long.valueOf((long) vv);
+            if (castType.type().isInt()) return Integer.valueOf((int) vv);
+            if (castType.type().isChar()) return Character.valueOf((char) vv);
+            if (castType.type().isShort()) return Short.valueOf((short) vv);
+            if (castType.type().isByte()) return Byte.valueOf((byte) vv);
         }
 
         if (v instanceof Character) {
             char vv = ((Character) v).charValue();
 
-            if (castType.type().isDouble()) return new Double((double) vv);
-            if (castType.type().isFloat()) return new Float((float) vv);
-            if (castType.type().isLong()) return new Long((long) vv);
-            if (castType.type().isInt()) return new Integer((int) vv);
-            if (castType.type().isChar()) return new Character((char) vv);
-            if (castType.type().isShort()) return new Short((short) vv);
-            if (castType.type().isByte()) return new Byte((byte) vv);
+            if (castType.type().isDouble()) return Double.valueOf((double) vv);
+            if (castType.type().isFloat()) return Float.valueOf((float) vv);
+            if (castType.type().isLong()) return Long.valueOf((long) vv);
+            if (castType.type().isInt()) return Integer.valueOf((int) vv);
+            if (castType.type().isChar()) return Character.valueOf((char) vv);
+            if (castType.type().isShort()) return Short.valueOf((short) vv);
+            if (castType.type().isByte()) return Byte.valueOf((byte) vv);
         }
 
         // not a constant

@@ -198,6 +198,11 @@ public class Compiler
 		eq.flush();
 		throw e;
 	    }
+	    catch (StackOverflowError e) {
+		// Flush the error queue, then rethrow to get the stack trace.
+		eq.flush();
+		throw e;
+	    }
 	    catch (RuntimeException e) {
 		// Flush the error queue, then rethrow to get the stack trace.
 		eq.flush();

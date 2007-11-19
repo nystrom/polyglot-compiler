@@ -14,7 +14,7 @@ import java.util.List;
  * classpath, parsed from a source file, or obtained from other source.
  * A <code>ClassType</code> is not necessarily named.
  */
-public interface ClassType extends Importable, ReferenceType, MemberType<ClassDef>, Use<ClassDef>
+public interface ClassType extends Importable, ReferenceType, MemberInstance<ClassDef>, Use<ClassDef>
 {
     /**
      * A resolver to access member classes of the class.
@@ -72,14 +72,14 @@ public interface ClassType extends Importable, ReferenceType, MemberType<ClassDe
      * A list of <code>ConstructorInstance</code>.
      * @see polyglot.types.ConstructorDef
      */
-    List<ConstructorType> constructors();
+    List<ConstructorInstance> constructors();
 
     /**
      * The class's member classes.
      * A list of <code>ClassType</code>.
      * @see polyglot.types.ClassType
      */
-    List<ClassType> memberClasses();
+    List<Type> memberClasses();
 
     /** Returns the member class with the given name, or null. */
     ClassType memberClassNamed(String name);

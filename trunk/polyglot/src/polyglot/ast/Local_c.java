@@ -16,8 +16,8 @@ import polyglot.types.Context;
 import polyglot.types.ErrorRef_c;
 import polyglot.types.Flags;
 import polyglot.types.LocalDef;
-import polyglot.types.LocalType;
-import polyglot.types.LocalType_c;
+import polyglot.types.LocalInstance;
+import polyglot.types.LocalInstance_c;
 import polyglot.types.Ref_c;
 import polyglot.types.SemanticException;
 import polyglot.types.TypeSystem;
@@ -37,7 +37,7 @@ import java.util.List;
 public class Local_c extends Expr_c implements Local
 {
   protected Id name;
-  protected LocalType li;
+  protected LocalInstance li;
 
   public Local_c(Position pos, Id name) {
     super(pos);
@@ -83,12 +83,12 @@ public class Local_c extends Expr_c implements Local
   }
 
   /** Get the local instance of the local. */
-  public LocalType localInstance() {
+  public LocalInstance localInstance() {
     return li;
   }
 
   /** Set the local instance of the local. */
-  public Local localInstance(LocalType li) {
+  public Local localInstance(LocalInstance li) {
     if (li == this.li) return this;
     Local_c n = (Local_c) copy();
     n.li = li;
@@ -117,14 +117,14 @@ public class Local_c extends Expr_c implements Local
 
       TypeSystem ts = tb.typeSystem();
 
-      LocalType li = new LocalType_c(ts, position(), new ErrorRef_c<LocalDef>(ts, position()));
+      LocalInstance li = new LocalInstance_c(ts, position(), new ErrorRef_c<LocalDef>(ts, position()));
       return n.localInstance(li);
   }
 
   /** Type check the local. */
   public Node typeCheck(TypeChecker tc) throws SemanticException {
     Context c = tc.context();
-    LocalType li = c.findLocal(name.id());
+    LocalInstance li = c.findLocal(name.id());
     
     // if the local is defined in an outer class, then it must be final
     if (!c.isLocal(li.name())) {

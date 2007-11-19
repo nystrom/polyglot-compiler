@@ -208,16 +208,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
         
         super.install(name, q);
 
-        if (previous == null) {
-            if (q instanceof ParsedTypeObject) {
-                if (! ((ParsedTypeObject) q).initializer().isTypeObjectInitialized()) {
-                    if (Report.should_report(TOPICS, 2))
-                        Report.report(2, "SR initializing " + q);
-                    ((ParsedTypeObject) q).initializer().initTypeObject();
-                }
-            }
-        }
-        else {
+        if (previous != null) {
             justAdded.add(new Object[] { name, q });
         }
     }

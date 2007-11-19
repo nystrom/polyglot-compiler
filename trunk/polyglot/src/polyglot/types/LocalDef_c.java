@@ -22,8 +22,8 @@ public class LocalDef_c extends VarDef_c implements LocalDef
         super(ts, pos, flags, type, name);
     }
     
-    public LocalType asType() {
-        return new LocalType_c(ts, position(), Ref_c.<LocalDef>ref(this));
+    public LocalInstance asReference() {
+        return new LocalInstance_c(ts, position(), Ref_c.<LocalDef>ref(this));
     }
 
     public boolean equalsImpl(TypeObject o) {

@@ -119,6 +119,14 @@ public abstract class Type_c extends TypeObject_c implements Type
         return this == t;
     }
     
+    public final void typeEqualsImpl(Type t) { }
+    public final void isSubtypeImp(Type t) { }
+    public final void descendsFromImpl(Type t) { }
+    public final void isCastValidImpl(Type t) { }
+    public final void isImplicitCastValidImpl(Type t) { }
+    public final void numericConversionValidImpl(long t) { }
+    public final void numericConversionValidImpl(Object t) { }
+    
     /**
      * Return true if this type is a subtype of <code>ancestor</code>.
      */
@@ -132,6 +140,7 @@ public abstract class Type_c extends TypeObject_c implements Type
     public boolean descendsFrom(Type t) {
         return false;
     }
+
 
     /**
      * Return true if this type can be cast to <code>toType</code>.

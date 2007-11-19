@@ -244,13 +244,11 @@ public abstract class Assign_c extends Expr_c implements Assign
   protected abstract void acceptCFGOpAssign(CFGBuilder v);
   
   public List<Type> throwTypes(TypeSystem ts) {
-    List l = new LinkedList();
-
     if (throwsArithmeticException()) {
-      l.add(ts.ArithmeticException());
+        return Collections.<Type>singletonList(ts.ArithmeticException());
     }
 
-    return l;
+    return Collections.<Type>emptyList();
   }
   public Node copy(NodeFactory nf) {
       return nf.Assign(this.position, this.left, this.op, this.right);

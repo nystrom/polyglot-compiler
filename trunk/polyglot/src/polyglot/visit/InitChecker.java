@@ -785,10 +785,11 @@ public class InitChecker extends DataFlow
      */
     protected boolean isFieldsTargetAppropriate(Field f) {
         CodeDef ci = currCBI.currCodeDecl.codeInstance();
-        ClassDef containingClass = currCBI.currClass;
+        ClassType containingClass = currCBI.currClass.asType();
 
         if (f.fieldInstance().flags().isStatic()) {
-            return containingClass.equals(f.fieldInstance().def().container());
+            Type container = f.fieldInstance().def().container().get();
+            return containingClass.equals(container);
         }
         else {
             if (f.target() instanceof Special) {

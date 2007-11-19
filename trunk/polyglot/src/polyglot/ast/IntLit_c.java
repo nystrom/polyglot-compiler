@@ -119,10 +119,10 @@ public class IntLit_c extends NumLit_c implements IntLit
 
     public Object constantValue() {
 	if (kind() == LONG) {
-            return new Long(value);
+            return Long.valueOf(value);
 	}
 	else {
-            return new Integer((int) value);
+            return Integer.valueOf((int) value);
 	}
     }
 

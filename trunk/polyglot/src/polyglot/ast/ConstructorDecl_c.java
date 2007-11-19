@@ -178,12 +178,12 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
         
         List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(formals.size());
         for (Formal f : formals()) {
-            formalTypes.add(f.type().theType());
+            formalTypes.add(f.type().typeRef());
         }
 
         List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(throwTypes().size());
         for (TypeNode tn : throwTypes()) {
-            throwTypes.add(tn.theType());
+            throwTypes.add(tn.typeRef());
         }
 
         ConstructorDef ci = ts.constructorInstance(position(), Ref_c.<ClassType>ref(contextClassType),

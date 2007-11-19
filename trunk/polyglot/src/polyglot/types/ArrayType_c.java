@@ -121,30 +121,30 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
     public ArrayType toArray() { return this; }
 
     /** Get the methods implemented by the array type. */
-    public List<MethodType> methods() {
+    public List<MethodInstance> methods() {
         init();
         return new TransformingList(methods, new SymbolTransform());
     }
 
     /** Get the fields of the array type. */
-    public List<FieldType> fields() {
+    public List<FieldInstance> fields() {
         init();
         return new TransformingList(fields, new SymbolTransform());
     }
 
     /** Get the clone() method. */
-    public MethodType cloneMethod() {
+    public MethodInstance cloneMethod() {
 	return methods().get(0);
     }
 
     /** Get a field of the type by name. */
-    public FieldType fieldNamed(String name) {
-        FieldType fi = lengthField();
+    public FieldInstance fieldNamed(String name) {
+        FieldInstance fi = lengthField();
         return name.equals(fi.name()) ? fi : null;
     }
 
     /** Get the length field. */
-    public FieldType lengthField() {
+    public FieldInstance lengthField() {
 	return fields().get(0);
     }
 
@@ -171,7 +171,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
 	return false;
     }
 
-    public boolean typeEqualsImpl(Type t) {
+    public boolean typeEquals(Type t) {
         if (t instanceof ArrayType) {
             ArrayType a = (ArrayType) t;
             return ts.typeEquals(base(), a.base());
@@ -179,7 +179,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
 	return false;
     }
 
-    public boolean isImplicitCastValidImpl(Type toType) {
+    public boolean isImplicitCastValid(Type toType) {
         if (toType.isArray()) {
             if (base().isPrimitive() || toType.toArray().base().isPrimitive()) {
                 return ts.typeEquals(base(), toType.toArray().base());
@@ -201,7 +201,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
      * Returns true iff a cast from this to toType is valid; in other
      * words, some non-null members of this are also members of toType.
      **/
-    public boolean isCastValidImpl(Type toType) {
+    public boolean isCastValid(Type toType) {
         if (! toType.isReference()) return false;
 
 	if (toType.isArray()) {

@@ -13,7 +13,7 @@ import java.util.List;
  * A <code>ProcedureInstance</code> contains the type information for a Java
  * procedure (either a method or a constructor).
  */
-public interface ProcedureType<T extends ProcedureDef> extends Use<T> {
+public interface ProcedureInstance<T extends ProcedureDef> extends Use<T> {
     /**
      * List of formal parameter types.
      * @return A list of <code>Type</code>.
@@ -44,7 +44,7 @@ public interface ProcedureType<T extends ProcedureDef> extends Use<T> {
      * Return true if <code>this</code> is more specific than <code>pi</code>
      * in terms of method overloading.
      */
-    boolean moreSpecific(ProcedureType<T> pi);
+    boolean moreSpecific(ProcedureInstance<T> pi);
 
     /**
      * Returns true if the procedure has the given arguments.
@@ -55,7 +55,7 @@ public interface ProcedureType<T extends ProcedureDef> extends Use<T> {
      * Returns true if the procedure throws a subset of the exceptions
      * thrown by <code>pi</code>.
      */
-    boolean throwsSubset(ProcedureType<T> pi);
+    boolean throwsSubset(ProcedureInstance<T> pi);
 
     /**
      * Returns true if the procedure can be called with the given arguments.

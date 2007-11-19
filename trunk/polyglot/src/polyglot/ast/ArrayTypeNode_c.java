@@ -53,8 +53,7 @@ public class ArrayTypeNode_c extends TypeNode_c implements ArrayTypeNode
     }
 
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
-	TypeRef<? extends Type> sym = tb.typeSystem().symbolTable().typeRef(base.type(), Globals.Scheduler().Disambiguated(tb.job()));
-	return type(sym);
+	return type(Ref_c.<Type>ref(tb.typeSystem().arrayOf(position(), base.typeRef())));
     }
 
     public Node disambiguate(AmbiguityRemover ar) throws SemanticException {

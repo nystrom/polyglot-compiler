@@ -1,11 +1,14 @@
 package polyglot.types;
 
+import java.io.*;
 import java.util.Collections;
 
 import polyglot.frontend.*;
+import polyglot.frontend.Goal.Status;
+import polyglot.util.TypeInputStream;
 import polyglot.util.UniqueID;
 
-public class Symbol_c<T extends TypeObject> implements Symbol<T> {
+public class Symbol_c<T extends TypeObject> implements Symbol<T>, Serializable {
     String name;
     History<T> history;
     
@@ -32,13 +35,14 @@ public class Symbol_c<T extends TypeObject> implements Symbol<T> {
         return name + "(" + (nonnull() ? history.value : "") + ")";
     }
     
-    protected static class History<T> {
+    // ### TODO: implement writeObject to not write out history
+    protected static class History<T> implements Serializable {
         History<T> previous;
         T value;
         GoalSet valid;
         
         protected boolean validIn(GoalSet view) {
-            return view.containsAll(this.valid);
+            return this.valid.containsAll(view);
         }
     }
 

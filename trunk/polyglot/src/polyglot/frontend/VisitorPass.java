@@ -16,14 +16,15 @@ import polyglot.util.ErrorQueue;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.StringUtil;
 import polyglot.visit.NodeVisitor;
+import polyglot.visit.ReentrantVisitor;
 
 /** A pass which runs a visitor. */
 public class VisitorPass extends AbstractPass
 {
     protected NodeVisitor v;
 
-    public VisitorPass(Goal goal, Job job) {
-	this(goal, job, null);
+    public VisitorPass(Goal goal, Job job, String name) {
+	super(goal, job, name);
     }
 
     public VisitorPass(Goal goal, Job job, NodeVisitor v) {
@@ -37,6 +38,11 @@ public class VisitorPass extends AbstractPass
 
     public NodeVisitor visitor() {
 	return v;
+    }
+    
+    public boolean isReentrant() {
+        assert v != null;
+        return v instanceof ReentrantVisitor; 
     }
   
     public boolean run() {

@@ -25,7 +25,7 @@ public class Field_c extends Expr_c implements Field
 {
   protected Receiver target;
   protected Id name;
-  protected FieldType fi;
+  protected FieldInstance fi;
   protected boolean targetImplicit;
   
   public Field_c(Position pos, Receiver target, Id name) {
@@ -93,12 +93,12 @@ public class Field_c extends Expr_c implements Field
   }
 
   /** Get the field instance of the field. */
-  public FieldType fieldInstance() {
+  public FieldInstance fieldInstance() {
     return fi;
   }
 
   /** Set the field instance of the field. */
-  public Field fieldInstance(FieldType fi) {
+  public Field fieldInstance(FieldInstance fi) {
     if (fi == this.fi) return this;
     Field_c n = (Field_c) copy();
     n.fi = fi;
@@ -139,7 +139,7 @@ public class Field_c extends Expr_c implements Field
 
       TypeSystem ts = tb.typeSystem();
 
-      FieldType fi = new FieldType_c(ts, position(), new ErrorRef_c<FieldDef>(ts, position()));
+      FieldInstance fi = new FieldInstance_c(ts, position(), new ErrorRef_c<FieldDef>(ts, position()));
       return n.fieldInstance(fi);
   }
 
@@ -149,7 +149,7 @@ public class Field_c extends Expr_c implements Field
       TypeSystem ts = tc.typeSystem();
       
       if (target.type().isReference()) {
-	  FieldType fi = ts.findField(target.type().toReference(), name.id(), c.currentClassScope());
+	  FieldInstance fi = ts.findField(target.type().toReference(), name.id(), c.currentClassScope());
 	  
 	  if (fi == null) {
 	      throw new InternalCompilerError("Cannot access field on node of type " +
@@ -286,8 +286,8 @@ public class Field_c extends Expr_c implements Field
   protected void checkConsistency(Context c) {
       if (targetImplicit) {
           VarType vi = c.findVariableSilent(name.id());
-          if (vi instanceof FieldType) {
-              FieldType rfi = (FieldType) vi;
+          if (vi instanceof FieldInstance) {
+              FieldInstance rfi = (FieldInstance) vi;
               // Compare the original (declaration) fis, not the actuals.
               // We do this because some extensions that do type substitutions
               // perform the substitution

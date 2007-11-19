@@ -7,11 +7,9 @@
 
 package polyglot.types.reflect;
 
-import java.io.*;
 import java.util.*;
 
 import polyglot.frontend.Globals;
-import polyglot.frontend.Scheduler;
 import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.types.reflect.InnerClasses.Info;
@@ -26,7 +24,7 @@ import polyglot.util.*;
  * might load a class (in particular, this one). ts.Object() should not be
  * called.
  */
-public class ClassFileLazyClassInitializer implements LazyClassInitializer {
+public class ClassFileLazyClassInitializer {
     protected ClassFile clazz;
     protected TypeSystem ts;
     protected ClassDef ct;
@@ -72,8 +70,11 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
             Report.report(2, "creating ClassType for " + name);
 
         // Create the ClassType.
-        ClassDef ct = ts.createClassType(this);
+        ClassDef ct = ts.createClassDef();
         Symbol<ClassDef> sym = ts.symbolTable().symbol(ct);
+        this.setClass(ct);
+
+        ct.setFromJavaClassFile();
 
         ct.flags(ts.flagsForBits(clazz.getModifiers()));
         ct.position(position());
@@ -288,6 +289,7 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
             Report.report(2, "resolving " + name);
         
         TypeRef<ClassDef> sym = ts.symbolTable().typeRef();
+        
         if (flags == null) {
             sym.setResolver(Globals.Scheduler().LookupGlobalTypeDef(sym, name));
         }
@@ -585,10 +587,10 @@ public class ClassFileLazyClassInitializer implements LazyClassInitializer {
         try {
           switch (c.tag()) {
             case Constant.STRING: o = field.getString(); break;
-            case Constant.INTEGER: o = new Integer(field.getInt()); break;
-            case Constant.LONG: o = new Long(field.getLong()); break;
-            case Constant.FLOAT: o = new Float(field.getFloat()); break;
-            case Constant.DOUBLE: o = new Double(field.getDouble()); break;
+            case Constant.INTEGER: o = Integer.valueOf(field.getInt()); break;
+            case Constant.LONG: o = Long.valueOf(field.getLong()); break;
+            case Constant.FLOAT: o = Float.valueOf(field.getFloat()); break;
+            case Constant.DOUBLE: o = Double.valueOf(field.getDouble()); break;
           }
         }
         catch (SemanticException e) {

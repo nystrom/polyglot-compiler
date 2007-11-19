@@ -27,8 +27,8 @@ public class ConstructorDef_c extends ProcedureDef_c
         super(ts, pos, container, flags, formalTypes, excTypes);
     }
     
-    public ConstructorType asType() {
-        return new ConstructorType_c(ts, position(), Ref_c.<ConstructorDef>ref(this));
+    public ConstructorInstance asReference() {
+        return new ConstructorInstance_c(ts, position(), Ref_c.<ConstructorDef>ref(this));
     }
 
     public String toString() {

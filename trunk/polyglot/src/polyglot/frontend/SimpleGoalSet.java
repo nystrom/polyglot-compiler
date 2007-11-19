@@ -5,21 +5,22 @@ package polyglot.frontend;
 
 import java.util.*;
 
-import polyglot.util.InternalCompilerError;
-
 public class SimpleGoalSet implements GoalSet {
-    Collection<Goal> goals;
+    Set<Goal> goals;
 
     public SimpleGoalSet(Collection<Goal> goals) {
-        this.goals = goals;
+        this.goals = new LinkedHashSet<Goal>(goals);
     }
     
     public boolean contains(Goal goal) {
+        if (goals.contains(goal)) {
+            return true;
+        }
+        
         for (Goal g : goals) {
-            if (g == goal) {
-                return true;
-            }
             if (g.requiredView().contains(goal)) {
+                // memoize
+                goals.add(goal);
                 return true;
             }
         }

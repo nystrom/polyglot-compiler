@@ -19,7 +19,6 @@ import polyglot.util.*;
 public class ErrorHandlingVisitor extends ReentrantVisitor
 {
     protected boolean error;
-    protected Job job;
     protected TypeSystem ts;
     protected NodeFactory nf;
 
@@ -29,14 +28,6 @@ public class ErrorHandlingVisitor extends ReentrantVisitor
         this.nf = nf;
     }
     
-    /** Returns the <code>Job</code> that this Visitor is part of.
-     *
-     * @see polyglot.frontend.Job
-     */
-    public Job job() {
-        return job;
-    }
-
     /**
      * Part of the initialization done by begin() in an ErrorHandlingVisitor
      * method is initializing the error-handling state.

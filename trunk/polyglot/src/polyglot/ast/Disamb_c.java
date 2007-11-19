@@ -122,7 +122,7 @@ public class Disamb_c implements Disamb
 
         if (t.isReference() && exprOK()) {
             try {
-                FieldType fi = ts.findField(t.toReference(), name.id(), c.currentClassScope());
+                FieldInstance fi = ts.findField(t.toReference(), name.id(), c.currentClassScope());
                 return nf.Field(pos, tn, name).fieldInstance(fi);
             } catch (NoMemberException e) {
                 if (e.getKind() != NoMemberException.FIELD) {
@@ -201,18 +201,18 @@ public class Disamb_c implements Disamb
     }
 
     protected Node disambiguateVarInstance(VarType vi) throws SemanticException {
-        if (vi instanceof FieldType) {
-            FieldType fi = (FieldType) vi;
+        if (vi instanceof FieldInstance) {
+            FieldInstance fi = (FieldInstance) vi;
             Receiver r = makeMissingFieldTarget(fi);
             return nf.Field(pos, r, name).fieldInstance(fi).targetImplicit(true);
-        } else if (vi instanceof LocalType) {
-            LocalType li = (LocalType) vi;
+        } else if (vi instanceof LocalInstance) {
+            LocalInstance li = (LocalInstance) vi;
             return nf.Local(pos, name).localInstance(li);
         }
         return null;
     }
 
-    protected Receiver makeMissingFieldTarget(FieldType fi) throws SemanticException {
+    protected Receiver makeMissingFieldTarget(FieldInstance fi) throws SemanticException {
         Receiver r;
 
         if (fi.flags().isStatic()) {

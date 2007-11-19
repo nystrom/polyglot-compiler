@@ -8,6 +8,8 @@ public interface Goal {
         NEW, RUNNING, SUCCESS, FAIL, UNREACHABLE;
     };
 
+    Goal intern(Scheduler s);
+    
     GoalSet requiredView();
     String name();
     Pass createPass();
@@ -21,7 +23,6 @@ public interface Goal {
 
     /** Set a flag indicating that this rule is unreachable. */
     public void setUnreachable();
-
     
     /** Return true if this goal has been reached. */
     public boolean hasBeenReached();

@@ -21,9 +21,6 @@ import polyglot.frontend.Job;
  * @author nystrom
  */
 public interface ParsedTypeObject extends Named {
-    /** Get the job (i.e., compilation unit) associated with this class; or null. @deprecated Lives in initializer */
+    /** Get the job (i.e., compilation unit) associated with this class; or null. */
     Job job();
-
-    LazyInitializer initializer();
-    void setInitializer(LazyInitializer init);
 }

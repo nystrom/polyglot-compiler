@@ -2,7 +2,7 @@ package polyglot.types;
 
 import java.util.List;
 
-public interface MethodType extends FunctionType<MethodDef>, MemberType<MethodDef>, Use<MethodDef> {
+public interface MethodInstance extends FunctionInstance<MethodDef>, MemberInstance<MethodDef>, Use<MethodDef> {
     /**
      * The method's name.
      */
@@ -18,18 +18,18 @@ public interface MethodType extends FunctionType<MethodDef>, MemberType<MethodDe
      * in interfaces. Use <code>implemented</code> for that.
      * @see polyglot.types.MethodDef
      */
-    List<MethodType> overrides();
+    List<MethodInstance> overrides();
 
     /**
      * Return true if this method can override <code>mi</code>, false otherwise.
      */
-    boolean canOverride(MethodType mi);
+    boolean canOverride(MethodInstance mi);
 
     /**
      * Return true if this method can override <code>mi</code>, throws
      * a SemanticException otherwise.
      */
-    void checkOverride(MethodType mi) throws SemanticException;
+    void checkOverride(MethodInstance mi) throws SemanticException;
 
     /**
      * Get the set of methods this method implements.  No ordering is
@@ -37,13 +37,13 @@ public interface MethodType extends FunctionType<MethodDef>, MemberType<MethodDe
      * (i.e., they can form a tree).  
      * @return List[MethodInstance]
      */
-    List<MethodType> implemented(); 
-    List<MethodType> implemented(ReferenceType container); 
+    List<MethodInstance> implemented(); 
+    List<MethodInstance> implemented(ReferenceType container); 
 
     /**
      * Return true if this method has the same signature as <code>mi</code>.
      */
-    boolean isSameMethod(MethodType mi);
+    boolean isSameMethod(MethodInstance mi);
 
     /**
      * Return true if this method can be called with name <code>name</code>
@@ -62,5 +62,5 @@ public interface MethodType extends FunctionType<MethodDef>, MemberType<MethodDe
      * false is returned; otherwise, if quiet is false and this method cannot 
      * override <code>mi</code>, then a SemanticException is thrown.
      */
-    boolean canOverride(MethodType mi, boolean quiet) throws SemanticException;
+    boolean canOverride(MethodInstance mi, boolean quiet) throws SemanticException;
 }

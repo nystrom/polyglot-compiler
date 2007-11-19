@@ -114,7 +114,7 @@ public class Switch_c extends Stmt_c implements Switch
                     return this;
                 }
                 else if (c.expr().isConstant()) {
-                    key = new Long(c.value());
+                    key = Long.valueOf(c.value());
                     str = c.expr().toString() + " (" + c.value() + ")";
                 }
                 else {
@@ -187,16 +187,16 @@ public class Switch_c extends Stmt_c implements Switch
     public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         SwitchElement prev = null;
 
-        List cases = new LinkedList();
-        List entry = new LinkedList();
+        List<Term> cases = new ArrayList<Term>(elements.size()+1);
+        List<Integer> entry = new ArrayList<Integer>(elements.size()+1);
         boolean hasDefault = false;
 
-        for (Iterator i = elements.iterator(); i.hasNext(); ) {
+        for (Iterator<SwitchElement> i = elements.iterator(); i.hasNext(); ) {
             SwitchElement s = (SwitchElement) i.next();
 
             if (s instanceof Case) {
                 cases.add(s);
-                entry.add(new Integer(ENTRY));
+                entry.add(Integer.valueOf(ENTRY));
                 
                 if (((Case) s).expr() == null) {
                     hasDefault = true;

@@ -7,7 +7,7 @@
 
 package polyglot.ast;
 
-import polyglot.types.ProcedureType;
+import polyglot.types.ProcedureInstance;
 
 import java.util.List;
 
@@ -33,5 +33,5 @@ public interface ProcedureCall extends Term
      * The type object of the method we are calling.  This is, generally, only
      * valid after the type-checking pass.
      */
-    ProcedureType procedureInstance();
+    ProcedureInstance procedureInstance();
 }

@@ -1,7 +1,6 @@
 package polyglot.types;
 
-import polyglot.frontend.Goal;
-import polyglot.frontend.GoalSet;
+import polyglot.frontend.*;
 
 
 public interface SymbolTable {
@@ -16,7 +15,6 @@ public interface SymbolTable {
     <T extends TypeObject> Symbol<T> symbol(T v, GoalSet view);
     
     <T extends TypeObject> TypeRef<T> typeRef();
-//    <T extends TypeObject> TypeRef<T> typeRef(T v);
     <T extends TypeObject> TypeRef<T> typeRef(T v, Goal goal);
 
     /** Insert a symbol for the given object.  The symbol should not already be in the table. */

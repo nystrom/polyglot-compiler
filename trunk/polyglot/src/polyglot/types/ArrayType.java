@@ -31,12 +31,12 @@ public interface ArrayType extends ReferenceType
     /**
      * The array's length field.
      */
-    FieldType lengthField();
+    FieldInstance lengthField();
 
     /**
      * The array's clone() method.
      */
-    MethodType cloneMethod();
+    MethodInstance cloneMethod();
 
     /**
      * Return the number of dimensions in this array type.

@@ -39,7 +39,7 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
     }
     
     public Source fromSource() {
-        return def().fromSource();
+        return def().sourceFile();
     }
     
     public ClassDef.Kind kind() {
@@ -83,29 +83,29 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
     }
     
     /** Return an immutable list of constructors */
-    public List<ConstructorType> constructors() {
-        return new TransformingList<ConstructorDef,ConstructorType>(
+    public List<ConstructorInstance> constructors() {
+        return new TransformingList<ConstructorDef,ConstructorInstance>(
                                     def().constructors(),
                                     new ConstructorAsTypeTransform());
 }
 
     /** Return an immutable list of member classes */
-    public List<ClassType> memberClasses() {
-        return new TransformingList<ClassDef,ClassType>(def().memberClasses(),
-                                    new ClassAsTypeTransform());
+    public List<Type> memberClasses() {
+        return new TransformingList<Ref<? extends Type>,Type>(def().memberClasses(),
+                                    new DerefTransform<Type>());
     }
 
     /** Return an immutable list of methods. */
-    public List<MethodType> methods() {
-        return new TransformingList<MethodDef,MethodType>(
+    public List<MethodInstance> methods() {
+        return new TransformingList<MethodDef,MethodInstance>(
                                     def().methods(),
                                     new MethodAsTypeTransform());
     }
     
     /** Return a list of all methods with the given name. */
-    public List<MethodType> methodsNamed(String name) {
-        List<MethodType> l = new ArrayList<MethodType>();
-        for (MethodType mi : methods()) {
+    public List<MethodInstance> methodsNamed(String name) {
+        List<MethodInstance> l = new ArrayList<MethodInstance>();
+        for (MethodInstance mi : methods()) {
             if (mi.name().equals(name)) {
                 l.add(mi);
             }
@@ -115,15 +115,15 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
     }
 
     /** Return an immutable list of fields */
-    public List<FieldType> fields() {
-        return new TransformingList<FieldDef, FieldType>(def().fields(),
+    public List<FieldInstance> fields() {
+        return new TransformingList<FieldDef, FieldInstance>(def().fields(),
                                                          new FieldAsTypeTransform());
     }
     
     /** Get a field of the class by name. */
-    public FieldType fieldNamed(String name) {
-        for (Iterator i = fields().iterator(); i.hasNext(); ) {
-            FieldType fi = (FieldType) i.next();
+    public FieldInstance fieldNamed(String name) {
+        for (Iterator<FieldInstance> i = fields().iterator(); i.hasNext(); ) {
+            FieldInstance fi = (FieldInstance) i.next();
             if (fi.name().equals(name)) {
                 return fi;
             }
@@ -136,7 +136,7 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
     public List<Type> interfaces() {
         return new TransformingList<Ref<? extends Type>, Type>(
                                                     def().interfaces(),
-                                                    new DerefTransform());
+                                                    new DerefTransform<Type>());
     }
 
     public String toString() {

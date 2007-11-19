@@ -27,7 +27,7 @@ public class New_c extends Expr_c implements New
     protected TypeNode tn;
     protected List<Expr> arguments;
     protected ClassBody body;
-    protected ConstructorType ci;
+    protected ConstructorInstance ci;
     protected ClassDef anonType;
 
     public New_c(Position pos, Expr qualifier, TypeNode tn, List<Expr> arguments, ClassBody body) {
@@ -74,15 +74,15 @@ public class New_c extends Expr_c implements New
 	return n;
     }
 
-    public ProcedureType procedureInstance() {
+    public ProcedureInstance procedureInstance() {
 	return constructorInstance();
     }
 
-    public ConstructorType constructorInstance() {
+    public ConstructorInstance constructorInstance() {
 	return this.ci;
     }
 
-    public New constructorInstance(ConstructorType ci) {
+    public New constructorInstance(ConstructorInstance ci) {
         if (ci == this.ci) return this;
 	New_c n = (New_c) copy();
 	n.ci = ci;
@@ -151,7 +151,7 @@ public class New_c extends Expr_c implements New
         New_c n = this;
         TypeSystem ts = tb.typeSystem();
 
-        ConstructorType ci = new ConstructorType_c(ts, position(), new ErrorRef_c<ConstructorDef>(ts, position()));
+        ConstructorInstance ci = new ConstructorInstance_c(ts, position(), new ErrorRef_c<ConstructorDef>(ts, position()));
         n = (New_c) n.constructorInstance(ci);
         
         if (n.body() != null) {
@@ -219,7 +219,7 @@ public class New_c extends Expr_c implements New
         nn = (New) nn.arguments(nn.visitList(nn.arguments(), childv));
         
         if (nn.body() != null) {
-            Ref<? extends Type> ct = nn.objectType().theType();
+            Ref<? extends Type> ct = nn.objectType().typeRef();
             ClassDef anonType = nn.anonType();
             
             if (anonType != null) {
@@ -324,7 +324,7 @@ public class New_c extends Expr_c implements New
         }
         
         ClassType ct = tn.type().toClass();
-        ConstructorType ci;
+        ConstructorInstance ci;
         
         if (! ct.flags().isInterface()) {
             Context c = tc.context();
@@ -335,7 +335,7 @@ public class New_c extends Expr_c implements New
         }
         else {
             ConstructorDef dci = ts.defaultConstructor(this.position(), Ref_c.<ClassType>ref(ct));
-            ci = dci.asType();
+            ci = dci.asReference();
         }
         
         New n = this.constructorInstance(ci);
@@ -550,7 +550,7 @@ public class New_c extends Expr_c implements New
     }
 
     public List<Type> throwTypes(TypeSystem ts) {
-      List<Type> l = new LinkedList<Type>();
+      List<Type> l = new ArrayList<Type>();
       l.addAll(ci.throwTypes());
       l.addAll(ts.uncheckedExceptions());
       return l;

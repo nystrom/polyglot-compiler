@@ -7,7 +7,7 @@
 
 package polyglot.ast;
 
-import polyglot.types.MethodType;
+import polyglot.types.MethodInstance;
 
 import java.util.List;
 
@@ -67,10 +67,10 @@ public interface Call extends Expr, ProcedureCall
      * The type object of the method we are calling.  This is, generally, only
      * valid after the type-checking pass.
      */
-    MethodType methodInstance();
+    MethodInstance methodInstance();
 
     /**
      * Set the type object of the method we are calling.
      */
-    Call methodInstance(MethodType mi);
+    Call methodInstance(MethodInstance mi);
 }

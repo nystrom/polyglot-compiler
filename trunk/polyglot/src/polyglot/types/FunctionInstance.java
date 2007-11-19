@@ -12,6 +12,6 @@ package polyglot.types;
  * A <code>ProcedureInstance</code> contains the type information for a Java
  * procedure (either a method or a constructor).
  */
-public interface FunctionType<T extends ProcedureDef> extends ProcedureType<T> {
+public interface FunctionInstance<T extends ProcedureDef> extends ProcedureInstance<T> {
     Type returnType();
 }

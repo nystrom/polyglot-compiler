@@ -192,12 +192,12 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 
         List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(formals.size());
         for (Formal f : formals()) {
-            formalTypes.add(f.type().theType());
+            formalTypes.add(f.type().typeRef());
         }
 
         List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(throwTypes().size());
         for (TypeNode tn : throwTypes()) {
-            throwTypes.add(tn.theType());
+            throwTypes.add(tn.typeRef());
         }
 
 	Flags f = this.flags;
@@ -207,7 +207,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	}
 
 	MethodDef mi =
-	    ts.methodInstance(position(), Ref_c.ref(ct.asType()), f, returnType.theType(), name.id(), formalTypes, throwTypes);
+	    ts.methodInstance(position(), Ref_c.ref(ct.asType()), f, returnType.typeRef(), name.id(), formalTypes, throwTypes);
 
 	ct.addMethod(mi);
         return methodInstance(mi);
@@ -282,9 +282,9 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     protected void overrideMethodCheck(TypeChecker tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
-        MethodType mi = this.mi.asType();
-        for (Iterator<MethodType> j = mi.implemented().iterator(); j.hasNext(); ) {
-            MethodType mj = (MethodType) j.next();
+        MethodInstance mi = this.mi.asReference();
+        for (Iterator<MethodInstance> j = mi.implemented().iterator(); j.hasNext(); ) {
+            MethodInstance mj = (MethodInstance) j.next();
 
             if (! ts.isAccessible(mj, tc.context())) {
                 continue;

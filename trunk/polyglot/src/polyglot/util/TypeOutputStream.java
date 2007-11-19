@@ -7,18 +7,19 @@
 
 package polyglot.util;
 
-import polyglot.main.Report;
-import polyglot.types.*;
-
 import java.io.*;
 import java.util.*;
+
+import polyglot.main.Report;
+import polyglot.types.TypeObject;
+import polyglot.types.TypeSystem;
 
 /** Output stream for writing type objects. */
 public class TypeOutputStream extends ObjectOutputStream
 {
     protected TypeSystem ts;
-    protected Set roots;
-    protected Map placeHolders;
+    protected Set<Object> roots;
+    protected Map<Object,Object> placeHolders;
     
     public TypeOutputStream(OutputStream out, TypeSystem ts, TypeObject root) 
         throws IOException
@@ -27,7 +28,7 @@ public class TypeOutputStream extends ObjectOutputStream
         
         this.ts = ts;
         this.roots = ts.getTypeEncoderRootSet(root);
-        this.placeHolders = new HashMap();
+        this.placeHolders = new HashMap<Object, Object>();
         
         if (Report.should_report(Report.serialize, 2)) {
             Report.report(2, "Began TypeOutputStream with roots: " + roots);

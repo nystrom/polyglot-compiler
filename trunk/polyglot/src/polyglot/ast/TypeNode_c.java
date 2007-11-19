@@ -29,11 +29,11 @@ public abstract class TypeNode_c extends Term_c implements TypeNode
     
     /** Get the type as a qualifier. */
     public Ref<? extends Qualifier> qualifier() {
-        return theType();
+        return typeRef();
     }
 
     /** Get the type this node encapsulates. */
-    public Ref<? extends Type> theType() {
+    public Ref<? extends Type> typeRef() {
 	return this.type;
     }
 

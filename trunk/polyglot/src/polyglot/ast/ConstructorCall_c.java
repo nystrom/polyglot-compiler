@@ -23,7 +23,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
     protected Kind kind;
     protected Expr qualifier;
     protected List arguments;
-    protected ConstructorType ci;
+    protected ConstructorInstance ci;
 
     public ConstructorCall_c(Position pos, Kind kind, Expr qualifier, List arguments) {
 	super(pos);
@@ -69,17 +69,17 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	return n;
     }
 
-    public ProcedureType procedureInstance() {
+    public ProcedureInstance procedureInstance() {
 	return constructorInstance();
     }
 
     /** Get the constructor we are calling. */
-    public ConstructorType constructorInstance() {
+    public ConstructorInstance constructorInstance() {
         return ci;
     }
 
     /** Set the constructor we are calling. */
-    public ConstructorCall constructorInstance(ConstructorType ci) {
+    public ConstructorCall constructorInstance(ConstructorInstance ci) {
         if (ci == this.ci) return this;
 	ConstructorCall_c n = (ConstructorCall_c) copy();
 	n.ci = ci;
@@ -123,7 +123,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 
         ConstructorCall_c n = (ConstructorCall_c) super.buildTypes(tb);
 
-        ConstructorType ci = new ConstructorType_c(ts, position(), new ErrorRef_c<ConstructorDef>(ts, position()));
+        ConstructorInstance ci = new ConstructorInstance_c(ts, position(), new ErrorRef_c<ConstructorDef>(ts, position()));
         return n.constructorInstance(ci);
     }
 
@@ -219,7 +219,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	    ct = ct.superType().toClass();
 	}
 	
-	ConstructorType ci = ts.findConstructor(ct, argTypes, c.currentClassScope());
+	ConstructorInstance ci = ts.findConstructor(ct, argTypes, c.currentClassScope());
 
 	return constructorInstance(ci);
     }
@@ -303,7 +303,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
     }
 
     public List<Type> throwTypes(TypeSystem ts) {
-        List l = new LinkedList();
+        List<Type> l = new ArrayList<Type>();
         l.addAll(ci.throwTypes());
         l.addAll(ts.uncheckedExceptions());
         return l;

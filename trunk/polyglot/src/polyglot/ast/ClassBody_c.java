@@ -98,11 +98,11 @@ public class ClassBody_c extends Term_c implements ClassBody
 
         for (int i = 0; i < l.size(); i++) {
             ConstructorDef ci = l.get(i);
-            ConstructorType ti = ci.asType();
+            ConstructorInstance ti = ci.asReference();
 
             for (int j = i+1; j < l.size(); j++) {
                 ConstructorDef cj = l.get(j);
-                ConstructorType tj = new ConstructorType_c(ts, cj.position(), Ref_c.<ConstructorDef>ref(cj));
+                ConstructorInstance tj = new ConstructorInstance_c(ts, cj.position(), Ref_c.<ConstructorDef>ref(cj));
 
                 if (ti.hasFormals(tj.formalTypes())) {
                     throw new SemanticException("Duplicate constructor \"" + cj + "\".", cj.position());
@@ -119,11 +119,11 @@ public class ClassBody_c extends Term_c implements ClassBody
 
         for (int i = 0; i < l.size(); i++) {
             MethodDef mi = l.get(i);
-            MethodType ti = mi.asType();
+            MethodInstance ti = mi.asReference();
 
             for (int j = i+1; j < l.size(); j++) {
                 MethodDef mj = l.get(j);
-                MethodType tj = new MethodType_c(ts, mj.position(), Ref_c.<MethodDef>ref(mj));
+                MethodInstance tj = new MethodInstance_c(ts, mj.position(), Ref_c.<MethodDef>ref(mj));
 
                 if (ti.isSameMethod(tj)) {
                     throw new SemanticException("Duplicate method \"" + mj + "\".", mj.position());
@@ -135,23 +135,25 @@ public class ClassBody_c extends Term_c implements ClassBody
     protected void duplicateMemberClassCheck(TypeChecker tc) throws SemanticException {
         ClassDef type = tc.context().currentClassScope();
 
-        ArrayList<ClassDef> l = new ArrayList<ClassDef>(type.memberClasses());
+        ArrayList<Ref<? extends Type>> l = new ArrayList<Ref<? extends Type>>(type.memberClasses());
 
         for (int i = 0; i < l.size(); i++) {
-            ClassDef mi = l.get(i);
+            Type mi = l.get(i).get();
 
             for (int j = i+1; j < l.size(); j++) {
-                ClassDef mj = l.get(j);
+                Type mj = l.get(j).get();
 
-                if (mi.name().equals(mj.name())) {
-                    throw new SemanticException("Duplicate member type \"" + mj + "\".", mj.position());
+                if (mi instanceof Named && mj instanceof Named) {
+                    if (((Named) mi).name().equals(((Named) mj).name())) {
+                        throw new SemanticException("Duplicate member type \"" + mj + "\".", mj.position());
+                    }
                 }
             }
         }
     }
 
-    protected boolean isSameMethod(TypeSystem ts, MethodType mi,
-                                   MethodType mj) {
+    protected boolean isSameMethod(TypeSystem ts, MethodInstance mi,
+                                   MethodInstance mj) {
         return mi.isSameMethod(mj);
     }
 

@@ -15,7 +15,7 @@ package polyglot.frontend;
  */
 public interface Pass
 {
-    /** The goal that should be reached should this pass complete sucessfully. */
+    /** The goal that should be reached should this pass complete successfully. */
     Goal goal();
     
     /** The job that created the pass, or null. */
@@ -24,6 +24,9 @@ public interface Pass
     /** Return a user-readable name for the pass. */
     String name();
 
+    /** Whether the pass is reentrant. */
+    boolean isReentrant();
+    
     /** Run the pass. */
     boolean run();
 
