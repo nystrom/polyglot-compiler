@@ -99,7 +99,8 @@ public class Disamb_c implements Disamb
 
         if (n instanceof Qualifier) {
             q = (Qualifier) n;
-        } else {
+        }
+        else {
             return null;
         }
         
@@ -227,10 +228,12 @@ public class Disamb_c implements Disamb
             ClassType scope = c.findFieldScope(name.id());
 
             if (! ts.equals(scope, c.currentClass())) {
-                r = nf.This(pos.startOf(), nf.CanonicalTypeNode(pos, scope));
-            } else {
-                r = nf.This(pos.startOf());
+                r = nf.This(pos.startOf(), nf.CanonicalTypeNode(pos, scope)).type(scope);
             }
+            else {
+                r = nf.This(pos.startOf()).type(scope);
+            }
+            
         }
 
         return r;

@@ -53,6 +53,7 @@ public abstract class AbstractGoal_c implements Goal {
         switch (state) {
         case NEW:
         case RUNNING:
+        case RUNNING_RECURSIVE:
         case SUCCESS:
             return true;
         case FAIL:
@@ -97,6 +98,8 @@ public abstract class AbstractGoal_c implements Goal {
             return "new";
         case RUNNING:
             return "running";
+        case RUNNING_RECURSIVE:
+            return "running-recursive";
         case SUCCESS:
             return "success";
         case FAIL:

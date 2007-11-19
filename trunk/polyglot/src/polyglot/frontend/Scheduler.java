@@ -20,6 +20,7 @@ import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Option;
+import polyglot.visit.ReentrantVisitor;
 
 
 /**
@@ -249,6 +250,15 @@ public abstract class Scheduler {
         try {
             boolean result = attemptGoalAndPrereqs(goal, new HashSet<Goal>());
             fatal = false;
+
+            // If the spawned goal recursively spawned the current goal, terminate the current goal.
+            // The exception should be caught in runPass.
+            if (currentGoal() != null) {
+                if (currentGoal().state() == Goal.Status.SUCCESS || currentGoal().state() == Goal.Status.FAIL) {
+                    throw new Complete(currentGoal());
+                }
+            }
+
             return result;
         }
         finally {
@@ -305,6 +315,7 @@ public abstract class Scheduler {
         switch (goal.state()) {
         case NEW: break;
         case RUNNING: break;
+        case RUNNING_RECURSIVE: break;
         case SUCCESS: return true;
         case FAIL: return false;
         case UNREACHABLE: return false;
@@ -336,6 +347,7 @@ public abstract class Scheduler {
             switch (subgoal.state()) {
             case NEW:
             case RUNNING:
+            case RUNNING_RECURSIVE:
                 throw new InternalCompilerError("Cannot reach " + goal + "; prerequisite " + subgoal + " has already run.");
             case SUCCESS:
                 break;
@@ -350,14 +362,22 @@ public abstract class Scheduler {
         if (Report.should_report(Report.frontend, 4))
             Report.report(4, "running goal " + goal);
 
-            boolean result = runPass(goal);
-            
-            if (! result || ! reached(goal)) {
-                return false;
-            }
+        boolean result = runPass(goal);
 
-            return true;
+        if (! reached(goal)) {
+            result = false;
+        }
 
+
+        return result;
+    }
+    
+    protected static class Complete extends RuntimeException {
+        protected Goal goal;
+
+        Complete(Goal goal) {
+            this.goal = goal;
+        }
     }
    
     /**         
@@ -386,10 +406,13 @@ public abstract class Scheduler {
             throw new InternalCompilerError("Cannot run a pass for completed goal " + goal);
         }
         
-        if (goal.state() == Goal.Status.RUNNING) {
+        boolean reentrant = false;
+        
+        if (goal.state() == Goal.Status.RUNNING || goal.state() == Goal.Status.RUNNING_RECURSIVE) {
             if (! pass.isReentrant()) {
                 throw new InternalCompilerError("Cannot run a non-reentrant pass for " + goal);
             }
+            reentrant = true;
         }
         
         pass.resetTimers();
@@ -412,7 +435,10 @@ public abstract class Scheduler {
             
             pass.toggleTimers(false);
 
-            goal.setState(Goal.Status.RUNNING);
+            if (reentrant)
+                goal.setState(Goal.Status.RUNNING_RECURSIVE);
+            else
+                goal.setState(Goal.Status.RUNNING);
 
             long t = System.currentTimeMillis();
             String key = pass.toString();
@@ -441,6 +467,12 @@ public abstract class Scheduler {
                     if (Report.should_report(Report.frontend, 1))
                         Report.report(1, "Completed (unreached) pass " + pass + " for " + goal);
                 }
+            }
+            catch (Complete c) {
+                if (c.goal == goal && ! reentrant) {
+                    return c.goal.state() == Goal.Status.SUCCESS;
+                }
+                throw c;
             }
             catch (SchedulerException e) {
                 if (Report.should_report(Report.frontend, 1))
