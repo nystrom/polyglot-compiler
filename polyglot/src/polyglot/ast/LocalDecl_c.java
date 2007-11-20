@@ -108,7 +108,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     }
 
     /** Set the local instance of the declaration. */
-    public LocalDecl localInstance(LocalDef li) {
+    public LocalDecl localDef(LocalDef li) {
         if (li == this.li) return this;
         LocalDecl_c n = (LocalDecl_c) copy();
         n.li = li;
@@ -116,11 +116,11 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     }
 
     /** Get the local instance of the declaration. */
-    public LocalDef localInstance() {
+    public LocalDef localDef() {
         return li;
     }
     
-    public VarDef varInstance() {
+    public VarDef varDef() {
         return li;
     }
 
@@ -169,7 +169,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         TypeSystem ts = tb.typeSystem();
 
         LocalDef li = ts.localInstance(position(), flags(), type.typeRef(), name.id());
-        return n.localInstance(li);
+        return n.localDef(li);
     }
 
     /**
@@ -234,7 +234,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
             }
         }
 
-        return localInstance(li);
+        return localDef(li);
     }
     
     public Node checkConstants(TypeChecker tc) throws SemanticException {

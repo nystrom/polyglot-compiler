@@ -118,6 +118,10 @@ public class JL_c extends Ext_c implements JL {
 	return jl().buildTypes(tb);
     }
 
+    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
+        return jl().buildTypesOverride(tb);
+    }
+    
     /**
      * Remove any remaining ambiguities from the AST.
      *

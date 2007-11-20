@@ -25,17 +25,17 @@ public class ImportTable implements Resolver
 {
     protected TypeSystem ts;
     /** A list of all package imports. */
-    protected List packageImports;
+    protected List<String> packageImports;
     /** Map from names to classes found, or to the NOT_FOUND object. */
-    protected Map map;
+    protected Map<String,Option<Named>> map;
     /** List of class imports which will be lazily added to the table at the
      * next lookup. */
-    protected List lazyImports;
+    protected List<String> lazyImports;
     /** Parallel list of positions for lazyImports. */
-    protected List lazyImportPositions;
+    protected List<Position> lazyImportPositions;
     /** List of explicitly imported classes added to the table or pending in
      * the lazyImports list. */
-    protected List classImports;
+    protected List<String> classImports;
     /** Source name to use for debugging and error reporting */
     protected String sourceName;
     /** Position to use for error reporting */
@@ -43,7 +43,7 @@ public class ImportTable implements Resolver
     /** Our package */
     protected Ref<? extends Package> pkg;
 
-    private static final Object NOT_FOUND = "NOT FOUND";
+    private static final Option<Named> NOT_FOUND = Option.<Named>None();
     
     /**
      * Create an import table.
@@ -66,11 +66,11 @@ public class ImportTable implements Resolver
         this.sourcePos = src != null ? new Position(null, src) : null;
         this.pkg = pkg;
 
-	this.map = new HashMap();
-	this.packageImports = new ArrayList();
-	this.lazyImports = new ArrayList();
-	this.lazyImportPositions = new ArrayList();
-	this.classImports = new ArrayList();
+	this.map = new HashMap<String, Option<Named>>();
+	this.packageImports = new ArrayList<String>();
+	this.lazyImports = new ArrayList<String>();
+	this.lazyImportPositions = new ArrayList<Position>();
+	this.classImports = new ArrayList<String>();
     }
 
     /**
@@ -125,14 +125,14 @@ public class ImportTable implements Resolver
     /**
      * List the packages we import from.
      */
-    public List packageImports() {
+    public List<String> packageImports() {
         return packageImports;
     }
 
     /**
      * List the classes explicitly imported.
      */
-    public List classImports() {
+    public List<String> classImports() {
         return classImports;
     }
 
@@ -148,14 +148,14 @@ public class ImportTable implements Resolver
      * but not the import table.
      */
     protected Named cachedFind(String name) throws SemanticException {
-        Object res = map.get(name);
+        Option<Named> res = map.get(name);
 
-        if (res != null) {
-            return (Named) res;
+        if (res != null && res != NOT_FOUND) {
+            return res.get();
         }
 
         Named t = ts.systemResolver().find(name);
-        map.put(name, t);
+        map.put(name, Option.<Named>Some(t));
         return t;
     }
 
@@ -176,13 +176,13 @@ public class ImportTable implements Resolver
         
         // The class name is short.
         // First see if we have a mapping already.
-        Object res = map.get(name);
+        Option<Named> res = map.get(name);
 
         if (res != null) {
             if (res == NOT_FOUND) {
                 throw new NoClassException(name, sourcePos);
             }
-            return (Named) res;
+            return res.get();
         }
 
         try {
@@ -198,20 +198,20 @@ public class ImportTable implements Resolver
                        Report.report(3, this + ".find(" + name + "): found in current package");
 
                     // Memoize the result.
-                    map.put(name, n);
+                    map.put(name, Option.<Named>Some(n));
                     return n;
                 }
             }
             
-            List imports = new ArrayList(packageImports.size() + 5);
+            List<String> imports = new ArrayList<String>(packageImports.size() + 5);
             
             imports.addAll(ts.defaultPackageImports());
             imports.addAll(packageImports);
             
             // It wasn't a ClassImport.  Maybe it was a PackageImport?
             Named resolved = null;
-            for (Iterator iter = imports.iterator(); iter.hasNext(); ) {
-                String pkgName = (String) iter.next();
+            for (Iterator<String> iter = imports.iterator(); iter.hasNext(); ) {
+                String pkgName = iter.next();
                 Named n = findInPkg(name, pkgName);
                 if (n != null) {
                     if (resolved == null) {
@@ -247,7 +247,7 @@ public class ImportTable implements Resolver
             // Memoize the result.
             if (Report.should_report(TOPICS, 3))
                Report.report(3, this + ".find(" + name + "): found as " + resolved.fullName());
-            map.put(name, resolved);
+            map.put(name, Option.<Named>Some(resolved));
             return resolved;
         }
         catch (NoClassException e) {
@@ -323,7 +323,7 @@ public class ImportTable implements Resolver
 	}
 
 	for (int i = 0; i < lazyImports.size(); i++) {
-	    String longName = (String) lazyImports.get(i);
+	    String longName = lazyImports.get(i);
 
             if (Report.should_report(TOPICS, 2))
 		Report.report(2, this + ": import " + longName);
@@ -333,91 +333,11 @@ public class ImportTable implements Resolver
 
                 String shortName = StringUtil.getShortNameComponent(longName);
 
-                map.put(shortName, t);
-
-/*
-                // Try to find a class named longName.
-                // The class maybe a static member class of another, so we'll
-                // make several attempts.
-
-                StringTokenizer st = new StringTokenizer(longName, ".");
-                StringBuffer name = new StringBuffer();
-                Named t = null;
-
-                while (st.hasMoreTokens()) {
-                    String s = st.nextToken();
-                    name.append(s);
-
-                    try {
-                        t = cachedFind(name.toString());
-
-                        if (! st.hasMoreTokens()) {
-                            // found it
-                            break;
-                        }
-
-                        while (st.hasMoreTokens()) {
-                            String n = st.nextToken();
-
-                            if (t instanceof ClassType) {
-                                // If we find a class that is further qualfied,
-                                // search for member classes of that class.
-                                ClassType ct = (ClassType) t;
-                                t = ct.resolver().find(n);
-                                if (t instanceof ClassType) {
-                                    map.put(n, t);
-                                }
-                                else {
-                                    // In JL, the result must be a class.
-                                    throw new NoClassException(n, ct);
-                                }
-                            }
-                            else if (t instanceof Package) {
-                                Package p = (Package) t;
-                                t = p.resolver().find(n);
-                                if (t instanceof ClassType) {
-                                    map.put(n, p);
-                                }
-                            }
-                            else {
-                                // t, whatever it is, is further qualified, but 
-                                // should be, at least in Java, a ClassType.
-                                throw new InternalCompilerError("Qualified type \"" + t + "\" is not a class type.", sourcePos);
-                            }
-                        }
-                    }
-                    catch (SemanticException e) {
-                        if (! st.hasMoreTokens()) {
-                            throw e;
-                        }
-
-                        // try again with the next level of type qualification
-                        name.append(".");
-                    }
-                }
-
-                String shortName = StringUtil.getShortNameComponent(longName);
-
-                if (Report.should_report(TOPICS, 2))
-		    Report.report(2, this + ": import " + shortName + " as " + t);
-
-		if (map.containsKey(shortName)) {
-		    Named s = (Named) map.get(shortName);
-
-		    if (! ts.equals(s, t)) {
-			throw new SemanticException("Class " + shortName +
-			    " already defined as " + map.get(shortName),
-                            sourcePos);
-		    }
-		}
-
-                // map.put(longName, t); // should already be in the cache
-		map.put(shortName, t);
-            */
+                map.put(shortName, Option.<Named>Some(t));
 	    }
 	    catch (SemanticException e) {
                 if (e.position == null) {
-                    e.position = (Position) lazyImportPositions.get(i);
+                    e.position = lazyImportPositions.get(i);
                 }
                 if (e.position == null) {
                     e.position = sourcePos;
@@ -427,8 +347,8 @@ public class ImportTable implements Resolver
 	    }
 	}
 
-	lazyImports = new ArrayList();
-	lazyImportPositions = new ArrayList();
+	lazyImports = new ArrayList<String>();
+	lazyImportPositions = new ArrayList<Position>();
     }
 
     public String toString() {
@@ -440,7 +360,7 @@ public class ImportTable implements Resolver
         }
     }
 
-    private static final Collection TOPICS = 
+    private static final Collection<String> TOPICS = 
         CollectionUtil.list(Report.types, Report.resolver, Report.imports);
 
 }

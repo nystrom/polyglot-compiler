@@ -92,7 +92,7 @@ public class FieldAssign_c extends Assign_c implements FieldAssign
   }
 
   public List<Type> throwTypes(TypeSystem ts) {
-      List l = new ArrayList(super.throwTypes(ts));
+      List<Type> l = new ArrayList<Type>(super.throwTypes(ts));
 
       Field f = (Field)left();
       if (f.target() instanceof Expr) {

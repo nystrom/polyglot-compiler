@@ -271,6 +271,10 @@ public abstract class Node_c implements Node
     // These methods override the methods in Ext_c.
     // These are the default implementation of these passes.
 
+    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
+        return null;
+    }
+    
     public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
 	return tb;
     }

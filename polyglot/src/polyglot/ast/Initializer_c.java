@@ -11,6 +11,8 @@ package polyglot.ast;
 import java.util.Iterator;
 import java.util.List;
 
+import polyglot.frontend.Globals;
+import polyglot.frontend.Goal;
 import polyglot.types.*;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
@@ -37,7 +39,7 @@ public class Initializer_c extends Term_c implements Initializer
 	this.body = body;
     }
     
-    public MemberDef memberInstance() {
+    public MemberDef memberDef() {
         return ii;
     }
 
@@ -55,16 +57,16 @@ public class Initializer_c extends Term_c implements Initializer
     }
 
     /** Get the initializer instance of the initializer. */
-    public InitializerDef initializerInstance() {
+    public InitializerDef initializerDef() {
         return ii;
     }
 
-    public CodeDef codeInstance() {
-	return initializerInstance();
+    public CodeDef codeDef() {
+	return initializerDef();
     }
 
     /** Set the initializer instance of the initializer. */
-    public Initializer initializerInstance(InitializerDef ii) {
+    public Initializer initializerDef(InitializerDef ii) {
         if (ii == this.ii) return this;
 	Initializer_c n = (Initializer_c) copy();
 	n.ii = ii;
@@ -108,10 +110,6 @@ public class Initializer_c extends Term_c implements Initializer
 	return c.pushCode(ii);
     }
 
-    public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
-        return tb.pushCode();
-    }
-
     /**
      * Return the first (sub)term performed when evaluating this
      * term.
@@ -126,11 +124,19 @@ public class Initializer_c extends Term_c implements Initializer
     }
 
     /** Build type objects for the method. */
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
+    public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
         TypeSystem ts = tb.typeSystem();
         ClassDef ct = tb.currentClass();
         InitializerDef ii = ts.initializerInstance(position(), Ref_c.ref(ct.asType()), flags);
-        return initializerInstance(ii);
+        
+        Goal g = Globals.Scheduler().TypeCheckDef(tb.job(), ii);
+        g.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
+        return tb.pushCode(ii, g);
+    }
+
+    public Node buildTypes(TypeBuilder tb) throws SemanticException {
+        InitializerDef ii = (InitializerDef) tb.def();
+        return initializerDef(ii);
     }
 
     /** Type check the initializer. */
@@ -146,7 +152,7 @@ public class Initializer_c extends Term_c implements Initializer
 
         // check that inner classes do not declare static initializers
         if (flags().isStatic() &&
-              initializerInstance().container().get().toClass().isInnerClass()) {
+              initializerDef().container().get().toClass().isInnerClass()) {
             // it's a static initializer in an inner class.
             throw new SemanticException("Inner classes cannot declare " + 
                     "static initializers.", this.position());             
@@ -156,11 +162,11 @@ public class Initializer_c extends Term_c implements Initializer
     }
 
     public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
-        if (initializerInstance().flags().isStatic()) {
+        if (initializerDef().flags().isStatic()) {
             return ec.push(new ExceptionChecker.CodeTypeReporter("static initializer block"));
         }
         
-        if (!initializerInstance().container().get().toClass().isAnonymous()) {
+        if (!initializerDef().container().get().toClass().isAnonymous()) {
             ec = ec.push(new ExceptionChecker.CodeTypeReporter("instance initializer block"));
 
             // An instance initializer of a named class may not throw
@@ -170,7 +176,7 @@ public class Initializer_c extends Term_c implements Initializer
             // one explicitly declared constructor.
             SubtypeSet allowed = null;
             Type throwable = ec.typeSystem().Throwable();
-            ClassType container = initializerInstance().container().get().toClass();
+            ClassType container = initializerDef().container().get().toClass();
             for (Iterator<ConstructorInstance> iter = container.constructors().iterator(); iter.hasNext(); ) {
                 ConstructorInstance ci = (ConstructorInstance)iter.next();
                 if (allowed == null) {

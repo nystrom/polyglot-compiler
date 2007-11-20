@@ -88,7 +88,7 @@ public interface ClassDef extends MemberDef
      * A list of <code>ClassType</code>.
      * @see polyglot.types.ClassType
      */
-    List<Ref<? extends Type>> memberClasses();
+    List<Ref<? extends ClassType>> memberClasses();
 
     /** The class's outer class if this is a nested class, or null. */
     Ref<? extends ClassDef> outer();
@@ -167,12 +167,12 @@ public interface ClassDef extends MemberDef
     /**
      * Add a member class to the class.
      */
-    void addMemberClass(Ref<? extends Type> t);
+    void addMemberClass(Ref<? extends ClassType> t);
 
     /**
      * Set the class's member classes.
      */
-    void setMemberClasses(List<Ref<? extends Type>> l);
+    void setMemberClasses(List<Ref<? extends ClassType>> l);
 
     /**
      * Set the flags of the class.

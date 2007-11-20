@@ -42,7 +42,7 @@ public class JLScheduler extends Scheduler {
         goals.add(TypesInitialized(job));
         goals.add(TypesInitializedForCommandLine());
         goals.add(ImportTableInitialized(job));
-//        goals.add(Disambiguated(job));
+        goals.add(MakeDictionary(job));
         goals.add(TypeChecked(job));
         goals.add(ReachabilityChecked(job));
         goals.add(ExceptionsChecked(job));
@@ -95,8 +95,10 @@ public class JLScheduler extends Scheduler {
         }.intern(this);
     }
 
-    public Goal Disambiguated(Job job) {
-        return TypeChecked(job);
+//    public Goal Disambiguated(Job job) {
+//        return TypeChecked(job);
+//    
+//    
 //        return new SourceGoal_c("Disambiguated", job) {
 //            @Override
 //            public GoalSet requiredView() {
@@ -113,28 +115,43 @@ public class JLScheduler extends Scheduler {
 //                return new VisitorPass(this, job, new AmbiguityRemover(job, ts, nf));
 //            }
 //        }.intern(this);
+//    }
+    
+    public Goal MakeDictionary(Job job) {
+        return new SourceGoal_c("MakeDictionary", job) {
+            public Pass createPass() {
+                TypeSystem ts = extInfo.typeSystem();
+                NodeFactory nf = extInfo.nodeFactory();
+                return new VisitorPass(this, job, new ASTFragmenter(job, ts, nf));
+            }
+        }.intern(this);
+    }
+
+    public Goal TypeCheckDef(Job job, final Def def) {
+        return new TypeCheckDef("TypeCheckedDef", job, def).intern(this);
+    }
+    
+    public Goal SupertypeDef(Job job, final ClassDef def) {
+        return new SupertypeDef("SupertypeDef", job, def).intern(this);
+    }
+    
+    public Goal SignatureDef(Job job, final ClassDef def) {
+        return new SupertypeDef("SignatureDef", job, def).intern(this);
     }
 
     public Goal TypeChecked(Job job) {
         return new SourceGoal_c("TypeChecked", job) {
-            @Override
-            public GoalSet requiredView() {
-                return super.requiredView().union(new RuleBasedGoalSet() {
-                    public boolean contains(Goal g) {
-                        return g instanceof LookupGlobalTypeDefAndSetFlags ||
-                               g instanceof FieldConstantsChecked ||
-                               g instanceof SignaturesResolved ||
-                               g instanceof SupertypesResolved;
-                    }
-                    
-                    public String toString() { return "TypeCheckRequirementsRuleSet"; }
-                });
+            public List<Goal> prereqs() {
+                ArrayList<Goal> l = new ArrayList<Goal>();
+                l.addAll(super.prereqs());
+                for (Def def : job().fragmentMap().keySet()) {
+                    l.add(TypeCheckDef(job(), def));
+                }
+                return l;
             }
             
             public Pass createPass() {
-                TypeSystem ts = extInfo.typeSystem();
-                NodeFactory nf = extInfo.nodeFactory();
-                return new VisitorPass(this, job, new TypeChecker(job, ts, nf));
+                return new VisitorPass(this, job, new FragmentAssembler(job));
             }
         }.intern(this);
     }
@@ -250,7 +267,7 @@ public class JLScheduler extends Scheduler {
             ClassType ct = (ClassType) t;
             ClassDef cd = ct.def();
             if (cd.job() != null) {
-                return TypeChecked(cd.job());
+                return TypeCheckDef(cd.job(), fd);
             }
         }
         return new FieldConstantsChecked(f);
@@ -274,6 +291,106 @@ public class JLScheduler extends Scheduler {
     public Goal LookupGlobalTypeDefAndSetFlags(TypeRef<ClassDef> sym,
             String className, Flags flags) {
         return new LookupGlobalTypeDefAndSetFlags(sym, className, flags);
+    }
+    
+    protected static class DefGoal extends SourceGoal_c {
+        protected Def def;
+        protected ContextVisitor v;
+        
+        protected DefGoal(String name, Job job, Def def, ContextVisitor v) {
+            super(name, job);
+            this.def = def;
+            this.v = v;
+        }
+        
+        public Def def() {
+            return def;
+        }
+        
+        @Override
+        public List<Goal> prereqs() {
+            List<Goal> l = new ArrayList<Goal>();
+            l.addAll(super.prereqs());
+            l.add(Globals.Scheduler().MakeDictionary(job()));
+            return l;
+        }
+        
+        @Override
+        public GoalSet requiredView() {
+            return super.requiredView().union(new RuleBasedGoalSet() {
+                public boolean contains(Goal g) {
+                    return g instanceof LookupGlobalTypeDefAndSetFlags ||
+                    g instanceof FieldConstantsChecked ||
+                    g instanceof SignaturesResolved ||
+                    g instanceof SupertypesResolved;
+                }
+                
+                public String toString() { return "TypeCheckRequirementsRuleSet"; }
+            });
+        }
+        
+        public boolean equals(Object o) {
+            if (o instanceof DefGoal) {
+                DefGoal g = (DefGoal) o;
+                return super.equals(o) && def.equals(g.def) && v.getClass() == g.v.getClass();
+            }
+            return false;
+        }
+        
+        public int hashCode() {
+            return super.hashCode() + def.hashCode();
+        }
+        
+        public String toString() {
+            return job() + ":" + job().extensionInfo() + ":"
+            + name() + ":" + def + " (" + stateString() + ")";
+        }
+        
+        public Pass createPass() {
+            ExtensionInfo extInfo = Globals.Extension();
+            TypeSystem ts = extInfo.typeSystem();
+            NodeFactory nf = extInfo.nodeFactory();
+            return new FragmentPass(this, job, def, v);
+        }
+    }
+    
+    protected static class SupertypeDef extends DefGoal {
+        protected SupertypeDef(String name, Job job, Def def) {
+            super(name, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), false, false));
+        }
+    }
+    
+    protected static class SignatureDef extends DefGoal {
+        protected SignatureDef(String name, Job job, Def def) {
+            super(name, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), true, false));
+        }
+        
+        @Override
+        public List<Goal> prereqs() {
+            List<Goal> l = new ArrayList<Goal>();
+            l.addAll(super.prereqs());
+            if (def() instanceof ClassDef) {
+            l.add(Globals.Scheduler().SupertypeDef(job(), (ClassDef) def()));
+            }
+            return l;
+        }
+    }
+    
+    protected static class TypeCheckDef extends DefGoal {
+        protected TypeCheckDef(String name, Job job, Def def) {
+            super(name, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), true, true));
+        }
+        
+        @Override
+        public List<Goal> prereqs() {
+            List<Goal> l = new ArrayList<Goal>();
+            l.addAll(super.prereqs());
+            if (def() instanceof ClassDef) {
+                l.add(Globals.Scheduler().SignatureDef(job(), (ClassDef) def()));
+                l.add(Globals.Scheduler().SupertypeDef(job(), (ClassDef) def()));
+            }
+            return l;
+        }
     }
 
     protected static class SupertypesResolved extends TypeObjectGoal_c<ClassDef> {

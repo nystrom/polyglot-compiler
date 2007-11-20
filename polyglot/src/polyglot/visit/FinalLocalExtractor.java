@@ -63,7 +63,7 @@ public class FinalLocalExtractor extends NodeVisitor {
     public NodeVisitor enter(Node parent, Node n) {
         if (n instanceof Formal) {
             Formal d = (Formal) n;
-            LocalDef li = d.localInstance();
+            LocalDef li = d.localDef();
             if (! li.flags().isFinal()) {
                 li.setFlags(li.flags().Final());
             }
@@ -73,7 +73,7 @@ public class FinalLocalExtractor extends NodeVisitor {
         }
         if (n instanceof LocalDecl) {
             LocalDecl d = (LocalDecl) n;
-            LocalDef li = d.localInstance();
+            LocalDef li = d.localDef();
             if (! li.flags().isFinal()) {
                 li.setFlags(li.flags().Final());
             }
@@ -110,11 +110,11 @@ public class FinalLocalExtractor extends NodeVisitor {
         public Node leave(Node old, Node n, NodeVisitor v) {
             if (n instanceof Formal) {
                 Formal d = (Formal) n;
-                return d.flags(d.localInstance().flags());
+                return d.flags(d.localDef().flags());
             }
             if (n instanceof LocalDecl) {
                 LocalDecl d = (LocalDecl) n;
-                return d.flags(d.localInstance().flags());
+                return d.flags(d.localDef().flags());
             }
             return n;
         }

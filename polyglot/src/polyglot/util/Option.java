@@ -4,10 +4,14 @@
 package polyglot.util;
 
 
-public interface Option<T> {
-    T get();
+public abstract class Option<T> {
+    public abstract T get();
 
-    public static class Some<T> implements Option<T> {
+    public static final None<?> NONE = new None();
+    public static <S> None<S> None() { return (None<S>) NONE; }
+    public static <S> Some<S> Some(S s) { return new Some<S>(s); }
+    
+    public static class Some<T> extends Option<T> {
         T t;
 
         public Some(T t) {
@@ -17,13 +21,17 @@ public interface Option<T> {
         public T get() {
             return t;
         }
+
+        public String toString() { return "Some(" + t + ")"; }
     }
 
-    public static class None<T> implements Option<T> {
-        public None() {}
+    public static class None<T> extends Option<T> {
+        private None() {}
 
         public T get() {
             return null;
         }
+        
+        public String toString() { return "None"; }
     }
 }

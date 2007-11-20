@@ -16,5 +16,5 @@ import polyglot.types.MemberDef;
  */
 public interface ClassMember extends Term 
 {
-    public MemberDef memberInstance();
+    public MemberDef memberDef();
 }

@@ -72,8 +72,8 @@ public class LocalClassDecl_c extends Stmt_c implements LocalClassDecl
         if (decl instanceof NodeList) {
           // Return a NodeList of LocalClassDecls.
           NodeList nl = (NodeList) decl;
-          List decls = new ArrayList(nl.nodes());
-          for (ListIterator it = decls.listIterator(); it.hasNext(); ) {
+          List<Node> decls = new ArrayList<Node>(nl.nodes());
+          for (ListIterator<Node> it = decls.listIterator(); it.hasNext(); ) {
             ClassDecl cd = (ClassDecl) it.next();
             it.set(reconstruct(cd));
           }
@@ -86,10 +86,10 @@ public class LocalClassDecl_c extends Stmt_c implements LocalClassDecl
     public void addDecls(Context c) {
         // We should now be back in the scope of the enclosing block.
         // Add the type.
-        if (! decl.type().isLocal())
-            throw new InternalCompilerError("Non-local " + decl.type() +
+        if (! decl.classDef().isLocal())
+            throw new InternalCompilerError("Non-local " + decl.classDef() +
                                             " found in method body.");
-        c.addNamed(decl.type().asType());
+        c.addNamed(decl.classDef().asType());
     }
 
     public String toString() {

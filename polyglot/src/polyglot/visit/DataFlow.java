@@ -1246,9 +1246,9 @@ public abstract class DataFlow extends ErrorHandlingVisitor
         String rootName = "";
         if (graph.root() instanceof CodeNode) {
             CodeNode cd = (CodeNode)graph.root();
-            rootName = cd.codeInstance().toString();
-            if (cd.codeInstance() instanceof MemberDef) {
-                rootName += " in " + ((MemberDef) cd.codeInstance()).container().toString();
+            rootName = cd.codeDef().toString();
+            if (cd.codeDef() instanceof MemberDef) {
+                rootName += " in " + ((MemberDef) cd.codeDef()).container().toString();
             }
         }
 

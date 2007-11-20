@@ -77,7 +77,7 @@ public abstract class Scheduler {
     /** True if any pass has failed. */
     protected boolean failed;
 
-    protected static final Option<Job> COMPLETED_JOB = new Option.None<Job>() { public String toString() { return "COMPLETED JOB"; } };
+    protected static final Option<Job> COMPLETED_JOB = Option.<Job>None();
 
     /** The currently running pass, or null if no pass is running. */
     protected Pass currentPass;
@@ -248,6 +248,10 @@ public abstract class Scheduler {
         State s = pushGlobalState(goal);
         boolean fatal = true;
         try {
+            assert currentGoal() == null
+            || currentGoal().state() == Goal.Status.RUNNING
+            || currentGoal().state() == Goal.Status.RUNNING_RECURSIVE;
+            
             boolean result = attemptGoalAndPrereqs(goal, new HashSet<Goal>());
             fatal = false;
 
@@ -325,7 +329,11 @@ public abstract class Scheduler {
         
         if (goal.state() == Goal.Status.NEW) {
             // Run the prerequisites of the goal.
-            for (Goal subgoal : prerequisites(goal)) {
+            LinkedList<Goal> worklist = new LinkedList<Goal>();
+            worklist.addAll(prerequisites(goal));
+            while (! worklist.isEmpty()) {
+                Goal subgoal = (Goal) worklist.removeFirst();
+                
                 if (reached(subgoal)) {
                     continue;
                 }
@@ -336,6 +344,10 @@ public abstract class Scheduler {
                 if (! attemptGoalAndPrereqs(subgoal, newAbove)) {
                     goal.setState(Goal.Status.UNREACHABLE);
                     return false;
+                }
+                
+                if (worklist.isEmpty()) {
+                    worklist.addAll(prerequisites(goal));
                 }
             }
         }
@@ -666,7 +678,13 @@ public abstract class Scheduler {
     public abstract Goal ImportTableInitialized(Job job);
     public abstract Goal TypesInitialized(Job job);
     public abstract Goal TypesInitializedForCommandLine();
-    public abstract Goal Disambiguated(Job job);
+    
+    public abstract Goal MakeDictionary(Job job);
+    public abstract Goal SignatureDef(Job job, ClassDef def);
+    public abstract Goal SupertypeDef(Job job, ClassDef def);
+    public abstract Goal TypeCheckDef(Job job, Def def);
+
+//    public abstract Goal Disambiguated(Job job);
     public abstract Goal TypeChecked(Job job);
     public abstract Goal ReachabilityChecked(Job job);
     public abstract Goal ExceptionsChecked(Job job);

@@ -292,7 +292,7 @@ public class InitChecker extends DataFlow
             // a stack.
             ClassDef ct = null;
             if (parent instanceof ClassDecl) {
-                ct = ((ClassDecl) parent).type();
+                ct = ((ClassDecl) parent).classDef();
             }
             else if (parent instanceof New) {
                 ct = ((New) parent).anonType();
@@ -392,7 +392,7 @@ public class InitChecker extends DataFlow
                         // the field does not have an initializer
                         initCount = new MinMaxInitCount(InitCount.ZERO,InitCount.ZERO);
                     }
-                    newCDI.currClassFinalFieldInitCounts.put(fd.fieldInstance(),
+                    newCDI.currClassFinalFieldInitCounts.put(fd.fieldDef(),
                                                          initCount);
                 }
             }
@@ -453,7 +453,7 @@ public class InitChecker extends DataFlow
                 for (Iterator<ConstructorDecl> iter2 = currCBI.allConstructors.iterator(); 
                         iter2.hasNext(); ) {
                     ConstructorDecl cd = (ConstructorDecl)iter2.next();
-                    ConstructorDef ciStart = cd.constructorInstance();
+                    ConstructorDef ciStart = cd.constructorDef();
                     ConstructorDef ci = ciStart;
                         
                     boolean isInitialized = fieldInitializedBeforeConstructors;
@@ -651,10 +651,10 @@ public class InitChecker extends DataFlow
     protected Map flowFormal(DataFlowItem inItem, FlowGraph graph, Formal f, Set succEdgeKeys) {
         Map<VarDef, MinMaxInitCount> m = new HashMap<VarDef, MinMaxInitCount>(inItem.initStatus);
         // a formal argument is always defined.            
-        m.put(f.localInstance(), new MinMaxInitCount(InitCount.ONE,InitCount.ONE));
+        m.put(f.localDef(), new MinMaxInitCount(InitCount.ONE,InitCount.ONE));
             
         // record the fact that we have seen the formal declaration
-        currCBI.localDeclarations.add(f.localInstance());
+        currCBI.localDeclarations.add(f.localDef());
 
         return itemToMap(new DataFlowItem(m), succEdgeKeys);
     }
@@ -668,7 +668,7 @@ public class InitChecker extends DataFlow
                                 LocalDecl ld, 
                                 Set succEdgeKeys) {
         Map<VarDef, MinMaxInitCount> m = new HashMap<VarDef, MinMaxInitCount>(inItem.initStatus);
-        MinMaxInitCount initCount = m.get(ld.localInstance());
+        MinMaxInitCount initCount = m.get(ld.localDef());
         //if (initCount == null) {
             if (ld.init() != null) {
                 // declaration of local var with initialization.
@@ -680,7 +680,7 @@ public class InitChecker extends DataFlow
                 initCount = new MinMaxInitCount(InitCount.ZERO,InitCount.ZERO);
             }     
 
-            m.put(ld.localInstance(), initCount);
+            m.put(ld.localDef(), initCount);
 //        }
 //        else {
             // the initCount is not null. We now have a problem. Why is the
@@ -693,7 +693,7 @@ public class InitChecker extends DataFlow
 //        }
                 
         // record the fact that we have seen a local declaration
-        currCBI.localDeclarations.add(ld.localInstance());
+        currCBI.localDeclarations.add(ld.localDef());
         
         return itemToMap(new DataFlowItem(m), succEdgeKeys);
     }
@@ -764,7 +764,7 @@ public class InitChecker extends DataFlow
             // record the fact that the current constructor calls the other
             // constructor
             currCBI.constructorCalls.put(
-                ((ConstructorDecl)currCBI.currCodeDecl).constructorInstance(), 
+                ((ConstructorDecl)currCBI.currCodeDecl).constructorDef(), 
                                  cc.constructorInstance().def());
         }
         return null;
@@ -784,7 +784,7 @@ public class InitChecker extends DataFlow
      * the field is not static then the target must be "this".
      */
     protected boolean isFieldsTargetAppropriate(Field f) {
-        CodeDef ci = currCBI.currCodeDecl.codeInstance();
+        CodeDef ci = currCBI.currCodeDecl.codeDef();
         ClassType containingClass = currCBI.currClass.asType();
 
         if (f.fieldInstance().flags().isStatic()) {
@@ -912,7 +912,7 @@ public class InitChecker extends DataFlow
                                         ConstructorDecl cd, 
                                         DataFlowItem dfIn, 
                                         DataFlowItem dfOut) {
-        ConstructorDef ci = cd.constructorInstance();
+        ConstructorDef ci = cd.constructorDef();
         
         // we need to set currCBI.fieldsConstructorInitializes correctly.
         // It is meant to contain the non-static final fields that the

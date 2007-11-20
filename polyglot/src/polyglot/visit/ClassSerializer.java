@@ -72,7 +72,7 @@ public class ClassSerializer extends NodeVisitor
     }
 
     public List createSerializationMembers(ClassDecl cd) {
-        return createSerializationMembers(cd.type());
+        return createSerializationMembers(cd.classDef());
     }
     
     public List createSerializationMembers(ClassDef cd) {
@@ -134,8 +134,8 @@ public class ClassSerializer extends NodeVisitor
                              nf.Id(fi.position(), fi.name()),
 			     nf.StringLit(pos, version).type(ts.String()));
 
-	    f = f.fieldInstance(fi);
-            f = f.initializerInstance(ii);
+	    f = f.fieldDef(fi);
+            f = f.initializerDef(ii);
             newMembers.add(f);
 
 	    /* Add the date of the last source file modification. */
@@ -151,8 +151,8 @@ public class ClassSerializer extends NodeVisitor
                              nf.Id(fi.position(), fi.name()),
 			     nf.IntLit(pos, IntLit.LONG, time).type(ts.Long()));
 
-	    f = f.fieldInstance(fi);
-            f = f.initializerInstance(ii);
+	    f = f.fieldDef(fi);
+            f = f.initializerDef(ii);
             newMembers.add(f);
 
             // output the encoded type info, over several fields if needed.
@@ -179,8 +179,8 @@ public class ClassSerializer extends NodeVisitor
                                  nf.Id(fi.position(), fi.name()),
                                  nf.StringLit(pos, encoded).type(ts.String()));
 
-                f = f.fieldInstance(fi);
-                f = f.initializerInstance(ii);
+                f = f.fieldDef(fi);
+                f = f.initializerDef(ii);
                 newMembers.add(f);
                 
                 numberETIFields++;

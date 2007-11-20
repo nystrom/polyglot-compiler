@@ -7,6 +7,7 @@
 
 package polyglot.frontend;
 
+import java.io.File;
 import java.util.Date;
 
 /** A <code>Source</code> represents a source file. */
@@ -72,7 +73,7 @@ public class Source
     }
 
     public String toString() {
-	return path;
+        return path;
     }
     
     public void setUserSpecified(boolean userSpecified) {

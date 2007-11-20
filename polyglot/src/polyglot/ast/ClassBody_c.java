@@ -75,7 +75,7 @@ public class ClassBody_c extends Term_c implements ClassBody
     protected void duplicateFieldCheck(TypeChecker tc) throws SemanticException {
         ClassDef type = tc.context().currentClassScope();
 
-        ArrayList l = new ArrayList(type.fields());
+        ArrayList<FieldDef> l = new ArrayList<FieldDef>(type.fields());
 
         for (int i = 0; i < l.size(); i++) {
             FieldDef fi = (FieldDef) l.get(i);

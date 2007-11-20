@@ -65,8 +65,8 @@ public interface ConstructorDecl extends ProcedureDecl
      * The constructor type object.  This field may not be valid until
      * after signature disambiguation.
      */
-    ConstructorDef constructorInstance();
+    ConstructorDef constructorDef();
 
     /** Set the constructor's type object. */
-    ConstructorDecl constructorInstance(ConstructorDef ci);
+    ConstructorDecl constructorDef(ConstructorDef ci);
 }

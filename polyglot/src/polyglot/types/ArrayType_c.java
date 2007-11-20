@@ -35,7 +35,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
 
     protected void init() {
         if (methods == null) {
-            methods = new ArrayList(1);
+            methods = new ArrayList<Ref<? extends MethodDef>>(1);
 
             // Add method public Object clone()
             MethodDef mi = ts.methodInstance(position(),
@@ -49,7 +49,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
         }
 
         if (fields == null) {
-            fields = new ArrayList(1);
+            fields = new ArrayList<Ref<? extends FieldDef>>(1);
 
             // Add field public final int length
             FieldDef fi = ts.fieldInstance(position(),
@@ -62,7 +62,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
         }
 
         if (interfaces == null) {
-            interfaces = new ArrayList(2);
+            interfaces = new ArrayList<Ref<? extends Type>>(2);
             interfaces.add(Ref_c.<ClassType>ref(ts.Cloneable()));
             interfaces.add(Ref_c.<ClassType>ref(ts.Serializable()));
         }

@@ -39,8 +39,8 @@ public interface Formal extends VarDecl
     public Formal name(String name);
 
     /** Get the local instance of the formal. */
-    public LocalDef localInstance();
+    public LocalDef localDef();
 
     /** Set the local instance of the formal. */
-    public Formal localInstance(LocalDef li);
+    public Formal localDef(LocalDef li);
 }

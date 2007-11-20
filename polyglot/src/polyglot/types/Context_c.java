@@ -64,6 +64,13 @@ public class Context_c implements Context
             throw new InternalCompilerError("Java clone() weirdness.");
         }
     }
+    
+    public Context freeze() {
+        Context_c c = (Context_c) this.copy();
+        c.types = new HashMap(types);
+        c.vars = new HashMap(vars);
+        return c;
+    }
 
     protected Context_c push() {
         Context_c v = (Context_c) this.copy();

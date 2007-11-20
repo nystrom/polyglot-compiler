@@ -58,8 +58,8 @@ public interface MethodDecl extends ProcedureDecl
      * The method type object.  This field may not be valid until
      * after signature disambiguation.
      */
-    MethodDef methodInstance();
+    MethodDef methodDef();
 
     /** Set the method's type object. */
-    MethodDecl methodInstance(MethodDef mi);
+    MethodDecl methodDef(MethodDef mi);
 }

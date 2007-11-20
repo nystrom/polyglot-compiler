@@ -20,5 +20,5 @@ public interface CodeNode extends Term
     Term codeBody();
 
     /** The CodeInstance of the method, constructor, or initializer. */
-    CodeDef codeInstance();
+    CodeDef codeDef();
 }

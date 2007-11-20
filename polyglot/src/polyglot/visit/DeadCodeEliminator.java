@@ -147,7 +147,7 @@ public class DeadCodeEliminator extends DataFlow {
 	if (t instanceof LocalDecl) {
 	    LocalDecl n = (LocalDecl)t;
 
-	    LocalDef to = n.localInstance();
+	    LocalDef to = n.localDef();
 	    result.removeDecl(to);
 
 	    du = getDefUse(n.init());
@@ -211,7 +211,7 @@ public class DeadCodeEliminator extends DataFlow {
 	if (n instanceof LocalDecl) {
 	    LocalDecl ld = (LocalDecl)n;
 	    DataFlowItem in = getItem(ld);
-	    if (in == null || in.needDecl(ld.localInstance())) return n;
+	    if (in == null || in.needDecl(ld.localDef())) return n;
 	    return getEffects(ld.init());
 	}
 

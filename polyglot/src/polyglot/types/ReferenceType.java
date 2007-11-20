@@ -32,7 +32,7 @@ public interface ReferenceType extends Type
      * @return A list of <code>MemberInstance</code>.
      * @see polyglot.types.MemberDef
      */
-    List<MemberInstance> members();
+    List<MemberInstance<?>> members();
     
     /**
      * Return the type's fields.

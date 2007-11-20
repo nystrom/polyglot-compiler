@@ -90,9 +90,9 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
 }
 
     /** Return an immutable list of member classes */
-    public List<Type> memberClasses() {
-        return new TransformingList<Ref<? extends Type>,Type>(def().memberClasses(),
-                                    new DerefTransform<Type>());
+    public List<ClassType> memberClasses() {
+        return new TransformingList<Ref<? extends ClassType>,ClassType>(def().memberClasses(),
+                                    new DerefTransform<ClassType>());
     }
 
     /** Return an immutable list of methods. */
