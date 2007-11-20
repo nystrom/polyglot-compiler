@@ -184,9 +184,6 @@ public class ClassDecl_c extends Term_c implements ClassDecl
 
         SymbolTable st = tb.typeSystem().symbolTable();
         Symbol<ClassDef> sym = st.<ClassDef>symbol(type);
-
-        setSuperClass(tb.typeSystem(), type);
-        setInterfaces(tb.typeSystem(), type);
         
         Goal tSup = Globals.Scheduler().SupertypeDef(tb.job(), type);
         Goal tSig = Globals.Scheduler().SignatureDef(tb.job(), type);
@@ -217,10 +214,16 @@ public class ClassDecl_c extends Term_c implements ClassDecl
 
         ClassDecl_c n = this;
         Id name = (Id) n.visitChild(n.name, tb);
+
         TypeNode superClass = (TypeNode) n.visitChild(n.superClass, tbSup);
         List<TypeNode> interfaces = n.visitList(n.interfaces, tbSup);
-        ClassBody body = (ClassBody) n.visitChild(n.body, tbChk);
 
+        
+        setSuperClass(tb.typeSystem(), type);
+        setInterfaces(tb.typeSystem(), type);
+
+        ClassBody body = (ClassBody) n.visitChild(n.body, tbChk);
+        
         n = n.reconstruct(name, superClass, interfaces, body);
         
         n = (ClassDecl_c) n.classDef(type).flags(type.flags());

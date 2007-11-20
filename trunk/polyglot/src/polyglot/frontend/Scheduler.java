@@ -230,7 +230,9 @@ public abstract class Scheduler {
     }
 
     public GoalSet currentView() {
-        return currentGoal().requiredView();
+        if (currentGoal() != null)
+            return currentGoal().requiredView();
+        return GoalSet.EMPTY;
     }
     
     public Job currentJob() {
@@ -680,11 +682,11 @@ public abstract class Scheduler {
     public abstract Goal TypesInitializedForCommandLine();
     
     public abstract Goal MakeDictionary(Job job);
+
     public abstract Goal SignatureDef(Job job, ClassDef def);
     public abstract Goal SupertypeDef(Job job, ClassDef def);
     public abstract Goal TypeCheckDef(Job job, Def def);
 
-//    public abstract Goal Disambiguated(Job job);
     public abstract Goal TypeChecked(Job job);
     public abstract Goal ReachabilityChecked(Job job);
     public abstract Goal ExceptionsChecked(Job job);
@@ -695,8 +697,6 @@ public abstract class Scheduler {
     public abstract Goal Serialized(Job job);
     public abstract Goal CodeGenerated(Job job);
 
-    public abstract Goal SupertypesResolved(Symbol<ClassDef> cd);
-    public abstract Goal SignaturesResolved(Symbol<ClassDef> cd);
     public abstract Goal FieldConstantsChecked(Symbol<FieldDef> f);
 
     public abstract Goal LookupGlobalType(TypeRef< Type> sym);

@@ -252,14 +252,6 @@ public class JLScheduler extends Scheduler {
         }.intern(this);
     }
     
-    public Goal SupertypesResolved(Symbol<ClassDef> cd) {
-        return new SupertypesResolved(cd);
-    }
-    
-    public Goal SignaturesResolved(Symbol<ClassDef> cd) {
-        return new SignaturesResolved(cd);
-    }
-
     public Goal FieldConstantsChecked(Symbol<FieldDef> f) {
         final FieldDef fd = f.get(GoalSet.EMPTY);
         ReferenceType t = fd.container() != null ? fd.container().get(GoalSet.EMPTY) : null;
@@ -317,16 +309,15 @@ public class JLScheduler extends Scheduler {
         
         @Override
         public GoalSet requiredView() {
-            return super.requiredView().union(new RuleBasedGoalSet() {
+            return new RuleBasedGoalSet() {
                 public boolean contains(Goal g) {
-                    return g instanceof LookupGlobalTypeDefAndSetFlags ||
-                    g instanceof FieldConstantsChecked ||
-                    g instanceof SignaturesResolved ||
-                    g instanceof SupertypesResolved;
+                    return DefGoal.super.requiredView().contains(g) ||
+                    g instanceof LookupGlobalTypeDefAndSetFlags ||
+                    g instanceof FieldConstantsChecked;
                 }
                 
-                public String toString() { return "TypeCheckRequirementsRuleSet"; }
-            });
+                public String toString() { return "DefGoalRuleSet"; }
+            };
         }
         
         public boolean equals(Object o) {

@@ -201,9 +201,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	    f = f.Public().Abstract();
 	}
 
-	MethodDef mi =
-	    ts.methodInstance(position(), Ref_c.ref(ct.asType()), f, returnType.typeRef(), name.id(), formalTypes, throwTypes);
-
+	MethodDef mi = ts.methodInstance(position(), Ref_c.ref(ct.asType()), f, returnType.typeRef(), name.id(), formalTypes, throwTypes);
 	ct.addMethod(mi);
 	
 	Goal g = Globals.Scheduler().TypeCheckDef(tb.job(), mi);
@@ -213,6 +211,21 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         MethodDef mi = (MethodDef) tb.def();
+
+        List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(formals.size());
+        for (Formal f : formals()) {
+            formalTypes.add(f.type().typeRef());
+        }
+
+        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(throwTypes().size());
+        for (TypeNode tn : throwTypes()) {
+            throwTypes.add(tn.typeRef());
+        }
+
+        mi.setReturnType(returnType.typeRef());
+        mi.setFormalTypes(formalTypes);
+        mi.setThrowTypes(throwTypes);
+        
         return methodDef(mi);
     }
 
