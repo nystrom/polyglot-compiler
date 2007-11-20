@@ -392,7 +392,7 @@ public class ClassFileLazyClassInitializer {
                     if (Report.should_report(verbose, 3))
                         Report.report(3, "adding member " + t + " to " + ct);
 
-                    ct.addMemberClass(t);
+                    ct.addMemberClass((Ref<? extends ClassType>) t);
                 }
             }
         }

@@ -18,10 +18,8 @@ import polyglot.util.*;
  * fully-qualified names.
  */
 public class SystemResolver extends CachingResolver implements TopLevelResolver {
-    protected Map packageCache;
+    protected Map<String,Boolean> packageCache;
     protected ExtensionInfo extInfo;
-    protected SystemResolver previous;
-    protected Collection justAdded;
     
     /**
      * Create a caching resolver.
@@ -30,36 +28,22 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
     public SystemResolver(TopLevelResolver inner, ExtensionInfo extInfo) {
         super(inner);
         this.extInfo = extInfo;
-        this.packageCache = new HashMap();
-        this.previous = null;
-        this.justAdded = new LinkedList();
+        this.packageCache = new HashMap<String, Boolean>();
     }
 
-    public SystemResolver previous() {
-        return previous;
-    }
-    
     public Object copy() {
         SystemResolver r = (SystemResolver) super.copy();
-        r.packageCache = new HashMap(this.packageCache);
-        r.previous = this;
-        r.justAdded = new LinkedList();
+        r.packageCache = new HashMap<String, Boolean>(this.packageCache);
         return r;
     }
     
     public void installInAll(String name, Named n) {
         this.install(name, n);
-        if (previous != null) {
-            previous.installInAll(name, n);
-        }
     }
 
     public boolean installedInAll(String name, Named q) {
         if (check(name) != q) {
             return false;
-        }
-        if (previous != null) {
-            return previous.installedInAll(name, q);
         }
         return true;
     }
@@ -86,7 +70,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
      * Check if a package exists.
      */
     public boolean packageExists(String name) {
-	Boolean b = (Boolean) packageCache.get(name);
+	Boolean b = packageCache.get(name);
 	if (b != null) {
 	    return b.booleanValue();
 	}
@@ -136,34 +120,6 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
         return (Type) check(name);
     }
 
-    public Collection justAdded() {
-        return new TransformingList(justAdded, new Transformation() {
-            public Object transform(Object o) {
-                Object[] p = (Object[]) o;
-                return p[1];
-            }
-        });
-    }
-
-    public void clearAdded() {
-        justAdded = new LinkedList();
-    }
-
-    public void putAll(SystemResolver r) throws SemanticException {
-        for (Iterator i = r.justAdded.iterator(); i.hasNext(); ) {
-            Object[] e = (Object[]) i.next();
-            String name = (String) e[0];
-            Named n = (Named) e[1];
-
-            install(name, n);
-
-            if (n instanceof Package) {
-                Package p = (Package) n;
-                cachePackage(p);
-            }
-        }
-    }
-
     /**
      * Find a type (or package) by name. For most code, this should be called
      * with the Java source name (p.A.B), not the class file name (p.A$B). The
@@ -171,46 +127,19 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
      * loaded from raw class files.
      */
     public Named find(String name) throws SemanticException {
-        if (previous == null) {
-            clearAdded();
-        }
-
         Named n = super.find(name);
 
-        if (previous == null) {
-            if (Report.should_report(TOPICS, 2))
-                Report.report(2, "Returning from root-level SR.find(" + name + "); added = " + justAdded);
-
-          /*
-            for (Iterator i = justAdded.iterator(); i.hasNext(); ) {
-                Named n2 = (Named) i.next();
-                if (n2 instanceof ParsedTypeObject) {
-                    if (! ((ParsedTypeObject) n2).initializer().isTypeObjectInitialized()) {
-                        throw new InternalCompilerError(n + " is in the root system resolver, but not initialized");
-                    }
-                }
-            }
-            */
-
-            clearAdded();
-        }
-        else {
-          if (Report.should_report(TOPICS, 2))
-              Report.report(2, "Returning from non-root-level SR.find(" + name + "); added = " + justAdded);
-        }
+        if (Report.should_report(TOPICS, 2))
+            Report.report(2, "Returning from SR.find(" + name + "): " + n);
 
         return n;
     }
 
     public void install(String name, Named q) {
         if (Report.should_report(TOPICS, 2) && check(name) == null)
-            Report.report(2, (previous == null ? "root" : "non-root") + " SR installing " + name + "->" + q);
+            Report.report(2, "SR installing " + name + "->" + q);
         
         super.install(name, q);
-
-        if (previous != null) {
-            justAdded.add(new Object[] { name, q });
-        }
     }
 
     /**
@@ -256,7 +185,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
         }
     }
 
-    private static final Collection TOPICS =
+    private static final Collection<String> TOPICS =
                     CollectionUtil.list(Report.types,
                                         Report.resolver,
                                         "sysresolver");

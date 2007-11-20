@@ -10,6 +10,8 @@ package polyglot.ast;
 
 import java.util.*;
 
+import polyglot.frontend.Globals;
+import polyglot.frontend.Goal;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -37,7 +39,7 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
 	this.body = body;
     }
     
-    public MemberDef memberInstance() {
+    public MemberDef memberDef() {
         return ci;
     }
 
@@ -117,7 +119,7 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
     }
 
     /** Get the constructorInstance of the constructor. */
-    public ConstructorDef constructorInstance() {
+    public ConstructorDef constructorDef() {
 	return ci;
     }
 
@@ -127,12 +129,12 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
 	return ci;
     }
 
-    public CodeDef codeInstance() {
+    public CodeDef codeDef() {
 	return procedureInstance();
     }
     
     /** Set the constructorInstance of the constructor. */
-    public ConstructorDecl constructorInstance(ConstructorDef ci) {
+    public ConstructorDecl constructorDef(ConstructorDef ci) {
         if (ci == this.ci) return this;
 	ConstructorDecl_c n = (ConstructorDecl_c) copy();
 	n.ci = ci;
@@ -163,18 +165,12 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
     }
 
     public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
-        return tb.pushCode();
-    }
-
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
         TypeSystem ts = tb.typeSystem();
 
         ClassDef ct = tb.currentClass();
-        ClassType contextClassType = new ParsedClassType_c(ts, position(), Ref_c.<ClassDef>ref(ct));
+        assert ct != null;
 
-        if (ct == null) {
-            return this;
-        }
+        ClassType contextClassType = new ParsedClassType_c(ts, position(), Ref_c.<ClassDef>ref(ct));
         
         List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(formals.size());
         for (Formal f : formals()) {
@@ -190,7 +186,14 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
                                                         flags, formalTypes, throwTypes);
         ct.addConstructor(ci);
 
-        return constructorInstance(ci);
+        Goal g = Globals.Scheduler().TypeCheckDef(tb.job(), ci);
+        g.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
+        return tb.pushCode(ci, g);
+    }
+    
+    public Node buildTypes(TypeBuilder tb) throws SemanticException {
+        ConstructorDef ci = (ConstructorDef) tb.def();
+        return constructorDef(ci);
     }
 
     public Context enterScope(Context c) {
@@ -255,7 +258,7 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
     }
 
     public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
-        return ec.push(constructorInstance().throwTypes());
+        return ec.push(constructorDef().throwTypes());
     }
 
     public String toString() {

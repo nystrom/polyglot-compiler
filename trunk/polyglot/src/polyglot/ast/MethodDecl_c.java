@@ -10,6 +10,8 @@ package polyglot.ast;
 
 import java.util.*;
 
+import polyglot.frontend.Globals;
+import polyglot.frontend.Goal;
 import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.util.*;
@@ -23,12 +25,12 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     protected Flags flags;
     protected TypeNode returnType;
     protected Id name;
-    protected List formals;
-    protected List throwTypes;
+    protected List<Formal> formals;
+    protected List<TypeNode> throwTypes;
     protected Block body;
     protected MethodDef mi;
 
-    public MethodDecl_c(Position pos, Flags flags, TypeNode returnType, Id name, List formals, List throwTypes, Block body) {
+    public MethodDecl_c(Position pos, Flags flags, TypeNode returnType, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
 	super(pos);
 	assert(flags != null && returnType != null && name != null && formals != null && throwTypes != null); // body may be null
 	this.flags = flags;
@@ -39,7 +41,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	this.body = body;
     }
 
-    public MemberDef memberInstance() {
+    public MemberDef memberDef() {
         return mi;
     }
 
@@ -92,7 +94,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 
     /** Get the formals of the method. */
     public List<Formal> formals() {
-	return Collections.unmodifiableList(this.formals);
+	return Collections.<Formal>unmodifiableList(this.formals);
     }
 
     /** Set the formals of the method. */
@@ -104,7 +106,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 
     /** Get the exception types of the method. */
     public List<TypeNode> throwTypes() {
-	return Collections.unmodifiableList(this.throwTypes);
+	return Collections.<TypeNode>unmodifiableList(this.throwTypes);
     }
 
     /** Set the exception types of the method. */
@@ -131,19 +133,19 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     }
 
     /** Get the method instance of the method. */
-    public MethodDef methodInstance() {
+    public MethodDef methodDef() {
 	return mi;
     }
 
     /** Set the method instance of the method. */
-    public MethodDecl methodInstance(MethodDef mi) {
+    public MethodDecl methodDef(MethodDef mi) {
         if (mi == this.mi) return this;
 	MethodDecl_c n = (MethodDecl_c) copy();
 	n.mi = mi;
 	return n;
     }
 
-    public CodeDef codeInstance() {
+    public CodeDef codeDef() {
 	return procedureInstance();
     }
 
@@ -153,8 +155,8 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     }
 
     /** Reconstruct the method. */
-    protected MethodDecl_c reconstruct(TypeNode returnType, Id name, List formals, List throwTypes, Block body) {
-	if (returnType != this.returnType || name != this.name || ! CollectionUtil.equals(formals, this.formals) || ! CollectionUtil.equals(throwTypes, this.throwTypes) || body != this.body) {
+    protected MethodDecl_c reconstruct(TypeNode returnType, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
+	if (returnType != this.returnType || name != this.name || ! CollectionUtil.<Formal>equals(formals, this.formals) || ! CollectionUtil.<TypeNode>equals(throwTypes, this.throwTypes) || body != this.body) {
 	    MethodDecl_c n = (MethodDecl_c) copy();
 	    n.returnType = returnType;
             n.name = name;
@@ -170,25 +172,18 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     /** Visit the children of the method. */
     public Node visitChildren(NodeVisitor v) {
         Id name = (Id) visitChild(this.name, v);
-        List formals = visitList(this.formals, v);
+        List<Formal> formals = visitList(this.formals, v);
 	TypeNode returnType = (TypeNode) visitChild(this.returnType, v);
-	List throwTypes = visitList(this.throwTypes, v);
+	List<TypeNode> throwTypes = visitList(this.throwTypes, v);
 	Block body = (Block) visitChild(this.body, v);
 	return reconstruct(returnType, name, formals, throwTypes, body);
     }
 
     public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
-        return tb.pushCode();
-    }
-
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
         TypeSystem ts = tb.typeSystem();
 
         ClassDef ct = tb.currentClass();
-
-        if (ct == null) {
-            return this;
-        }
+        assert ct != null;
 
         List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(formals.size());
         for (Formal f : formals()) {
@@ -210,7 +205,15 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	    ts.methodInstance(position(), Ref_c.ref(ct.asType()), f, returnType.typeRef(), name.id(), formalTypes, throwTypes);
 
 	ct.addMethod(mi);
-        return methodInstance(mi);
+	
+	Goal g = Globals.Scheduler().TypeCheckDef(tb.job(), mi);
+	g.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
+	return tb.pushCode(mi, g);
+    }
+
+    public Node buildTypes(TypeBuilder tb) throws SemanticException {
+        MethodDef mi = (MethodDef) tb.def();
+        return methodDef(mi);
     }
 
     public Context enterScope(Context c) {
@@ -268,7 +271,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 
         // check that inner classes do not declare static methods
         if (flags.isStatic() &&
-              methodInstance().container().get().toClass().isInnerClass()) {
+              methodDef().container().get().toClass().isInnerClass()) {
             // it's a static method in an inner class.
             throw new SemanticException("Inner classes cannot declare " + 
                     "static methods.", this.position());             
@@ -295,7 +298,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     }
 
     public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
-        return ec.push(methodInstance().throwTypes());
+        return ec.push(methodDef().throwTypes());
     }
 
     public String toString() {

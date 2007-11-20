@@ -43,12 +43,6 @@ public interface TypeSystem {
      * with fully qualified names from the class path and the source path.
      */
     SystemResolver systemResolver();
-    
-    /** Create and install a duplicate of the system resolver and return the original. */
-    SystemResolver saveSystemResolver();
-   
-    /** Set the system resolver to <code>r</code>. */
-    void restoreSystemResolver(SystemResolver r);
 
     /**
      * Return the type system's loaded resolver.
@@ -77,7 +71,7 @@ public interface TypeSystem {
      * Return a list of the packages names that will be imported by
      * default.  A list of Strings is returned, not a list of Packages.
      */
-    List<Ref<Package>> defaultPackageImports();
+    List<String> defaultPackageImports();
 
     /**
      * Returns true if the package named <code>name</code> exists.

@@ -34,6 +34,5 @@ public interface VarDecl extends Term
      * Get the type object for the local we are declaring.  This field may
      * not be valid until after signature disambiguation.
      */
-    LocalDef localInstance();
-
+    LocalDef localDef();
 }

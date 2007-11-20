@@ -7,8 +7,7 @@
 
 package polyglot.visit;
 
-import polyglot.ast.Node;
-import polyglot.ast.NodeFactory;
+import polyglot.ast.*;
 import polyglot.frontend.Job;
 import polyglot.main.Report;
 import polyglot.types.SemanticException;
@@ -19,11 +18,60 @@ import polyglot.util.Position;
 /** Visitor which performs type checking on the AST. */
 public class TypeChecker extends ContextVisitor
 {
+    protected boolean visitSigs;
+    protected boolean visitBodies;
+    
     public TypeChecker(Job job, TypeSystem ts, NodeFactory nf) {
-        super(job, ts, nf);
+        this(job, ts, nf, true, true);
     }
-       
+    
+    public TypeChecker(Job job, TypeSystem ts, NodeFactory nf, boolean visitSigs, boolean visitBodies) {
+        super(job, ts, nf);
+        this.visitSigs = visitSigs;
+        this.visitBodies = visitBodies;
+    }
+    
+    public TypeChecker visitSupers() {
+        if (this.visitSigs == false && this.visitBodies == false) return this;
+        TypeChecker tc = (TypeChecker) copy();
+        tc.visitSigs = false;
+        tc.visitBodies = false;
+        return tc;
+    }
+    
+    public TypeChecker visitSignatures() {
+        if (this.visitSigs == true && this.visitBodies == false) return this;
+        TypeChecker tc = (TypeChecker) copy();
+        tc.visitSigs = true;
+        tc.visitBodies = false;
+        return tc;
+    }
+    
+    public TypeChecker visitBodies() {
+        if (this.visitSigs == true && this.visitBodies == true) return this;
+        TypeChecker tc = (TypeChecker) copy();
+        tc.visitSigs = true;
+        tc.visitBodies = true;
+        return tc;
+    }
+    
+    public boolean shouldVisitSupers() { return true; }
+    public boolean shouldVisitSignatures() { return visitSigs; }
+    public boolean shouldVisitBodies() { return visitBodies; }
+    
     public Node override(Node parent, Node n) {
+        if (! visitSigs && n instanceof ClassMember && ! (n instanceof ClassDecl)) {
+            return n;
+        }
+        if ((! visitBodies || ! visitSigs) && parent instanceof ClassMember) {
+            if (parent instanceof FieldDecl && ((FieldDecl) parent).init() == n) {
+                return n;
+            }
+            if (parent instanceof CodeDecl && ((CodeDecl) parent).body() == n) {
+                return n;
+            }
+        }
+
         try {
             if (Report.should_report(Report.visit, 2))
                 Report.report(2, ">> " + this + "::override " + n);

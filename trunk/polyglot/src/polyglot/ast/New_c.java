@@ -10,6 +10,7 @@ package polyglot.ast;
 
 import java.util.*;
 
+import polyglot.frontend.*;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -147,17 +148,38 @@ public class New_c extends Expr_c implements New
         return tb;
     }
 
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
+    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
         New_c n = this;
         TypeSystem ts = tb.typeSystem();
 
         ConstructorInstance ci = new ConstructorInstance_c(ts, position(), new ErrorRef_c<ConstructorDef>(ts, position()));
         n = (New_c) n.constructorInstance(ci);
         
+        Expr qual = (Expr) n.visitChild(n.qualifier(), tb);
+        TypeNode objectType = (TypeNode) n.visitChild(n.objectType(), tb);
+        List<Expr> arguments = (List<Expr>) n.visitList(n.arguments(), tb);
+        
+        ClassBody body = null;
+        
         if (n.body() != null) {
-            ClassDef type = tb.currentClass();
+            TypeBuilder tb2 = tb.pushAnonClass(position());
+            ClassDef type = tb2.currentClass();
+
+            Goal sup = Globals.Scheduler().SupertypeDef(tb.job(), type);
+            Goal sig = Globals.Scheduler().SignatureDef(tb.job(), type);
+            Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), type);
+
+            // To figure out the supertype, we need to type, check the enclosing method.
+            sup.addPrereq(tb.goal());
+            sig.addPrereq(sup);
+            chk.addPrereq(sig);
+            
             n = (New_c) n.anonType(type);
+            
+            body = (ClassBody) n.visitChild(n.body(), tb2.pushGoal(chk));
         }
+        
+        n = n.reconstruct(qual, objectType, arguments, body);
         
         return n.type(ts.unknownType(position()));
     }
@@ -166,12 +188,30 @@ public class New_c extends Expr_c implements New
         TypeSystem ts = ar.typeSystem();
         NodeFactory nf = ar.nodeFactory();
         Context c = ar.context();
+        
+        NodeVisitor childv = ar.enter(parent, this);
 
         New nn = this;
         New old = nn;
         
-        NodeVisitor childv = ar.enter(parent, this);
-        
+        // If we're checking the body and not the enclosing method, visit the body only.
+        if (nn.body() != null && anonType != null) {
+            Goal sup = Globals.Scheduler().SupertypeDef(ar.job(), anonType);
+            Goal sig = Globals.Scheduler().SignatureDef(ar.job(), anonType);
+            Goal chk = Globals.Scheduler().TypeCheckDef(ar.job(), anonType);
+            Goal g = Globals.Scheduler().currentGoal();
+
+            if (g == sup || g == sig || g == chk) {
+                if (ar.shouldVisitBodies()) {
+                    // Now visit the body.
+                    nn = nn.body((ClassBody) nn.visitChild(nn.body(), childv));
+                    ts.checkClassConformance(anonType.asType());
+                }
+                
+                return nn;
+            }
+        }
+
         // Disambiguate the qualifier and object type, if possible.
         if (nn.qualifier() == null) {
             nn = nn.objectType((TypeNode) nn.visitChild(nn.objectType(), childv));
@@ -232,8 +272,7 @@ public class New_c extends Expr_c implements New
                 }
             }
 
-            // Now visit the body.
-            nn = nn.body((ClassBody) nn.visitChild(nn.body(), childv));
+            // Don't visit the body!  This will be done when type-checking the body.
         }
         
         nn = (New) ar.leave(parent, old, nn, childv);
@@ -319,17 +358,13 @@ public class New_c extends Expr_c implements New
         typeCheckFlags(tc);
         typeCheckNested(tc);
         
-        if (this.body != null) {
-            ts.checkClassConformance(anonType.asType());
-        }
-        
         ClassType ct = tn.type().toClass();
         ConstructorInstance ci;
         
         if (! ct.flags().isInterface()) {
             Context c = tc.context();
             if (anonType != null) {
-                c = c.pushClass(anonType, new ParsedClassType_c(anonType));
+                c = c.pushClass(anonType, anonType.asType());
             }
             ci = ts.findConstructor(ct, argTypes, c.currentClassScope());
         }
@@ -342,7 +377,7 @@ public class New_c extends Expr_c implements New
         
         if (anonType != null) {
             // The type of the new expression is the anonymous type, not the base type.
-            ct = new ParsedClassType_c(anonType);
+            ct = anonType.asType();
         }
 
         return n.type(ct);

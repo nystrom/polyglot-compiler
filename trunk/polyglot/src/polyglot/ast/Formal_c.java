@@ -89,12 +89,12 @@ public class Formal_c extends Term_c implements Formal
     }
 
     /** Get the local instance of the formal. */
-    public LocalDef localInstance() {
+    public LocalDef localDef() {
         return li;
     }
 
     /** Set the local instance of the formal. */
-    public Formal localInstance(LocalDef li) {
+    public Formal localDef(LocalDef li) {
         if (li == this.li) return this;
         Formal_c n = (Formal_c) copy();
 	n.li = li;
@@ -144,7 +144,7 @@ public class Formal_c extends Term_c implements Formal
         // Formal parameters are never compile-time constants.
         li.setNotConstant();
 
-        return n.localInstance(li);
+        return n.localDef(li);
     }
 
     /** Type check the formal. */

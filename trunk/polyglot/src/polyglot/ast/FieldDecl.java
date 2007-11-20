@@ -46,20 +46,20 @@ public interface FieldDecl extends ClassMember, VarInit, CodeNode
      * Get the type object for the field we are declaring.  This field may
      * not be valid until after signature disambiguation.
      */
-    FieldDef fieldInstance();
+    FieldDef fieldDef();
 
     /** Set the type object for the field we are declaring. */
-    FieldDecl fieldInstance(FieldDef fi);
+    FieldDecl fieldDef(FieldDef fi);
 
     /**
      * Get the type object for the initializer expression, or null.
      * We evaluate the initializer expression as if it were in an
      * initializer block (e.g., <code>{ }</code> or </code>static { }<code>).
      */ 
-    InitializerDef initializerInstance();
+    InitializerDef initializerDef();
 
     /** Set the type object for the initializer expression. */
-    FieldDecl initializerInstance(InitializerDef fi);
+    FieldDecl initializerDef(InitializerDef fi);
     
     boolean constantValueSet();
 }

@@ -13,7 +13,7 @@ import java.util.LinkedList;
 
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
-import polyglot.frontend.Job;
+import polyglot.frontend.*;
 import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.types.Package;
@@ -31,6 +31,8 @@ public class TypeBuilder extends NodeVisitor
     protected boolean global; // true if all scopes pushed have been classes.
     protected Package package_;
     protected ClassDef type; // last class pushed.
+    protected Goal goal;
+    protected Def def;
 
     public TypeBuilder(Job job, TypeSystem ts, NodeFactory nf) {
         this.job = job;
@@ -47,6 +49,14 @@ public class TypeBuilder extends NodeVisitor
 
     public TypeBuilder pop() {
         return outer;
+    }
+    
+    public Def def() {
+        return def;
+    }
+    
+    public Goal goal() {
+        return goal;
     }
     
     public Job job() {
@@ -67,6 +77,26 @@ public class TypeBuilder extends NodeVisitor
 
     public NodeVisitor begin() {
         return this;
+    }
+    
+    public Node override(Node n) {
+        try {
+            return n.del().buildTypesOverride(this);
+        }
+        catch (SemanticException e) {
+            Position position = e.position();
+
+            if (position == null) {
+                position = n.position();
+            }
+
+            if (e.getMessage() != null) {
+                errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR,
+                                    e.getMessage(), position);
+            }
+                            
+            return n;
+        }
     }
 
     public NodeVisitor enter(Node n) {
@@ -109,8 +139,10 @@ public class TypeBuilder extends NodeVisitor
 	}
     }
 
+    /**
+    @deprecated */
     public TypeBuilder pushContext(Context c) throws SemanticException {
-        LinkedList stack = new LinkedList();
+        LinkedList<Context> stack = new LinkedList<Context>();
         while (c != null) {
             stack.addFirst(c);
             c = c.pop();
@@ -118,13 +150,13 @@ public class TypeBuilder extends NodeVisitor
         
         TypeBuilder tb = this;
         boolean inCode = false;
-        for (Iterator i = stack.iterator(); i.hasNext(); ) {
+        for (Iterator<Context> i = stack.iterator(); i.hasNext(); ) {
             c = (Context) i.next();
             if (c.inCode()) {
                 if (! inCode) {
                     // entering code
                     inCode = true;
-                    tb = tb.pushCode();
+                    tb = tb.pushCode(c.currentCode(), Globals.Scheduler().TypeCheckDef(tb.job(), def));
                 }
             }
             else {
@@ -146,6 +178,18 @@ public class TypeBuilder extends NodeVisitor
         
         return tb;
     }
+    
+    public TypeBuilder pushDef(Def def) {
+        TypeBuilder tb = push();
+        tb.def = def;
+        return tb;
+    }
+    
+    public TypeBuilder pushGoal(Goal goal) {
+        TypeBuilder tb = push();
+        tb.goal = goal;
+        return tb;
+    }
         
     public TypeBuilder pushPackage(Package p) {
         if (Report.should_report(Report.visit, 4))
@@ -156,10 +200,11 @@ public class TypeBuilder extends NodeVisitor
         return tb;
     }
 
-    public TypeBuilder pushCode() {
+    public TypeBuilder pushCode(CodeDef def, Goal goal) {
         if (Report.should_report(Report.visit, 4))
 	    Report.report(4, "TB pushing code: " + context());
-        TypeBuilder tb = push();
+        TypeBuilder tb = pushDef(def);
+        tb.goal = Globals.Scheduler().TypeCheckDef(job(), def);
         tb.inCode = true;
         tb.global = false;
         return tb;
@@ -169,9 +214,10 @@ public class TypeBuilder extends NodeVisitor
         if (Report.should_report(Report.visit, 4))
 	    Report.report(4, "TB pushing class " + classDef + ": " + context());
 
-        TypeBuilder tb = push();
-        tb.type = classDef;
+        TypeBuilder tb = pushDef(classDef);
+        tb.goal = Globals.Scheduler().TypeCheckDef(job(), classDef);
         tb.inCode = false;
+        tb.type = classDef;
 
 	// Make sure the import table finds this class.
         if (importTable() != null && classDef.isTopLevel()) {

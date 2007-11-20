@@ -43,7 +43,7 @@ public class ExtensionCleaner extends NodeVisitor {
         }
 
         if (n instanceof ClassDecl) {
-            n = ((ClassDecl) n).type(null);
+            n = ((ClassDecl) n).classDef(null);
         }
 
         if (n instanceof ConstructorCall) {
@@ -55,16 +55,16 @@ public class ExtensionCleaner extends NodeVisitor {
         }
 
         if (n instanceof FieldDecl) {
-            n = ((FieldDecl) n).fieldInstance(null);
-            n = ((FieldDecl) n).initializerInstance(null);
+            n = ((FieldDecl) n).fieldDef(null);
+            n = ((FieldDecl) n).initializerDef(null);
         }
 
         if (n instanceof Formal) {
-            n = ((Formal) n).localInstance(null);
+            n = ((Formal) n).localDef(null);
         }
 
         if (n instanceof Initializer) {
-            n = ((Initializer) n).initializerInstance(null);
+            n = ((Initializer) n).initializerDef(null);
         }
 
         if (n instanceof Local) {
@@ -72,11 +72,11 @@ public class ExtensionCleaner extends NodeVisitor {
         }
 
         if (n instanceof LocalDecl) {
-            n = ((LocalDecl) n).localInstance(null);
+            n = ((LocalDecl) n).localDef(null);
         }
 
         if (n instanceof MethodDecl) {
-            n = ((MethodDecl) n).methodInstance(null);
+            n = ((MethodDecl) n).methodDef(null);
         }
 
         if (n instanceof New) {

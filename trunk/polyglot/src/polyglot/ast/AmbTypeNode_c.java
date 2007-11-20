@@ -62,7 +62,7 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
 
   public Node buildTypes(TypeBuilder tb) throws SemanticException {
       TypeSystem ts = tb.typeSystem();
-      TypeRef<? extends Type> sym = ts.symbolTable().typeRef(ts.unknownType(position()), Globals.Scheduler().Disambiguated(tb.job()));
+      TypeRef<? extends Type> sym = ts.symbolTable().typeRef(ts.unknownType(position()), tb.goal());
       return type(sym);
   }
 

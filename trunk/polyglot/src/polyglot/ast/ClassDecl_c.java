@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import polyglot.frontend.Globals;
+import polyglot.frontend.Goal;
 import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.util.CodeWriter;
@@ -19,12 +21,7 @@ import polyglot.util.CollectionUtil;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
-import polyglot.visit.AmbiguityRemover;
-import polyglot.visit.CFGBuilder;
-import polyglot.visit.NodeVisitor;
-import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeBuilder;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.*;
 
 /**
  * A <code>ClassDecl</code> is the definition of a class, abstract class,
@@ -54,15 +51,15 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         this.body = body;
     }
 
-    public MemberDef memberInstance() {
+    public MemberDef memberDef() {
         return type;
     }
 
-    public ClassDef type() {
+    public ClassDef classDef() {
         return type;
     }
 
-    public ClassDecl type(ClassDef type) {
+    public ClassDecl classDef(ClassDef type) {
         if (type == this.type) return this;
         ClassDecl_c n = (ClassDecl_c) copy();
         n.type = type;
@@ -165,7 +162,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         return reconstruct(name, superClass, interfaces, body);
     }
 
-    public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
+    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
         tb = tb.pushClass(position(), flags, name.id());
 
         ClassDef type = tb.currentClass();
@@ -185,35 +182,57 @@ public class ClassDecl_c extends Term_c implements ClassDecl
             type.flags(type.flags().Abstract());
         }
 
-        return tb;
-    }
-
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        ClassDef type = tb.currentClass(); 
-
-        if (type == null) {
-            return this;
-        }
-
         SymbolTable st = tb.typeSystem().symbolTable();
         Symbol<ClassDef> sym = st.<ClassDef>symbol(type);
 
         setSuperClass(tb.typeSystem(), type);
         setInterfaces(tb.typeSystem(), type);
+        
+        Goal tSup = Globals.Scheduler().SupertypeDef(tb.job(), type);
+        Goal tSig = Globals.Scheduler().SignatureDef(tb.job(), type);
+        Goal tChk = Globals.Scheduler().TypeCheckDef(tb.job(), type);
+
+        TypeBuilder tbSup = tb.pushGoal(tSup);
+        TypeBuilder tbSig = tb.pushGoal(tSig);
+        TypeBuilder tbChk = tb.pushGoal(tChk);
+        
+        ClassDef outer = tb.pop().currentClass();
+        if (outer != null) {
+            Goal oSup = Globals.Scheduler().SupertypeDef(tb.job(), outer);
+            Goal oSig = Globals.Scheduler().SignatureDef(tb.job(), outer);
+            Goal oChk = Globals.Scheduler().TypeCheckDef(tb.job(), outer);
+            
+            tSup.addPrereq(oSup);
+            tSig.addPrereq(oSig);
+            
+            if (tb.def() instanceof CodeDef) {
+                // In a local class.  We will not visit the body when type-checking the enclosing method.
+                // Add a dependency on the enclosing method.
+                tSup.addPrereq(oChk);
+            }
+        }
+
+        tSig.addPrereq(tSup);
+        tChk.addPrereq(tSig);
 
         ClassDecl_c n = this;
+        Id name = (Id) n.visitChild(n.name, tb);
+        TypeNode superClass = (TypeNode) n.visitChild(n.superClass, tbSup);
+        List<TypeNode> interfaces = n.visitList(n.interfaces, tbSup);
+        ClassBody body = (ClassBody) n.visitChild(n.body, tbChk);
 
-        if (defaultConstructorNeeded()) {
-            ConstructorDecl cd = createDefaultConstructor(type, tb.typeSystem(), tb.nodeFactory());
+        n = n.reconstruct(name, superClass, interfaces, body);
+        
+        n = (ClassDecl_c) n.classDef(type).flags(type.flags());
+
+        if (n.defaultConstructorNeeded()) {
+            ConstructorDecl cd = n.createDefaultConstructor(type, tb.typeSystem(), tb.nodeFactory());
             cd = (ConstructorDecl) tb.visitEdge(this, cd);
             n = (ClassDecl_c) n.body(n.body().addMember(cd));
-            n.defaultCI = cd.constructorInstance();
-        }
-        else {
-            n = this;
+            n.defaultCI = cd.constructorDef();
         }
 
-        return n.type(type).flags(type.flags());
+        return n;
     }
 
     public Context enterChildScope(Node child, Context c) {
@@ -238,7 +257,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
 
         checkSupertypeCycles(ar.typeSystem());
 
-        ClassDef type = type();
+        ClassDef type = classDef();
 
         // Make sure that the inStaticContext flag of the class is correct.
         Context ctxt = ar.context();
@@ -346,6 +365,55 @@ public class ClassDecl_c extends Term_c implements ClassDecl
                 Collections.EMPTY_LIST,
                 block);
         return cd;
+    }
+
+    @Override
+    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
+        ClassDecl_c n = this;
+        
+        NodeVisitor v = tc.enter(parent, this);
+        if (v instanceof TypeChecker) {
+            tc = (TypeChecker) v;
+        }
+        else if (v instanceof PruningVisitor) {
+            return this;
+        }
+        else {
+            assert false;
+        }
+        
+        if (Report.should_report(Report.visit, 2))
+            Report.report(2, ">> " + this + "::leave " + n);
+        
+        AmbiguityRemover ar = new AmbiguityRemover(tc.job(), tc.typeSystem(), tc.nodeFactory());
+        ar = (AmbiguityRemover) ar.context(tc.context());
+        
+        Id name = (Id) visitChild(n.name, tc);
+        
+        // Disambiguate the super types.
+        TypeNode superClass = n.superClass;
+        List<TypeNode> interfaces = n.interfaces;
+        
+        if (tc.shouldVisitSupers()) {
+            superClass = (TypeNode) n.visitChild(n.superClass, tc);
+            interfaces = n.visitList(n.interfaces, tc);
+        }
+
+        ClassBody body = n.body;
+        if (tc.shouldVisitSupers())
+            body = (ClassBody) n.visitChild(body, tc.visitSupers());
+        if (tc.shouldVisitSignatures())
+            body = (ClassBody) n.visitChild(body, tc.visitSignatures());
+        if (tc.shouldVisitBodies())
+            body = (ClassBody) n.visitChild(body, tc.visitBodies());
+        
+        n = n.reconstruct(name, superClass, interfaces, body);
+
+        n = (ClassDecl_c) n.del().disambiguate(ar);
+        n = (ClassDecl_c) n.del().typeCheck(tc);
+        n = (ClassDecl_c) n.del().checkConstants(tc);
+        
+        return n;
     }
 
     public Node typeCheck(TypeChecker tc) throws SemanticException {

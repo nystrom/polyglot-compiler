@@ -10,6 +10,8 @@ package polyglot.ast;
 
 import java.util.List;
 
+import polyglot.frontend.Globals;
+import polyglot.frontend.Goal;
 import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
 import polyglot.types.CodeDef;
@@ -59,25 +61,25 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         this.init = init;
     }
 
-    public MemberDef memberInstance() {
+    public MemberDef memberDef() {
         return fi;
     }
 
-    public VarDef varInstance() {
+    public VarDef varDef() {
         return fi;
     }
     
-    public CodeDef codeInstance() {
+    public CodeDef codeDef() {
         return ii;
     }
 
     /** Get the initializer instance of the initializer. */
-    public InitializerDef initializerInstance() {
+    public InitializerDef initializerDef() {
         return ii;
     }
 
     /** Set the initializer instance of the initializer. */
-    public FieldDecl initializerInstance(InitializerDef ii) {
+    public FieldDecl initializerDef(InitializerDef ii) {
         if (ii == this.ii) return this;
         FieldDecl_c n = (FieldDecl_c) copy();
         n.ii = ii;
@@ -153,7 +155,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     }
 
     /** Set the field instance of the declaration. */
-    public FieldDecl fieldInstance(FieldDef fi) {
+    public FieldDecl fieldDef(FieldDef fi) {
         if (fi == this.fi) return this;
         FieldDecl_c n = (FieldDecl_c) copy();
         n.fi = fi;
@@ -161,7 +163,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     }
 
     /** Get the field instance of the declaration. */
-    public FieldDef fieldInstance() {
+    public FieldDef fieldDef() {
         return fi;
     }
 
@@ -187,18 +189,9 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     }
 
     public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
-        return tb.pushCode();
-    }
-
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
         TypeSystem ts = tb.typeSystem();
 
         ClassDef cd = tb.currentClass();
-
-        if (cd == null) {
-            return this;
-        }
-
         ClassType ct = cd.asType();
 
         Flags flags = this.flags;
@@ -207,16 +200,11 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
             flags = flags.Public().Static().Final();
         }
         
-        FieldDecl n;
-
         if (init != null) {
             Flags iflags = flags.isStatic() ? Flags.STATIC : Flags.NONE;
             InitializerDef ii = ts.initializerInstance(init.position(),
                                                             Ref_c.<ClassType>ref(ct), iflags);
-            n = initializerInstance(ii);
-        }
-        else {
-            n = this;
+            tb = tb.pushCode(ii, Globals.Scheduler().TypeCheckDef(tb.job(), ii));
         }
 
         FieldDef fi = ts.fieldInstance(position(), Ref_c.<ClassType>ref(ct), flags, type.typeRef(), name.id());
@@ -224,7 +212,35 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         
         cd.addField(fi);
 
-        return n.flags(flags).fieldInstance(fi);
+        Goal g = Globals.Scheduler().TypeCheckDef(tb.job(), fi);
+        g.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), cd));
+        return tb.pushDef(fi).pushGoal(g);
+    }
+
+    public Node buildTypes(TypeBuilder tb) throws SemanticException {
+        FieldDecl n = this;
+        
+
+        InitializerDef ii = null;
+        if (init != null) {
+            for (TypeBuilder tb2 = tb; tb2 != null; tb2 = tb2.pop()) {
+                if (tb2.def() instanceof InitializerDef) {
+                    ii = (InitializerDef) tb2.def();                   
+                    break;
+                }
+            }
+            n = n.initializerDef(ii);
+        }
+
+        FieldDef fi = null;
+        for (TypeBuilder tb2 = tb; tb2 != null; tb2 = tb2.pop()) {
+            if (tb2.def() instanceof FieldDef) {
+                fi = (FieldDef) tb2.def();                   
+                break;
+            }
+        }
+
+        return n.flags(fi.flags()).fieldDef(fi);
     }
 
     public Context enterScope(Context c) {
@@ -294,7 +310,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         // check that inner classes do not declare static fields, unless they
         // are compile-time constants
         if (flags().isStatic() &&
-              fieldInstance().container().get().toClass().isInnerClass()) {
+              fieldDef().container().get().toClass().isInnerClass()) {
             // it's a static field in an inner class.
             if (!flags().isFinal() || init == null || !init.isConstant()) {
                 throw new SemanticException("Inner classes cannot declare " +

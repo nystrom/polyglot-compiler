@@ -314,7 +314,7 @@ public class CopyPropagator extends DataFlow {
 
     private void killDecl(DataFlowItem dfi, Stmt stmt) {
 	if (stmt instanceof LocalDecl) {
-	    dfi.kill(((LocalDecl)stmt).localInstance());
+	    dfi.kill(((LocalDecl)stmt).localDef());
 	}
     }
 
@@ -354,7 +354,7 @@ public class CopyPropagator extends DataFlow {
 	} else if (t instanceof LocalDecl) {
 	    LocalDecl n = (LocalDecl)t;
 
-	    LocalDef to = n.localInstance();
+	    LocalDef to = n.localDef();
 	    result.kill(to);
 
 	    // It's a copy if we're initializing a non-final local declaration
@@ -384,7 +384,7 @@ public class CopyPropagator extends DataFlow {
 	    killDecl(result, ((Loop)t).body());
 	} else if (t instanceof Catch) {
 	    // Kill catch's formal.
-	    result.kill(((Catch)t).formal().localInstance());
+	    result.kill(((Catch)t).formal().localDef());
 	} else if (t instanceof If) {
 	    // Kill locals declared in consequent and alternative.
 	    If n = (If)t;

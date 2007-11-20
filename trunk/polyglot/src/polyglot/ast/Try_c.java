@@ -162,9 +162,9 @@ public class Try_c extends Stmt_c implements Try
         
         
         // now visit the catch blocks, using the original exception checker
-        List catchBlocks = new ArrayList(this.catchBlocks.size());
+        List<Catch> catchBlocks = new ArrayList<Catch>(this.catchBlocks.size());
         
-        for (Iterator i = this.catchBlocks.iterator(); i.hasNext(); ) {
+        for (Iterator<Catch> i = this.catchBlocks.iterator(); i.hasNext(); ) {
             Catch cb = (Catch) i.next();
             
             ec = ec.push();

@@ -96,6 +96,7 @@ public interface NodeOps
      * @param tb The visitor which adds new type objects to the
      * <code>TypeSystem</code>.
      */
+    Node buildTypesOverride(TypeBuilder tb) throws SemanticException;
     Node buildTypes(TypeBuilder tb) throws SemanticException;
 
     /**

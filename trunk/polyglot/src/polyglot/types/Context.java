@@ -22,6 +22,8 @@ import polyglot.util.Copy;
  */
 public interface Context extends Resolver, Copy
 {
+    Context freeze();
+    
     /** The type system. */
     TypeSystem typeSystem();
 

@@ -86,7 +86,8 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
     }
 
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        TypeRef<? extends Qualifier> sym = tb.typeSystem().symbolTable().typeRef(tb.typeSystem().unknownQualifier(position()), Globals.Scheduler().Disambiguated(tb.job()));
+        TypeSystem ts = tb.typeSystem();
+        TypeRef<? extends Qualifier> sym = ts.symbolTable().typeRef(ts.unknownQualifier(position()), tb.goal());
         return qualifier(sym);
     }
 

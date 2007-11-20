@@ -10,7 +10,9 @@ package polyglot.frontend;
 import java.util.*;
 
 import polyglot.ast.Node;
+import polyglot.types.Def;
 import polyglot.util.CodeWriter;
+import polyglot.visit.ASTFragment;
 
 /**
  * A <code>Job</code> encapsulates work done by the compiler for a single
@@ -31,8 +33,11 @@ public class Job
     /** The AST constructed from the source file. */
     protected Node ast;
     
-    /** Substitution map for ast nodes. */
+    /** Substitution map for AST nodes. */
     protected Map<Node,Node> astMap;
+
+    /** Map from definitions to AST nodes. */
+    protected Map<Def,ASTFragment> fragmentMap;
 
     /** The pass currently running over the job, or null. */
     protected Pass runningPass;
@@ -63,20 +68,31 @@ public class Job
     }
     
     public List<Pass> passes() {
-        return Collections.EMPTY_LIST;
+        return Collections.<Pass>emptyList();
     }
-
-    public void setAstMap(Map<Node,Node> map) {
-        this.astMap = map;
-    }
-
+    
     public Map<Node,Node> astMap() {
         if (astMap == null) {
             astMap = new HashMap<Node,Node>();
         }
         return astMap;
     }
-
+    
+    public void setAstMap(Map<Node,Node> map) {
+        this.astMap = map;
+    }
+    
+    public Map<Def,ASTFragment> fragmentMap() {
+        if (fragmentMap == null) {
+            fragmentMap = new HashMap<Def,ASTFragment>();
+        }
+        return fragmentMap;
+    }
+    
+    public void setFragmentMap(Map<Def,ASTFragment> map) {
+        this.fragmentMap = map;
+    }
+    
     public JobExt ext() {
       return ext;
     }

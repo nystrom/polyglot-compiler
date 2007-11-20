@@ -35,10 +35,7 @@ public class ClassDef_c extends Def_c implements ClassDef
     protected Kind kind;
     protected String name;
     protected Ref<ClassDef> outer;
-
-    // ### When writing this out, convert back to uncached refs; can follow the pointers to reload the member types.
-    // ### Maybe, in general, convert all refs to uncached.
-    protected transient List<Ref<? extends Type>> memberClasses;
+    protected List<Ref<? extends ClassType>> memberClasses;
 
     public ClassType asType() {
         return new ParsedClassType_c(this);
@@ -86,7 +83,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         this.methods = new ArrayList<MethodDef>();
         this.fields = new ArrayList<FieldDef>();
         this.constructors = new ArrayList<ConstructorDef>();
-        this.memberClasses = new ArrayList<Ref<? extends Type>>();
+        this.memberClasses = new ArrayList<Ref<? extends ClassType>>();
         
         sourceKind = fromSource != null ? SourceKind.SOURCE : SourceKind.UNKNOWN;
     }
@@ -234,7 +231,7 @@ public class ClassDef_c extends Def_c implements ClassDef
 	fields.add(fi);
     }
 
-    public void addMemberClass(Ref<? extends Type> t) {
+    public void addMemberClass(Ref<? extends ClassType> t) {
 	memberClasses.add(t);
     }
 
@@ -250,8 +247,8 @@ public class ClassDef_c extends Def_c implements ClassDef
         this.interfaces = new ArrayList<Ref<? extends Type>>(l);
     }
 
-    public void setMemberClasses(List<Ref<? extends Type>> l) {
-        this.memberClasses = new ArrayList<Ref<? extends Type>>(l);
+    public void setMemberClasses(List<Ref<? extends ClassType>> l) {
+        this.memberClasses = new ArrayList<Ref<? extends ClassType>>(l);
     }
 
     public void setMethods(List<? extends MethodDef> l) {
@@ -264,8 +261,8 @@ public class ClassDef_c extends Def_c implements ClassDef
     }
 
     /** Return an immutable list of member classes */
-    public List<Ref<? extends Type>> memberClasses() {
-        return Collections.<Ref<? extends Type>>unmodifiableList(memberClasses);
+    public List<Ref<? extends ClassType>> memberClasses() {
+        return Collections.<Ref<? extends ClassType>>unmodifiableList(memberClasses);
     }
 
     /** Return an immutable list of methods. */

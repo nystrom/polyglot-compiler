@@ -28,8 +28,8 @@ public interface Initializer extends CodeDecl
      * Get the initializer's type object.  This field may not be valid until
      * after signature disambiguation.
      */
-    InitializerDef initializerInstance();
+    InitializerDef initializerDef();
 
     /** Set the initializer's type object. */
-    Initializer initializerInstance(InitializerDef ii);
+    Initializer initializerDef(InitializerDef ii);
 }

@@ -1,5 +1,6 @@
 package polyglot.visit;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import polyglot.ast.Node;
@@ -8,15 +9,18 @@ import polyglot.util.InternalCompilerError;
 
 public class ReentrantVisitor extends NodeVisitor {
     protected Job job;
-
+    protected Map<Node,Node> newSubst;
+    
     public ReentrantVisitor(Job job) {
         this.job = job;
+        this.newSubst = new HashMap<Node,Node>();
     }
 
     public Job job() {
         return job;
     }
-
+    
+    
     @Override
     public Node visitEdge(Node parent, Node child) {
         Map<Node,Node> subst = job.astMap();
@@ -35,7 +39,13 @@ public class ReentrantVisitor extends NodeVisitor {
                 n = visitEdgeNoOverride(parent, child);
             }
 
-            installSubst(subst, child, n);
+//            if (child != n)
+//                installSubst(newSubst, child, n);
+//
+//            if (n == job.ast()) {
+//                job.setAstMap(newSubst);
+//            }
+            
             return n;
         }
         catch (InternalCompilerError e) {
@@ -45,16 +55,15 @@ public class ReentrantVisitor extends NodeVisitor {
         }
     }
 
-    protected void installSubst(final Map<Node,Node> subst, Node old, Node n) {
-        // Remove the children from the substitution.
-        old.visitChildren(new NodeVisitor() {
-            public Node override(Node n) {
-                subst.remove(n);
-                return n;
-            }
-        });
-
-        subst.put(old, n);
-    }
-
+//    protected void installSubst(final Map<Node,Node> subst, Node old, Node n) {
+//        // Remove the children from the substitution.
+//        old.visitChildren(new NodeVisitor() {
+//            public Node override(Node n) {
+//                subst.remove(n);
+//                return n;
+//            }
+//        });
+//
+//        subst.put(old, n);
+//    }
 }

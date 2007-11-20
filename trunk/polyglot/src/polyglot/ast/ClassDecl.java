@@ -21,12 +21,12 @@ public interface ClassDecl extends Term, TopLevelDecl, ClassMember
     /**
      * The type of the class declaration.
      */
-    ClassDef type();
+    ClassDef classDef();
 
     /**
      * Set the type of the class declaration.
      */
-    ClassDecl type(ClassDef type);
+    ClassDecl classDef(ClassDef type);
 
     /**
      * The class declaration's flags.

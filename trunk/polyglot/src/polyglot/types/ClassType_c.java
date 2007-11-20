@@ -134,7 +134,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     public abstract List<ConstructorInstance> constructors();
 
     /** Get the class's member classes. */
-    public abstract List<Type> memberClasses();
+    public abstract List<ClassType> memberClasses();
 
     /** Get the class's methods. */
     public abstract List<MethodInstance> methods();
@@ -149,8 +149,8 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     public abstract Type superType();
     
     /** Get a list of all the class's MemberInstances. */
-    public List<MemberInstance> members() {
-        List l = new ArrayList();
+    public List<MemberInstance<?>> members() {
+        List<MemberInstance<?>> l = new ArrayList<MemberInstance<?>>();
         l.addAll(methods());
         l.addAll(fields());
         l.addAll(constructors());
