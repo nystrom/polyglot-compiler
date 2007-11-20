@@ -219,7 +219,6 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
 
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         FieldDecl n = this;
-        
 
         InitializerDef ii = null;
         if (init != null) {
@@ -239,6 +238,8 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
                 break;
             }
         }
+        
+        fi.setType(type.typeRef());
 
         return n.flags(fi.flags()).fieldDef(fi);
     }

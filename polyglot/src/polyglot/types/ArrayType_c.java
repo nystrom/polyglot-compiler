@@ -17,8 +17,8 @@ import polyglot.util.*;
 public class ArrayType_c extends ReferenceType_c implements ArrayType
 {
     protected Ref<? extends Type> base;
-    protected List<Ref<? extends FieldDef>> fields;
-    protected List<Ref<? extends MethodDef>> methods;
+    protected List<FieldDef> fields;
+    protected List<MethodDef> methods;
     protected List<Ref<? extends Type>> interfaces;
 
     /** Used for deserializing types. */
@@ -35,7 +35,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
 
     protected void init() {
         if (methods == null) {
-            methods = new ArrayList<Ref<? extends MethodDef>>(1);
+            methods = new ArrayList<MethodDef>(1);
 
             // Add method public Object clone()
             MethodDef mi = ts.methodInstance(position(),
@@ -45,11 +45,11 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
                                           "clone",
                                           Collections.EMPTY_LIST,
                                           Collections.EMPTY_LIST);
-            methods.add(Ref_c.<MethodDef>ref(mi));
+            methods.add(mi);
         }
 
         if (fields == null) {
-            fields = new ArrayList<Ref<? extends FieldDef>>(1);
+            fields = new ArrayList<FieldDef>(1);
 
             // Add field public final int length
             FieldDef fi = ts.fieldInstance(position(),
@@ -58,7 +58,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
                                         Ref_c.<PrimitiveType>ref(ts.Int()),
                                         "length");
             fi.setNotConstant();
-            fields.add(Ref_c.<FieldDef>ref(fi));
+            fields.add(fi);
         }
 
         if (interfaces == null) {
@@ -104,7 +104,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
     }
 
     public String toString() {
-        return base().toString() + "[]";
+        return base.toString() + "[]";
     }
 
     public void print(CodeWriter w) {
@@ -123,13 +123,13 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
     /** Get the methods implemented by the array type. */
     public List<MethodInstance> methods() {
         init();
-        return new TransformingList(methods, new SymbolTransform());
+        return new TransformingList<MethodDef,MethodInstance>(methods, new MethodAsTypeTransform());
     }
 
     /** Get the fields of the array type. */
     public List<FieldInstance> fields() {
         init();
-        return new TransformingList(fields, new SymbolTransform());
+        return new TransformingList<FieldDef,FieldInstance>(fields, new FieldAsTypeTransform());
     }
 
     /** Get the clone() method. */

@@ -793,7 +793,10 @@ public class TypeSystem_c implements TypeSystem
 
 	for (Iterator<?> i = l.iterator(); i.hasNext(); ) {
 	    Object o = i.next();
-            sb.append(o.toString());
+	    if (o == null)
+	        sb.append("null");
+	    else
+	        sb.append(o.toString());
 
 	    if (i.hasNext()) {
                 sb.append(", ");

@@ -67,8 +67,8 @@ public class Context_c implements Context
     
     public Context freeze() {
         Context_c c = (Context_c) this.copy();
-        c.types = new HashMap(types);
-        c.vars = new HashMap(vars);
+        c.types = types != null ? new HashMap(types) : null;
+        c.vars = vars != null ? new HashMap(vars) : null;
         return c;
     }
 

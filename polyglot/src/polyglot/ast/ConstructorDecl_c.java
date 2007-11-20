@@ -193,6 +193,20 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
     
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         ConstructorDef ci = (ConstructorDef) tb.def();
+
+        List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(formals.size());
+        for (Formal f : formals()) {
+            formalTypes.add(f.type().typeRef());
+        }
+
+        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(throwTypes().size());
+        for (TypeNode tn : throwTypes()) {
+            throwTypes.add(tn.typeRef());
+        }
+
+        ci.setFormalTypes(formalTypes);
+        ci.setThrowTypes(throwTypes);
+        
         return constructorDef(ci);
     }
 
