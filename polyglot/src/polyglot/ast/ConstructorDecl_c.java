@@ -39,6 +39,10 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
 	this.body = body;
     }
     
+    public List<Def> defs() {
+        return Collections.<Def>singletonList(ci);
+    }
+    
     public MemberDef memberDef() {
         return ci;
     }
@@ -164,50 +168,51 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
 	return reconstruct(name, formals, throwTypes, body);
     }
 
-    public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
+    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
         TypeSystem ts = tb.typeSystem();
 
         ClassDef ct = tb.currentClass();
         assert ct != null;
 
-        ClassType contextClassType = new ParsedClassType_c(ts, position(), Ref_c.<ClassDef>ref(ct));
+        Flags flags = this.flags;
+
+        if (ct.flags().isInterface()) {
+            flags = flags.Public().Abstract();
+        }
+        
+        ConstructorDef ci = ts.constructorDef(position(), Ref_c.ref(ct.asType()), flags,
+                                         Collections.<Ref<? extends Type>>emptyList(), Collections.<Ref<? extends Type>>emptyList());
+        Symbol<ConstructorDef> sym = ts.symbolTable().<ConstructorDef>symbol(ci);
+        ct.addConstructor(ci);
+        
+        Goal g = Globals.Scheduler().SignatureDef(tb.job(), ci);
+        g.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
+        TypeBuilder tb2 = tb.pushCode(ci, g);
+
+        Goal g2 = Globals.Scheduler().TypeCheckDef(tb.job(), ci);
+        g2.addPrereq(g);
+        TypeBuilder tb3 = tb.pushCode(ci, g2);
+
+        List<Formal> formals = this.visitList(this.formals, tb2);
+        List<TypeNode> throwTypeNodes = this.visitList(this.throwTypes, tb2);
         
         List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(formals.size());
-        for (Formal f : formals()) {
+        for (Formal f : formals) {
             formalTypes.add(f.type().typeRef());
         }
 
-        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(throwTypes().size());
-        for (TypeNode tn : throwTypes()) {
-            throwTypes.add(tn.typeRef());
-        }
-
-        ConstructorDef ci = ts.constructorInstance(position(), Ref_c.<ClassType>ref(contextClassType),
-                                                        flags, formalTypes, throwTypes);
-        ct.addConstructor(ci);
-
-        Goal g = Globals.Scheduler().TypeCheckDef(tb.job(), ci);
-        g.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
-        return tb.pushCode(ci, g);
-    }
-    
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        ConstructorDef ci = (ConstructorDef) tb.def();
-
-        List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(formals.size());
-        for (Formal f : formals()) {
-            formalTypes.add(f.type().typeRef());
-        }
-
-        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(throwTypes().size());
-        for (TypeNode tn : throwTypes()) {
+        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(throwTypeNodes.size());
+        for (TypeNode tn : throwTypeNodes) {
             throwTypes.add(tn.typeRef());
         }
 
         ci.setFormalTypes(formalTypes);
         ci.setThrowTypes(throwTypes);
+
+        Id name = (Id) this.visitChild(this.name, tb);
+        Block body = (Block) this.visitChild(this.body, tb3);
         
-        return constructorDef(ci);
+        return reconstruct(name, formals, throwTypeNodes, body).constructorDef(ci);
     }
 
     public Context enterScope(Context c) {
@@ -272,7 +277,7 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
     }
 
     public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
-        return ec.push(constructorDef().throwTypes());
+        return ec.push(constructorDef().asInstance().throwTypes());
     }
 
     public String toString() {

@@ -8,35 +8,13 @@
 
 package polyglot.ast;
 
-import java.util.List;
+import java.util.*;
 
 import polyglot.frontend.Globals;
 import polyglot.frontend.Goal;
-import polyglot.types.ClassDef;
-import polyglot.types.ClassType;
-import polyglot.types.CodeDef;
-import polyglot.types.Context;
-import polyglot.types.ErrorRef_c;
-import polyglot.types.FieldDef;
-import polyglot.types.Flags;
-import polyglot.types.InitializerDef;
-import polyglot.types.MemberDef;
-import polyglot.types.ParsedClassType_c;
-import polyglot.types.Ref_c;
-import polyglot.types.SemanticException;
-import polyglot.types.Type;
-import polyglot.types.TypeSystem;
-import polyglot.types.VarDef;
-import polyglot.util.CodeWriter;
-import polyglot.util.Position;
-import polyglot.visit.AmbiguityRemover;
-import polyglot.visit.AscriptionVisitor;
-import polyglot.visit.CFGBuilder;
-import polyglot.visit.ExceptionChecker;
-import polyglot.visit.NodeVisitor;
-import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeBuilder;
-import polyglot.visit.TypeChecker;
+import polyglot.types.*;
+import polyglot.util.*;
+import polyglot.visit.*;
 
 /**
  * A <code>FieldDecl</code> is an immutable representation of the declaration
@@ -59,6 +37,14 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         this.type = type;
         this.name = name;
         this.init = init;
+    }
+
+    public List<Def> defs() {
+        if (init == null)
+            return Collections.<Def>singletonList(fi);
+        else {
+            return CollectionUtil.<Def>list(fi, ii);
+        }
     }
 
     public MemberDef memberDef() {
@@ -188,60 +174,56 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         return reconstruct(type, name, init);
     }
 
-    public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
+    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
         TypeSystem ts = tb.typeSystem();
 
-        ClassDef cd = tb.currentClass();
-        ClassType ct = cd.asType();
+        ClassDef ct = tb.currentClass();
+        assert ct != null;
 
         Flags flags = this.flags;
 
-        if (cd.flags().isInterface()) {
+        if (ct.flags().isInterface()) {
             flags = flags.Public().Static().Final();
         }
+
+        FieldDef fi = ts.fieldDef(position(), Ref_c.ref(ct.asType()), flags, type.typeRef(), name.id());
+        Symbol<FieldDef> sym = ts.symbolTable().<FieldDef>symbol(fi);
+        ct.addField(fi);
+
+        Goal sig = Globals.Scheduler().SignatureDef(tb.job(), fi);
+        sig.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
+
+        Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), fi);
+        chk.addPrereq(sig);
         
+        InitializerDef ii = null;
+
         if (init != null) {
             Flags iflags = flags.isStatic() ? Flags.STATIC : Flags.NONE;
-            InitializerDef ii = ts.initializerInstance(init.position(),
-                                                            Ref_c.<ClassType>ref(ct), iflags);
-            tb = tb.pushCode(ii, Globals.Scheduler().TypeCheckDef(tb.job(), ii));
+            ii = ts.initializerInstance(init.position(),
+                                                            Ref_c.<ClassType>ref(ct.asType()), iflags);
+            tb = tb.pushCode(ii, sig);
         }
 
-        FieldDef fi = ts.fieldInstance(position(), Ref_c.<ClassType>ref(ct), flags, type.typeRef(), name.id());
-        ts.symbolTable().<FieldDef>symbol(fi);
-        
-        cd.addField(fi);
+        TypeBuilder tbSig = tb.pushDef(fi).pushGoal(sig);
+        TypeBuilder tbChk = tb.pushDef(fi).pushGoal(chk);
 
-        Goal g = Globals.Scheduler().TypeCheckDef(tb.job(), fi);
-        g.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), cd));
-        return tb.pushDef(fi).pushGoal(g);
-    }
+        Id name = (Id) this.visitChild(this.name, tb);
 
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        FieldDecl n = this;
-
-        InitializerDef ii = null;
-        if (init != null) {
-            for (TypeBuilder tb2 = tb; tb2 != null; tb2 = tb2.pop()) {
-                if (tb2.def() instanceof InitializerDef) {
-                    ii = (InitializerDef) tb2.def();                   
-                    break;
-                }
-            }
-            n = n.initializerDef(ii);
-        }
-
-        FieldDef fi = null;
-        for (TypeBuilder tb2 = tb; tb2 != null; tb2 = tb2.pop()) {
-            if (tb2.def() instanceof FieldDef) {
-                fi = (FieldDef) tb2.def();                   
-                break;
-            }
-        }
-        
+        TypeNode type = (TypeNode) this.visitChild(this.type, tbSig);
         fi.setType(type.typeRef());
 
-        return n.flags(fi.flags()).fieldDef(fi);
+        Expr init = (Expr) this.visitChild(this.init, tbChk);
+        
+        FieldDecl_c n = reconstruct(type, name, init);
+        
+        n = (FieldDecl_c) n.fieldDef(fi);
+        
+        if (ii != null) {
+            n = (FieldDecl_c) n.initializerDef(ii);
+        }
+
+        return n;
     }
 
     public Context enterScope(Context c) {
@@ -267,13 +249,29 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     }
 
     /** Type check the declaration. */
+//    @Override
+//    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
+//        TypeSystem ts = tc.typeSystem();
+//        
+//        if (tc.mode(this) == TypeChecker.Mode.CURRENT_ROOT) {
+//            return tc.visitEdgeNoOverride(parent, this);
+//        }
+//        else {
+//            return tc.visitEdgeNoOverride(parent, this);
+//        }
+//    }
+    
     public Node typeCheck(TypeChecker tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
+
+        if (tc.mode(this) != TypeChecker.Mode.CURRENT_ROOT || tc.scope() != TypeChecker.Scope.BODY_OF_ROOT) {
+            return this;
+        }
 
         // Get the fi flags, not the node flags since the fi flags
         // account for being nested within an interface.
         Flags flags = fi.flags();
-        
+
         try {
             ts.checkFieldFlags(flags);
         }
@@ -289,21 +287,26 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         }
 
         if (init != null) {
-            if (init instanceof ArrayInit) {
-                ((ArrayInit) init).typeCheckElements(type.type());
+            if (tc.scope() == TypeChecker.Scope.SIGNATURES_OF_ROOT) {
+                return this;
             }
-            else {
-                if (! ts.isImplicitCastValid(init.type(), type.type()) &&
-                    ! ts.typeEquals(init.type(), type.type()) &&
-                    ! ts.numericConversionValid(type.type(),
-                                                init.constantValue())) {
+            if (tc.scope() == TypeChecker.Scope.BODY_OF_ROOT) {
+                if (init instanceof ArrayInit) {
+                    ((ArrayInit) init).typeCheckElements(type.type());
+                }
+                else {
+                    if (! ts.isImplicitCastValid(init.type(), type.type()) &&
+                            ! ts.typeEquals(init.type(), type.type()) &&
+                            ! ts.numericConversionValid(type.type(),
+                                                        init.constantValue())) {
 
-                    throw new SemanticException("The type of the variable " +
-                                                "initializer \"" + init.type() +
-                                                "\" does not match that of " +
-                                                "the declaration \"" +
-                                                type.type() + "\".",
-                                                init.position());
+                        throw new SemanticException("The type of the variable " +
+                                                    "initializer \"" + init.type() +
+                                                    "\" does not match that of " +
+                                                    "the declaration \"" +
+                                                    type.type() + "\".",
+                                                    init.position());
+                    }
                 }
             }
         }
@@ -311,14 +314,13 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         // check that inner classes do not declare static fields, unless they
         // are compile-time constants
         if (flags().isStatic() &&
-              fieldDef().container().get().toClass().isInnerClass()) {
+                fieldDef().container().get().toClass().isInnerClass()) {
             // it's a static field in an inner class.
             if (!flags().isFinal() || init == null || !init.isConstant()) {
                 throw new SemanticException("Inner classes cannot declare " +
-                        "static fields, unless they are compile-time " +
-                        "constant fields.", this.position());
+                                            "static fields, unless they are compile-time " +
+                                            "constant fields.", this.position());
             }
-
         }
 
         return this;

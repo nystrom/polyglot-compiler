@@ -127,7 +127,7 @@ public class Call_c extends Expr_c implements Call
       Call_c n = (Call_c) copy();
       
       // If the target changes, assume we want it to be an explicit target.
-      n.targetImplicit &= target == n.target;
+      n.targetImplicit = n.targetImplicit && target == n.target;
       
       n.target = target;
       n.name = name;

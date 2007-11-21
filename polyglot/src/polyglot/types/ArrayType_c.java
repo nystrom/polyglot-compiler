@@ -38,7 +38,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
             methods = new ArrayList<MethodDef>(1);
 
             // Add method public Object clone()
-            MethodDef mi = ts.methodInstance(position(),
+            MethodDef mi = ts.methodDef(position(),
                                           Ref_c.<ArrayType_c>ref(this),
                                           ts.Public(),
                                           Ref_c.<ClassType>ref(ts.Object()),
@@ -52,7 +52,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
             fields = new ArrayList<FieldDef>(1);
 
             // Add field public final int length
-            FieldDef fi = ts.fieldInstance(position(),
+            FieldDef fi = ts.fieldDef(position(),
                                         Ref_c.<ArrayType_c>ref(this),
                                         ts.Public().Final(),
                                         Ref_c.<PrimitiveType>ref(ts.Int()),
@@ -181,11 +181,13 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
 
     public boolean isImplicitCastValid(Type toType) {
         if (toType.isArray()) {
-            if (base().isPrimitive() || toType.toArray().base().isPrimitive()) {
-                return ts.typeEquals(base(), toType.toArray().base());
+            Type fromBase = base();
+            Type toBase = toType.toArray().base();
+            if (fromBase.isPrimitive() || toBase.isPrimitive()) {
+                return ts.typeEquals(fromBase, toBase);
             }
             else {
-                return ts.isImplicitCastValid(base(), toType.toArray().base());
+                return ts.isImplicitCastValid(fromBase, toBase);
             }
         }
 

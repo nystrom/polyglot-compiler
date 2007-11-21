@@ -8,18 +8,10 @@
 
 package polyglot.ast;
 
+import java.util.Collections;
 import java.util.List;
 
-import polyglot.types.Context;
-import polyglot.types.Flags;
-import polyglot.types.LocalDef;
-import polyglot.types.LocalInstance;
-import polyglot.types.LocalInstance_c;
-import polyglot.types.Ref_c;
-import polyglot.types.SemanticException;
-import polyglot.types.Type;
-import polyglot.types.TypeSystem;
-import polyglot.types.VarDef;
+import polyglot.types.*;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
 import polyglot.visit.AscriptionVisitor;
@@ -49,6 +41,10 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         this.type = type;
         this.name = name;
         this.init = init;
+    }
+    
+    public List<Def> defs() {
+        return Collections.<Def>singletonList(li);
     }
     
     /** Get the type of the declaration. */
@@ -160,7 +156,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     public void addDecls(Context c) {
         // Add the declaration of the variable in case we haven't already done
         // so in enterScope, when visiting the initializer.
-        c.addVariable(li.asReference());
+        c.addVariable(li.asInstance());
     }
 
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
@@ -169,6 +165,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         TypeSystem ts = tb.typeSystem();
 
         LocalDef li = ts.localInstance(position(), flags(), type.typeRef(), name.id());
+        Symbol<LocalDef> sym = ts.symbolTable().<LocalDef>symbol(li);
         return n.localDef(li);
     }
 

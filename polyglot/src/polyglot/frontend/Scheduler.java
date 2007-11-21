@@ -57,6 +57,9 @@ public abstract class Scheduler {
             g = goal;
             internCache.put(g, g);
         }
+        else {
+            assert goal.getClass() == g.getClass();
+        }
         return g;
     }
     
@@ -247,31 +250,21 @@ public abstract class Scheduler {
      * Run passes until the <code>goal</code> is attempted.  Returns true iff the goal is reached.
      */ 
     public boolean attempt(Goal goal) {
-        State s = pushGlobalState(goal);
-        boolean fatal = true;
-        try {
-            assert currentGoal() == null
-            || currentGoal().state() == Goal.Status.RUNNING
-            || currentGoal().state() == Goal.Status.RUNNING_RECURSIVE;
-            
-            boolean result = attemptGoalAndPrereqs(goal, new HashSet<Goal>());
-            fatal = false;
+        assert currentGoal() == null
+        || currentGoal().state() == Goal.Status.RUNNING
+        || currentGoal().state() == Goal.Status.RUNNING_RECURSIVE;
 
-            // If the spawned goal recursively spawned the current goal, terminate the current goal.
-            // The exception should be caught in runPass.
-            if (currentGoal() != null) {
-                if (currentGoal().state() == Goal.Status.SUCCESS || currentGoal().state() == Goal.Status.FAIL) {
-                    throw new Complete(currentGoal());
-                }
-            }
+        boolean result = attemptGoalAndPrereqs(goal, new HashSet<Goal>());
 
-            return result;
-        }
-        finally {
-            if (! fatal) {
-                popGlobalState(goal, s);
+        // If the spawned goal recursively spawned the current goal, terminate the current goal.
+        // The exception should be caught in runPass.
+        if (currentGoal() != null) {
+            if (currentGoal().state() == Goal.Status.SUCCESS || currentGoal().state() == Goal.Status.FAIL) {
+                throw new Complete(currentGoal());
             }
         }
+
+        return result;
     }
 
     public static class State {
@@ -347,10 +340,9 @@ public abstract class Scheduler {
                     goal.setState(Goal.Status.UNREACHABLE);
                     return false;
                 }
-                
-                if (worklist.isEmpty()) {
-                    worklist.addAll(prerequisites(goal));
-                }
+
+                // Add any prereqs that might have been added by the subgoal
+                worklist.addAll(prerequisites(goal));
             }
         }
         
@@ -375,6 +367,11 @@ public abstract class Scheduler {
         // Now, run the goal itself.
         if (Report.should_report(Report.frontend, 4))
             Report.report(4, "running goal " + goal);
+        
+        if (currentGoal() != null) {
+            System.out.println("CURRENT = " + currentGoal());
+            System.out.println("SPAWN   = " + goal);
+        }
 
         boolean result = runPass(goal);
 
@@ -424,7 +421,7 @@ public abstract class Scheduler {
         
         if (goal.state() == Goal.Status.RUNNING || goal.state() == Goal.Status.RUNNING_RECURSIVE) {
             if (! pass.isReentrant()) {
-                throw new InternalCompilerError("Cannot run a non-reentrant pass for " + goal);
+                throw new InternalCompilerError("Cannot reenter a non-reentrant pass for " + goal);
             }
             reentrant = true;
         }
@@ -681,13 +678,16 @@ public abstract class Scheduler {
     public abstract Goal TypesInitialized(Job job);
     public abstract Goal TypesInitializedForCommandLine();
     
-    public abstract Goal MakeDictionary(Job job);
+    public abstract Goal FragmentAST(Job job);
 
-    public abstract Goal SignatureDef(Job job, ClassDef def);
-    public abstract Goal SupertypeDef(Job job, ClassDef def);
+    public abstract Goal SignatureDef(Job job, Def def);
+    public abstract Goal SupertypeDef(Job job, Def def);
     public abstract Goal TypeCheckDef(Job job, Def def);
 
     public abstract Goal TypeChecked(Job job);
+    
+    public abstract Goal ReassembleAST(Job job);
+
     public abstract Goal ReachabilityChecked(Job job);
     public abstract Goal ExceptionsChecked(Job job);
     public abstract Goal ExitPathsChecked(Job job);

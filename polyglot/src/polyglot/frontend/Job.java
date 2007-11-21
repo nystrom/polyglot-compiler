@@ -33,9 +33,6 @@ public class Job
     /** The AST constructed from the source file. */
     protected Node ast;
     
-    /** Substitution map for AST nodes. */
-    protected Map<Node,Node> astMap;
-
     /** Map from definitions to AST nodes. */
     protected Map<Def,ASTFragment> fragmentMap;
 
@@ -59,7 +56,6 @@ public class Job
         this.ext = ext;
         this.source = source;
         this.ast = ast;
-        this.astMap = null;
 
         this.runningPass = null;
         this.status = true;
@@ -69,17 +65,6 @@ public class Job
     
     public List<Pass> passes() {
         return Collections.<Pass>emptyList();
-    }
-    
-    public Map<Node,Node> astMap() {
-        if (astMap == null) {
-            astMap = new HashMap<Node,Node>();
-        }
-        return astMap;
-    }
-    
-    public void setAstMap(Map<Node,Node> map) {
-        this.astMap = map;
     }
     
     public Map<Def,ASTFragment> fragmentMap() {

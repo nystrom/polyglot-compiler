@@ -40,7 +40,7 @@ public class ExceptionChecker extends ErrorHandlingVisitor
      *     { D }
      *     { A, B }
      */
-    protected Set catchable;
+    protected Set<Type> catchable;
     
 
     /**
@@ -72,13 +72,13 @@ public class ExceptionChecker extends ErrorHandlingVisitor
     }
     public ExceptionChecker push(Type catchableType) {
         ExceptionChecker ec = this.push();
-        ec.catchable = Collections.singleton(catchableType);
+        ec.catchable = Collections.<Type>singleton(catchableType);
         ec.throwsSet = new SubtypeSet(ts.Throwable());
         return ec;
     }
-    public ExceptionChecker push(Collection catchableTypes) {
+    public ExceptionChecker push(Collection<Type> catchableTypes) {
         ExceptionChecker ec = this.push();
-        ec.catchable = new HashSet(catchableTypes);
+        ec.catchable = new HashSet<Type>(catchableTypes);
         ec.throwsSet = new SubtypeSet(ts.Throwable());
         return ec;
     }
@@ -165,7 +165,7 @@ public class ExceptionChecker extends ErrorHandlingVisitor
             ExceptionChecker ec = this;
             while (!exceptionCaught && ec != null) {
                 if (ec.catchable != null) {
-                    for (Iterator iter = ec.catchable.iterator(); iter.hasNext(); ) {
+                    for (Iterator<Type> iter = ec.catchable.iterator(); iter.hasNext(); ) {
                         Type catchType = (Type)iter.next();
                         if (ts.isSubtype(t, catchType)) {
                             exceptionCaught = true;

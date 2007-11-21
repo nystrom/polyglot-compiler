@@ -9,6 +9,7 @@ package polyglot.types;
 
 import java.util.List;
 
+import polyglot.main.Report;
 import polyglot.util.Position;
 
 /**
@@ -27,8 +28,14 @@ public class ConstructorDef_c extends ProcedureDef_c
         super(ts, pos, container, flags, formalTypes, excTypes);
     }
     
-    public ConstructorInstance asReference() {
-        return new ConstructorInstance_c(ts, position(), Ref_c.<ConstructorDef>ref(this));
+    protected transient ConstructorInstance asInstance;
+
+    public ConstructorInstance asInstance() {
+        if (Report.should_report("asi", 1)) asInstance = null;
+        if (asInstance == null) {
+            asInstance = new ConstructorInstance_c(ts, position(), Ref_c.<ConstructorDef> ref(this));
+        }
+        return asInstance;
     }
 
     public String toString() {

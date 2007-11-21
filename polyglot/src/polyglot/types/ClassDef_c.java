@@ -36,9 +36,14 @@ public class ClassDef_c extends Def_c implements ClassDef
     protected String name;
     protected Ref<ClassDef> outer;
     protected List<Ref<? extends ClassType>> memberClasses;
-
+    protected transient ClassType asType;
+    
     public ClassType asType() {
-        return new ParsedClassType_c(this);
+        if (Report.should_report("asi", 1)) asType = null;
+        if (asType == null) {
+            asType = new ParsedClassType_c(this);
+        }
+        return asType;
     }
     
     /** Was the class declared in a static context? */
@@ -281,27 +286,7 @@ public class ClassDef_c extends Def_c implements ClassDef
     }
     
     public String toString() {
-        if (kind() == null) {
-            return "<unknown class " + name + ">";
-        }
-        if (kind() == ANONYMOUS) {
-            if (interfaces != null && ! interfaces.isEmpty()) {
-                return "<anonymous subtype of " + interfaces.get(0) + ">";
-            }
-            if (superType != null) {
-                return "<anonymous subclass of " + superType + ">";
-            }
-        }
-        String name = name();
-        if (kind() == TOP_LEVEL && package_() != null) {
-            return get(package_()).fullName() + "." + name;
-        }
-        else if (kind() == MEMBER && get(outer()) instanceof Named) {
-            return ((Named) get(outer())).fullName() + "." + name;
-        }
-        else {
-            return name;
-        }
+        return fullName();
     }
 
     public void needSerialization(boolean b) {
@@ -314,15 +299,28 @@ public class ClassDef_c extends Def_c implements ClassDef
 
     /** Get the full name of the class, if possible. */
     public String fullName() {
-        if (kind() == ANONYMOUS) {
-            return toString();
-        }
         String name = name();
-        if (kind() == TOP_LEVEL && package_() != null) {
-            return get(package_()).fullName() + "." + name;
+
+        if (kind() == null) {
+            return "<unknown class " + name + ">";
         }
-        else if (kind() == MEMBER && get(outer()) instanceof Named) {
-            return ((Named) get(outer())).fullName() + "." + name;
+    
+        if (kind() == ANONYMOUS) {
+            if (interfaces != null && ! interfaces.isEmpty()) {
+                return "<anonymous subtype of " + interfaces.get(0) + ">";
+            }
+            if (superType != null) {
+                return "<anonymous subclass of " + superType + ">";
+            }
+        }
+    
+        if (kind() == TOP_LEVEL) {
+            Package p = get(package_());
+            return p != null ? p.fullName() + "." + name : name;
+        }
+        else if (kind() == MEMBER) {
+            ClassDef outer = get(outer());
+            return outer != null ? outer.fullName() + "." + name : name;
         }
         else {
             return name;

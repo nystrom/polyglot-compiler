@@ -16,16 +16,22 @@ import polyglot.util.*;
 
 /**
  */
-public class ErrorHandlingVisitor extends ReentrantVisitor
+public class ErrorHandlingVisitor extends NodeVisitor
 {
     protected boolean error;
+    protected Job job;
     protected TypeSystem ts;
     protected NodeFactory nf;
 
     public ErrorHandlingVisitor(Job job, TypeSystem ts, NodeFactory nf) {
-        super(job); 
+        super();
+        this.job = job;
         this.ts = ts;
         this.nf = nf;
+    }
+    
+    public Job job() {
+        return job;
     }
     
     /**

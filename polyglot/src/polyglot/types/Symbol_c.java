@@ -102,6 +102,8 @@ public class Symbol_c<T extends TypeObject> implements Symbol<T>, Serializable {
         complete(view);
 
         // Not successful.  Probably should have thrown an exception here.
+        assert history != null;
+        
         if (history == null) {
             return null;
         }

@@ -9,6 +9,7 @@ package polyglot.types;
 
 import java.util.List;
 
+import polyglot.main.Report;
 import polyglot.util.Position;
 
 /**
@@ -33,8 +34,14 @@ public class MethodDef_c extends ProcedureDef_c
 	this.name = name;
     }
     
-    public MethodInstance asReference() {
-        return new MethodInstance_c(ts, position(), Ref_c.<MethodDef>ref(this));
+    protected transient MethodInstance asInstance;
+    
+    public MethodInstance asInstance() {
+        if (Report.should_report("asi", 1)) asInstance = null;
+        if (asInstance == null) {
+            asInstance = new MethodInstance_c(ts, position(), Ref_c.<MethodDef>ref(this));
+        }
+        return asInstance;
     }
 
     public String name() {

@@ -34,7 +34,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         return def.get();
     }
     
-    public boolean equals(TypeObject t) {
+    public boolean equalsImpl(TypeObject t) {
         if (t instanceof ClassType_c) {
             Ref<ClassDef> thisDef = def;
             Ref<ClassDef> thatDef = ((ClassType_c) t).def;
@@ -47,7 +47,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         if (t instanceof ClassType) {
             ClassDef thisDef = def();
             ClassDef thatDef = ((ClassType) t).def();
-            return thisDef.equals(thatDef);
+            return thisDef.equalsImpl(thatDef);
         }
         return false;
     }
@@ -319,8 +319,8 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
             if (c != null && !Globals.Options().fully_qualified_names) {
                 try {
                     Named x = c.find(name());
-
-                    if (ts.equals(this, x)) {
+                    
+                    if (x instanceof ClassType && def().equals(((ClassType) x).def())) {
                         return name();
                     }
                 }
@@ -341,7 +341,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
                 try {
                     Named x = c.find(name());
 
-                    if (ts.equals(this, x)) {
+                    if (x instanceof ClassType && def().equals(((ClassType) x).def())) {
                         return name();
                     }
                 }
@@ -408,7 +408,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         if (isTopLevel())
             return false;
         else if (outer() != null)
-            return outer().equals(maybe_outer) ||
+            return outer().typeEquals(maybe_outer) ||
                   outer().isEnclosed(maybe_outer);
         else
             throw new InternalCompilerError("Non top-level classes " + 
@@ -420,7 +420,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
      * an enclosing instance of <code>encl</code>. 
      */
     public boolean hasEnclosingInstance(ClassType encl) {
-        if (this.equals(encl)) {
+        if (this.typeEquals(encl)) {
             // object o is the zeroth lexically enclosing instance of itself. 
             return true;
         }

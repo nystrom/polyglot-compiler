@@ -124,7 +124,7 @@ public class ClassSerializer extends NodeVisitor
 
             Position pos = Position.COMPILER_GENERATED;
 
-	    fi = ts.fieldInstance(pos, Ref_c.ref(new ParsedClassType_c(cd)),
+	    fi = ts.fieldDef(pos, Ref_c.ref(new ParsedClassType_c(cd)),
                                   flags, Ref_c.ref(ts.String()),
                                   "jlc$CompilerVersion$" + suffix);
             fi.setConstantValue(version);
@@ -141,7 +141,7 @@ public class ClassSerializer extends NodeVisitor
 	    /* Add the date of the last source file modification. */
 	    long time = date.getTime();
 
-	    fi = ts.fieldInstance(pos, Ref_c.ref(new ParsedClassType_c(cd)),
+	    fi = ts.fieldDef(pos, Ref_c.ref(new ParsedClassType_c(cd)),
                                   flags, Ref_c.ref(ts.Long()),
                                   "jlc$SourceLastModified$" + suffix);
             fi.setConstantValue(new Long(time));
@@ -168,7 +168,7 @@ public class ClassSerializer extends NodeVisitor
                 // add an additional suffix to distinguish fields.
                 String additionalFieldSuffix = numberETIFields==0?"":("$" + numberETIFields);
                 String encoded = encodedTypeInfo.substring(etiStart, etiEnd);
-                fi = ts.fieldInstance(pos, Ref_c.ref(new ParsedClassType_c(cd)),
+                fi = ts.fieldDef(pos, Ref_c.ref(new ParsedClassType_c(cd)),
                                       flags, Ref_c.ref(ts.String()),
                                       "jlc$ClassType$" + suffix + additionalFieldSuffix);
                 fi.setConstantValue(encoded);

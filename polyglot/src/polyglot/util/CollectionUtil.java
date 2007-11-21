@@ -17,6 +17,40 @@ public class CollectionUtil
 		l.add(o);
 		return l;
 	}
+	
+	/**
+	 * Return true if <code>a</code> and <code>b</code> are
+	 * pointer equal, or if iterators over both return the same
+	 * sequence of pointer equal elements.
+	 */
+	public static <T> boolean equals(Collection<? extends T> a, Collection<? extends T> b, Predicate2<T> eq) {
+	    if (a == b) {
+	        return true;
+	    }
+	    
+	    // the case where both are null is handled in the previous if.
+	    if (a == null ^ b == null) {
+	        return false;
+	    }
+	    
+	    Iterator<? extends T> i = a.iterator();
+	    Iterator<? extends T> j = b.iterator();
+	    
+	    while (i.hasNext() && j.hasNext()) {
+	        T o = i.next();
+	        T p = j.next();
+	        
+	        if (! eq.isTrue(o, p)) {
+	            return false;
+	        }
+	    }
+	    
+	    if (i.hasNext() || j.hasNext()) {
+	        return false;
+	    }
+	    
+	    return true;
+	}
 
 	/**
 	 * Return true if <code>a</code> and <code>b</code> are

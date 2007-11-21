@@ -81,6 +81,10 @@ public abstract class TypeObject_c implements TypeObject
 
         in.defaultReadObject();
     }
+    
+    public final void equals(TypeObject t) { assert false; }
+    public final void equals(Type t) { assert false; }
+    public final void equalsImpl(Type t) { assert false; }
 
     /**
      * Return whether o is structurally equivalent to o.
@@ -105,9 +109,9 @@ public abstract class TypeObject_c implements TypeObject
      * Overload equalsImpl to find inadvertent overriding errors.
      * Make package-scope and void to break callers.
      */ 
-    final void equalsImpl(Object o) { }
-    final void typeEqualsImpl(Object o) { }
-    final void typeEqualsImpl(TypeObject o) { }
+    public final void equalsImpl(Object o) { assert false; }
+    public final void typeEqualsImpl(Object o) { assert false; }
+    public final void typeEqualsImpl(TypeObject o) { assert false; }
 
     public <T extends TypeObject> Symbol<T> symbol() {
         return (Symbol<T>) sym;

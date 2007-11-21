@@ -8,8 +8,7 @@
 
 package polyglot.ast;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import polyglot.frontend.Globals;
 import polyglot.frontend.Goal;
@@ -39,6 +38,10 @@ public class Initializer_c extends Term_c implements Initializer
 	this.body = body;
     }
     
+    public List<Def> defs() {
+        return Collections.<Def>singletonList(ii);
+    }
+
     public MemberDef memberDef() {
         return ii;
     }

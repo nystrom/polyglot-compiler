@@ -265,6 +265,12 @@ public class SourceClassResolver extends LoadedClassResolver
         if (! scheduler.reached(g)) {
             scheduler.attempt(g);
         }
+        
+        n = ts.systemResolver().check(name);
+        
+        if (n != null) {
+            return n;
+        }
     }
   
     // The source has already been compiled, but the type was not created there.

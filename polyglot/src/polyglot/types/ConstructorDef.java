@@ -15,5 +15,5 @@ package polyglot.types;
  */
 public interface ConstructorDef extends ProcedureDef, MemberDef, Def
 {
-    ConstructorInstance asReference();
+    ConstructorInstance asInstance();
 }

@@ -98,9 +98,9 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
                                             " but was found in " + type + ".");
             }
             
-            if (mt.outer() != type) {
+            if (! mt.outer().typeEquals(type)) {
                 throw new SemanticException("Class " + mt +
-                                            " is not a member class, " +
+                                            " is not a member class " +
                                             " of " + type + ".");
             }
             
@@ -113,7 +113,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
         
         // Collect all members of the super types.
         // Use a Set to eliminate duplicates.
-        Set acceptable = new HashSet();
+        Set<Named> acceptable = new HashSet();
         
         if (type.superType() != null) {
             Type sup = type.superType();
@@ -128,7 +128,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             }
         }
         
-        for (Iterator i = type.interfaces().iterator(); i.hasNext(); ) {
+        for (Iterator<Type> i = type.interfaces().iterator(); i.hasNext(); ) {
             Type sup = (Type) i.next();
             if (sup instanceof ClassType) {
                 Resolver r = ts.classContextResolver((ClassType) sup, accessor);
@@ -145,27 +145,31 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             throw new NoClassException(name, type);
         }
         else if (acceptable.size() > 1) {
-            Set containers = new HashSet(acceptable.size());
-            for (Iterator i = acceptable.iterator(); i.hasNext(); ) {
+            Set<Type> containers = new HashSet<Type>(acceptable.size());
+            for (Iterator<Named> i = acceptable.iterator(); i.hasNext(); ) {
                 Named n = (Named) i.next();
-                if (n instanceof MemberDef) {
-                    MemberDef mi = (MemberDef) n;
+                if (n instanceof MemberInstance) {
+                    MemberInstance<?> mi = (MemberInstance<?>) n;
                     containers.add(mi.container());
                 }
             }
             
             if (containers.size() == 2) {
-                Iterator i = containers.iterator();
+                Iterator<Type> i = containers.iterator();
                 Type t1 = (Type) i.next();
                 Type t2 = (Type) i.next();
                 throw new SemanticException("Member \"" + name +
                                             "\" of " + type + " is ambiguous; it is defined in both " +
                                             t1 + " and " + t2 + ".");
             }
+            else if (containers.size() == 0) {
+                throw new SemanticException("Member \"" + name +
+                                            "\" of " + type + " is ambiguous.");
+            }
             else {
                 throw new SemanticException("Member \"" + name +
                                             "\" of " + type + " is ambiguous; it is defined in " +
-                                            containers + ".");
+                                            TypeSystem_c.listToString(new ArrayList<Type>(containers)) + ".");
             }
         }
         

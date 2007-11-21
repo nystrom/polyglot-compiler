@@ -23,14 +23,16 @@ public class ReentrantVisitor extends NodeVisitor {
     
     @Override
     public Node visitEdge(Node parent, Node child) {
-        Map<Node,Node> subst = job.astMap();
-        Node n = subst.get(child);
+//        Map<Node,Node> subst = job.astMap();
+//        Node n = subst.get(child);
+//        
+//        if (n != null) {
+//            if (true)
+//                return n;
+//            child = n;
+//        }
         
-        if (n != null) {
-            if (true)
-                return n;
-            child = n;
-        }
+        Node n;
         
         try {
             n = override(parent, child);

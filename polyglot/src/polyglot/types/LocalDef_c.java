@@ -7,6 +7,7 @@
 
 package polyglot.types;
 
+import polyglot.main.Report;
 import polyglot.util.Position;
 
 /**
@@ -21,9 +22,15 @@ public class LocalDef_c extends VarDef_c implements LocalDef
 	  		   Flags flags, Ref<? extends Type> type, String name) {
         super(ts, pos, flags, type, name);
     }
-    
-    public LocalInstance asReference() {
-        return new LocalInstance_c(ts, position(), Ref_c.<LocalDef>ref(this));
+
+    protected transient LocalInstance asInstance;
+
+    public LocalInstance asInstance() {
+        if (Report.should_report("asi", 1)) asInstance = null;
+        if (asInstance == null) {
+            asInstance = new LocalInstance_c(ts, position(), Ref_c.<LocalDef> ref(this));
+        }
+        return asInstance;
     }
 
     public boolean equalsImpl(TypeObject o) {

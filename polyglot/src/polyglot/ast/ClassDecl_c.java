@@ -50,6 +50,10 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         this.interfaces = TypedList.copyAndCheck(interfaces, TypeNode.class, true);
         this.body = body;
     }
+    
+    public List<Def> defs() {
+        return Collections.<Def>singletonList(type);
+    }
 
     public MemberDef memberDef() {
         return type;
@@ -218,19 +222,20 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         TypeNode superClass = (TypeNode) n.visitChild(n.superClass, tbSup);
         List<TypeNode> interfaces = n.visitList(n.interfaces, tbSup);
 
+        n = n.reconstruct(name, superClass, interfaces, n.body);
         
-        setSuperClass(tb.typeSystem(), type);
-        setInterfaces(tb.typeSystem(), type);
+        n.setSuperClass(tb.typeSystem(), type);
+        n.setInterfaces(tb.typeSystem(), type);
 
         ClassBody body = (ClassBody) n.visitChild(n.body, tbChk);
         
-        n = n.reconstruct(name, superClass, interfaces, body);
+        n = (ClassDecl_c) n.body(body);
         
         n = (ClassDecl_c) n.classDef(type).flags(type.flags());
 
         if (n.defaultConstructorNeeded()) {
             ConstructorDecl cd = n.createDefaultConstructor(type, tb.typeSystem(), tb.nodeFactory());
-            cd = (ConstructorDecl) tb.visitEdge(this, cd);
+            cd = (ConstructorDecl) tbChk.visitEdge(this, cd);
             n = (ClassDecl_c) n.body(n.body().addMember(cd));
             n.defaultCI = cd.constructorDef();
         }
@@ -374,7 +379,11 @@ public class ClassDecl_c extends Term_c implements ClassDecl
     public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
         ClassDecl_c n = this;
         
-        NodeVisitor v = tc.enter(parent, this);
+        if (! tc.isCurrentFragmentRoot(this)) {
+            return n;
+        }
+        
+        NodeVisitor v = tc.enter(parent, n);
         if (v instanceof TypeChecker) {
             tc = (TypeChecker) v;
         }
@@ -402,20 +411,31 @@ public class ClassDecl_c extends Term_c implements ClassDecl
             interfaces = n.visitList(n.interfaces, tc);
         }
 
+
         ClassBody body = n.body;
-        if (tc.shouldVisitSupers())
+        if (tc.shouldVisitSupers()) {
             body = (ClassBody) n.visitChild(body, tc.visitSupers());
-        if (tc.shouldVisitSignatures())
+            n = (ClassDecl_c) n.body(body);
+        }
+        if (tc.shouldVisitSignatures()) {
             body = (ClassBody) n.visitChild(body, tc.visitSignatures());
-        if (tc.shouldVisitBodies())
+            n = (ClassDecl_c) n.body(body);
+        }
+        if (tc.shouldVisitBodies()) {
             body = (ClassBody) n.visitChild(body, tc.visitBodies());
+            n = (ClassDecl_c) n.body(body);
+        }    
         
         n = n.reconstruct(name, superClass, interfaces, body);
 
-        n = (ClassDecl_c) n.del().disambiguate(ar);
-        n = (ClassDecl_c) n.del().typeCheck(tc);
-        n = (ClassDecl_c) n.del().checkConstants(tc);
-        
+        if (tc.shouldVisitSupers()) {
+            n = (ClassDecl_c) n.del().disambiguate(ar);
+        }
+
+        if (tc.shouldVisitBodies()) {
+            n = (ClassDecl_c) n.del().typeCheck(tc);
+            n = (ClassDecl_c) n.del().checkConstants(tc);
+        }
         return n;
     }
 
