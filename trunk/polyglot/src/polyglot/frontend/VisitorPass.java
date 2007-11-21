@@ -47,14 +47,11 @@ public class VisitorPass extends AbstractPass
   
     public boolean run() {
 	Node ast = job().ast();
+
 	if (ast == null) {
 	    throw new InternalCompilerError("Null AST for job " + this.job() + ": did the parser run?");
 	}
 
-	Map<Node,Node> oldAstMap = job().astMap();
-	HashMap<Node,Node> map = new HashMap<Node, Node>(oldAstMap);
-	job().setAstMap(map);
-	
 	try {
 	    NodeVisitor v_ = v.begin();
 
@@ -83,7 +80,6 @@ public class VisitorPass extends AbstractPass
 	}
 	finally {
 	    job().ast(ast);
-	    job().setAstMap(oldAstMap);
 	}
     }
     

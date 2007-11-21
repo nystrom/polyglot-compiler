@@ -252,7 +252,7 @@ public class TypeSystem_c implements TypeSystem
 	return new ClassContextResolver(this, type);
     }
 
-    public FieldDef fieldInstance(Position pos,
+    public FieldDef fieldDef(Position pos,
 	                               Ref<? extends ReferenceType> container, Flags flags,
 	                               Ref<? extends Type> type, String name) {
         assert_(container);
@@ -283,12 +283,12 @@ public class TypeSystem_c implements TypeSystem
         if (flags.isPublic()) {
             access = access.Public();            
         }
-        return constructorInstance(pos, container,
+        return constructorDef(pos, container,
                                    access, Collections.<Ref<? extends Type>>emptyList(),
                                    Collections.<Ref<? extends Type>>emptyList());
     }
 
-    public ConstructorDef constructorInstance(Position pos,
+    public ConstructorDef constructorDef(Position pos,
 	                                           Ref<? extends ClassType> container,
 						   Flags flags, List<Ref<? extends Type>> argTypes,
 						   List<Ref<? extends Type>> excTypes) {
@@ -306,7 +306,7 @@ public class TypeSystem_c implements TypeSystem
 	return new InitializerDef_c(this, pos, container, flags);
     }
 
-    public MethodDef methodInstance(Position pos,
+    public MethodDef methodDef(Position pos,
             Ref<? extends ReferenceType> container, Flags flags,
 	                                 Ref<? extends Type> returnType, String name,
 					 List<Ref<? extends Type>> argTypes, List<Ref<? extends Type>> excTypes) {
@@ -375,6 +375,8 @@ public class TypeSystem_c implements TypeSystem
     public boolean typeEquals(Type type1, Type type2) {
         assert_(type1);
         assert_(type2);
+        if (type1 == type2) return true;
+        if (type1 == null || type2 == null) return false;
         return type1.typeEquals(type2);
     }
     
@@ -384,6 +386,8 @@ public class TypeSystem_c implements TypeSystem
     public boolean packageEquals(Package type1, Package type2) {
         assert_(type1);
         assert_(type2);
+        if (type1 == type2) return true;
+        if (type1 == null || type2 == null) return false;
         return type1.packageEquals(type2);
     }
 
@@ -424,7 +428,7 @@ public class TypeSystem_c implements TypeSystem
     public boolean isAccessible(MemberInstance<? extends MemberDef> mi, ClassDef contextClass) {
         assert_(mi);
         
-        ClassType contextClassType = new ParsedClassType_c(this, contextClass.position(), Ref_c.<ClassDef>ref(contextClass));
+        ClassType contextClassType = contextClass.asType();
 
         ReferenceType target = mi.container();
 	Flags flags = mi.flags();
@@ -441,7 +445,7 @@ public class TypeSystem_c implements TypeSystem
             return false;
         }
 
-        if (equals(targetClass, contextClass))
+        if (equals(targetClass.def(), contextClassType.def()))
             return true;
 
         // If the current class and the target class are both in the
@@ -498,7 +502,7 @@ public class TypeSystem_c implements TypeSystem
             return isAccessible(targetClass, contextClass);
         }
 
-        ClassType contextClassType = new ParsedClassType_c(this, contextClass.position(), Ref_c.<ClassDef>ref(contextClass));
+        ClassType contextClassType = contextClass.asType();
 
         // Local and anonymous classes are accessible if they can be named.
         // This method wouldn't be called if they weren't named.
@@ -509,7 +513,7 @@ public class TypeSystem_c implements TypeSystem
         // targetClass must be a top-level class
         
         // same class
-	if (equals(targetClass, contextClass))
+	if (equals(targetClass.def(), contextClassType.def()))
             return true;
 
         if (isEnclosed(contextClassType, targetClass))
@@ -559,7 +563,7 @@ public class TypeSystem_c implements TypeSystem
         if (flags.isPackage() || flags.isProtected()) {
             if (pkg1 == null && pkg2 == null)
                 return true;
-            if (pkg1 != null && pkg1.equals(pkg2))
+            if (pkg1 != null && pkg1.packageEquals(pkg2))
                 return true;
 	}
 
@@ -1009,10 +1013,11 @@ public class TypeSystem_c implements TypeSystem
 	            S pDecl = p.def();
 
 	            List<Type> pFormals = new TransformingList<Ref<? extends Type>,Type>(pDecl.formalTypes(), new DerefTransform<Type>());
-                    if (! firstFormals.equals(pFormals)) {
-	                // not all signatures match; must be ambiguous
-	                return maximal;
-	            }
+                 
+	            if (! CollectionUtil.equals(firstFormals, pFormals, new TypeEquals())) {
+                        // not all signatures match; must be ambiguous
+                        return maximal;
+                    }
 	        }
 	        
 	        // all signatures match, just take the first
@@ -1021,6 +1026,24 @@ public class TypeSystem_c implements TypeSystem
 	}
   
 	return maximal;
+    }
+    
+    protected static class TypeEquals implements Predicate2<Type> {
+        public boolean isTrue(Type o, Type p) {
+            return o.typeEquals(p);
+        }
+    }
+
+    protected static class ImplicitCastValid implements Predicate2<Type> {
+        public boolean isTrue(Type o, Type p) {
+            return o.isImplicitCastValid(p);
+        }
+    }
+
+    protected static class Subtype implements Predicate2<Type> {
+        public boolean isTrue(Type o, Type p) {
+            return o.isSubtype(p);
+        }
     }
 
     /**
@@ -1736,8 +1759,7 @@ public class TypeSystem_c implements TypeSystem
 	if (name.equals("short")) return Short();
 	if (name.equals("int")) return Int();
 	if (name.equals("long")) return Long();
-	
-    if (name.equals("float")) return Float();
+	if (name.equals("float")) return Float();
 	if (name.equals("double")) return Double();
 
 	throw new SemanticException("Unrecognized primitive type \"" +
@@ -2062,7 +2084,7 @@ public class TypeSystem_c implements TypeSystem
                         // no implementation, but that's ok, the class is abstract.
                     }
                 }
-                else if (!equals(ct, mj.container()) && !equals(ct, mi.container())) {
+                else if (!typeEquals(ct, mj.container()) && !typeEquals(ct, mi.container())) {
                     try {
                         // check that mj can override mi, which
                         // includes access protection checks.
@@ -2103,7 +2125,7 @@ public class TypeSystem_c implements TypeSystem
                     return mj;                    
                 }
             }
-            if (curr == mi.container()) {
+            if (curr.typeEquals(mi.container())) {
                 // we've reached the definition of the abstract 
                 // method. We don't want to look higher in the 
                 // hierarchy; this is not an optimization, but is 

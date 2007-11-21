@@ -12,8 +12,7 @@ import java.util.Set;
 
 import polyglot.ast.*;
 import polyglot.frontend.Job;
-import polyglot.types.SemanticException;
-import polyglot.types.TypeSystem;
+import polyglot.types.*;
 
 /** Visitor which ensures that field intializers and initializers do not
  * make illegal forward references to fields.
@@ -29,7 +28,7 @@ public class FwdReferenceChecker extends ContextVisitor
     private boolean inInitialization = false;
     private boolean inStaticInit = false;
     private Field fieldAssignLHS = null;
-    private Set declaredFields = new HashSet();
+    private Set<FieldDef> declaredFields = new HashSet<FieldDef>();
     
     protected NodeVisitor enterCall(Node n) throws SemanticException {
         if (n instanceof FieldDecl) {
@@ -70,9 +69,12 @@ public class FwdReferenceChecker extends ContextVisitor
                 //
                 // In addition, if a field is not accessed as a simple name, 
                 // then all is ok
+                
+                ReferenceType currentClass = context().currentClass();
+                ReferenceType fContainer = f.fieldInstance().container();
 
                 if (inStaticInit == f.fieldInstance().flags().isStatic() &&
-                    context().currentClass().equals(f.fieldInstance().container()) &&
+                    currentClass.typeEquals(fContainer) &&
                    !declaredFields.contains(f.fieldInstance().def()) &&
                    f.isTargetImplicit()) {
                     throw new SemanticException("Illegal forward reference", 

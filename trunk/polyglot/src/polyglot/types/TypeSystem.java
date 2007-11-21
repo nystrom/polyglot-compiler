@@ -105,7 +105,7 @@ public interface TypeSystem {
      * @param argTypes The constructor's formal parameter types.
      * @param excTypes The constructor's exception throw types.
      */
-    ConstructorDef constructorInstance(Position pos, Ref<? extends ClassType> container,
+    ConstructorDef constructorDef(Position pos, Ref<? extends ClassType> container,
                                             Flags flags, List<Ref<? extends Type>> argTypes,
                                             List<Ref<? extends Type>> excTypes);
 
@@ -118,7 +118,7 @@ public interface TypeSystem {
      * @param argTypes The method's formal parameter types.
      * @param excTypes The method's exception throw types.
      */
-    MethodDef methodInstance(Position pos, Ref<? extends ReferenceType> container,
+    MethodDef methodDef(Position pos, Ref<? extends ReferenceType> container,
                                   Flags flags, Ref<? extends Type> returnType, String name,
                                   List<Ref<? extends Type>> argTypes, List<Ref<? extends Type>> excTypes);
 
@@ -129,7 +129,7 @@ public interface TypeSystem {
      * @param type The field's type.
      * @param name The field's name.
      */
-    FieldDef fieldInstance(Position pos, Ref<? extends ReferenceType> container,
+    FieldDef fieldDef(Position pos, Ref<? extends ReferenceType> container,
                                 Flags flags, Ref<? extends Type> type, String name);
 
     /** Create a local variable instance.

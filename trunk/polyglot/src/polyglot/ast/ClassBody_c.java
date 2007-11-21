@@ -98,7 +98,7 @@ public class ClassBody_c extends Term_c implements ClassBody
 
         for (int i = 0; i < l.size(); i++) {
             ConstructorDef ci = l.get(i);
-            ConstructorInstance ti = ci.asReference();
+            ConstructorInstance ti = ci.asInstance();
 
             for (int j = i+1; j < l.size(); j++) {
                 ConstructorDef cj = l.get(j);
@@ -119,7 +119,7 @@ public class ClassBody_c extends Term_c implements ClassBody
 
         for (int i = 0; i < l.size(); i++) {
             MethodDef mi = l.get(i);
-            MethodInstance ti = mi.asReference();
+            MethodInstance ti = mi.asInstance();
 
             for (int j = i+1; j < l.size(); j++) {
                 MethodDef mj = l.get(j);
@@ -158,11 +158,12 @@ public class ClassBody_c extends Term_c implements ClassBody
     }
 
     public Node typeCheck(TypeChecker tc) throws SemanticException {
-        duplicateFieldCheck(tc);
-        duplicateConstructorCheck(tc);
-        duplicateMethodCheck(tc);
-        duplicateMemberClassCheck(tc);
-
+        if (tc.shouldVisitSignatures() && ! tc.shouldVisitBodies()) {
+            duplicateFieldCheck(tc);
+            duplicateConstructorCheck(tc);
+            duplicateMethodCheck(tc);
+            duplicateMemberClassCheck(tc);
+        }
         return this;
     }
     

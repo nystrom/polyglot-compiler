@@ -19,7 +19,9 @@ public class FragmentPass extends VisitorPass {
         this.def = def;
     }
     
-    public Def def() { return def; }
+    public Def def() {
+        return def;
+    }
 
     public boolean run() {
         Job job = job();

@@ -204,7 +204,7 @@ public class TypeBuilder extends NodeVisitor
         if (Report.should_report(Report.visit, 4))
 	    Report.report(4, "TB pushing code: " + context());
         TypeBuilder tb = pushDef(def);
-        tb.goal = Globals.Scheduler().TypeCheckDef(job(), def);
+        tb.goal = goal;
         tb.inCode = true;
         tb.global = false;
         return tb;

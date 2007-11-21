@@ -789,14 +789,14 @@ public class InitChecker extends DataFlow
 
         if (f.fieldInstance().flags().isStatic()) {
             Type container = f.fieldInstance().def().container().get();
-            return containingClass.equals(container);
+            return containingClass.typeEquals(container);
         }
         else {
             if (f.target() instanceof Special) {
                 Special s = (Special) f.target();
                 if (Special.THIS.equals(s.kind())) {
                     return s.qualifier() == null
-                        || containingClass.equals(s.qualifier().type());
+                        || containingClass.typeEquals(s.qualifier().type());
                 }
             }
             return false;

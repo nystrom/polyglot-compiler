@@ -3,6 +3,7 @@ package polyglot.types;
 import java.util.Iterator;
 import java.util.List;
 
+import polyglot.types.TypeSystem_c.TypeEquals;
 import polyglot.util.*;
 
 public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implements ProcedureInstance<T> {
@@ -54,22 +55,7 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
 
     /** Returns true if the procedure has the given formal parameter types. */
     public boolean hasFormals(List<Type> formalTypes) {
-        List<Type> l1 = this.formalTypes();
-        List<Type> l2 = formalTypes;
-
-        Iterator<Type> i1 = l1.iterator();
-        Iterator<Type> i2 = l2.iterator();
-
-        while (i1.hasNext() && i2.hasNext()) {
-            Type t1 = (Type) i1.next();
-            Type t2 = (Type) i2.next();
-
-            if (! ts.equals(t1, t2)) {
-                return false;
-            }
-        }
-
-        return ! (i1.hasNext() || i2.hasNext());
+        return CollectionUtil.equals(this.formalTypes(), formalTypes, new TypeEquals());
     }
 
     /** Returns true iff <code>this</code> throws fewer exceptions than

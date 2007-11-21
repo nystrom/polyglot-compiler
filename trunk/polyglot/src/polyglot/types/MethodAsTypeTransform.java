@@ -8,6 +8,6 @@ import polyglot.util.Transformation;
 public class MethodAsTypeTransform implements
         Transformation<MethodDef, MethodInstance> {
     public MethodInstance transform(MethodDef def) {
-        return def.asReference();
+        return def.asInstance();
     }
 }

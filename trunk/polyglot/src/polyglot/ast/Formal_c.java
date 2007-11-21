@@ -36,6 +36,10 @@ public class Formal_c extends Term_c implements Formal
         this.name = name;
     }
 
+    public List<Def> defs() {
+        return Collections.<Def>singletonList(li);
+    }
+
     /** Get the type of the formal. */
     public Type declType() {
         return type.type();
@@ -121,7 +125,7 @@ public class Formal_c extends Term_c implements Formal
     }
 
     public void addDecls(Context c) {
-        c.addVariable(li.asReference());
+        c.addVariable(li.asInstance());
     }
 
     /** Write the formal to an output file. */
@@ -139,7 +143,7 @@ public class Formal_c extends Term_c implements Formal
         TypeSystem ts = tb.typeSystem();
 
         LocalDef li = ts.localInstance(position(), flags(), type.typeRef(), name.id());
-        ts.symbolTable().symbol(li);
+        Symbol<LocalDef> sym = ts.symbolTable().<LocalDef>symbol(li);
         
         // Formal parameters are never compile-time constants.
         li.setNotConstant();

@@ -12,5 +12,5 @@ package polyglot.types;
  */
 public interface FieldDef extends VarDef, MemberDef
 {
-    FieldInstance asReference();
+    FieldInstance asInstance();
 }

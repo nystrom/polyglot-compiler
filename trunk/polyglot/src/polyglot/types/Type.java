@@ -15,6 +15,8 @@ import polyglot.util.CodeWriter;
  */
 public interface Type extends Qualifier
 {
+    public void equals(Type t);
+    
     /**
      * Return a string into which to translate the type.
      * @param c A resolver in which to lookup this type to determine if

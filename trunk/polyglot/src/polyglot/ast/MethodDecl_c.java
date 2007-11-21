@@ -41,6 +41,10 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	this.body = body;
     }
 
+    public List<Def> defs() {
+        return Collections.<Def>singletonList(mi);
+    }
+
     public MemberDef memberDef() {
         return mi;
     }
@@ -179,54 +183,53 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	return reconstruct(returnType, name, formals, throwTypes, body);
     }
 
-    public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
+    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
         TypeSystem ts = tb.typeSystem();
 
         ClassDef ct = tb.currentClass();
         assert ct != null;
 
-        List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(formals.size());
-        for (Formal f : formals()) {
-            formalTypes.add(f.type().typeRef());
-        }
-
-        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(throwTypes().size());
-        for (TypeNode tn : throwTypes()) {
-            throwTypes.add(tn.typeRef());
-        }
-
-	Flags f = this.flags;
+	Flags flags = this.flags;
 
 	if (ct.flags().isInterface()) {
-	    f = f.Public().Abstract();
+	    flags = flags.Public().Abstract();
 	}
-
-	MethodDef mi = ts.methodInstance(position(), Ref_c.ref(ct.asType()), f, returnType.typeRef(), name.id(), formalTypes, throwTypes);
-	ct.addMethod(mi);
 	
-	Goal g = Globals.Scheduler().TypeCheckDef(tb.job(), mi);
-	g.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
-	return tb.pushCode(mi, g);
-    }
+	MethodDef mi = ts.methodDef(position(), Ref_c.ref(ct.asType()), flags, returnType.typeRef(), name.id(),
+	                                 Collections.<Ref<? extends Type>>emptyList(), Collections.<Ref<? extends Type>>emptyList());
+        Symbol<MethodDef> sym = ts.symbolTable().<MethodDef>symbol(mi);
+        ct.addMethod(mi);
+	
+	Goal sig = Globals.Scheduler().SignatureDef(tb.job(), mi);
+	sig.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
+	TypeBuilder tbSig = tb.pushCode(mi, sig);
 
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        MethodDef mi = (MethodDef) tb.def();
+	Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), mi);
+	chk.addPrereq(sig);
+	TypeBuilder tbChk = tb.pushCode(mi, chk);
 
-        List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(formals.size());
-        for (Formal f : formals()) {
-            formalTypes.add(f.type().typeRef());
+	TypeNode returnType = (TypeNode) this.visitChild(this.returnType, tbSig);
+	List<Formal> formals = this.visitList(this.formals, tbSig);
+	List<TypeNode> throwTypeNodes = this.visitList(this.throwTypes, tbSig);
+        
+	List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(formals.size());
+        for (Formal f : formals) {
+             formalTypes.add(f.type().typeRef());
         }
 
-        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(throwTypes().size());
-        for (TypeNode tn : throwTypes()) {
+        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(throwTypeNodes.size());
+        for (TypeNode tn : throwTypeNodes) {
             throwTypes.add(tn.typeRef());
         }
 
         mi.setReturnType(returnType.typeRef());
         mi.setFormalTypes(formalTypes);
         mi.setThrowTypes(throwTypes);
+
+        Id name = (Id) this.visitChild(this.name, tb);
+        Block body = (Block) this.visitChild(this.body, tbChk);
         
-        return methodDef(mi);
+        return reconstruct(returnType, name, formals, throwTypeNodes, body).methodDef(mi);
     }
 
     public Context enterScope(Context c) {
@@ -245,7 +248,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
         Flags flags = mi.flags();
         
         if (tc.context().currentClass().flags().isInterface()) {
-            if (flags.isProtected() || flags.isPrivate()) {
+            if (! flags.isPublic()) {
                 throw new SemanticException("Interface methods must be public.",
                                             position());
             }
@@ -298,7 +301,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     protected void overrideMethodCheck(TypeChecker tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
-        MethodInstance mi = this.mi.asReference();
+        MethodInstance mi = this.mi.asInstance();
         for (Iterator<MethodInstance> j = mi.implemented().iterator(); j.hasNext(); ) {
             MethodInstance mj = (MethodInstance) j.next();
 
@@ -311,7 +314,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     }
 
     public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
-        return ec.push(methodDef().throwTypes());
+        return ec.push(methodDef().asInstance().throwTypes());
     }
 
     public String toString() {

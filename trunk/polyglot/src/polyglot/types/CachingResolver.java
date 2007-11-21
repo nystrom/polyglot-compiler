@@ -17,7 +17,7 @@ import polyglot.util.*;
  */
 public class CachingResolver implements Resolver, Copy {
     protected Resolver inner;
-    private Map cache;
+    private Map<String,Object> cache;
     private boolean cacheNotFound;
 
     /**

@@ -68,11 +68,7 @@ public class Package_c extends TypeObject_c implements Package
         return false;
     }
         
-    public final boolean packageEquals(Package p) {
-        return ts.packageEquals(this, p);
-    }
-    
-    public boolean packageEqualsImpl(Package p) {
+    public boolean packageEquals(Package p) {
         if (name.equals(p.name())) {
             if (prefix == null)
                 return p.prefix() == null;

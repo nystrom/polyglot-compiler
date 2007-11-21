@@ -80,6 +80,8 @@ public class Disamb_c implements Disamb
             result = disambiguateNoPrefix();
         }
 
+        assert ! (result instanceof Ambiguous);
+        
         return result;
     }
 

@@ -109,4 +109,8 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
   public Node copy(NodeFactory nf) {
       return nf.AmbTypeNode(this.position, this.qual, this.name);
   }
+  
+  public String name() {
+      return name.id();
+  }
 }

@@ -8,6 +8,7 @@
 package polyglot.types;
 
 import polyglot.frontend.*;
+import polyglot.main.Report;
 import polyglot.util.Position;
 
 /**
@@ -26,9 +27,15 @@ public class FieldDef_c extends VarDef_c implements FieldDef
         super(ts, pos, flags, type, name);
         this.container = container;
     }
-    
-    public FieldInstance asReference() {
-        return new FieldInstance_c(ts, position(), Ref_c.<FieldDef>ref(this));
+ 
+    protected transient FieldInstance asInstance;
+
+    public FieldInstance asInstance() {
+        if (Report.should_report("asi", 1)) asInstance = null;
+        if (asInstance == null) {
+            asInstance = new FieldInstance_c(ts, position(), Ref_c.<FieldDef> ref(this));
+        }
+        return asInstance;
     }
 
     public Ref<? extends ReferenceType> container() {
@@ -75,10 +82,17 @@ public class FieldDef_c extends VarDef_c implements FieldDef
                 
                 Scheduler scheduler = typeSystem().extensionInfo().scheduler();
                 Goal g = scheduler.FieldConstantsChecked(this.<FieldDef>symbol());
-                scheduler.attempt(g);
-                assert g.hasBeenReached();
-                assert constantValueSet;
-            
+                
+                // Avoid a recursive call.
+                if (g.state() == Goal.Status.RUNNING || g.state() == Goal.Status.RUNNING_RECURSIVE) {
+                    setNotConstant();
+                }
+                else {
+                    scheduler.attempt(g);
+                    assert g.hasBeenReached();
+                    assert constantValueSet;
+                }
+                
                 recursive = false;
             }
         }

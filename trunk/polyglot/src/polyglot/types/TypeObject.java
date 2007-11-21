@@ -35,6 +35,11 @@ public interface TypeObject extends Copy, Serializable
      */
     Position position();
     
+    void equals(Type t);
+//    void equals(TypeObject t);
+    void equalsImpl(Type t);
+    void equalsImpl(Object t);
+
     /**
      * Return true iff this type object is the same as <code>t</code>.
      * All Polyglot extensions should attempt to maintain pointer

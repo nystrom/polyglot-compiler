@@ -93,8 +93,9 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
             }
         }
         
-        if ((allowCovariantReturn && ! ts.isSubtype(mi.returnType(), mj.returnType())) ||
-            (! allowCovariantReturn && ! ts.typeEquals(mi.returnType(), mj.returnType()))) {
+        if (allowCovariantReturn
+                ? ! ts.isSubtype(mi.returnType(), mj.returnType())
+                : ! ts.typeEquals(mi.returnType(), mj.returnType())) {
             if (Report.should_report(Report.types, 3))
                 Report.report(3, "return type " + mi.returnType() +
                               " != " + mj.returnType());
@@ -151,7 +152,7 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
                                         mi.position());
         }
 
-        if (mi != mj && !mi.equals(mj) && mj.flags().isFinal()) {
+        if (! mi.def().equals(mj.def()) && mj.flags().isFinal()) {
             // mi can "override" a final method mj if mi and mj are the same method instance.
             if (Report.should_report(Report.types, 3))
                 Report.report(3, mj.flags() + " final");

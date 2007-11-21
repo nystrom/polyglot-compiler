@@ -10,7 +10,8 @@ package polyglot.ast;
 
 import java.util.*;
 
-import polyglot.frontend.*;
+import polyglot.frontend.Globals;
+import polyglot.frontend.Goal;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -38,6 +39,13 @@ public class New_c extends Expr_c implements New
         this.tn = tn;
 	this.arguments = TypedList.copyAndCheck(arguments, Expr.class, true);
 	this.body = body;
+    }
+
+    public List<Def> defs() {
+        if (body != null) {
+            return Collections.<Def>singletonList(anonType);
+        }
+        return Collections.<Def>emptyList();
     }
 
     /** Get the qualifier expression of the allocation. */
@@ -169,8 +177,12 @@ public class New_c extends Expr_c implements New
             Goal sig = Globals.Scheduler().SignatureDef(tb.job(), type);
             Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), type);
 
-            // To figure out the supertype, we need to type, check the enclosing method.
-            sup.addPrereq(tb.goal());
+            // To figure out the supertype, we need to type check the enclosing method.
+//            sup.addPrereq(tb.goal());
+            // ### BUT, we will reach here WHILE type-checking the method and not AFTER.
+            // the prereq causes a dependency cycle.
+            
+            
             sig.addPrereq(sup);
             chk.addPrereq(sig);
             
@@ -184,51 +196,80 @@ public class New_c extends Expr_c implements New
         return n.type(ts.unknownType(position()));
     }
     
-    public Node typeCheckOverride(Node parent, TypeChecker ar) throws SemanticException {
-        TypeSystem ts = ar.typeSystem();
-        NodeFactory nf = ar.nodeFactory();
-        Context c = ar.context();
+    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
+        TypeSystem ts = tc.typeSystem();
+        NodeFactory nf = tc.nodeFactory();
+        Context c = tc.context();
         
-        NodeVisitor childv = ar.enter(parent, this);
+        NodeVisitor childv = tc.enter(parent, this);
 
-        New nn = this;
-        New old = nn;
+        if (childv instanceof PruningVisitor) {
+            return this;
+        }
         
-        // If we're checking the body and not the enclosing method, visit the body only.
-        if (nn.body() != null && anonType != null) {
-            Goal sup = Globals.Scheduler().SupertypeDef(ar.job(), anonType);
-            Goal sig = Globals.Scheduler().SignatureDef(ar.job(), anonType);
-            Goal chk = Globals.Scheduler().TypeCheckDef(ar.job(), anonType);
-            Goal g = Globals.Scheduler().currentGoal();
-
-            if (g == sup || g == sig || g == chk) {
-                if (ar.shouldVisitBodies()) {
-                    // Now visit the body.
-                    nn = nn.body((ClassBody) nn.visitChild(nn.body(), childv));
+        assert childv instanceof TypeChecker;
+        
+        TypeChecker childtc = (TypeChecker) childv;
+        
+        New n = this;
+        New old = n;
+        
+        switch (tc.mode(n)) {
+        case INNER_ROOT:
+        case NON_ROOT:
+            if (tc.scope() == TypeChecker.Scope.SIGNATURES_OF_ROOT) {
+                // Enclosing scope must be code, not a class body.  We shouldn't get here.
+                assert false;
+                return n;
+            }
+            if (tc.scope() == TypeChecker.Scope.BODY_OF_ROOT) {
+                n = typeCheckNonRoot(parent, n, tc, childtc);
+                n = (New) tc.leave(parent, old, n, childtc);
+            }
+            break;
+        case CURRENT_ROOT:
+            if (n.body() != null && anonType != null) {
+                // Now visit the body.
+                n = n.body((ClassBody) n.visitChild(n.body(), childtc));
+                if (tc.scope() == TypeChecker.Scope.BODY_OF_ROOT) {
                     ts.checkClassConformance(anonType.asType());
                 }
-                
-                return nn;
             }
+            break;
         }
 
-        // Disambiguate the qualifier and object type, if possible.
-        if (nn.qualifier() == null) {
-            nn = nn.objectType((TypeNode) nn.visitChild(nn.objectType(), childv));
-            
-            ClassType ct = nn.objectType().type().toClass();
-            
-            if (ct.isMember() && ! ct.flags().isStatic()) {
-                nn = ((New_c) nn).findQualifier(ar, ct);
+        return n;
+    }
 
-                nn = nn.qualifier((Expr) nn.visitChild(nn.qualifier(), childv));
+    protected New typeCheckNonRoot(Node parent, New n, TypeChecker tc, TypeChecker childtc)
+            throws SemanticException {
+        TypeSystem ts = tc.typeSystem();
+        NodeFactory nf = tc.nodeFactory();
+        Context c = tc.context();
+        
+        // Disambiguate the qualifier and object type, if possible.
+        if (n.qualifier() == null) {
+            n = n.objectType((TypeNode) n.visitChild(n.objectType(), childtc));
+            if (childtc.hasErrors()) throw new SemanticException();
+
+            if (n.objectType().type().isClass()) {    
+                ClassType ct = n.objectType().type().toClass();
+
+                if (ct.isMember() && ! ct.flags().isStatic()) {
+                    n = ((New_c) n).findQualifier(tc, ct);
+
+                    n = n.qualifier((Expr) n.visitChild(n.qualifier(), childtc));
+                }
+            }
+            else {
+                throw new SemanticException("Cannot instantiate type " + n.objectType().type() + ".");
             }
         }
         else {
-            nn = nn.qualifier((Expr) nn.visitChild(nn.qualifier(), childv));
+            n = n.qualifier((Expr) n.visitChild(n.qualifier(), childtc));
             
-            if (nn.objectType() instanceof AmbTypeNode &&
-                    ((AmbTypeNode) nn.objectType()).qual() == null) {
+            if (n.objectType() instanceof AmbTypeNode &&
+                    ((AmbTypeNode) n.objectType()).qual() == null) {
 
                 // We have to disambiguate the type node as if it were a member of the
                 // static type, outer, of the qualifier.  For Java this is simple: type
@@ -238,29 +279,30 @@ public class New_c extends Expr_c implements New
                 // just a name.  We'll just punt here and let the extensions handle
                 // this complexity.
                 
-                String name = ((AmbTypeNode) nn.objectType()).name();
+                String name = ((AmbTypeNode) n.objectType()).id().id();
+                assert name != null;
 
-                if (! nn.qualifier().type().isClass()) {
-                    throw new SemanticException("Cannot instantiate member class of non-class type.", nn.position());
+                if (! n.qualifier().type().isClass()) {
+                    throw new SemanticException("Cannot instantiate member class of non-class type.", n.position());
                 }
 
-                ClassType outer = nn.qualifier().type().toClass();
+                ClassType outer = n.qualifier().type().toClass();
                 ClassType ct = ts.findMemberClass(outer, name, c.currentClassScope());
-                TypeNode tn = nf.CanonicalTypeNode(nn.objectType().position(), ct);
-                nn = nn.objectType(tn);
+                TypeNode tn = nf.CanonicalTypeNode(n.objectType().position(), ct);
+                n = n.objectType(tn);
             }
             else {
                 throw new SemanticException("Only simply-named member classes may be instantiated by a qualified new expression.",
-                        nn.objectType().position());
+                        n.objectType().position());
             }
         }
         
         // Now disambiguate the actuals.
-        nn = (New) nn.arguments(nn.visitList(nn.arguments(), childv));
+        n = (New) n.arguments(n.visitList(n.arguments(), childtc));
         
-        if (nn.body() != null) {
-            Ref<? extends Type> ct = nn.objectType().typeRef();
-            ClassDef anonType = nn.anonType();
+        if (n.body() != null) {
+            Ref<? extends Type> ct = n.objectType().typeRef();
+            ClassDef anonType = n.anonType();
             
             if (anonType != null) {
                 if (! ct.get().toClass().flags().isInterface()) {
@@ -275,9 +317,7 @@ public class New_c extends Expr_c implements New
             // Don't visit the body!  This will be done when type-checking the body.
         }
         
-        nn = (New) ar.leave(parent, old, nn, childv);
-
-        return nn;
+        return n;
     }
 
     public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
@@ -333,7 +373,7 @@ public class New_c extends Expr_c implements New
         // Create the qualifier.
         Expr q;
 
-        if (outer.equals(c.currentClass())) {
+        if (outer.typeEquals(c.currentClass())) {
             q = nf.This(position().startOf());
         }
         else {
@@ -370,7 +410,7 @@ public class New_c extends Expr_c implements New
         }
         else {
             ConstructorDef dci = ts.defaultConstructor(this.position(), Ref_c.<ClassType>ref(ct));
-            ci = dci.asReference();
+            ci = dci.asInstance();
         }
         
         New n = this.constructorInstance(ci);

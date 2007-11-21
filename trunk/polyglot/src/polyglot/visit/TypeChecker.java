@@ -7,19 +7,56 @@
 
 package polyglot.visit;
 
+import java.util.Map;
+
 import polyglot.ast.*;
-import polyglot.frontend.Job;
+import polyglot.frontend.*;
+import polyglot.frontend.JLScheduler.FragmentGoal;
 import polyglot.main.Report;
-import polyglot.types.SemanticException;
-import polyglot.types.TypeSystem;
+import polyglot.types.*;
 import polyglot.util.ErrorInfo;
 import polyglot.util.Position;
 
 /** Visitor which performs type checking on the AST. */
 public class TypeChecker extends ContextVisitor
 {
-    protected boolean visitSigs;
-    protected boolean visitBodies;
+    Scope scope;
+    
+    public static enum Scope {
+        SIGNATURES_OF_ROOT,
+        BODY_OF_ROOT,
+    }
+
+    public static enum Mode {
+        CURRENT_ROOT,
+        INNER_ROOT,
+        NON_ROOT
+    }
+    
+    public Mode mode(Node n) {
+        ASTFragment currentFragment = currentFragment();
+        boolean isRoot = currentFragment != null && currentFragment == getFragment(n);
+
+        Mode mode;
+        
+        if (isRoot) {
+            mode = Mode.CURRENT_ROOT;
+        }
+        else if (getFragment(n) != null) {
+            mode = Mode.INNER_ROOT;
+        }
+        else {
+            mode = Mode.NON_ROOT;
+        }
+
+        return mode;
+    }
+    
+    public Scope scope() {
+        return scope;
+    }
+    
+    final static Scope SUPER_OF_INNER = Scope.SIGNATURES_OF_ROOT;
     
     public TypeChecker(Job job, TypeSystem ts, NodeFactory nf) {
         this(job, ts, nf, true, true);
@@ -27,48 +64,94 @@ public class TypeChecker extends ContextVisitor
     
     public TypeChecker(Job job, TypeSystem ts, NodeFactory nf, boolean visitSigs, boolean visitBodies) {
         super(job, ts, nf);
-        this.visitSigs = visitSigs;
-        this.visitBodies = visitBodies;
+        if (visitBodies) scope = Scope.BODY_OF_ROOT;
+        else scope = Scope.SIGNATURES_OF_ROOT;
     }
     
     public TypeChecker visitSupers() {
-        if (this.visitSigs == false && this.visitBodies == false) return this;
         TypeChecker tc = (TypeChecker) copy();
-        tc.visitSigs = false;
-        tc.visitBodies = false;
+        tc.scope = Scope.SIGNATURES_OF_ROOT;
         return tc;
     }
     
     public TypeChecker visitSignatures() {
-        if (this.visitSigs == true && this.visitBodies == false) return this;
         TypeChecker tc = (TypeChecker) copy();
-        tc.visitSigs = true;
-        tc.visitBodies = false;
+        tc.scope = Scope.SIGNATURES_OF_ROOT;
         return tc;
     }
     
     public TypeChecker visitBodies() {
-        if (this.visitSigs == true && this.visitBodies == true) return this;
         TypeChecker tc = (TypeChecker) copy();
-        tc.visitSigs = true;
-        tc.visitBodies = true;
+        tc.scope = Scope.BODY_OF_ROOT;
         return tc;
     }
     
     public boolean shouldVisitSupers() { return true; }
-    public boolean shouldVisitSignatures() { return visitSigs; }
-    public boolean shouldVisitBodies() { return visitBodies; }
+    public boolean shouldVisitSignatures() { return scope == Scope.SIGNATURES_OF_ROOT; }
+    public boolean shouldVisitBodies() { return scope == Scope.BODY_OF_ROOT; }
+    
+    public ASTFragment getFragment(Def def) {
+        Job job = Globals.currentJob();
+        return job.fragmentMap().get(def);
+    }
+    
+    public boolean isCurrentFragmentRoot(Node n) {
+        return currentFragment() != null && currentFragment() == getFragment(n);
+    }
+    
+    public ASTFragment currentFragment() {
+        Goal g = Globals.Scheduler().currentGoal();
+        if (g instanceof JLScheduler.FragmentGoal) {
+            JLScheduler.FragmentGoal fg = (JLScheduler.FragmentGoal) g;
+            return getFragment(fg.def());
+        }
+        return null;
+    }
+    
+    public ASTFragment getFragment(Node n) {
+        if (n instanceof FragmentRoot) {
+            FragmentRoot r = (FragmentRoot) n;
+            for (Def def : r.defs()) {
+                return getFragment(def);
+            }
+        }
+        return null;
+    }
+    
+    Def getDef(ASTFragment f) {
+        for (Def def : f.node().defs()) {
+            return def;
+        }
+        return null;
+    }
     
     public Node override(Node parent, Node n) {
-        if (! visitSigs && n instanceof ClassMember && ! (n instanceof ClassDecl)) {
-            return n;
-        }
-        if ((! visitBodies || ! visitSigs) && parent instanceof ClassMember) {
-            if (parent instanceof FieldDecl && ((FieldDecl) parent).init() == n) {
-                return n;
+        FragmentRoot asRoot = null;
+        if (n instanceof FragmentRoot) {
+            ASTFragment f = getFragment(n);
+            if (f != null) {
+                if (f.node() != n) {
+                    // Substitute nodes from the fragment map.
+                    return this.visitEdge(parent, f.node());
+                }
+                asRoot = f.node();
             }
-            if (parent instanceof CodeDecl && ((CodeDecl) parent).body() == n) {
-                return n;
+        }
+        
+        Mode mode = mode(n);
+
+        if (mode != Mode.CURRENT_ROOT) {
+            switch (scope) {
+            case SIGNATURES_OF_ROOT:
+                if (parent instanceof FieldDecl && ((FieldDecl) parent).init() == n) {
+                    return n;
+                }
+                if (parent instanceof CodeDecl && ((CodeDecl) parent).body() == n) {
+                    return n;
+                }
+                break;
+            case BODY_OF_ROOT:
+                break;
             }
         }
 
@@ -78,9 +161,27 @@ public class TypeChecker extends ContextVisitor
             
             Node m = n.del().typeCheckOverride(parent, this);
             
+            updateRoot(m);
+            asRoot = (FragmentRoot) m;
+            
             if (Report.should_report(Report.visit, 2))
                 Report.report(2, "<< " + this + "::override " + n + " -> " + m);
             
+            // If this is a fragment root, but not the root of the current fragment, spawn a subgoal.
+            // But ONLY if type-checking.
+            if (asRoot != null && mode != Mode.CURRENT_ROOT && scope == Scope.BODY_OF_ROOT) {
+                for (Def def : asRoot.defs()) {
+                    FragmentGoal g = (FragmentGoal) Globals.Scheduler().TypeCheckDef(job(), def);
+                    if (! Globals.Scheduler().reached(g)) {
+                        boolean result = Globals.Scheduler().attempt(g);
+                        if (! result) {
+                            throw new SemanticException("Could not type check " + def + ".");
+                        }
+                    }
+                    return getFragment(def).node();
+                }
+            }
+
             return m;
         }
         catch (SemanticException e) {
@@ -102,6 +203,17 @@ public class TypeChecker extends ContextVisitor
             return n;
         }
     }
+
+    protected void updateRoot(Node m) {
+        // Update the fragment map with the new node.
+        if (m instanceof FragmentRoot) {
+            FragmentRoot r = (FragmentRoot) m;
+            for (Def def : r.defs()) {
+                ASTFragment f = getFragment(def);
+                f.setNode(r);
+            }
+        }
+    }
  
     protected NodeVisitor enterCall(Node n) throws SemanticException {
         if (Report.should_report(Report.visit, 2))
@@ -119,20 +231,21 @@ public class TypeChecker extends ContextVisitor
         if (Report.should_report(Report.visit, 2))
             Report.report(2, ">> " + this + "::leave " + n);
         
+        
+        TypeChecker tc = (TypeChecker) v;
+
+        Mode mode = mode(old);
+
         Node m = n;
 
-        //          System.out.println("running typeCheck for " + m);
-        TypeChecker tc = (TypeChecker) v;
         AmbiguityRemover ar = new AmbiguityRemover(tc.job(), tc.typeSystem(), tc.nodeFactory());
         ar = (AmbiguityRemover) ar.context(tc.context());
         m = m.del().disambiguate(ar);
         m = m.del().typeCheck(tc);
         m = m.del().checkConstants(tc);
 
-        //            if (! m.isTypeChecked()) {
-        //                throw new InternalCompilerError("Type checking failed for " + m + " (" + m.getClass().getName() + ")", m.position());
-        //            }
-        
+        updateRoot(m);
+
         if (Report.should_report(Report.visit, 2))
             Report.report(2, "<< " + this + "::leave " + n + " -> " + m);
         

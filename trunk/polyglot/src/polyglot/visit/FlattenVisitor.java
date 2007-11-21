@@ -213,7 +213,7 @@ public class FlattenVisitor extends NodeVisitor
 	    // return the local temp instead of the complex expression
 	    Local use = nf.Local(e.position(), nf.Id(e.position(), name));
 	    use = (Local) use.type(e.type());
-	    use = use.localInstance(li.asReference());
+	    use = use.localInstance(li.asInstance());
 	    return use;
 	}
 

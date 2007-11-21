@@ -11,5 +11,5 @@ package polyglot.types;
  * A <code>LocalInstance</code> contains type information for a local variable.
  */
 public interface LocalDef extends VarDef {
-    LocalInstance asReference();
+    LocalInstance asInstance();
 }

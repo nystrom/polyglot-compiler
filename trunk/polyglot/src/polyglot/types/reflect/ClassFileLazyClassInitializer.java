@@ -523,7 +523,7 @@ public class ClassFileLazyClassInitializer {
             }
         }
     
-        return ts.methodInstance(ct.position(), Ref_c.ref(ct.asType()),
+        return ts.methodDef(ct.position(), Ref_c.ref(ct.asType()),
                                  ts.flagsForBits(method.getModifiers()),
                                  returnType, name, argTypes, excTypes);
       }
@@ -561,7 +561,7 @@ public class ClassFileLazyClassInitializer {
             }
         }
         
-        return ts.constructorInstance(mi.position(), Ref_c.ref(ct.asType()), mi.flags(),
+        return ts.constructorDef(mi.position(), Ref_c.ref(ct.asType()), mi.flags(),
                                       formals, mi.throwTypes());
     }
 
@@ -575,7 +575,7 @@ public class ClassFileLazyClassInitializer {
       String name = (String) constants[field.getName()].value();
       String type = (String) constants[field.getType()].value();
     
-      FieldDef fi = ts.fieldInstance(ct.position(), Ref_c.ref(ct.asType()),
+      FieldDef fi = ts.fieldDef(ct.position(), Ref_c.ref(ct.asType()),
                                           ts.flagsForBits(field.getModifiers()),
                                           typeForString(type), name);
     
