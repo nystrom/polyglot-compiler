@@ -28,6 +28,6 @@ public class VarInstance_c<T extends VarDef> extends Use_c<T> implements VarType
     }
 
     public Type type() {
-        return get(def().type());
+        return Types.get(def().type());
     }
 }

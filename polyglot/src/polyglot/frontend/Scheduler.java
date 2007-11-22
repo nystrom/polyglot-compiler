@@ -368,9 +368,11 @@ public abstract class Scheduler {
         if (Report.should_report(Report.frontend, 4))
             Report.report(4, "running goal " + goal);
         
-        if (currentGoal() != null) {
-            System.out.println("CURRENT = " + currentGoal());
-            System.out.println("SPAWN   = " + goal);
+        if (Report.should_report(Report.frontend, 5)) {
+            if (currentGoal() != null) {
+                Report.report(5, "CURRENT = " + currentGoal());
+                Report.report(5, "SPAWN   = " + goal);
+            }
         }
 
         boolean result = runPass(goal);
@@ -699,9 +701,9 @@ public abstract class Scheduler {
 
     public abstract Goal FieldConstantsChecked(Symbol<FieldDef> f);
 
-    public abstract Goal LookupGlobalType(TypeRef< Type> sym);
-    public abstract Goal LookupGlobalTypeDef(TypeRef<ClassDef> sym, String name);
-    public abstract Goal LookupGlobalTypeDefAndSetFlags(TypeRef<ClassDef> sym, String name, Flags flags);
+    public abstract Goal LookupGlobalType(LazyRef< Type> sym);
+    public abstract Goal LookupGlobalTypeDef(LazyRef<ClassDef> sym, String name);
+    public abstract Goal LookupGlobalTypeDefAndSetFlags(LazyRef<ClassDef> sym, String name, Flags flags);
 }
 
 

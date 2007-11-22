@@ -124,7 +124,7 @@ public class SourceFile_c extends Node_c implements SourceFile
      */
     public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
         if (package_ != null) {
-            return tb.pushPackage(TypeObject_c.get(package_.package_()));
+            return tb.pushPackage(Types.get(package_.package_()));
         }
         return tb;
     }

@@ -201,10 +201,10 @@ public class FlattenVisitor extends NodeVisitor
 	    String name = newID();
 	    LocalDecl def = nf.LocalDecl(e.position(), Flags.FINAL,
 					 nf.CanonicalTypeNode(e.position(),
-					                      Ref_c.<Type>ref(e.type())),
+					                      Types.<Type>ref(e.type())),
 					 nf.Id(e.position(), name), e);
 	    LocalDef li = ts.localInstance(e.position(), Flags.FINAL,
-        		     Ref_c.<Type>ref(e.type()), name);
+        		     Types.<Type>ref(e.type()), name);
 	    def = def.localDef(li);
 
 	    List l = (List) stack.getFirst();

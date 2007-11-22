@@ -25,6 +25,11 @@ public interface ClassType extends Importable, ReferenceType, MemberInstance<Cla
     ClassDef.Kind kind();
 
     /**
+     * Return true if the class is global; that is top-level or a member of a global class.
+     */
+    boolean isGloballyAccessible();
+    
+    /**
      * Return true if the class is top-level (i.e., not inner).
      * Equivalent to kind() == TOP_LEVEL.
      */

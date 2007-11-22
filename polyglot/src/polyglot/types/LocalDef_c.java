@@ -28,7 +28,7 @@ public class LocalDef_c extends VarDef_c implements LocalDef
     public LocalInstance asInstance() {
         if (Report.should_report("asi", 1)) asInstance = null;
         if (asInstance == null) {
-            asInstance = new LocalInstance_c(ts, position(), Ref_c.<LocalDef> ref(this));
+            asInstance = new LocalInstance_c(ts, position(), Types.<LocalDef> ref(this));
         }
         return asInstance;
     }

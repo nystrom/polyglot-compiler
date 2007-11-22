@@ -2,7 +2,6 @@ package polyglot.frontend;
 
 import polyglot.ast.NodeFactory;
 import polyglot.main.Options;
-import polyglot.types.SymbolTable;
 import polyglot.types.TypeSystem;
 
 public class Globals {
@@ -24,7 +23,6 @@ public class Globals {
     public static Stats Stats() { return Extension().getStats(); }
 
     public static TypeSystem TS() { return Extension().typeSystem(); }
-    public static SymbolTable ST() { return TS().symbolTable(); }
 
     public static NodeFactory NF() { return Extension().nodeFactory(); }
 

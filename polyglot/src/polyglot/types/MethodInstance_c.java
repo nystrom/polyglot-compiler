@@ -12,7 +12,7 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
     }
     
     public ReferenceType container() {
-        return get(def().container());
+        return Types.get(def().container());
     }
     
     public Flags flags() {

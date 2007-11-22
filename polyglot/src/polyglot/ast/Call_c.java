@@ -161,7 +161,7 @@ public class Call_c extends Expr_c implements Call
      * 
      * @param argTypes list of <code>Type</code>s of the arguments
      */
-    protected Node typeCheckNullTarget(TypeChecker tc, List argTypes) throws SemanticException {
+    protected Node typeCheckNullTarget(TypeChecker tc, List<Type> argTypes) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
         NodeFactory nf = tc.nodeFactory();
         Context c = tc.context();
@@ -175,7 +175,7 @@ public class Call_c extends Expr_c implements Call
         Receiver r;
         if (mi.flags().isStatic()) {
             Type container = findContainer(ts, mi);            
-            r = nf.CanonicalTypeNode(position().startOf(), container).type(Ref_c.ref(container));
+            r = nf.CanonicalTypeNode(position().startOf(), container).typeRef(Types.ref(container));
         } else {
             // The method is non-static, so we must prepend with "this", but we
             // need to determine if the "this" should be qualified.  Get the

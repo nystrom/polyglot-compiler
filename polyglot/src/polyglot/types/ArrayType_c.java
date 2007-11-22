@@ -39,9 +39,9 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
 
             // Add method public Object clone()
             MethodDef mi = ts.methodDef(position(),
-                                          Ref_c.<ArrayType_c>ref(this),
+                                          Types.<ArrayType_c>ref(this),
                                           ts.Public(),
-                                          Ref_c.<ClassType>ref(ts.Object()),
+                                          Types.<ClassType>ref(ts.Object()),
                                           "clone",
                                           Collections.EMPTY_LIST,
                                           Collections.EMPTY_LIST);
@@ -53,9 +53,9 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
 
             // Add field public final int length
             FieldDef fi = ts.fieldDef(position(),
-                                        Ref_c.<ArrayType_c>ref(this),
+                                        Types.<ArrayType_c>ref(this),
                                         ts.Public().Final(),
-                                        Ref_c.<PrimitiveType>ref(ts.Int()),
+                                        Types.<PrimitiveType>ref(ts.Int()),
                                         "length");
             fi.setNotConstant();
             fields.add(fi);
@@ -63,8 +63,8 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
 
         if (interfaces == null) {
             interfaces = new ArrayList<Ref<? extends Type>>(2);
-            interfaces.add(Ref_c.<ClassType>ref(ts.Cloneable()));
-            interfaces.add(Ref_c.<ClassType>ref(ts.Serializable()));
+            interfaces.add(Types.<ClassType>ref(ts.Cloneable()));
+            interfaces.add(Types.<ClassType>ref(ts.Serializable()));
         }
     }
 
@@ -74,12 +74,12 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
     
     /** Get the base type of the array. */
     public Type base() {
-        return get(base);
+        return Types.get(base);
     }
 
     /** Set the base type of the array. */
     public ArrayType base(Type base) {
-        return base(Ref_c.ref(base));
+        return base(Types.ref(base));
     }
     
     public ArrayType base(Ref<? extends Type> base) {

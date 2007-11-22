@@ -77,7 +77,7 @@ public class AmbExpr_c extends Expr_c implements AmbExpr
                                                     null, name);
 
     if (n instanceof Expr) {
-      return n;
+        return n;
     }
 
     throw new SemanticException("Could not find field or local " +
@@ -85,6 +85,7 @@ public class AmbExpr_c extends Expr_c implements AmbExpr
   }
 
   public Node typeCheck(TypeChecker tc) throws SemanticException {
+      assert false;
       // Didn't finish disambiguation; just return.
       return this;
   }

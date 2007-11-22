@@ -17,4 +17,6 @@ package polyglot.types;
  * A Def is a type object representing a declaration.
  */
 public interface Def extends TypeObject {
+    public <T extends TypeObject> Symbol<T> symbol();
+    public void setSymbol(Symbol<? extends TypeObject> sym);
 }

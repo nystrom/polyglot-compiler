@@ -83,7 +83,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         if (! isMember())
             throw new InternalCompilerError("Non-member class " + this + " cannot have container classes.");
         if (outer() == null)
-            throw new InternalCompilerError("Nested class " + this + " must have an outer class.");
+            throw new InternalCompilerError("Member class " + this + " must have an outer class.");
         return outer();
     }
 
@@ -108,6 +108,10 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     public boolean isMember() { return kind() == ClassDef.MEMBER; }
     public boolean isLocal() { return kind() == ClassDef.LOCAL; }
     public boolean isAnonymous() { return kind() == ClassDef.ANONYMOUS; }
+
+    public boolean isGloballyAccessible() {
+        return kind() == ClassDef.TOP_LEVEL || (kind() == ClassDef.MEMBER && outer().isGloballyAccessible());
+    }
 
     public boolean isNested() {
         // Implement this way rather than with ! isTopLevel() so that

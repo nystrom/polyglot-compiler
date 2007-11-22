@@ -130,7 +130,7 @@ public class Initializer_c extends Term_c implements Initializer
     public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
         TypeSystem ts = tb.typeSystem();
         ClassDef ct = tb.currentClass();
-        InitializerDef ii = ts.initializerInstance(position(), Ref_c.ref(ct.asType()), flags);
+        InitializerDef ii = ts.initializerDef(position(), Types.ref(ct.asType()), flags);
         
         Goal g = Globals.Scheduler().TypeCheckDef(tb.job(), ii);
         g.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
@@ -141,6 +141,43 @@ public class Initializer_c extends Term_c implements Initializer
         InitializerDef ii = (InitializerDef) tb.def();
         return initializerDef(ii);
     }
+
+    /** Type check the declaration. */
+    @Override
+    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
+        TypeSystem ts = tc.typeSystem();
+  
+        NodeVisitor childv = tc.enter(parent, this);
+        TypeChecker childtc;
+        if (childv instanceof PruningVisitor) {
+            return this;
+        }
+        if (childv instanceof TypeChecker) {
+            childtc = (TypeChecker) childv;
+        }
+        else {
+            assert false;
+            return this;
+        }
+
+        Block body = this.body;
+
+        switch (tc.mode(this)) {
+        case NON_ROOT:
+        case INNER_ROOT:
+            break;
+        case CURRENT_ROOT:
+            if (tc.scope() == TypeChecker.Scope.BODY) {
+                body = (Block) this.visitChild(this.body, childtc);
+                Initializer_c n = reconstruct(body);
+                return tc.leave(parent, this, n, childtc);
+            }
+            break;
+        }
+
+        return this;
+    }
+
 
     /** Type check the initializer. */
     public Node typeCheck(TypeChecker tc) throws SemanticException {

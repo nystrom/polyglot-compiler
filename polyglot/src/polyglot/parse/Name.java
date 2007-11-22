@@ -105,10 +105,10 @@ public class Name {
     // package
     public PackageNode toPackage() {
         if (prefix == null) {
-            return nf.PackageNode(pos, Ref_c.ref(ts.createPackage((Ref<? extends Package>) null, name.id())));
+            return nf.PackageNode(pos, Types.ref(ts.createPackage((Ref<? extends Package>) null, name.id())));
         }
         else {
-            return nf.PackageNode(pos, Ref_c.ref(ts.createPackage(prefix.toPackage().package_(), name.id())));
+            return nf.PackageNode(pos, Types.ref(ts.createPackage(prefix.toPackage().package_(), name.id())));
         }
     }
 

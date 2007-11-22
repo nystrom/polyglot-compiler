@@ -93,7 +93,7 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
     }
     
     public CanonicalTypeNode CanonicalTypeNode(Position pos, Type type) {
-        return CanonicalTypeNode(pos, Ref_c.<Type>ref(type));
+        return CanonicalTypeNode(pos, Types.<Type>ref(type));
     }
 
     public final AmbPrefix AmbPrefix(Position pos, Id name) {

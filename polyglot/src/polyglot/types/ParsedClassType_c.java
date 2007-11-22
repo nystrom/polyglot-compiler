@@ -31,7 +31,7 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
     }
     
     public ParsedClassType_c(ClassDef def) {
-        this(def.typeSystem(), def.position(), Ref_c.ref(def));
+        this(def.typeSystem(), def.position(), Types.ref(def));
     }
 
     public ParsedClassType_c(TypeSystem ts, Position pos, Ref<ClassDef> def) {
@@ -51,7 +51,7 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
     }
     
     public ClassType outer() {
-        ClassDef outer = get(def().outer());
+        ClassDef outer = Types.get(def().outer());
         if (outer == null) return null;
         return outer.asType();
     }
@@ -62,12 +62,12 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
 
     /** Get the class's super type. */
     public Type superType() {
-        return get(def().superType());
+        return Types.get(def().superType());
     }
 
     /** Get the class's package. */
     public Package package_() {
-        return get(def().package_());
+        return Types.get(def().package_());
     }
 
     /** Get the class's flags. */

@@ -28,7 +28,7 @@ public abstract class TypeNode_c extends Term_c implements TypeNode
     }
     
     /** Get the type as a qualifier. */
-    public Ref<? extends Qualifier> qualifier() {
+    public Ref<? extends Qualifier> qualifierRef() {
         return typeRef();
     }
 
@@ -38,11 +38,11 @@ public abstract class TypeNode_c extends Term_c implements TypeNode
     }
 
     public Type type() {
-        return TypeObject_c.get(this.type);
+        return Types.get(this.type);
     }
 
     /** Set the type this node encapsulates. */
-    public TypeNode type(Ref<? extends Type> type) {
+    protected TypeNode typeRef(Ref<? extends Type> type) {
 	TypeNode_c n = (TypeNode_c) copy();
 	n.type = type;
 	return n;
@@ -51,7 +51,7 @@ public abstract class TypeNode_c extends Term_c implements TypeNode
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         if (type == null) {
             TypeSystem ts = tb.typeSystem();
-            return type(new ErrorRef_c<Type>(ts, position()));
+            return typeRef(new ErrorRef_c<Type>(ts, position()));
         }
         else {
             return this;

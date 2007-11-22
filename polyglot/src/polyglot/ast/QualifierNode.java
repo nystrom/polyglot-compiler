@@ -20,5 +20,5 @@ import polyglot.types.SemanticException;
 public interface QualifierNode extends Prefix
 {
     /** The qualifier type object. */
-    Ref<? extends Qualifier> qualifier();
+    Ref<? extends Qualifier> qualifierRef();
 }

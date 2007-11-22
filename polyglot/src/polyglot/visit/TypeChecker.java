@@ -23,8 +23,9 @@ public class TypeChecker extends ContextVisitor
     Scope scope;
     
     public static enum Scope {
-        SIGNATURES_OF_ROOT,
-        BODY_OF_ROOT,
+        SUPER,
+        SIGNATURES,
+        BODY,
     }
 
     public static enum Mode {
@@ -56,7 +57,7 @@ public class TypeChecker extends ContextVisitor
         return scope;
     }
     
-    final static Scope SUPER_OF_INNER = Scope.SIGNATURES_OF_ROOT;
+    final static Scope SUPER_OF_INNER = Scope.SIGNATURES;
     
     public TypeChecker(Job job, TypeSystem ts, NodeFactory nf) {
         this(job, ts, nf, true, true);
@@ -64,31 +65,32 @@ public class TypeChecker extends ContextVisitor
     
     public TypeChecker(Job job, TypeSystem ts, NodeFactory nf, boolean visitSigs, boolean visitBodies) {
         super(job, ts, nf);
-        if (visitBodies) scope = Scope.BODY_OF_ROOT;
-        else scope = Scope.SIGNATURES_OF_ROOT;
+        if (visitBodies) scope = Scope.BODY;
+        else if (visitSigs) scope = Scope.SIGNATURES;
+        else scope = Scope.SUPER;
     }
     
     public TypeChecker visitSupers() {
         TypeChecker tc = (TypeChecker) copy();
-        tc.scope = Scope.SIGNATURES_OF_ROOT;
+        tc.scope = Scope.SUPER;
         return tc;
     }
     
     public TypeChecker visitSignatures() {
         TypeChecker tc = (TypeChecker) copy();
-        tc.scope = Scope.SIGNATURES_OF_ROOT;
+        tc.scope = Scope.SIGNATURES;
         return tc;
     }
     
     public TypeChecker visitBodies() {
         TypeChecker tc = (TypeChecker) copy();
-        tc.scope = Scope.BODY_OF_ROOT;
+        tc.scope = Scope.BODY;
         return tc;
     }
     
-    public boolean shouldVisitSupers() { return true; }
-    public boolean shouldVisitSignatures() { return scope == Scope.SIGNATURES_OF_ROOT; }
-    public boolean shouldVisitBodies() { return scope == Scope.BODY_OF_ROOT; }
+    public boolean shouldVisitSupers() { return scope == Scope.SUPER; }
+    public boolean shouldVisitSignatures() { return scope == Scope.SIGNATURES; }
+    public boolean shouldVisitBodies() { return scope == Scope.BODY; }
     
     public ASTFragment getFragment(Def def) {
         Job job = Globals.currentJob();
@@ -140,20 +142,20 @@ public class TypeChecker extends ContextVisitor
         
         Mode mode = mode(n);
 
-        if (mode != Mode.CURRENT_ROOT) {
-            switch (scope) {
-            case SIGNATURES_OF_ROOT:
-                if (parent instanceof FieldDecl && ((FieldDecl) parent).init() == n) {
-                    return n;
-                }
-                if (parent instanceof CodeDecl && ((CodeDecl) parent).body() == n) {
-                    return n;
-                }
-                break;
-            case BODY_OF_ROOT:
-                break;
-            }
-        }
+//        if (mode != Mode.CURRENT_ROOT) {
+//            switch (scope) {
+//            case SIGNATURES_OF_ROOT:
+//                if (parent instanceof FieldDecl && ((FieldDecl) parent).init() == n) {
+//                    return n;
+//                }
+//                if (parent instanceof CodeDecl && ((CodeDecl) parent).body() == n) {
+//                    return n;
+//                }
+//                break;
+//            case BODY_OF_ROOT:
+//                break;
+//            }
+//        }
 
         try {
             if (Report.should_report(Report.visit, 2))
@@ -169,7 +171,38 @@ public class TypeChecker extends ContextVisitor
             
             // If this is a fragment root, but not the root of the current fragment, spawn a subgoal.
             // But ONLY if type-checking.
-            if (asRoot != null && mode != Mode.CURRENT_ROOT && scope == Scope.BODY_OF_ROOT) {
+            if (asRoot != null && mode == Mode.INNER_ROOT && scope == Scope.SUPER) {
+                assert asRoot != null;
+                for (Def def : asRoot.defs()) {
+                    FragmentGoal g = (FragmentGoal) Globals.Scheduler().SupertypeDef(job(), def);
+                    if (! Globals.Scheduler().reached(g)) {
+                        boolean result = Globals.Scheduler().attempt(g);
+                        if (! result) {
+                            throw new SemanticException("Could not type check " + def + ".");
+                        }
+                    }
+                    return getFragment(def).node();
+                }
+            }
+            
+            // If this is a fragment root, but not the root of the current fragment, spawn a subgoal.
+            // But ONLY if type-checking.
+            if (asRoot != null && mode == Mode.INNER_ROOT && scope == Scope.SIGNATURES || scope == Scope.BODY) {
+                assert asRoot != null;
+                for (Def def : asRoot.defs()) {
+                    FragmentGoal g = (FragmentGoal) Globals.Scheduler().SignatureDef(job(), def);
+                    if (! Globals.Scheduler().reached(g)) {
+                        boolean result = Globals.Scheduler().attempt(g);
+                        if (! result) {
+                            throw new SemanticException("Could not type check " + def + ".");
+                        }
+                    }
+                    return getFragment(def).node();
+                }
+            }
+
+            if (asRoot != null && mode == Mode.INNER_ROOT && scope == Scope.BODY) {
+                assert asRoot != null;
                 for (Def def : asRoot.defs()) {
                     FragmentGoal g = (FragmentGoal) Globals.Scheduler().TypeCheckDef(job(), def);
                     if (! Globals.Scheduler().reached(g)) {

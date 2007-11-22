@@ -107,10 +107,10 @@ public class Disamb_c implements Disamb
         }
         
         if (q.isPackage() && packageOK()) {
-            return nf.PackageNode(pos, Ref_c.ref(q.toPackage()));
+            return nf.PackageNode(pos, Types.ref(q.toPackage()));
         }
         else if (q.isType() && typeOK()) {
-            return nf.CanonicalTypeNode(pos, Ref_c.ref(q.toType()));
+            return nf.CanonicalTypeNode(pos, Types.ref(q.toType()));
         }
 
         return null;
@@ -197,7 +197,7 @@ public class Disamb_c implements Disamb
 
         // Must be a package then...
         if (packageOK()) {
-            return nf.PackageNode(pos, Ref_c.ref(ts.packageForName(name.id())));
+            return nf.PackageNode(pos, Types.ref(ts.packageForName(name.id())));
         }
 
         return null;
