@@ -92,18 +92,31 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
     }
 
     public Node disambiguate(AmbiguityRemover sc) throws SemanticException {
-	Node n = sc.nodeFactory().disamb().disambiguate(this, sc, position(), qual, name);
+        SemanticException ex;
 
-	if (n instanceof QualifierNode) {
-	    QualifierNode qn = (QualifierNode) n;
-	    Qualifier q = qn.qualifierRef().get();
-	    qualifier.update(q);
-	    return n;
-	}
+        try {
+            Node n = sc.nodeFactory().disamb().disambiguate(this, sc, position(), qual, name);
 
-	throw new SemanticException("Could not find type or package \"" +
-            (qual == null ? name.toString() : qual.toString() + "." + name.toString()) +
-	    "\".", position());
+            if (n instanceof QualifierNode) {
+                QualifierNode qn = (QualifierNode) n;
+                Qualifier q = qn.qualifierRef().get();
+                qualifier.update(q);
+                return n;
+            }
+
+            ex = new SemanticException("Could not find type or package \"" +
+                                       (qual == null ? name.toString() : qual.toString() + "." + name.toString()) +
+                                       "\".", position());
+        }
+        catch (SemanticException e) {
+            ex = e;
+        }
+
+        // Mark the type as an error, so we don't try looking it up again.
+        LazyRef<Qualifier> sym = (LazyRef<Qualifier>) qualifier;
+        sym.update(sc.typeSystem().unknownQualifier(position()));
+
+        throw ex;
     }
 
     public Node typeCheck(TypeChecker tc) throws SemanticException {

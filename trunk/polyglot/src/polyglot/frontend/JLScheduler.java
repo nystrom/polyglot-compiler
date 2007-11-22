@@ -341,6 +341,8 @@ public class JLScheduler extends Scheduler {
         }
         
         public boolean equals(Object o) {
+            if (o == this)
+                return true;
             if (o instanceof FragmentGoal) {
                 FragmentGoal g = (FragmentGoal) o;
                 return super.equals(o) && name.equals(g.name) && (def != null ? def.equals(g.def) : g.def == null) && v.getClass() == g.v.getClass();
@@ -415,9 +417,9 @@ public class JLScheduler extends Scheduler {
         public List<Goal> prereqs() {
             List<Goal> l = new ArrayList<Goal>();
             l.addAll(super.prereqs());
-            if (def() instanceof ClassDef) {
-                l.add(Globals.Scheduler().SupertypeDef(job(), (ClassDef) def()));
-            }
+//            if (def() instanceof ClassDef) {
+//                l.add(Globals.Scheduler().SupertypeDef(job(), (ClassDef) def()));
+//            }
             return l;
         }
     }
@@ -449,10 +451,10 @@ public class JLScheduler extends Scheduler {
         public List<Goal> prereqs() {
             List<Goal> l = new ArrayList<Goal>();
             l.addAll(super.prereqs());
-            if (def() instanceof ClassDef) {
-                l.add(Globals.Scheduler().SupertypeDef(job(), (ClassDef) def()));
-            }
-            l.add(Globals.Scheduler().SignatureDef(job(), def()));
+//            if (def() instanceof ClassDef) {
+//                l.add(Globals.Scheduler().SupertypeDef(job(), (ClassDef) def()));
+//            }
+//            l.add(Globals.Scheduler().SignatureDef(job(), def()));
             return l;
         }
     }

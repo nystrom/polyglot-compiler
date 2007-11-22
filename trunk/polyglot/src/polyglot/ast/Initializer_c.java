@@ -133,6 +133,7 @@ public class Initializer_c extends Term_c implements Initializer
         InitializerDef ii = ts.initializerDef(position(), Types.ref(ct.asType()), flags);
         
         Goal g = Globals.Scheduler().TypeCheckDef(tb.job(), ii);
+        if (false)
         g.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
         return tb.pushCode(ii, g);
     }
@@ -147,37 +148,45 @@ public class Initializer_c extends Term_c implements Initializer
     public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
   
-        NodeVisitor childv = tc.enter(parent, this);
         TypeChecker childtc;
-        if (childv instanceof PruningVisitor) {
-            return this;
-        }
+        NodeVisitor childv = tc.enter(parent, this);
         if (childv instanceof TypeChecker) {
             childtc = (TypeChecker) childv;
         }
         else {
-            assert false;
             return this;
         }
 
         Block body = this.body;
 
-        switch (tc.mode(this)) {
-        case NON_ROOT:
-        case INNER_ROOT:
-            break;
-        case CURRENT_ROOT:
-            if (tc.scope() == TypeChecker.Scope.BODY) {
-                body = (Block) this.visitChild(this.body, childtc);
-                Initializer_c n = reconstruct(body);
-                return tc.leave(parent, this, n, childtc);
-            }
-            break;
+        switch (tc.scope()) {
+        case SUPER: {
+            return this;
         }
-
+        case SIGNATURES: {
+            return this;
+        }
+        case BODY: {
+            Initializer_c n = this;
+            
+            switch (tc.mode(this)) {
+            case NON_ROOT:
+                assert false;
+                break;
+            case INNER_ROOT:
+                break;
+            case CURRENT_ROOT:
+                body = (Block) this.visitChild(this.body, childtc);
+                n = reconstruct(body);
+                n = (Initializer_c) tc.leave(parent, this, n, childtc);
+            }
+            
+            return n;
+        }
+        }
+        
         return this;
     }
-
 
     /** Type check the initializer. */
     public Node typeCheck(TypeChecker tc) throws SemanticException {

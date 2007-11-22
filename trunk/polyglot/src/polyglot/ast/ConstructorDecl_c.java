@@ -186,10 +186,12 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
         ct.addConstructor(ci);
         
         Goal g = Globals.Scheduler().SignatureDef(tb.job(), ci);
+        if (false)
         g.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
         TypeBuilder tb2 = tb.pushCode(ci, g);
 
         Goal g2 = Globals.Scheduler().TypeCheckDef(tb.job(), ci);
+        if (false)
         g2.addPrereq(g);
         TypeBuilder tb3 = tb.pushCode(ci, g2);
 
@@ -224,16 +226,12 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
     public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
   
-        NodeVisitor childv = tc.enter(parent, this);
         TypeChecker childtc;
-        if (childv instanceof PruningVisitor) {
-            return this;
-        }
+        NodeVisitor childv = tc.enter(parent, this);
         if (childv instanceof TypeChecker) {
             childtc = (TypeChecker) childv;
         }
         else {
-            assert false;
             return this;
         }
 
@@ -242,28 +240,43 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
         List<TypeNode> throwTypes = this.throwTypes;
         Block body = this.body;
 
-        name = (Id) this.visitChild(name, childtc);
-        formals = this.visitList(formals, childtc);
-        throwTypes = this.visitList(throwTypes, childtc);
-
-        switch (tc.mode(this)) {
-        case NON_ROOT:
-        case INNER_ROOT:
-            break;
-        case CURRENT_ROOT:
-            if (tc.scope() == TypeChecker.Scope.BODY) {
-                body = (Block) this.visitChild(this.body, childtc);
-            }
-            break;
+        switch (tc.scope()) {
+        case SUPER: {
+            return this;
         }
+        case SIGNATURES: {
+            name = (Id) this.visitChild(name, childtc);
+            formals = this.visitList(formals, childtc);
+            throwTypes = this.visitList(throwTypes, childtc);
 
-        ConstructorDecl_c n = reconstruct(name, formals, throwTypes, body);
+            ConstructorDecl_c n = reconstruct(name, formals, throwTypes, body);
+            
+            return n;
+        }
+        case BODY: {
+            name = (Id) this.visitChild(name, childtc);
+            formals = this.visitList(formals, childtc);
+            throwTypes = this.visitList(throwTypes, childtc);
+            
+            ConstructorDecl_c n = reconstruct(name, formals, throwTypes, body);
 
-        if (tc.scope() == TypeChecker.Scope.BODY) {
-            return tc.leave(parent, this, n, childtc);
+            switch (tc.mode(this)) {
+            case NON_ROOT:
+                assert false;
+                break;
+            case INNER_ROOT:
+                break;
+            case CURRENT_ROOT:
+                body = (Block) this.visitChild(this.body, childtc);
+                n = (ConstructorDecl_c) n.body(body);
+                n = (ConstructorDecl_c) tc.leave(parent, this, n, childtc);
+            }
+            
+            return n;
+        }
         }
         
-        return n;
+        return this;
     }
 
     /** Type check the constructor. */

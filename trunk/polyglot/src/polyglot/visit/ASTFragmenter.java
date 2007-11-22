@@ -46,9 +46,10 @@ public class ASTFragmenter extends ContextVisitor
         
         if (n instanceof FragmentRoot) {
             FragmentRoot r = (FragmentRoot) n;
+            ASTFragment f = new ASTFragment(parent, r, c); // create ONE fragment per node
             for (Def def : r.defs()) {
                 assert def != null;
-                fragmentMap.put(def, new ASTFragment(parent, r, c));
+                fragmentMap.put(def, f);
             }
         }
 

@@ -7,7 +7,7 @@
 
 package polyglot.visit;
 
-import java.util.Map;
+import java.util.*;
 
 import polyglot.ast.*;
 import polyglot.frontend.*;
@@ -36,14 +36,15 @@ public class TypeChecker extends ContextVisitor
     
     public Mode mode(Node n) {
         ASTFragment currentFragment = currentFragment();
-        boolean isRoot = currentFragment != null && currentFragment == getFragment(n);
+        ASTFragment fragment = getFragment(n);
+        boolean isRoot = currentFragment != null && currentFragment == fragment;
 
         Mode mode;
         
         if (isRoot) {
             mode = Mode.CURRENT_ROOT;
         }
-        else if (getFragment(n) != null) {
+        else if (fragment != null) {
             mode = Mode.INNER_ROOT;
         }
         else {
@@ -65,32 +66,35 @@ public class TypeChecker extends ContextVisitor
     
     public TypeChecker(Job job, TypeSystem ts, NodeFactory nf, boolean visitSigs, boolean visitBodies) {
         super(job, ts, nf);
-        if (visitBodies) scope = Scope.BODY;
-        else if (visitSigs) scope = Scope.SIGNATURES;
-        else scope = Scope.SUPER;
+        if (visitBodies)
+            scope = Scope.BODY;
+        else if (visitSigs)
+            scope = Scope.SIGNATURES;
+        else
+            scope = Scope.SUPER;
     }
     
-    public TypeChecker visitSupers() {
-        TypeChecker tc = (TypeChecker) copy();
-        tc.scope = Scope.SUPER;
-        return tc;
-    }
-    
-    public TypeChecker visitSignatures() {
-        TypeChecker tc = (TypeChecker) copy();
-        tc.scope = Scope.SIGNATURES;
-        return tc;
-    }
-    
-    public TypeChecker visitBodies() {
-        TypeChecker tc = (TypeChecker) copy();
-        tc.scope = Scope.BODY;
-        return tc;
-    }
-    
-    public boolean shouldVisitSupers() { return scope == Scope.SUPER; }
-    public boolean shouldVisitSignatures() { return scope == Scope.SIGNATURES; }
-    public boolean shouldVisitBodies() { return scope == Scope.BODY; }
+//    public TypeChecker visitSupers() {
+//        TypeChecker tc = (TypeChecker) copy();
+//        tc.scope = Scope.SUPER;
+//        return tc;
+//    }
+//    
+//    public TypeChecker visitSignatures() {
+//        TypeChecker tc = (TypeChecker) copy();
+//        tc.scope = Scope.SIGNATURES;
+//        return tc;
+//    }
+//    
+//    public TypeChecker visitBodies() {
+//        TypeChecker tc = (TypeChecker) copy();
+//        tc.scope = Scope.BODY;
+//        return tc;
+//    }
+//    
+//    public boolean shouldVisitSupers() { return scope == Scope.SUPER; }
+//    public boolean shouldVisitSignatures() { return scope == Scope.SIGNATURES; }
+//    public boolean shouldVisitBodies() { return scope == Scope.BODY; }
     
     public ASTFragment getFragment(Def def) {
         Job job = Globals.currentJob();
@@ -129,6 +133,7 @@ public class TypeChecker extends ContextVisitor
     
     public Node override(Node parent, Node n) {
         FragmentRoot asRoot = null;
+        
         if (n instanceof FragmentRoot) {
             ASTFragment f = getFragment(n);
             if (f != null) {
@@ -137,31 +142,25 @@ public class TypeChecker extends ContextVisitor
                     return this.visitEdge(parent, f.node());
                 }
                 asRoot = f.node();
+                
+                assert n == asRoot;
             }
         }
         
+        Scope scope = scope();
         Mode mode = mode(n);
 
-//        if (mode != Mode.CURRENT_ROOT) {
-//            switch (scope) {
-//            case SIGNATURES_OF_ROOT:
-//                if (parent instanceof FieldDecl && ((FieldDecl) parent).init() == n) {
-//                    return n;
-//                }
-//                if (parent instanceof CodeDecl && ((CodeDecl) parent).body() == n) {
-//                    return n;
-//                }
-//                break;
-//            case BODY_OF_ROOT:
-//                break;
-//            }
-//        }
+        assert mode == Mode.NON_ROOT || asRoot != null;
 
         try {
             if (Report.should_report(Report.visit, 2))
                 Report.report(2, ">> " + this + "::override " + n);
             
             Node m = n.del().typeCheckOverride(parent, this);
+            assert mode == Mode.NON_ROOT || m != null;
+            
+            if (m == null)
+                return null;
             
             updateRoot(m);
             asRoot = (FragmentRoot) m;
@@ -169,50 +168,43 @@ public class TypeChecker extends ContextVisitor
             if (Report.should_report(Report.visit, 2))
                 Report.report(2, "<< " + this + "::override " + n + " -> " + m);
             
-            // If this is a fragment root, but not the root of the current fragment, spawn a subgoal.
-            // But ONLY if type-checking.
-            if (asRoot != null && mode == Mode.INNER_ROOT && scope == Scope.SUPER) {
-                assert asRoot != null;
-                for (Def def : asRoot.defs()) {
-                    FragmentGoal g = (FragmentGoal) Globals.Scheduler().SupertypeDef(job(), def);
-                    if (! Globals.Scheduler().reached(g)) {
-                        boolean result = Globals.Scheduler().attempt(g);
-                        if (! result) {
-                            throw new SemanticException("Could not type check " + def + ".");
-                        }
-                    }
-                    return getFragment(def).node();
-                }
-            }
-            
-            // If this is a fragment root, but not the root of the current fragment, spawn a subgoal.
-            // But ONLY if type-checking.
-            if (asRoot != null && mode == Mode.INNER_ROOT && scope == Scope.SIGNATURES || scope == Scope.BODY) {
-                assert asRoot != null;
-                for (Def def : asRoot.defs()) {
-                    FragmentGoal g = (FragmentGoal) Globals.Scheduler().SignatureDef(job(), def);
-                    if (! Globals.Scheduler().reached(g)) {
-                        boolean result = Globals.Scheduler().attempt(g);
-                        if (! result) {
-                            throw new SemanticException("Could not type check " + def + ".");
-                        }
-                    }
-                    return getFragment(def).node();
-                }
-            }
-
             if (asRoot != null && mode == Mode.INNER_ROOT && scope == Scope.BODY) {
                 assert asRoot != null;
+                Goal currentGoal = Globals.Scheduler().currentGoal();
+                ASTFragment first = null;
                 for (Def def : asRoot.defs()) {
-                    FragmentGoal g = (FragmentGoal) Globals.Scheduler().TypeCheckDef(job(), def);
-                    if (! Globals.Scheduler().reached(g)) {
-                        boolean result = Globals.Scheduler().attempt(g);
-                        if (! result) {
-                            throw new SemanticException("Could not type check " + def + ".");
+                    boolean spawn = true;
+                    ASTFragment fragment = getFragment(def);
+                    if (first == null) first = fragment;
+                    else if (first == fragment) spawn = false;
+                    
+                    List<Goal> goals = Arrays.asList(new Goal[] {
+                                                                 Globals.Scheduler().SupertypeDef(job(), def),
+                                                                 Globals.Scheduler().SignatureDef(job(), def),
+                                                                 Globals.Scheduler().TypeCheckDef(job(), def)
+                    });
+                    
+                    for (Goal g : goals) {
+                        assert g != currentGoal;
+                        if (! Globals.Scheduler().reached(g)) {
+                            if (spawn) {
+                                boolean result = Globals.Scheduler().attempt(g);
+                                if (! result) {
+                                    throw new SemanticException(); // An error should already have been reported.
+//                                    throw new SemanticException("Could not type check " + def + ".");
+                                }
+                            }
+                            else {
+                                Globals.Scheduler().markReached(g);
+                            }
                         }
                     }
-                    return getFragment(def).node();
+
+                    m = getFragment(def).node();
                 }
+                
+                // Run disambiguate, typeCheck and constantCheck on the new node.
+//                return leave(parent, n, m, enter(m));
             }
 
             return m;
@@ -251,7 +243,7 @@ public class TypeChecker extends ContextVisitor
     protected NodeVisitor enterCall(Node n) throws SemanticException {
         if (Report.should_report(Report.visit, 2))
             Report.report(2, ">> " + this + "::enter " + n);
-        
+
         TypeChecker v = (TypeChecker) n.del().typeCheckEnter(this);
         
         if (Report.should_report(Report.visit, 2))
@@ -264,10 +256,12 @@ public class TypeChecker extends ContextVisitor
         if (Report.should_report(Report.visit, 2))
             Report.report(2, ">> " + this + "::leave " + n);
         
-        
         TypeChecker tc = (TypeChecker) v;
 
-        Mode mode = mode(old);
+        updateRoot(n);
+        
+        Mode mode = mode(n);
+//        assert mode == Mode.INNER_ROOT || mode == Mode.NON_ROOT;
 
         Node m = n;
 

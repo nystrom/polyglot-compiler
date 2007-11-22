@@ -191,9 +191,11 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         ct.addField(fi);
 
         Goal sig = Globals.Scheduler().SignatureDef(tb.job(), fi);
+        if (false)
         sig.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
 
         Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), fi);
+        if (false)
         chk.addPrereq(sig);
         
         InitializerDef ii = null;
@@ -252,16 +254,12 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
   
-        NodeVisitor childv = tc.enter(parent, this);
         TypeChecker childtc;
-        if (childv instanceof PruningVisitor) {
-            return this;
-        }
+        NodeVisitor childv = tc.enter(parent, this);
         if (childv instanceof TypeChecker) {
             childtc = (TypeChecker) childv;
         }
         else {
-            assert false;
             return this;
         }
 
@@ -269,28 +267,42 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         Id name = this.name;
         Expr init = this.init;
 
-        type = (TypeNode) this.visitChild(type, childtc);
-        name = (Id) this.visitChild(name, childtc);
+        switch (tc.scope()) {
+        case SUPER: {
+            return this;
+        }
+        case SIGNATURES: {
+            type = (TypeNode) this.visitChild(type, childtc);
+            name = (Id) this.visitChild(name, childtc);
 
-        FieldDecl_c n = reconstruct(type, name, init);
+            FieldDecl_c n = reconstruct(type, name, init);
+            
+            return n;
+        }
+        case BODY: {
+            type = (TypeNode) this.visitChild(type, childtc);
+            name = (Id) this.visitChild(name, childtc);
+            
+            FieldDecl_c n = reconstruct(type, name, init);
 
-        switch (tc.mode(this)) {
-        case NON_ROOT:
-        case INNER_ROOT:
-            if (tc.scope() == TypeChecker.Scope.BODY) {
+            switch (tc.mode(this)) {
+            case NON_ROOT:
+                assert false;
+                break;
+            case INNER_ROOT:
                 init = n.init;
-            }
-            break;
-        case CURRENT_ROOT:
-            if (tc.scope() == TypeChecker.Scope.BODY) {
+                break;
+            case CURRENT_ROOT:
                 init = (Expr) n.visitChild(n.init, childtc);
                 n = (FieldDecl_c) n.init(init);
-                return tc.leave(parent, this, n, childtc);
+                n = (FieldDecl_c) tc.leave(parent, this, n, childtc);
             }
-            break;
+            
+            return n;
         }
-
-        return n;
+        }
+        
+        return this;
     }
     
     public Node typeCheck(TypeChecker tc) throws SemanticException {
