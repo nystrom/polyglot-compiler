@@ -20,9 +20,6 @@ import polyglot.util.Position;
  */
 public interface TypeObject extends Copy, Serializable
 {
-    public <T extends TypeObject> Symbol<T> symbol();
-    public void setSymbol(Symbol<? extends TypeObject> sym);
-    
     void complete(GoalSet phase);
     
     /**

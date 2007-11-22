@@ -180,9 +180,9 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
             flags = flags.Public().Abstract();
         }
         
-        ConstructorDef ci = ts.constructorDef(position(), Ref_c.ref(ct.asType()), flags,
+        ConstructorDef ci = ts.constructorDef(position(), Types.ref(ct.asType()), flags,
                                          Collections.<Ref<? extends Type>>emptyList(), Collections.<Ref<? extends Type>>emptyList());
-        Symbol<ConstructorDef> sym = ts.symbolTable().<ConstructorDef>symbol(ci);
+        Symbol<ConstructorDef> sym = Types.<ConstructorDef>symbol(ci);
         ct.addConstructor(ci);
         
         Goal g = Globals.Scheduler().SignatureDef(tb.job(), ci);
@@ -217,6 +217,53 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
 
     public Context enterScope(Context c) {
         return c.pushCode(ci);
+    }
+
+    /** Type check the declaration. */
+    @Override
+    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
+        TypeSystem ts = tc.typeSystem();
+  
+        NodeVisitor childv = tc.enter(parent, this);
+        TypeChecker childtc;
+        if (childv instanceof PruningVisitor) {
+            return this;
+        }
+        if (childv instanceof TypeChecker) {
+            childtc = (TypeChecker) childv;
+        }
+        else {
+            assert false;
+            return this;
+        }
+
+        Id name = this.name;
+        List<Formal> formals = this.formals;
+        List<TypeNode> throwTypes = this.throwTypes;
+        Block body = this.body;
+
+        name = (Id) this.visitChild(name, childtc);
+        formals = this.visitList(formals, childtc);
+        throwTypes = this.visitList(throwTypes, childtc);
+
+        switch (tc.mode(this)) {
+        case NON_ROOT:
+        case INNER_ROOT:
+            break;
+        case CURRENT_ROOT:
+            if (tc.scope() == TypeChecker.Scope.BODY) {
+                body = (Block) this.visitChild(this.body, childtc);
+            }
+            break;
+        }
+
+        ConstructorDecl_c n = reconstruct(name, formals, throwTypes, body);
+
+        if (tc.scope() == TypeChecker.Scope.BODY) {
+            return tc.leave(parent, this, n, childtc);
+        }
+        
+        return n;
     }
 
     /** Type check the constructor. */

@@ -107,7 +107,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
     protected void cachePackage(Package p) {
         if (p != null) {
             packageCache.put(p.fullName(), Boolean.TRUE);
-            Package prefix = TypeObject_c.get(p.prefix());
+            Package prefix = Types.get(p.prefix());
             cachePackage(prefix);
         }
     }
@@ -173,7 +173,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
             Package p = (Package) q;
             cachePackage(p);
             String containerName = StringUtil.getPackageComponent(name);
-            Package prefix = TypeObject_c.get(p.prefix());
+            Package prefix = Types.get(p.prefix());
             if (prefix != null && containerName.equals(prefix.fullName())) {
                 addNamed(containerName, prefix);
             }

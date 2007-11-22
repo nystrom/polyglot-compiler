@@ -120,14 +120,6 @@ public class JLScheduler extends Scheduler {
 
     public Goal TypeChecked(Job job) {
         return new SourceGoal_c("TypeChecked", job) {
-            public List<Goal> prereqs() {
-                ArrayList<Goal> l = new ArrayList<Goal>();
-                l.addAll(super.prereqs());
-                for (Def def : job().fragmentMap().keySet()) {
-                    l.add(TypeCheckDef(job(), def));
-                }
-                return l;
-            }
             
             public Pass createPass() {
                 TypeSystem ts = extInfo.typeSystem();
@@ -139,8 +131,25 @@ public class JLScheduler extends Scheduler {
 
     public Goal ReassembleAST(Job job) {
         return new SourceGoal_c("ReassembleAST", job) {
+            public List<Goal> prereqs() {
+                ArrayList<Goal> l = new ArrayList<Goal>();
+                l.addAll(super.prereqs());
+                for (Def def : job().fragmentMap().keySet()) {
+                    l.add(TypeCheckDef(job(), def));
+                }
+                return l;
+            }
+
             public Pass createPass() {
-                return new VisitorPass(this, job, new FragmentAssembler(job));
+                return new VisitorPass(this, job, new FragmentAssembler(job)) {
+                    public boolean run() {
+//                        for (Def def : job().fragmentMap().keySet()) {
+//                            Goal g = TypeCheckDef(job(), def);
+//                            assert g.hasBeenReached();
+//                        }
+                        return super.run();
+                    }
+                };
             }
         }.intern(this);
     }
@@ -255,17 +264,17 @@ public class JLScheduler extends Scheduler {
     }
 
     @Override
-    public Goal LookupGlobalType(TypeRef<Type> sym) {
+    public Goal LookupGlobalType(LazyRef<Type> sym) {
         return new LookupGlobalType("LookupGlobalType", sym).intern(this);
     }
 
     @Override
-    public Goal LookupGlobalTypeDef(TypeRef<ClassDef> sym, String className) {
+    public Goal LookupGlobalTypeDef(LazyRef<ClassDef> sym, String className) {
         return LookupGlobalTypeDefAndSetFlags(sym, className, null);
     }
 
     @Override
-    public Goal LookupGlobalTypeDefAndSetFlags(TypeRef<ClassDef> sym,
+    public Goal LookupGlobalTypeDefAndSetFlags(LazyRef<ClassDef> sym,
             String className, Flags flags) {
         return new LookupGlobalTypeDefAndSetFlags(sym, className, flags).intern(this);
     }
@@ -273,6 +282,20 @@ public class JLScheduler extends Scheduler {
     public static class LookupGlobalType extends TypeObjectGoal_c<Type> {
         public LookupGlobalType(String name, Ref<Type> v) {
             super(name, v);
+        }
+        
+        @Override
+        public GoalSet requiredView() {
+            final Goal goal = this;
+            return new RuleBasedGoalSet() {
+                public boolean contains(Goal g) {
+                    return LookupGlobalType.super.requiredView().contains(g) ||
+                    g instanceof LookupGlobalType ||
+                    g instanceof LookupGlobalTypeDefAndSetFlags;
+                }
+                
+                public String toString() { return "DefGoalRuleSet(" + LookupGlobalType.this + ")"; }
+            };
         }
 
         public Pass createPass() {
@@ -354,7 +377,10 @@ public class JLScheduler extends Scheduler {
                     return SupertypeDef.super.requiredView().contains(g) ||
                     g instanceof LookupGlobalType ||
                     g instanceof LookupGlobalTypeDefAndSetFlags ||
-                    g instanceof SupertypeDef;
+                    g instanceof FieldConstantsChecked ||
+                    g instanceof SupertypeDef ||
+                    g instanceof SignatureDef ||
+                    g instanceof TypeCheckDef;
                 }
                 
                 public String toString() { return "DefGoalRuleSet(" + SupertypeDef.this + ")"; }
@@ -374,7 +400,10 @@ public class JLScheduler extends Scheduler {
                     return SignatureDef.super.requiredView().contains(g) ||
                     g instanceof LookupGlobalType ||
                     g instanceof LookupGlobalTypeDefAndSetFlags ||
-                    g instanceof SupertypeDef;
+                    g instanceof FieldConstantsChecked ||
+                    g instanceof SupertypeDef ||
+                    g instanceof SignatureDef ||
+                    g instanceof TypeCheckDef;
                 }
                 
                 public String toString() { return "DefGoalRuleSet(" + SignatureDef.this + ")"; }
@@ -408,7 +437,8 @@ public class JLScheduler extends Scheduler {
                     g instanceof LookupGlobalTypeDefAndSetFlags ||
                     g instanceof FieldConstantsChecked ||
                     g instanceof SupertypeDef ||
-                    g instanceof SignatureDef;
+                    g instanceof SignatureDef ||
+                    g instanceof TypeCheckDef;
                 }
                 
                 public String toString() { return "DefGoalRuleSet(" + TypeCheckDef.this + ")"; }
@@ -455,6 +485,20 @@ public class JLScheduler extends Scheduler {
             this.flags = flags;
         }
         
+        @Override
+        public GoalSet requiredView() {
+            final Goal goal = this;
+            return new RuleBasedGoalSet() {
+                public boolean contains(Goal g) {
+                    return LookupGlobalTypeDefAndSetFlags.super.requiredView().contains(g) ||
+                    g instanceof LookupGlobalType ||
+                    g instanceof LookupGlobalTypeDefAndSetFlags;
+                }
+                
+                public String toString() { return "DefGoalRuleSet(" + LookupGlobalTypeDefAndSetFlags.this + ")"; }
+            };
+        }
+
         public String toString() {
             if (flags == null)
                 return name + "(" + className + ")";
@@ -465,7 +509,7 @@ public class JLScheduler extends Scheduler {
         public Pass createPass() {
             return new AbstractPass(this) {
                 public boolean run() {
-                    TypeRef<ClassDef> ref = (TypeRef<ClassDef>) typeRef();
+                    LazyRef<ClassDef> ref = (LazyRef<ClassDef>) typeRef();
                     try {
                         Named n = Globals.TS().systemResolver().find(className);
                         if (n instanceof ClassType) {

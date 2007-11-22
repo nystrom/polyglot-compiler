@@ -108,7 +108,7 @@ public class Context_c implements Context
 
     /** The current package, or null if not in a package. */
     public Package package_() {
-        return TypeObject_c.get(importTable().package_());
+        return Types.get(importTable().package_());
     }
 
     /**

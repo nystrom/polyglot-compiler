@@ -105,18 +105,12 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
         return def().signature();
     }
 
-    static class Force<T extends TypeObject> implements Transformation<Ref<? extends T>,T> {
-        public T transform(Ref<? extends T> o) {
-            return TypeObject_c.get(o);
-        }
-    }
-
     public List<Type> formalTypes() {
-        return new TransformingList<Ref<? extends Type>, Type>(def().formalTypes(), new Force<Type>());
+        return new TransformingList<Ref<? extends Type>, Type>(def().formalTypes(), new DerefTransform<Type>());
     }
 
     public List<Type> throwTypes() {
-        return new TransformingList<Ref<? extends Type>, Type>(def().throwTypes(), new Force<Type>());
+        return new TransformingList<Ref<? extends Type>, Type>(def().throwTypes(), new DerefTransform<Type>());
     }
 
 }

@@ -31,7 +31,7 @@ public class PackageNode_c extends Node_c implements PackageNode
     }
     
     /** Get the package as a qualifier. */
-    public Ref<? extends Qualifier> qualifier() {
+    public Ref<? extends Qualifier> qualifierRef() {
         return this.package_;
     }
 
@@ -70,9 +70,9 @@ public class PackageNode_c extends Node_c implements PackageNode
     }
     public Node copy(ExtensionInfo extInfo) throws SemanticException {
         PackageNode pn = (PackageNode)this.del().copy(extInfo.nodeFactory());
-        Package p = TypeObject_c.get(pn.package_());
+        Package p = Types.get(pn.package_());
         if (p != null) {
-            pn = pn.package_(Ref_c.ref(extInfo.typeSystem().packageForName(p.fullName())));
+            pn = pn.package_(Types.ref(extInfo.typeSystem().packageForName(p.fullName())));
         }
         return pn;
     }

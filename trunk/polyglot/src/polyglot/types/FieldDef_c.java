@@ -33,7 +33,7 @@ public class FieldDef_c extends VarDef_c implements FieldDef
     public FieldInstance asInstance() {
         if (Report.should_report("asi", 1)) asInstance = null;
         if (asInstance == null) {
-            asInstance = new FieldInstance_c(ts, position(), Ref_c.<FieldDef> ref(this));
+            asInstance = new FieldInstance_c(ts, position(), Types.<FieldDef> ref(this));
         }
         return asInstance;
     }

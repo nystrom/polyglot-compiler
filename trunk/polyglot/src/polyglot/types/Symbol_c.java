@@ -1,116 +1,21 @@
 package polyglot.types;
 
-import java.io.*;
-import java.util.Collections;
+import java.io.Serializable;
 
-import polyglot.frontend.*;
-import polyglot.frontend.Goal.Status;
-import polyglot.util.TypeInputStream;
-import polyglot.util.UniqueID;
+import polyglot.frontend.Globals;
+import polyglot.frontend.GoalSet;
 
-public class Symbol_c<T extends TypeObject> implements Symbol<T>, Serializable {
-    String name;
-    History<T> history;
+public class Symbol_c<T extends TypeObject> extends AbstractRef_c<T> implements Symbol<T>, Serializable {
+    
+    public Symbol_c() {
+        super();
+    }
     
     public Symbol_c(T v) {
-        this(v, Globals.currentPhase());
-    }
-    
-    public Symbol_c(T v, GoalSet view) {
-        name = UniqueID.newID("sym");
-
-        if (v != null) {
-            history = new History<T>();
-            history.previous = null;
-            history.value = v;
-            history.valid = view;
-        }
-    }
-    
-    public boolean nonnull() {
-        return history != null;
+        super(v, Globals.currentPhase());
     }
 
-    public String toString() {
-        return name + "(" + (nonnull() ? history.value : "") + ")";
-    }
-    
-    // ### TODO: implement writeObject to not write out history
-    protected static class History<T> implements Serializable {
-        History<T> previous;
-        T value;
-        GoalSet valid;
-        
-        protected boolean validIn(GoalSet view) {
-            return this.valid.containsAll(view);
-        }
-    }
-
-    public void update(T v) {
-        update(v, Globals.currentPhase());
-    }
-    
-    public void update(T v, Goal goal) {
-        update(v, new SimpleGoalSet(Collections.<Goal>singleton(goal)));
-    }
-    
-    public void update(T v, GoalSet view) {
-        if (history != null) {
-            view = history.valid.union(view);
-            if (v == history.value) {
-                history.valid = view;
-                return;
-            }
-        }
-
-        History<T> h = new History<T>();
-        h.previous = history;
-        h.value = v;
-        h.valid = view;
-        history = h;
-    }
-    
-    protected History<T> getHistory(GoalSet view) {
-        for (History<T> h = history; h != null; h = h.previous) {
-            if (h.validIn(view)) {
-                return h;
-            }
-        }
-        return null;
-    }
-
-    /** Update the value to v if there is not valid value for the view. */
-    public void conditionalUpdate(T v, GoalSet view) {
-        History<T> h = getHistory(view);
-        if (h != null) {
-            update(v, view);
-        }
-    }
-    
-    public T get() {
-        return get(Globals.currentView());
-    }
-    
-    public T get(GoalSet view) {
-        History<T> h = getHistory(view);
-        
-        if (h != null) {
-            return h.value;
-        }
-
-        // Nothing in the history is valid.  Bring the latest version up-to-date.
-        complete(view);
-
-        // Not successful.  Probably should have thrown an exception here.
-        assert history != null;
-        
-        if (history == null) {
-            return null;
-        }
-        
-        return history.value;
-    }
-
+    @Override
     protected void complete(GoalSet view) {
         History<T> h = history;
         if (h != null && h.value != null) {

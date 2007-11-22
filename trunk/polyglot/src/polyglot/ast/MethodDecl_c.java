@@ -195,9 +195,9 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	    flags = flags.Public().Abstract();
 	}
 	
-	MethodDef mi = ts.methodDef(position(), Ref_c.ref(ct.asType()), flags, returnType.typeRef(), name.id(),
+	MethodDef mi = ts.methodDef(position(), Types.ref(ct.asType()), flags, returnType.typeRef(), name.id(),
 	                                 Collections.<Ref<? extends Type>>emptyList(), Collections.<Ref<? extends Type>>emptyList());
-        Symbol<MethodDef> sym = ts.symbolTable().<MethodDef>symbol(mi);
+        Symbol<MethodDef> sym = Types.<MethodDef>symbol(mi);
         ct.addMethod(mi);
 	
 	Goal sig = Globals.Scheduler().SignatureDef(tb.job(), mi);
@@ -237,6 +237,55 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	    Report.report(5, "enter scope of method " + name);
         c = c.pushCode(mi);
         return c;
+    }
+    
+    /** Type check the declaration. */
+    @Override
+    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
+        TypeSystem ts = tc.typeSystem();
+  
+        NodeVisitor childv = tc.enter(parent, this);
+        TypeChecker childtc;
+        if (childv instanceof PruningVisitor) {
+            return this;
+        }
+        if (childv instanceof TypeChecker) {
+            childtc = (TypeChecker) childv;
+        }
+        else {
+            assert false;
+            return this;
+        }
+
+        TypeNode returnType = this.returnType;
+        Id name = this.name;
+        List<Formal> formals = this.formals;
+        List<TypeNode> throwTypes = this.throwTypes;
+        Block body = this.body;
+
+        returnType = (TypeNode) this.visitChild(returnType, childtc);
+        name = (Id) this.visitChild(name, childtc);
+        formals = this.visitList(formals, childtc);
+        throwTypes = this.visitList(throwTypes, childtc);
+
+        switch (tc.mode(this)) {
+        case NON_ROOT:
+        case INNER_ROOT:
+            break;
+        case CURRENT_ROOT:
+            if (tc.scope() == TypeChecker.Scope.BODY) {
+                body = (Block) this.visitChild(this.body, childtc);
+            }
+            break;
+        }
+
+        MethodDecl_c n = reconstruct(returnType, name, formals, throwTypes, body);
+
+        if (tc.scope() == TypeChecker.Scope.BODY) {
+            return tc.leave(parent, this, n, childtc);
+        }
+        
+        return n;
     }
 
     /** Type check the method. */

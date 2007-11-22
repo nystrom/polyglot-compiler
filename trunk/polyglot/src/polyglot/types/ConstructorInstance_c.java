@@ -8,7 +8,7 @@ public class ConstructorInstance_c extends ProcedureInstance_c<ConstructorDef> i
     }
     
     public ReferenceType container() {
-        return get(def().container());
+        return Types.get(def().container());
     }
     
     public Flags flags() {

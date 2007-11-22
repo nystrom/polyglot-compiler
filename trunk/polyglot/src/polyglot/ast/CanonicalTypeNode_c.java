@@ -25,6 +25,10 @@ public class CanonicalTypeNode_c extends TypeNode_c implements CanonicalTypeNode
     this.type = type;
   }
   
+  public CanonicalTypeNode typeRef(Ref<? extends Type> type) {
+      return (CanonicalTypeNode) super.typeRef(type);
+  }
+  
   /** Type check the type node.  Check accessibility of class types. */
   public Node typeCheck(TypeChecker tc) throws SemanticException {
       TypeSystem ts = tc.typeSystem();
@@ -80,7 +84,7 @@ public class CanonicalTypeNode_c extends TypeNode_c implements CanonicalTypeNode
     return result;
   }
   public Node copy(ExtensionInfo extInfo) throws SemanticException {
-      TypeNode tn = (TypeNode)this.del().copy(extInfo.nodeFactory());
+      CanonicalTypeNode tn = (CanonicalTypeNode)this.del().copy(extInfo.nodeFactory());
       Type t = tn.type();
       if (t != null) {
           // try to copy over type information
@@ -122,7 +126,7 @@ public class CanonicalTypeNode_c extends TypeNode_c implements CanonicalTypeNode
               // return an amb type node?
           }
 
-          tn = tn.type(Ref_c.ref(t));
+          tn = tn.typeRef(Types.<Type>ref(t));
       }
 
       return tn;

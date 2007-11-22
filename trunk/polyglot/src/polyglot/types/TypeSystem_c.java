@@ -28,15 +28,7 @@ public class TypeSystem_c implements TypeSystem
     protected TopLevelResolver loadedResolver;
     protected Map<String,Flags>flagsForName;
     protected ExtensionInfo extInfo;
-    protected SymbolTable symbolTable;
 
-    public SymbolTable symbolTable() {
-        if (symbolTable == null) {
-            symbolTable = new SymbolTable_c();
-        }
-        return symbolTable;
-    }
-    
     public TypeSystem_c() {}
     
     /**
@@ -299,7 +291,7 @@ public class TypeSystem_c implements TypeSystem
 	                                 argTypes, excTypes);
     }
 
-    public InitializerDef initializerInstance(Position pos,
+    public InitializerDef initializerDef(Position pos,
             Ref<? extends ClassType> container,
 						   Flags flags) {
         assert_(container);
@@ -487,7 +479,7 @@ public class TypeSystem_c implements TypeSystem
     /** True if the class targetClass accessible from the context. */
     public boolean classAccessible(ClassType targetClass, Context context) {
         if (context.currentClass() == null) {
-            return classAccessibleFromPackage(targetClass, TypeObject_c.get(context.importTable().package_()));
+            return classAccessibleFromPackage(targetClass, Types.get(context.importTable().package_()));
         }
         else {
             return classAccessible(targetClass, context.currentClassScope());
@@ -1536,7 +1528,7 @@ public class TypeSystem_c implements TypeSystem
                 String name = getTransformedClassName(ct);
 
                 TypeSystem_c ts = this;
-                TypeRef<ClassDef> sym = ts.symbolTable().typeRef();
+                LazyRef<ClassDef> sym = Types.typeRef();
                 Goal resolver = Globals.Scheduler().LookupGlobalTypeDef(sym, name);
                 Globals.Scheduler().markReached(resolver);
                 sym.setResolver(resolver);
@@ -1584,7 +1576,7 @@ public class TypeSystem_c implements TypeSystem
 
     /** @deprecated */
     public Package createPackage(Package prefix, String name) {
-        return createPackage(prefix != null ? Ref_c.ref(prefix) : null, name);
+        return createPackage(prefix != null ? Types.ref(prefix) : null, name);
     }
     
     /** @deprecated */
@@ -1611,7 +1603,7 @@ public class TypeSystem_c implements TypeSystem
      */
     public ArrayType arrayOf(Type type) {
         assert_(type);
-        return arrayOf(type.position(), Ref_c.ref(type));
+        return arrayOf(type.position(), Types.ref(type));
     }
     
     public ArrayType arrayOf(Ref<? extends Type> type) {
@@ -1625,15 +1617,15 @@ public class TypeSystem_c implements TypeSystem
     
     public ArrayType arrayOf(Position pos, Type type) {
         assert_(type);
-	return arrayType(pos, Ref_c.ref(type));
+	return arrayType(pos, Types.ref(type));
     }
 
     public ArrayType arrayOf(Type type, int dims) {
-        return arrayOf(Ref_c.ref(type), dims);
+        return arrayOf(Types.ref(type), dims);
     }
 
     public ArrayType arrayOf(Position pos, Type type, int dims) {
-        return arrayOf(pos, Ref_c.ref(type), dims);
+        return arrayOf(pos, Types.ref(type), dims);
     }
 
     Map<Ref<? extends Type>,Type> arrayTypeCache = new HashMap<Ref<? extends Type>,Type>();
@@ -1716,6 +1708,9 @@ public class TypeSystem_c implements TypeSystem
      * returned.
      */
     public String getTransformedClassName(ClassDef ct) {
+        assert ct != null;
+        assert ct.fullName() != null;
+        
         StringBuffer sb = new StringBuffer(ct.fullName().length());
         if (!ct.isMember() && !ct.isTopLevel()) {
             return null;
@@ -1775,7 +1770,7 @@ public class TypeSystem_c implements TypeSystem
     }
 
     public ParsedClassType createClassType(ClassDef def) {
-        return new ParsedClassType_c(this, def.position(), Ref_c.<ClassDef>ref(def));
+        return new ParsedClassType_c(this, def.position(), Types.<ClassDef>ref(def));
     }
 
     public List<String> defaultPackageImports() {

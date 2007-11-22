@@ -238,7 +238,7 @@ public abstract class BaseParser extends java_cup.runtime.lr_parser {
         if (t instanceof AmbTypeNode) {
             AmbTypeNode a = (AmbTypeNode) t;
 
-            if (a.qualifier() != null) {
+            if (a.qualifierRef() != null) {
                 return nf.AmbQualifierNode(pos(t), a.qual(), nf.Id(pos(a),
                                                                    a.name()));
             }

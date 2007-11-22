@@ -186,8 +186,8 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
             flags = flags.Public().Static().Final();
         }
 
-        FieldDef fi = ts.fieldDef(position(), Ref_c.ref(ct.asType()), flags, type.typeRef(), name.id());
-        Symbol<FieldDef> sym = ts.symbolTable().<FieldDef>symbol(fi);
+        FieldDef fi = ts.fieldDef(position(), Types.ref(ct.asType()), flags, type.typeRef(), name.id());
+        Symbol<FieldDef> sym = Types.<FieldDef>symbol(fi);
         ct.addField(fi);
 
         Goal sig = Globals.Scheduler().SignatureDef(tb.job(), fi);
@@ -200,8 +200,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
 
         if (init != null) {
             Flags iflags = flags.isStatic() ? Flags.STATIC : Flags.NONE;
-            ii = ts.initializerInstance(init.position(),
-                                                            Ref_c.<ClassType>ref(ct.asType()), iflags);
+            ii = ts.initializerDef(init.position(), Types.<ClassType>ref(ct.asType()), iflags);
             tb = tb.pushCode(ii, sig);
         }
 
@@ -249,22 +248,56 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     }
 
     /** Type check the declaration. */
-//    @Override
-//    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
-//        TypeSystem ts = tc.typeSystem();
-//        
-//        if (tc.mode(this) == TypeChecker.Mode.CURRENT_ROOT) {
-//            return tc.visitEdgeNoOverride(parent, this);
-//        }
-//        else {
-//            return tc.visitEdgeNoOverride(parent, this);
-//        }
-//    }
+    @Override
+    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
+        TypeSystem ts = tc.typeSystem();
+  
+        NodeVisitor childv = tc.enter(parent, this);
+        TypeChecker childtc;
+        if (childv instanceof PruningVisitor) {
+            return this;
+        }
+        if (childv instanceof TypeChecker) {
+            childtc = (TypeChecker) childv;
+        }
+        else {
+            assert false;
+            return this;
+        }
+
+        TypeNode type = this.type;
+        Id name = this.name;
+        Expr init = this.init;
+
+        type = (TypeNode) this.visitChild(type, childtc);
+        name = (Id) this.visitChild(name, childtc);
+
+        FieldDecl_c n = reconstruct(type, name, init);
+
+        switch (tc.mode(this)) {
+        case NON_ROOT:
+        case INNER_ROOT:
+            if (tc.scope() == TypeChecker.Scope.BODY) {
+                init = n.init;
+            }
+            break;
+        case CURRENT_ROOT:
+            if (tc.scope() == TypeChecker.Scope.BODY) {
+                init = (Expr) n.visitChild(n.init, childtc);
+                n = (FieldDecl_c) n.init(init);
+                return tc.leave(parent, this, n, childtc);
+            }
+            break;
+        }
+
+        return n;
+    }
     
     public Node typeCheck(TypeChecker tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
-        if (tc.mode(this) != TypeChecker.Mode.CURRENT_ROOT || tc.scope() != TypeChecker.Scope.BODY_OF_ROOT) {
+        if (tc.mode(this) != TypeChecker.Mode.CURRENT_ROOT || tc.scope() != TypeChecker.Scope.BODY) {
+            assert false;
             return this;
         }
 
@@ -287,10 +320,10 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         }
 
         if (init != null) {
-            if (tc.scope() == TypeChecker.Scope.SIGNATURES_OF_ROOT) {
+            if (tc.scope() == TypeChecker.Scope.SIGNATURES) {
                 return this;
             }
-            if (tc.scope() == TypeChecker.Scope.BODY_OF_ROOT) {
+            if (tc.scope() == TypeChecker.Scope.BODY) {
                 if (init instanceof ArrayInit) {
                     ((ArrayInit) init).typeCheckElements(type.type());
                 }

@@ -19,7 +19,7 @@ import polyglot.util.*;
  */
 public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 {
-    protected Ref<? extends Qualifier> qualifier;
+    protected LazyRef<Qualifier> qualifier;
     protected QualifierNode qual;
     protected Id name;
 
@@ -31,7 +31,7 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 	this.name = name;
     }
     
-    public Ref<? extends Qualifier> qualifier() {
+    public LazyRef<? extends Qualifier> qualifierRef() {
 	return this.qualifier;
     }
     
@@ -63,7 +63,7 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 	return n;
     }
 
-    public AmbQualifierNode qualifier(Ref<? extends Qualifier> qualifier) {
+    public AmbQualifierNode qualifier(LazyRef<Qualifier> qualifier) {
 	AmbQualifierNode_c n = (AmbQualifierNode_c) copy();
 	n.qualifier = qualifier;
 	return n;
@@ -87,7 +87,7 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         TypeSystem ts = tb.typeSystem();
-        TypeRef<? extends Qualifier> sym = ts.symbolTable().typeRef(ts.unknownQualifier(position()), tb.goal());
+        LazyRef<Qualifier> sym = Types.<Qualifier>typeRef(ts.unknownQualifier(position()), tb.goal());
         return qualifier(sym);
     }
 
@@ -96,7 +96,8 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 
 	if (n instanceof QualifierNode) {
 	    QualifierNode qn = (QualifierNode) n;
-	    ((Symbol<Qualifier>) qualifier).update(qn.qualifier().get());
+	    Qualifier q = qn.qualifierRef().get();
+	    qualifier.update(q);
 	    return n;
 	}
 

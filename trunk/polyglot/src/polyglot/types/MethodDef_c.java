@@ -39,7 +39,7 @@ public class MethodDef_c extends ProcedureDef_c
     public MethodInstance asInstance() {
         if (Report.should_report("asi", 1)) asInstance = null;
         if (asInstance == null) {
-            asInstance = new MethodInstance_c(ts, position(), Ref_c.<MethodDef>ref(this));
+            asInstance = new MethodInstance_c(ts, position(), Types.<MethodDef>ref(this));
         }
         return asInstance;
     }

@@ -22,8 +22,6 @@ import polyglot.util.Position;
 public interface TypeSystem {
     public static final boolean SERIALIZE_MEMBERS_WITH_CONTAINER = false;
 
-    SymbolTable symbolTable();
-    
     /**
      * Initialize the type system with the compiler.  This method must be
      * called before any other type system method is called.
@@ -95,7 +93,7 @@ public interface TypeSystem {
      * @param container Containing class of the initializer.
      * @param flags The initializer's flags.
      */
-    InitializerDef initializerInstance(Position pos, Ref<? extends ClassType> container,
+    InitializerDef initializerDef(Position pos, Ref<? extends ClassType> container,
                                             Flags flags);
 
     /** Create a constructor instance.

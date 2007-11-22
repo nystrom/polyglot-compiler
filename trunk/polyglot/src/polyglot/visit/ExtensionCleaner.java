@@ -119,20 +119,22 @@ public class ExtensionCleaner extends NodeVisitor {
             }
         }
 
-        n = n.type(null);
+        // ### unimplemented
+        assert false;
+//        n = n.type(null);
 
         return n;
     }
 
     protected PackageNode convert(PackageNode n) {
-        Package p = TypeObject_c.get(n.package_());
+        Package p = Types.get(n.package_());
 
         if (p != null) {
             if (p.typeSystem() == ts) {
-                return nf.PackageNode(n.position(), Ref_c.ref(p));
+                return nf.PackageNode(n.position(), Types.ref(p));
             }
         }
                   
-        return nf.PackageNode(n.position(), Ref_c.ref(ts.createPackage(n.toString())));
+        return nf.PackageNode(n.position(), Types.ref(ts.createPackage(n.toString())));
     }
 }

@@ -124,11 +124,11 @@ public class ClassSerializer extends NodeVisitor
 
             Position pos = Position.COMPILER_GENERATED;
 
-	    fi = ts.fieldDef(pos, Ref_c.ref(new ParsedClassType_c(cd)),
-                                  flags, Ref_c.ref(ts.String()),
+	    fi = ts.fieldDef(pos, Types.ref(new ParsedClassType_c(cd)),
+                                  flags, Types.ref(ts.String()),
                                   "jlc$CompilerVersion$" + suffix);
             fi.setConstantValue(version);
-            ii = ts.initializerInstance(pos, Ref_c.ref(new ParsedClassType_c(cd)), Flags.STATIC);
+            ii = ts.initializerDef(pos, Types.ref(new ParsedClassType_c(cd)), Flags.STATIC);
 	    f = nf.FieldDecl(fi.position(), fi.flags(),
 		             nf.CanonicalTypeNode(fi.position(), fi.type()),
                              nf.Id(fi.position(), fi.name()),
@@ -141,11 +141,11 @@ public class ClassSerializer extends NodeVisitor
 	    /* Add the date of the last source file modification. */
 	    long time = date.getTime();
 
-	    fi = ts.fieldDef(pos, Ref_c.ref(new ParsedClassType_c(cd)),
-                                  flags, Ref_c.ref(ts.Long()),
+	    fi = ts.fieldDef(pos, Types.ref(new ParsedClassType_c(cd)),
+                                  flags, Types.ref(ts.Long()),
                                   "jlc$SourceLastModified$" + suffix);
             fi.setConstantValue(new Long(time));
-            ii = ts.initializerInstance(pos, Ref_c.ref(new ParsedClassType_c(cd)), Flags.STATIC);
+            ii = ts.initializerDef(pos, Types.ref(new ParsedClassType_c(cd)), Flags.STATIC);
 	    f = nf.FieldDecl(fi.position(), fi.flags(),
 		             nf.CanonicalTypeNode(fi.position(), fi.type()),
                              nf.Id(fi.position(), fi.name()),
@@ -168,11 +168,11 @@ public class ClassSerializer extends NodeVisitor
                 // add an additional suffix to distinguish fields.
                 String additionalFieldSuffix = numberETIFields==0?"":("$" + numberETIFields);
                 String encoded = encodedTypeInfo.substring(etiStart, etiEnd);
-                fi = ts.fieldDef(pos, Ref_c.ref(new ParsedClassType_c(cd)),
-                                      flags, Ref_c.ref(ts.String()),
+                fi = ts.fieldDef(pos, Types.ref(new ParsedClassType_c(cd)),
+                                      flags, Types.ref(ts.String()),
                                       "jlc$ClassType$" + suffix + additionalFieldSuffix);
                 fi.setConstantValue(encoded);
-                ii = ts.initializerInstance(pos, Ref_c.ref(new ParsedClassType_c(cd)), Flags.STATIC);
+                ii = ts.initializerDef(pos, Types.ref(new ParsedClassType_c(cd)), Flags.STATIC);
 
                 f = nf.FieldDecl(fi.position(), fi.flags(),
                                  nf.CanonicalTypeNode(fi.position(), fi.type()),

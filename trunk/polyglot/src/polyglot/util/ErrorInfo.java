@@ -68,5 +68,9 @@ public class ErrorInfo
     }
     return "(Unknown)";
   }  
+  
+  public String toString() {
+      return getErrorString() + ": " + message;
+  }
 }
 

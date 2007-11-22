@@ -8,11 +8,13 @@
 
 package polyglot.ast;
 
-import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.visit.*;
+import java.util.Collections;
+import java.util.List;
 
-import java.util.*;
+import polyglot.types.*;
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
+import polyglot.visit.*;
 
 /**
  * A <code>Formal</code> represents a formal parameter for a procedure
@@ -143,7 +145,7 @@ public class Formal_c extends Term_c implements Formal
         TypeSystem ts = tb.typeSystem();
 
         LocalDef li = ts.localInstance(position(), flags(), type.typeRef(), name.id());
-        Symbol<LocalDef> sym = ts.symbolTable().<LocalDef>symbol(li);
+        Symbol<LocalDef> sym = Types.<LocalDef>symbol(li);
         
         // Formal parameters are never compile-time constants.
         li.setNotConstant();

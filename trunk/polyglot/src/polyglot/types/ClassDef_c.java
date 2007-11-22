@@ -199,7 +199,7 @@ public class ClassDef_c extends Def_c implements ClassDef
     }
     
     public Ref<? extends ReferenceType> container() {
-        return Ref_c.<ClassType>ref(new ParsedClassType_c(ts, position(), this.outer));
+        return Types.<ClassType>ref(new ParsedClassType_c(ts, position(), this.outer));
     }
     
     public void name(String name) {
@@ -315,11 +315,11 @@ public class ClassDef_c extends Def_c implements ClassDef
         }
     
         if (kind() == TOP_LEVEL) {
-            Package p = get(package_());
+            Package p = Types.get(package_());
             return p != null ? p.fullName() + "." + name : name;
         }
         else if (kind() == MEMBER) {
-            ClassDef outer = get(outer());
+            ClassDef outer = Types.get(outer());
             return outer != null ? outer.fullName() + "." + name : name;
         }
         else {

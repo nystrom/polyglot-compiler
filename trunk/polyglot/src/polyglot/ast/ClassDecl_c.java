@@ -186,8 +186,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
             type.flags(type.flags().Abstract());
         }
 
-        SymbolTable st = tb.typeSystem().symbolTable();
-        Symbol<ClassDef> sym = st.<ClassDef>symbol(type);
+        Ref<ClassDef> sym = Types.<ClassDef>symbol(type);
         
         Goal tSup = Globals.Scheduler().SupertypeDef(tb.job(), type);
         Goal tSig = Globals.Scheduler().SignatureDef(tb.job(), type);
@@ -321,7 +320,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
             // As such, the default superclass is ts.Object().
             if (Report.should_report(Report.types, 3))
                 Report.report(3, "setting superclass of " + this.type + " to " + ts.Object());
-            thisType.superType(Ref_c.<Type>ref(ts.Object()));
+            thisType.superType(Types.<Type>ref(ts.Object()));
         }
     }
 
@@ -379,10 +378,6 @@ public class ClassDecl_c extends Term_c implements ClassDecl
     public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
         ClassDecl_c n = this;
         
-        if (! tc.isCurrentFragmentRoot(this)) {
-            return n;
-        }
-        
         NodeVisitor v = tc.enter(parent, n);
         if (v instanceof TypeChecker) {
             tc = (TypeChecker) v;
@@ -406,36 +401,48 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         TypeNode superClass = n.superClass;
         List<TypeNode> interfaces = n.interfaces;
         
-        if (tc.shouldVisitSupers()) {
+        switch (tc.mode(n)) {
+        case INNER_ROOT:
+        case NON_ROOT:
+        case CURRENT_ROOT:
             superClass = (TypeNode) n.visitChild(n.superClass, tc);
             interfaces = n.visitList(n.interfaces, tc);
+            break;
         }
-
 
         ClassBody body = n.body;
-        if (tc.shouldVisitSupers()) {
-            body = (ClassBody) n.visitChild(body, tc.visitSupers());
-            n = (ClassDecl_c) n.body(body);
-        }
-        if (tc.shouldVisitSignatures()) {
-            body = (ClassBody) n.visitChild(body, tc.visitSignatures());
-            n = (ClassDecl_c) n.body(body);
-        }
-        if (tc.shouldVisitBodies()) {
-            body = (ClassBody) n.visitChild(body, tc.visitBodies());
-            n = (ClassDecl_c) n.body(body);
-        }    
         
+        switch (tc.mode(n)) {
+        case INNER_ROOT:
+        case NON_ROOT:
+            break;
+        case CURRENT_ROOT:
+            if (tc.scope() == TypeChecker.Scope.SIGNATURES) {
+                body = (ClassBody) n.visitChild(body, tc.visitSignatures());
+                n = (ClassDecl_c) n.body(body);
+            }
+            if (tc.scope() == TypeChecker.Scope.BODY) {
+                body = (ClassBody) n.visitChild(body, tc.visitBodies());
+                n = (ClassDecl_c) n.body(body);
+            }
+            break;
+        }
+
         n = n.reconstruct(name, superClass, interfaces, body);
 
-        if (tc.shouldVisitSupers()) {
+        switch (tc.mode(n)) {
+        case INNER_ROOT:
+        case NON_ROOT:
+            break;
+        case CURRENT_ROOT:
             n = (ClassDecl_c) n.del().disambiguate(ar);
+            if (tc.scope() == TypeChecker.Scope.BODY) {
+                n = (ClassDecl_c) n.del().typeCheck(tc);
+                n = (ClassDecl_c) n.del().checkConstants(tc);
+            }
+            break;
         }
 
-        if (tc.shouldVisitBodies()) {
-            n = (ClassDecl_c) n.del().typeCheck(tc);
-            n = (ClassDecl_c) n.del().checkConstants(tc);
-        }
         return n;
     }
 

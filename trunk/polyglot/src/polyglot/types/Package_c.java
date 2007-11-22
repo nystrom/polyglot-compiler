@@ -73,7 +73,7 @@ public class Package_c extends TypeObject_c implements Package
             if (prefix == null)
                 return p.prefix() == null;
             else
-                return ts.packageEquals(get(prefix), get(p.prefix()));
+                return ts.packageEquals(Types.get(prefix), Types.get(p.prefix()));
         }
         return false;
     }

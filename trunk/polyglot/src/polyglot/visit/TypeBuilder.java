@@ -241,24 +241,24 @@ public class TypeBuilder extends NodeVisitor
 
 	if (inCode) {
             ct.kind(ClassDef.LOCAL);
-	    ct.outer(Ref_c.ref(currentClass()));
+	    ct.outer(Types.ref(currentClass()));
 	    ct.setJob(job());
 
 	    if (currentPackage() != null) {
-	      	ct.package_(Ref_c.<Package>ref(currentPackage()));
+	      	ct.package_(Types.<Package>ref(currentPackage()));
 	    }
 
 	    return ct;
 	}
 	else if (currentClass() != null) {
             ct.kind(ClassDef.MEMBER);
-            ct.outer(Ref_c.ref(currentClass()));
+            ct.outer(Types.ref(currentClass()));
 	    ct.setJob(job());
 
-	    currentClass().addMemberClass(Ref_c.<ClassType>ref(ct.asType()));
+	    currentClass().addMemberClass(Types.<ClassType>ref(ct.asType()));
 
 	    if (currentPackage() != null) {
-	      	ct.package_(Ref_c.<Package>ref(currentPackage()));
+	      	ct.package_(Types.<Package>ref(currentPackage()));
 	    }
 
             // if all the containing classes for this class are member
@@ -287,7 +287,7 @@ public class TypeBuilder extends NodeVisitor
             ct.setJob(job());
 
 	    if (currentPackage() != null) {
-	      	ct.package_(Ref_c.<Package>ref(currentPackage()));
+	      	ct.package_(Types.<Package>ref(currentPackage()));
 	    }
 
             Named dup = typeSystem().systemResolver().check(ct.fullName());
@@ -316,12 +316,12 @@ public class TypeBuilder extends NodeVisitor
 
         ClassDef ct = ts.createClassDef(this.job().source());
         ct.kind(ClassDef.ANONYMOUS);
-        ct.outer(Ref_c.ref(currentClass()));
+        ct.outer(Types.ref(currentClass()));
         ct.position(pos);
         ct.setJob(job());
 
         if (currentPackage() != null) {
-            ct.package_(Ref_c.<Package>ref(currentPackage()));
+            ct.package_(Types.<Package>ref(currentPackage()));
         }
         
 //        ct.superType(ts.unknownType(pos));

@@ -8,6 +8,6 @@ public class FieldInstance_c extends VarInstance_c<FieldDef> implements FieldIns
     }
     
     public ReferenceType container() {
-        return get(def().container());
+        return Types.get(def().container());
     }
 }

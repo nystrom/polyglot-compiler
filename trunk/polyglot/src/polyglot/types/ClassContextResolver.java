@@ -50,17 +50,19 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
         // Check if the name is for a member class.
         ClassType mt = null;
 
-        Named m;
+        Named m = null;
+        
+        String fullName = type.isGloballyAccessible() ? type.fullName() + "." + name : null;
+        String rawName = type.isGloballyAccessible() ? ts.getTransformedClassName(type.def()) + "$" + name : null;
 
-        String fullName = type.fullName() + "." + name;
-        String rawName = ts.getTransformedClassName(type.def()) + "$" + name;
+        if (fullName != null) {
+            // First check the system resolver.
+            m = ts.systemResolver().check(fullName);
 
-        // First check the system resolver.
-        m = ts.systemResolver().check(fullName);
-
-        // Try the raw class file name.
-        if (m == null) {
-            m = ts.systemResolver().check(rawName);
+            // Try the raw class file name.
+            if (m == null) {
+                m = ts.systemResolver().check(rawName);
+            }
         }
 
         // Check if the member was explicitly declared.
@@ -68,27 +70,30 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             m = type.memberClassNamed(name);
         }
 
-        // Go to disk, but only if there is no job for the type.
-        // If there is a job, all members should be in the resolver
-        // already.
-        boolean useLoadedResolver = true;
+        if (m == null && fullName != null) {
+            // Go to disk, but only if there is no job for the type.
+            // If there is a job, all members should be in the resolver
+            // already.
+            boolean useLoadedResolver = true;
 
-        if (type instanceof ParsedTypeObject) {
-            ParsedTypeObject pto = (ParsedTypeObject) type;
-            if (pto.job() != null) {
-                useLoadedResolver = false;
+            if (type instanceof ParsedTypeObject) {
+                ParsedTypeObject pto = (ParsedTypeObject) type;
+                if (pto.job() != null) {
+                    useLoadedResolver = false;
+                }
+            }
+
+            if (useLoadedResolver) {
+                try {
+                    m = ts.systemResolver().find(rawName);
+                }
+                catch (SemanticException e) {
+                    // Not found; will fall through to error handling code
+                }
             }
         }
 
-        if (m == null && useLoadedResolver) {
-            try {
-                m = ts.systemResolver().find(rawName);
-            }
-            catch (SemanticException e) {
-                // Not found; will fall through to error handling code
-            }
-        }
-
+        // If we found something, make sure it's accessible.
         if (m instanceof ClassType) {
             mt = (ClassType) m;
 
@@ -113,7 +118,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
         
         // Collect all members of the super types.
         // Use a Set to eliminate duplicates.
-        Set<Named> acceptable = new HashSet();
+        Set<Named> acceptable = new HashSet<Named>();
         
         if (type.superType() != null) {
             Type sup = type.superType();
@@ -173,7 +178,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             }
         }
         
-        Named t = (Named) acceptable.iterator().next();
+        Named t = acceptable.iterator().next();
         
         if (Report.should_report(TOPICS, 2))
             Report.report(2, "Found member class " + t);

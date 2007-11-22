@@ -4,33 +4,30 @@ import polyglot.frontend.GoalSet;
 
 /** Reference to a type object. */
 public class Ref_c<T extends TypeObject> extends TypeObject_c implements Ref<T> {
-    T cache;
+    T v;
     
-    public static <T extends TypeObject> Ref_c<T> ref(T v) {
-        return v != null ? new Ref_c<T>(v) : null;
-    }
-
     public Ref_c(T v) {
         super(v.typeSystem(), v.position());
-        cache = v;
+        assert v != null;
+        this.v = v;
     }
     
     /** Return true if the reference is not null. */
     public boolean nonnull() {
-        return cache != null;
+        return v != null;
     }
     
     public T get() {
-        return cache;
+        return v;
     }
 
     public T get(GoalSet view) {
-        return cache;
+        return v;
     }
     
     public String toString() {
-        if (cache == null) return "null";
-        return cache.toString();
+        if (v == null) return "null";
+        return v.toString();
     }
 }
 

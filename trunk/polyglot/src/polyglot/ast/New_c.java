@@ -10,8 +10,7 @@ package polyglot.ast;
 
 import java.util.*;
 
-import polyglot.frontend.Globals;
-import polyglot.frontend.Goal;
+import polyglot.frontend.*;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -148,14 +147,8 @@ public class New_c extends Expr_c implements New
         return super.enterChildScope(child, c);
     }
 
-    public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
-        if (body != null) {
-            return tb.pushAnonClass(position());
-        }
-        
-        return tb;
-    }
-
+    Goal enable = null;
+    
     public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
         New_c n = this;
         TypeSystem ts = tb.typeSystem();
@@ -182,7 +175,13 @@ public class New_c extends Expr_c implements New
             // ### BUT, we will reach here WHILE type-checking the method and not AFTER.
             // the prereq causes a dependency cycle.
             
+            n.enable = new AbstractGoal_c("enable") {
+                public Pass createPass() { return new EmptyPass(this); }
+                public int hashCode() { return System.identityHashCode(this); }
+                public boolean equals(Object o) { return this == o; }
+            }.intern(Globals.Scheduler());
             
+            sup.addPrereq(n.enable);
             sig.addPrereq(sup);
             chk.addPrereq(sig);
             
@@ -217,21 +216,23 @@ public class New_c extends Expr_c implements New
         switch (tc.mode(n)) {
         case INNER_ROOT:
         case NON_ROOT:
-            if (tc.scope() == TypeChecker.Scope.SIGNATURES_OF_ROOT) {
+            if (tc.scope() == TypeChecker.Scope.SIGNATURES) {
                 // Enclosing scope must be code, not a class body.  We shouldn't get here.
                 assert false;
                 return n;
             }
-            if (tc.scope() == TypeChecker.Scope.BODY_OF_ROOT) {
+            if (tc.scope() == TypeChecker.Scope.BODY) {
                 n = typeCheckNonRoot(parent, n, tc, childtc);
                 n = (New) tc.leave(parent, old, n, childtc);
+                if (enable != null)
+                Globals.Scheduler().markReached(enable);
             }
             break;
         case CURRENT_ROOT:
             if (n.body() != null && anonType != null) {
                 // Now visit the body.
-                n = n.body((ClassBody) n.visitChild(n.body(), childtc));
-                if (tc.scope() == TypeChecker.Scope.BODY_OF_ROOT) {
+                if (tc.scope() == TypeChecker.Scope.BODY) {
+                    n = n.body((ClassBody) n.visitChild(n.body(), childtc));
                     ts.checkClassConformance(anonType.asType());
                 }
             }
@@ -309,7 +310,7 @@ public class New_c extends Expr_c implements New
                     anonType.superType(ct);
                 }
                 else {
-                    anonType.superType(Ref_c.<Type>ref(ts.Object()));
+                    anonType.superType(Types.<Type>ref(ts.Object()));
                     anonType.addInterface(ct);
                 }
             }
@@ -409,7 +410,7 @@ public class New_c extends Expr_c implements New
             ci = ts.findConstructor(ct, argTypes, c.currentClassScope());
         }
         else {
-            ConstructorDef dci = ts.defaultConstructor(this.position(), Ref_c.<ClassType>ref(ct));
+            ConstructorDef dci = ts.defaultConstructor(this.position(), Types.<ClassType>ref(ct));
             ci = dci.asInstance();
         }
         

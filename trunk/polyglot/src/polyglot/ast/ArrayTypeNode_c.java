@@ -53,7 +53,7 @@ public class ArrayTypeNode_c extends TypeNode_c implements ArrayTypeNode
     }
 
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
-	return type(Ref_c.<Type>ref(tb.typeSystem().arrayOf(position(), base.typeRef())));
+	return typeRef(Types.<Type>ref(tb.typeSystem().arrayOf(position(), base.typeRef())));
     }
 
     public Node disambiguate(AmbiguityRemover ar) throws SemanticException {

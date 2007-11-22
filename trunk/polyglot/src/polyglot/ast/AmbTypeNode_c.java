@@ -62,8 +62,8 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
 
   public Node buildTypes(TypeBuilder tb) throws SemanticException {
       TypeSystem ts = tb.typeSystem();
-      TypeRef<? extends Type> sym = ts.symbolTable().typeRef(ts.unknownType(position()), tb.goal());
-      return type(sym);
+      LazyRef<? extends Type> sym = Types.typeRef(ts.unknownType(position()), tb.goal());
+      return typeRef(sym);
   }
 
   public Node visitChildren(NodeVisitor v) {
@@ -77,7 +77,7 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
       
       if (n instanceof TypeNode) {
           TypeNode tn = (TypeNode) n;
-          TypeRef<Type> sym = (TypeRef<Type>) type;
+          LazyRef<Type> sym = (LazyRef<Type>) type;
           sym.update(tn.typeRef().get());
           // Reset the resolver goal to one that can run when the ref is deserialized.
           Goal resolver = Globals.Scheduler().LookupGlobalType(sym);
