@@ -73,22 +73,36 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
   }
 
   public Node disambiguate(AmbiguityRemover sc) throws SemanticException {
-      Node n = sc.nodeFactory().disamb().disambiguate(this, sc, position(), qual, name);
+      SemanticException ex;
       
-      if (n instanceof TypeNode) {
-          TypeNode tn = (TypeNode) n;
-          LazyRef<Type> sym = (LazyRef<Type>) type;
-          sym.update(tn.typeRef().get());
-          // Reset the resolver goal to one that can run when the ref is deserialized.
-          Goal resolver = Globals.Scheduler().LookupGlobalType(sym);
-          Globals.Scheduler().markReached(resolver);
-          sym.setResolver(resolver);
-          return n;
+      try {
+          Node n = sc.nodeFactory().disamb().disambiguate(this, sc, position(), qual, name);
+
+          if (n instanceof TypeNode) {
+              TypeNode tn = (TypeNode) n;
+              LazyRef<Type> sym = (LazyRef<Type>) type;
+              sym.update(tn.typeRef().get());
+              
+              // Reset the resolver goal to one that can run when the ref is deserialized.
+              Goal resolver = Globals.Scheduler().LookupGlobalType(sym);
+              Globals.Scheduler().markReached(resolver);
+              sym.setResolver(resolver);
+              return n;
+          }
+
+          ex = new SemanticException("Could not find type \"" +
+                                     (qual == null ? name.toString() : qual.toString() + "." + name.toString()) +
+                                     "\".", position());
       }
-      
-      throw new SemanticException("Could not find type \"" +
-                                  (qual == null ? name.toString() : qual.toString() + "." + name.toString()) +
-                                  "\".", position());
+      catch (SemanticException e) {
+          ex = e;
+      }
+
+      // Mark the type as an error, so we don't try looking it up again.
+      LazyRef<Type> sym = (LazyRef<Type>) type;
+      sym.update(sc.typeSystem().unknownType(position()));
+
+      throw ex;
   }
 
   public void prettyPrint(CodeWriter w, PrettyPrinter tr) {

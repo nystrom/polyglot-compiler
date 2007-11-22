@@ -202,17 +202,22 @@ public class ClassDecl_c extends Term_c implements ClassDecl
             Goal oSig = Globals.Scheduler().SignatureDef(tb.job(), outer);
             Goal oChk = Globals.Scheduler().TypeCheckDef(tb.job(), outer);
             
+            if (false)
             tSup.addPrereq(oSup);
+            if (false)
             tSig.addPrereq(oSig);
             
             if (tb.def() instanceof CodeDef) {
                 // In a local class.  We will not visit the body when type-checking the enclosing method.
                 // Add a dependency on the enclosing method.
+                if (false)
                 tSup.addPrereq(oChk);
             }
         }
 
+        if (false)
         tSig.addPrereq(tSup);
+        if (false)
         tChk.addPrereq(tSig);
 
         ClassDecl_c n = this;
@@ -257,21 +262,21 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         return super.enterChildScope(child, c);
     }
 
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
-        if (type == null) {
-            throw new InternalCompilerError("Missing type.", position());
-        }
-
-        checkSupertypeCycles(ar.typeSystem());
-
-        ClassDef type = classDef();
-
-        // Make sure that the inStaticContext flag of the class is correct.
-        Context ctxt = ar.context();
-        type.inStaticContext(ctxt.inStaticContext());
-
-        return this;
-    }
+//    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
+//        if (type == null) {
+//            throw new InternalCompilerError("Missing type.", position());
+//        }
+//
+//        checkSupertypeCycles(ar.typeSystem());
+//
+//        ClassDef type = classDef();
+//
+//        // Make sure that the inStaticContext flag of the class is correct.
+//        Context ctxt = ar.context();
+//        type.inStaticContext(ctxt.inStaticContext());
+//
+//        return this;
+//    }
 
     protected void checkSupertypeCycles(TypeSystem ts) throws SemanticException {
         Ref<? extends Type> stref = type.superType();
@@ -376,74 +381,75 @@ public class ClassDecl_c extends Term_c implements ClassDecl
 
     @Override
     public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
-        ClassDecl_c n = this;
-        
-        NodeVisitor v = tc.enter(parent, n);
-        if (v instanceof TypeChecker) {
-            tc = (TypeChecker) v;
-        }
-        else if (v instanceof PruningVisitor) {
-            return this;
+        TypeChecker childtc;
+        NodeVisitor childv = tc.enter(parent, this);
+        if (childv instanceof TypeChecker) {
+            childtc = (TypeChecker) childv;
         }
         else {
-            assert false;
+            return this;
         }
-        
-        if (Report.should_report(Report.visit, 2))
-            Report.report(2, ">> " + this + "::leave " + n);
-        
-        AmbiguityRemover ar = new AmbiguityRemover(tc.job(), tc.typeSystem(), tc.nodeFactory());
-        ar = (AmbiguityRemover) ar.context(tc.context());
-        
-        Id name = (Id) visitChild(n.name, tc);
-        
-        // Disambiguate the super types.
+
+        ClassDecl_c old = this;
+
+        ClassDecl_c n = this;
+
+        Id name = n.name;
         TypeNode superClass = n.superClass;
         List<TypeNode> interfaces = n.interfaces;
-        
-        switch (tc.mode(n)) {
-        case INNER_ROOT:
-        case NON_ROOT:
-        case CURRENT_ROOT:
-            superClass = (TypeNode) n.visitChild(n.superClass, tc);
-            interfaces = n.visitList(n.interfaces, tc);
-            break;
-        }
-
         ClassBody body = n.body;
-        
-        switch (tc.mode(n)) {
-        case INNER_ROOT:
-        case NON_ROOT:
-            break;
-        case CURRENT_ROOT:
-            if (tc.scope() == TypeChecker.Scope.SIGNATURES) {
-                body = (ClassBody) n.visitChild(body, tc.visitSignatures());
-                n = (ClassDecl_c) n.body(body);
+
+        switch (tc.scope()) {
+        case SUPER: {
+            switch (tc.mode(n)) {
+            case NON_ROOT:
+                assert false;
+                break;
+            case INNER_ROOT:
+                break;
+            case CURRENT_ROOT:
+                // Disambiguate the super types.
+                Context c = tc.context();
+                type.inStaticContext(c.inStaticContext());
+
+                name = (Id) visitChild(n.name, childtc);
+                superClass = (TypeNode) n.visitChild(n.superClass, childtc);
+                interfaces = n.visitList(n.interfaces, childtc);
+                if (childtc.hasErrors()) throw new SemanticException();
+                
+                n = n.reconstruct(name, superClass, interfaces, body);
+                n.checkSupertypeCycles(tc.typeSystem());
+                
+
+                break;
             }
-            if (tc.scope() == TypeChecker.Scope.BODY) {
-                body = (ClassBody) n.visitChild(body, tc.visitBodies());
-                n = (ClassDecl_c) n.body(body);
+
+            return n;
+        }
+        case SIGNATURES: {
+            return n;
+        }
+        case BODY: {
+            switch (tc.mode(this)) {
+            case NON_ROOT:
+                assert false;
+                break;
+            case INNER_ROOT:
+                break;
+            case CURRENT_ROOT:
+                body = (ClassBody) n.visitChild(body, childtc);
+                if (childtc.hasErrors()) throw new SemanticException();
+                
+                n = n.reconstruct(name, superClass, interfaces, body);
+                n = (ClassDecl_c) tc.leave(parent, old, n, childtc);
+                break;
             }
-            break;
+
+            return n;
+        }
         }
 
-        n = n.reconstruct(name, superClass, interfaces, body);
-
-        switch (tc.mode(n)) {
-        case INNER_ROOT:
-        case NON_ROOT:
-            break;
-        case CURRENT_ROOT:
-            n = (ClassDecl_c) n.del().disambiguate(ar);
-            if (tc.scope() == TypeChecker.Scope.BODY) {
-                n = (ClassDecl_c) n.del().typeCheck(tc);
-                n = (ClassDecl_c) n.del().checkConstants(tc);
-            }
-            break;
-        }
-
-        return n;
+        return this;
     }
 
     public Node typeCheck(TypeChecker tc) throws SemanticException {

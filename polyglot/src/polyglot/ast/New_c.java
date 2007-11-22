@@ -150,8 +150,9 @@ public class New_c extends Expr_c implements New
     Goal enable = null;
     
     public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
-        New_c n = this;
         TypeSystem ts = tb.typeSystem();
+
+        New_c n = this;
 
         ConstructorInstance ci = new ConstructorInstance_c(ts, position(), new ErrorRef_c<ConstructorDef>(ts, position()));
         n = (New_c) n.constructorInstance(ci);
@@ -175,14 +176,9 @@ public class New_c extends Expr_c implements New
             // ### BUT, we will reach here WHILE type-checking the method and not AFTER.
             // the prereq causes a dependency cycle.
             
-            n.enable = new AbstractGoal_c("enable") {
-                public Pass createPass() { return new EmptyPass(this); }
-                public int hashCode() { return System.identityHashCode(this); }
-                public boolean equals(Object o) { return this == o; }
-            }.intern(Globals.Scheduler());
-            
-            sup.addPrereq(n.enable);
+            if (false)
             sig.addPrereq(sup);
+            if (false)
             chk.addPrereq(sig);
             
             n = (New_c) n.anonType(type);
@@ -195,83 +191,39 @@ public class New_c extends Expr_c implements New
         return n.type(ts.unknownType(position()));
     }
     
-    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-        NodeFactory nf = tc.nodeFactory();
-        Context c = tc.context();
+    public New_c typeCheckObjectType(TypeChecker childtc) throws SemanticException {
+        New_c n = this;
         
-        NodeVisitor childv = tc.enter(parent, this);
+        TypeSystem ts = childtc.typeSystem();
+        NodeFactory nf = childtc.nodeFactory();
+        Context c = childtc.context();
 
-        if (childv instanceof PruningVisitor) {
-            return this;
-        }
+        Expr qualifier = n.qualifier;
+        TypeNode tn = n.tn;
+        List<Expr> arguments = n.arguments;
+        ClassBody body = n.body;
         
-        assert childv instanceof TypeChecker;
-        
-        TypeChecker childtc = (TypeChecker) childv;
-        
-        New n = this;
-        New old = n;
-        
-        switch (tc.mode(n)) {
-        case INNER_ROOT:
-        case NON_ROOT:
-            if (tc.scope() == TypeChecker.Scope.SIGNATURES) {
-                // Enclosing scope must be code, not a class body.  We shouldn't get here.
-                assert false;
-                return n;
-            }
-            if (tc.scope() == TypeChecker.Scope.BODY) {
-                n = typeCheckNonRoot(parent, n, tc, childtc);
-                n = (New) tc.leave(parent, old, n, childtc);
-                if (enable != null)
-                Globals.Scheduler().markReached(enable);
-            }
-            break;
-        case CURRENT_ROOT:
-            if (n.body() != null && anonType != null) {
-                // Now visit the body.
-                if (tc.scope() == TypeChecker.Scope.BODY) {
-                    n = n.body((ClassBody) n.visitChild(n.body(), childtc));
-                    ts.checkClassConformance(anonType.asType());
-                }
-            }
-            break;
-        }
-
-        return n;
-    }
-
-    protected New typeCheckNonRoot(Node parent, New n, TypeChecker tc, TypeChecker childtc)
-            throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-        NodeFactory nf = tc.nodeFactory();
-        Context c = tc.context();
-        
-        // Disambiguate the qualifier and object type, if possible.
-        if (n.qualifier() == null) {
-            n = n.objectType((TypeNode) n.visitChild(n.objectType(), childtc));
+        if (qualifier == null) {
+            tn = (TypeNode) n.visitChild(tn, childtc);
             if (childtc.hasErrors()) throw new SemanticException();
-
-            if (n.objectType().type().isClass()) {    
-                ClassType ct = n.objectType().type().toClass();
+            
+            if (tn.type().isClass()) {
+                ClassType ct = tn.type().toClass();
 
                 if (ct.isMember() && ! ct.flags().isStatic()) {
-                    n = ((New_c) n).findQualifier(tc, ct);
-
-                    n = n.qualifier((Expr) n.visitChild(n.qualifier(), childtc));
+                    New k = ((New_c) n).findQualifier(childtc, ct);
+                    tn = k.objectType();
+                    qualifier = (Expr) k.visitChild(k.qualifier(), childtc);
                 }
             }
             else {
-                throw new SemanticException("Cannot instantiate type " + n.objectType().type() + ".");
+                throw new SemanticException("Cannot instantiate type " + tn.type() + ".");
             }
         }
         else {
-            n = n.qualifier((Expr) n.visitChild(n.qualifier(), childtc));
+            qualifier = (Expr) n.visitChild(n.qualifier(), childtc);
             
-            if (n.objectType() instanceof AmbTypeNode &&
-                    ((AmbTypeNode) n.objectType()).qual() == null) {
-
+            if (tn instanceof AmbTypeNode && ((AmbTypeNode) tn).qual() == null) {
                 // We have to disambiguate the type node as if it were a member of the
                 // static type, outer, of the qualifier.  For Java this is simple: type
                 // nested type is just a name and we
@@ -279,53 +231,130 @@ public class New_c extends Expr_c implements New
                 // extensions (e.g., PolyJ), the type node may be more complex than
                 // just a name.  We'll just punt here and let the extensions handle
                 // this complexity.
-                
-                String name = ((AmbTypeNode) n.objectType()).id().id();
+
+                String name = ((AmbTypeNode) tn).id().id();
                 assert name != null;
 
-                if (! n.qualifier().type().isClass()) {
+                if (! qualifier.type().isClass()) {
                     throw new SemanticException("Cannot instantiate member class of non-class type.", n.position());
                 }
-
-                ClassType outer = n.qualifier().type().toClass();
+                ClassType outer = qualifier.type().toClass();
                 ClassType ct = ts.findMemberClass(outer, name, c.currentClassScope());
-                TypeNode tn = nf.CanonicalTypeNode(n.objectType().position(), ct);
-                n = n.objectType(tn);
+                tn = nf.CanonicalTypeNode(n.objectType().position(), ct);
             }
             else {
                 throw new SemanticException("Only simply-named member classes may be instantiated by a qualified new expression.",
                         n.objectType().position());
             }
         }
-        
-        // Now disambiguate the actuals.
-        n = (New) n.arguments(n.visitList(n.arguments(), childtc));
-        
-        if (n.body() != null) {
-            Ref<? extends Type> ct = n.objectType().typeRef();
-            ClassDef anonType = n.anonType();
-            
-            if (anonType != null) {
-                if (! ct.get().toClass().flags().isInterface()) {
-                    anonType.superType(ct);
-                }
-                else {
-                    anonType.superType(Types.<Type>ref(ts.Object()));
-                    anonType.addInterface(ct);
-                }
-            }
 
-            // Don't visit the body!  This will be done when type-checking the body.
-        }
-        
+        n = n.reconstruct(qualifier, tn, arguments, body);
+
         return n;
     }
+    
+    @Override
+    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
+        TypeChecker childtc;
+        NodeVisitor childv = tc.enter(parent, this);
+        if (childv instanceof TypeChecker) {
+            childtc = (TypeChecker) childv;
+        }
+        else {
+            return this;
+        }
 
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
-        // Everything is done in disambiguateOverride.
+        TypeSystem ts = tc.typeSystem();
+        NodeFactory nf = tc.nodeFactory();
+        Context c = childtc.context();
+        
+        New_c old = this;
+
+        New_c n = this;
+
+        Expr qualifier = n.qualifier;
+        TypeNode tn = n.tn;
+        List<Expr> arguments = n.arguments;
+        ClassBody body = n.body;
+
+        switch (tc.scope()) {
+        case SUPER: {
+            switch (tc.mode(n)) {
+            case NON_ROOT:
+            case INNER_ROOT:
+                break;
+            case CURRENT_ROOT:
+                // Disambiguate the qualifier and object type, if possible.
+                assert body != null;
+                if (body != null) {
+                    n = n.typeCheckObjectType(childtc);
+                    if (childtc.hasErrors()) throw new SemanticException();
+                    
+                    qualifier = n.qualifier;
+                    tn = n.tn;
+                    arguments = n.arguments;
+                    body = n.body;
+
+                    Ref<? extends Type> ct = tn.typeRef();
+                    ClassDef anonType = n.anonType();
+
+                    assert anonType != null;
+                    
+                    if (! ct.get().toClass().flags().isInterface()) {
+                        anonType.superType(ct);
+                    }
+                    else {
+                        anonType.superType(Types.<Type>ref(ts.Object()));
+                        anonType.addInterface(ct);
+                    }
+
+                    // Don't visit the body!  This will be done when type-checking the body.
+                }
+
+                break;
+            }
+
+            return n;
+        }
+        case SIGNATURES: {
+            return n;
+        }
+        case BODY: {
+            switch (tc.mode(this)) {
+            case NON_ROOT:
+            case INNER_ROOT:
+                //                if (body == null || ! Globals.Scheduler().reached(Globals.Scheduler().SupertypeDef(tc.job(), anonType))) {
+                n = n.typeCheckObjectType(childtc);
+                if (childtc.hasErrors()) throw new SemanticException();
+                
+                qualifier = n.qualifier;
+                tn = n.tn;
+                arguments = n.arguments;
+                body = n.body;
+                //                }
+                arguments = visitList(arguments, childtc);
+                if (childtc.hasErrors()) throw new SemanticException();
+                
+                n = n.reconstruct(qualifier, tn, arguments, body);
+                n = (New_c) tc.leave(parent, old, n, childtc);
+                break;
+            case CURRENT_ROOT:
+                assert body != null;
+                body = (ClassBody) n.visitChild(body, childtc);
+                if (childtc.hasErrors()) throw new SemanticException();
+                
+                n = n.reconstruct(qualifier, tn, arguments, body);
+//                n = (New_c) tc.leave(parent, old, n, childtc);
+                break;
+            }
+
+            return n;
+        }
+        }
+
         return this;
     }
-    
+
     /**
      * @param ar
      * @param ct
