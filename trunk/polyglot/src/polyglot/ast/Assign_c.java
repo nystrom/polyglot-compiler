@@ -8,10 +8,12 @@
 
 package polyglot.ast;
 
+import java.util.Collections;
+import java.util.List;
+
 import polyglot.types.*;
-import polyglot.visit.*;
 import polyglot.util.*;
-import java.util.*;
+import polyglot.visit.*;
 
 /**
  * An <code>Assign</code> represents a Java assignment expression.

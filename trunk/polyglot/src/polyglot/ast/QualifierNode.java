@@ -7,10 +7,8 @@
 
 package polyglot.ast;
 
-import polyglot.types.Ref;
-import polyglot.types.TypeSystem;
 import polyglot.types.Qualifier;
-import polyglot.types.SemanticException;
+import polyglot.types.Ref;
 
 /**
  * A <code>QualifierNode</code> represents any node that can be used as a type

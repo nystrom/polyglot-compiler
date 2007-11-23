@@ -7,10 +7,7 @@
 
 package polyglot.ast;
 
-import polyglot.types.Type;
-import polyglot.types.Flags;
-import polyglot.types.FieldDef;
-import polyglot.types.InitializerDef;
+import polyglot.types.*;
 
 /**
  * A <code>FieldDecl</code> is an immutable representation of the declaration

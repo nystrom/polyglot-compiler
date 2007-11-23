@@ -8,12 +8,11 @@
 
 package polyglot.ast;
 
-import polyglot.ast.Assert;
-import polyglot.types.*;
-import polyglot.types.Package;
-import polyglot.util.*;
-
 import java.util.*;
+
+import polyglot.types.*;
+import polyglot.util.Position;
+import polyglot.util.StringUtil;
 
 /**
  * This is a node factory that creates no nodes.  It, rather than

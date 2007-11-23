@@ -8,11 +8,11 @@
 
 package polyglot.ast;
 
+import polyglot.frontend.Globals;
 import polyglot.types.*;
 import polyglot.util.*;
-import polyglot.visit.*;
-import polyglot.frontend.Globals;
-import polyglot.main.Options;
+import polyglot.visit.PrettyPrinter;
+import polyglot.visit.TypeChecker;
 
 /**
  * An <code>Import</code> is an immutable representation of a Java

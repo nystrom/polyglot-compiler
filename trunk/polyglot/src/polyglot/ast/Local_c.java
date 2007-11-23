@@ -8,28 +8,12 @@
 
 package polyglot.ast;
 
-import polyglot.ast.Local;
-import polyglot.ast.Node;
-import polyglot.ast.Term;
-import polyglot.ast.Precedence;
-import polyglot.types.Context;
-import polyglot.types.ErrorRef_c;
-import polyglot.types.Flags;
-import polyglot.types.LocalDef;
-import polyglot.types.LocalInstance;
-import polyglot.types.LocalInstance_c;
-import polyglot.types.Ref_c;
-import polyglot.types.SemanticException;
-import polyglot.types.TypeSystem;
-import polyglot.types.VarType;
+import java.util.List;
+
+import polyglot.types.*;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.NodeVisitor;
-import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeBuilder;
-import polyglot.visit.TypeChecker;
-import polyglot.visit.CFGBuilder;
-import java.util.List;
+import polyglot.visit.*;
 
 /** 
  * A local variable expression.

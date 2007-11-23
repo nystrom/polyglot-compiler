@@ -8,10 +8,12 @@
 
 package polyglot.ast;
 
+import java.util.List;
+
 import polyglot.types.*;
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
 import polyglot.visit.*;
-import polyglot.util.*;
-import java.util.*;
 
 /**
  * An <code>Instanceof</code> is an immutable representation of

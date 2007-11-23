@@ -7,8 +7,7 @@
 
 package polyglot.ast;
 
-import polyglot.util.*;
-import java.util.*;
+import polyglot.util.Position;
 
 /**
  * An immutable representation of a Java language <code>while</code>

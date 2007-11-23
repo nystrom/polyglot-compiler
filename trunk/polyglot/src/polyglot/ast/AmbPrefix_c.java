@@ -8,9 +8,9 @@
 
 package polyglot.ast;
 
-import polyglot.types.*;
-import polyglot.visit.*;
+import polyglot.types.SemanticException;
 import polyglot.util.*;
+import polyglot.visit.*;
 
 /**
  * An <code>AmbPrefix</code> is an ambiguous AST node composed of dot-separated

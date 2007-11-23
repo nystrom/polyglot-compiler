@@ -8,10 +8,13 @@
 
 package polyglot.ast;
 
-import polyglot.types.*;
+import java.util.List;
+
+import polyglot.types.Type;
+import polyglot.types.TypeSystem;
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
 import polyglot.visit.*;
-import polyglot.util.*;
-import java.util.*;
 
 /**
  * An <code>Eval</code> is a wrapper for an expression in the context of

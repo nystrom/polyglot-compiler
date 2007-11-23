@@ -8,12 +8,11 @@
 
 package polyglot.ast;
 
-import polyglot.ast.*;
-import polyglot.util.*;
-import polyglot.types.*;
-import polyglot.visit.*;
-
 import java.util.*;
+
+import polyglot.types.*;
+import polyglot.util.*;
+import polyglot.visit.*;
 
 /**
  * An immutable representation of a <code>try</code> block, one or more

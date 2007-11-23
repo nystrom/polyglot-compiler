@@ -8,10 +8,11 @@
 
 package polyglot.ast;
 
-import polyglot.util.*;
+import java.util.List;
+
 import polyglot.types.*;
+import polyglot.util.*;
 import polyglot.visit.*;
-import java.util.*;
 
 /**
  * An <code>ArrayAccess</code> is an immutable representation of an

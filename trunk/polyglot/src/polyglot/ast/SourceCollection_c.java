@@ -8,11 +8,12 @@
 
 package polyglot.ast;
 
-import polyglot.ast.*;
+import java.util.Iterator;
+import java.util.List;
+
 import polyglot.util.*;
-import polyglot.types.*;
-import polyglot.visit.*;
-import java.util.*;
+import polyglot.visit.NodeVisitor;
+import polyglot.visit.PrettyPrinter;
 
 /**
  * A <code>SourceCollection</code> represents a collection of source files.
@@ -32,12 +33,12 @@ public class SourceCollection_c extends Node_c implements SourceCollection
     }
 
     /** Get the source files. */
-    public List sources() {
+    public List<SourceFile> sources() {
 	return this.sources;
     }
 
     /** Set the statements of the block. */
-    public SourceCollection sources(List sources) {
+    public SourceCollection sources(List<SourceFile> sources) {
 	SourceCollection_c n = (SourceCollection_c) copy();
 	n.sources = TypedList.copyAndCheck(sources, SourceFile.class, true);
 	return n;

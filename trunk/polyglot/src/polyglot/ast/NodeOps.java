@@ -11,12 +11,9 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.util.List;
 
-import polyglot.util.CodeWriter;
 import polyglot.frontend.ExtensionInfo;
-import polyglot.types.SemanticException;
-import polyglot.types.Context;
-import polyglot.types.Type;
-import polyglot.types.TypeSystem;
+import polyglot.types.*;
+import polyglot.util.CodeWriter;
 import polyglot.visit.*;
 
 /**

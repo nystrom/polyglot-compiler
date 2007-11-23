@@ -8,11 +8,11 @@
 
 package polyglot.ast;
 
-import polyglot.types.*;
+import java.util.*;
+
+import polyglot.types.Context;
 import polyglot.util.*;
 import polyglot.visit.*;
-
-import java.util.*;
 
 /**
  * A <code>Block</code> represents a Java block statement -- an immutable
@@ -83,6 +83,7 @@ public abstract class AbstractBlock_c extends Stmt_c implements Block
 
 	for (Iterator<Stmt> i = statements.iterator(); i.hasNext(); ) {
 	    Stmt n = i.next();
+	    
 	    printBlock(n, w, tr);
 
 	    if (i.hasNext()) {

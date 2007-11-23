@@ -8,19 +8,13 @@
 
 package polyglot.ast;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import polyglot.frontend.Globals;
 import polyglot.frontend.Goal;
 import polyglot.main.Report;
 import polyglot.types.*;
-import polyglot.util.CodeWriter;
-import polyglot.util.CollectionUtil;
-import polyglot.util.InternalCompilerError;
-import polyglot.util.Position;
-import polyglot.util.TypedList;
+import polyglot.util.*;
 import polyglot.visit.*;
 
 /**
@@ -28,7 +22,7 @@ import polyglot.visit.*;
  * or interface. It may be a public or other top-level class, or an inner
  * named class, or an anonymous class.
  */
-public class ClassDecl_c extends Term_c implements ClassDecl
+public class ClassDecl_c extends FragmentRoot_c implements ClassDecl
 {
     protected Flags flags;
     protected Id name;
@@ -291,8 +285,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
             ts.checkCycles((ReferenceType) t);
         }
 
-        for (Iterator<Ref<? extends Type>> i = type.interfaces().iterator(); i.hasNext(); ) {
-            Ref<? extends Type> tref = i.next();
+        for (Ref<? extends Type> tref : type.interfaces()) {
             Type t = tref.get();
             assert ! (t instanceof UnknownType);
             if (! t.isClass() || ! t.toClass().flags().isInterface()) {
@@ -331,8 +324,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
 
     protected void setInterfaces(TypeSystem ts, ClassDef thisType) throws SemanticException {
         List<TypeNode> interfaces = this.interfaces;
-        for (Iterator<TypeNode> i = interfaces.iterator(); i.hasNext(); ) {
-            TypeNode tn = (TypeNode) i.next();
+        for (TypeNode tn : interfaces) {
             Ref<? extends Type> t = tn.typeRef();
 
             if (Report.should_report(Report.types, 3))
@@ -346,8 +338,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         if (flags.isInterface()) {
             return false;
         }
-        for (Iterator<ClassMember> i = body().members().iterator(); i.hasNext(); ) {
-            ClassMember cm = (ClassMember) i.next();
+        for (ClassMember cm : body().members()) {
             if (cm instanceof ConstructorDecl) {
                 return false;
             }
@@ -380,16 +371,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
     }
 
     @Override
-    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
-        TypeChecker childtc;
-        NodeVisitor childv = tc.enter(parent, this);
-        if (childv instanceof TypeChecker) {
-            childtc = (TypeChecker) childv;
-        }
-        else {
-            return this;
-        }
-
+    public Node typeCheckSupersOfRootFromInside(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
         ClassDecl_c old = this;
 
         ClassDecl_c n = this;
@@ -399,59 +381,41 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         List<TypeNode> interfaces = n.interfaces;
         ClassBody body = n.body;
 
-        switch (tc.scope()) {
-        case SUPER: {
-            switch (tc.mode(n)) {
-            case NON_ROOT:
-                assert false;
-                break;
-            case INNER_ROOT:
-                break;
-            case CURRENT_ROOT:
-                // Disambiguate the super types.
-                Context c = tc.context();
-                type.inStaticContext(c.inStaticContext());
+        // Disambiguate the super types.
+        Context c = tc.context();
+        type.inStaticContext(c.inStaticContext());
 
-                name = (Id) visitChild(n.name, childtc);
-                superClass = (TypeNode) n.visitChild(n.superClass, childtc);
-                interfaces = n.visitList(n.interfaces, childtc);
-                if (childtc.hasErrors()) throw new SemanticException();
-                
-                n = n.reconstruct(name, superClass, interfaces, body);
-                n.checkSupertypeCycles(tc.typeSystem());
-                
+        name = (Id) visitChild(n.name, childtc);
+        superClass = (TypeNode) n.visitChild(n.superClass, childtc);
+        interfaces = n.visitList(n.interfaces, childtc);
 
-                break;
-            }
+        n = n.reconstruct(name, superClass, interfaces, body);
+        n.checkSupertypeCycles(tc.typeSystem());
 
-            return n;
-        }
-        case SIGNATURES: {
-            return n;
-        }
-        case BODY: {
-            switch (tc.mode(this)) {
-            case NON_ROOT:
-                assert false;
-                break;
-            case INNER_ROOT:
-                break;
-            case CURRENT_ROOT:
-                body = (ClassBody) n.visitChild(body, childtc);
-                if (childtc.hasErrors()) throw new SemanticException();
-                
-                n = n.reconstruct(name, superClass, interfaces, body);
-                n = (ClassDecl_c) tc.leave(parent, old, n, childtc);
-                break;
-            }
-
-            return n;
-        }
-        }
-
-        return this;
+        return n;
     }
 
+
+    @Override
+    public Node typeCheckRootFromInside(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
+        ClassDecl_c old = this;
+
+        ClassDecl_c n = this;
+
+        Id name = n.name;
+        TypeNode superClass = n.superClass;
+        List<TypeNode> interfaces = n.interfaces;
+        ClassBody body = n.body;
+
+        body = (ClassBody) n.visitChild(body, childtc);
+        //                if (childtc.hasErrors()) throw new SemanticException();
+
+        n = n.reconstruct(name, superClass, interfaces, body);
+        n = (ClassDecl_c) tc.leave(parent, old, n, childtc);
+
+        return n;
+    }
+    
     public Node typeCheck(TypeChecker tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
@@ -612,7 +576,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
             }
 
             w.begin(0);
-            for (Iterator i = interfaces().iterator(); i.hasNext(); ) {
+            for (Iterator<TypeNode> i = interfaces().iterator(); i.hasNext(); ) {
                 TypeNode tn = (TypeNode) i.next();
                 print(tn, w, tr);
 

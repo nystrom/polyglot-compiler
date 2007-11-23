@@ -8,10 +8,12 @@
 
 package polyglot.ast;
 
-import polyglot.visit.*;
+import java.util.List;
+
 import polyglot.types.*;
-import polyglot.util.*;
-import java.util.*;
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
+import polyglot.visit.*;
 
 /**
  * A <code>Conditional</code> is a representation of a Java ternary

@@ -7,9 +7,9 @@
 
 package polyglot.ast;
 
-import polyglot.types.ProcedureInstance;
-
 import java.util.List;
+
+import polyglot.types.ProcedureInstance;
 
 /**
  * A <code>ProcedureCall</code> is an interface representing a

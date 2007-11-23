@@ -8,11 +8,12 @@
 
 package polyglot.ast;
 
-import polyglot.ast.*;
-import polyglot.types.*;
-import polyglot.visit.*;
-import polyglot.util.*;
 import java.util.*;
+
+import polyglot.types.SemanticException;
+import polyglot.util.*;
+import polyglot.visit.PrettyPrinter;
+import polyglot.visit.TypeChecker;
 
 /** 
  * A <code>StringLit</code> represents an immutable instance of a 

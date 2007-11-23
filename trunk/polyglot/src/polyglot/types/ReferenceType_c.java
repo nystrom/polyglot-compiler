@@ -66,8 +66,7 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
 
     /** Return true if t has a method mi */
     public boolean hasMethod(MethodInstance mi) {
-        for (Iterator j = methods().iterator(); j.hasNext(); ) {
-            MethodInstance mj = (MethodInstance) j.next();
+        for (MethodInstance mj : methods()) {
 
             if (ts.isSameMethod(mi, mj)) {
                 return true;

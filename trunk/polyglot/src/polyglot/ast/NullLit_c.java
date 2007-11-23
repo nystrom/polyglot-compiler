@@ -7,10 +7,10 @@
 
 package polyglot.ast;
 
-import polyglot.ast.*;
-import polyglot.types.*;
-import polyglot.visit.*;
-import polyglot.util.*;
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
+import polyglot.visit.PrettyPrinter;
+import polyglot.visit.TypeChecker;
 
 /**
  * The Java literal <code>null</code>.

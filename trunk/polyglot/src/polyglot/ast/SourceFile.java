@@ -7,9 +7,10 @@
 
 package polyglot.ast;
 
-import polyglot.types.ImportTable;
-import polyglot.frontend.Source;
 import java.util.List;
+
+import polyglot.frontend.Source;
+import polyglot.types.ImportTable;
 
 /**
  * A <code>SourceFile</code> is an immutable representations of a Java

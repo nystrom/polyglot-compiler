@@ -10,7 +10,6 @@ package polyglot.ast;
 
 import polyglot.types.*;
 import polyglot.util.Position;
-import polyglot.util.InternalCompilerError;
 import polyglot.visit.ContextVisitor;
 
 /**

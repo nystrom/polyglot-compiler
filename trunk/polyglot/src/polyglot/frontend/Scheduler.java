@@ -432,7 +432,7 @@ public abstract class Scheduler {
 
         boolean result = false;
 
-        if (job == null || job.status()) {
+        if (true || job == null || job.status()) {
             Pass oldPass = this.currentPass;
             this.currentPass = pass;
             Report.should_report.push(pass.name());

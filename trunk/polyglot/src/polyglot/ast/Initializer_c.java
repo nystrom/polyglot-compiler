@@ -13,9 +13,7 @@ import java.util.*;
 import polyglot.frontend.Globals;
 import polyglot.frontend.Goal;
 import polyglot.types.*;
-import polyglot.util.CodeWriter;
-import polyglot.util.Position;
-import polyglot.util.SubtypeSet;
+import polyglot.util.*;
 import polyglot.visit.*;
 
 /**
@@ -25,7 +23,7 @@ import polyglot.visit.*;
  * constructors.  Such a block can optionally be static, in which case
  * it is executed when the class is loaded.
  */
-public class Initializer_c extends Term_c implements Initializer
+public class Initializer_c extends FragmentRoot_c implements Initializer
 {
     protected Flags flags;
     protected Block body;
@@ -143,49 +141,23 @@ public class Initializer_c extends Term_c implements Initializer
         return initializerDef(ii);
     }
 
+    @Override
+    public Node visitSignature(NodeVisitor v) {
+        return this;
+    }
+
     /** Type check the declaration. */
     @Override
-    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
+    public Node typeCheckRootFromInside(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
-  
-        TypeChecker childtc;
-        NodeVisitor childv = tc.enter(parent, this);
-        if (childv instanceof TypeChecker) {
-            childtc = (TypeChecker) childv;
-        }
-        else {
-            return this;
-        }
 
+        Initializer_c n;
         Block body = this.body;
+        body = (Block) this.visitChild(this.body, childtc);
+        n = reconstruct(body);
+        n = (Initializer_c) tc.leave(parent, this, n, childtc);
 
-        switch (tc.scope()) {
-        case SUPER: {
-            return this;
-        }
-        case SIGNATURES: {
-            return this;
-        }
-        case BODY: {
-            Initializer_c n = this;
-            
-            switch (tc.mode(this)) {
-            case NON_ROOT:
-                assert false;
-                break;
-            case INNER_ROOT:
-                break;
-            case CURRENT_ROOT:
-                body = (Block) this.visitChild(this.body, childtc);
-                n = reconstruct(body);
-                n = (Initializer_c) tc.leave(parent, this, n, childtc);
-            }
-            
-            return n;
-        }
-        }
-        
-        return this;
+        return n;
     }
 
     /** Type check the initializer. */
@@ -237,8 +209,7 @@ public class Initializer_c extends Term_c implements Initializer
                     SubtypeSet other = new SubtypeSet(throwable);
                     other.addAll(ci.throwTypes());
                     SubtypeSet inter = new SubtypeSet(throwable);
-                    for (Iterator<Type> i = allowed.iterator(); i.hasNext(); ) {
-                        Type t = (Type)i.next();
+                    for (Type t : allowed) {
                         if (other.contains(t)) {
                             // t or a supertype is thrown by other.
                             inter.add(t);

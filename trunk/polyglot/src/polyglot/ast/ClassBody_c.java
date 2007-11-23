@@ -158,12 +158,10 @@ public class ClassBody_c extends Term_c implements ClassBody
     }
 
     public Node typeCheck(TypeChecker tc) throws SemanticException {
-        if (tc.scope() == TypeChecker.Scope.BODY) {
-            duplicateFieldCheck(tc);
-            duplicateConstructorCheck(tc);
-            duplicateMethodCheck(tc);
-            duplicateMemberClassCheck(tc);
-        }
+        duplicateFieldCheck(tc);
+        duplicateConstructorCheck(tc);
+        duplicateMethodCheck(tc);
+        duplicateMemberClassCheck(tc);
         return this;
     }
     

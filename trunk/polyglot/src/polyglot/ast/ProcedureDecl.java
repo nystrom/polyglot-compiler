@@ -7,9 +7,10 @@
 
 package polyglot.ast;
 
-import polyglot.types.ProcedureDef;
-import polyglot.types.Flags;
 import java.util.List;
+
+import polyglot.types.Flags;
+import polyglot.types.ProcedureDef;
 
 /**
  * A procedure declaration.  A procedure is the supertype of methods and

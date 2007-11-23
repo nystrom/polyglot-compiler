@@ -303,7 +303,7 @@ public class JLScheduler extends Scheduler {
         }
     }
 
-    public static class FragmentGoal extends SourceGoal_c {
+    public static abstract class FragmentGoal extends SourceGoal_c {
         protected Def def;
         protected ContextVisitor v;
         
@@ -315,6 +315,15 @@ public class JLScheduler extends Scheduler {
             this.v = v;
         }
         
+        GoalSet view = null;
+        
+        @Override
+        public GoalSet requiredView() {
+            if (view == null)
+                view = createRequiredView();    
+            return view;
+        }
+
         public Def def() {
             return def;
         }
@@ -327,8 +336,11 @@ public class JLScheduler extends Scheduler {
             return l;
         }
         
-        @Override
-        public GoalSet requiredView() {
+        public GoalSet createRequiredView() {
+            return defaultRequiredView();
+        }
+        
+        public GoalSet defaultRequiredView() {
             return new RuleBasedGoalSet() {
                 public boolean contains(Goal g) {
                     return FragmentGoal.super.requiredView().contains(g) ||
@@ -369,14 +381,14 @@ public class JLScheduler extends Scheduler {
     
     protected static class SupertypeDef extends FragmentGoal {
         protected SupertypeDef(String name, Job job, Def def) {
-            super(name, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), false, false));
+            super(name, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), TypeChecker.Scope.SUPER, def));
         }
 
         @Override
-        public GoalSet requiredView() {
+        public GoalSet createRequiredView() {
             return new RuleBasedGoalSet() {
                 public boolean contains(Goal g) {
-                    return SupertypeDef.super.requiredView().contains(g) ||
+                    return SupertypeDef.super.defaultRequiredView().contains(g) ||
                     g instanceof LookupGlobalType ||
                     g instanceof LookupGlobalTypeDefAndSetFlags ||
                     g instanceof FieldConstantsChecked ||
@@ -392,14 +404,14 @@ public class JLScheduler extends Scheduler {
     
     protected static class SignatureDef extends FragmentGoal {
         protected SignatureDef(String name, Job job, Def def) {
-            super(name, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), true, false));
+            super(name, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), TypeChecker.Scope.SIGNATURES, def));
         }
         
         @Override
-        public GoalSet requiredView() {
+        public GoalSet createRequiredView() {
             return new RuleBasedGoalSet() {
                 public boolean contains(Goal g) {
-                    return SignatureDef.super.requiredView().contains(g) ||
+                    return SignatureDef.super.defaultRequiredView().contains(g) ||
                     g instanceof LookupGlobalType ||
                     g instanceof LookupGlobalTypeDefAndSetFlags ||
                     g instanceof FieldConstantsChecked ||
@@ -426,15 +438,15 @@ public class JLScheduler extends Scheduler {
     
     protected static class TypeCheckDef extends FragmentGoal {
         protected TypeCheckDef(String name, Job job, Def def) {
-            super(name, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), true, true));
+            super(name, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), TypeChecker.Scope.BODY, def));
         }
         
         @Override
-        public GoalSet requiredView() {
+        public GoalSet createRequiredView() {
             final Goal goal = this;
             return new RuleBasedGoalSet() {
                 public boolean contains(Goal g) {
-                    return TypeCheckDef.super.requiredView().contains(g) ||
+                    return TypeCheckDef.super.defaultRequiredView().contains(g) ||
                     g instanceof LookupGlobalType ||
                     g instanceof LookupGlobalTypeDefAndSetFlags ||
                     g instanceof FieldConstantsChecked ||

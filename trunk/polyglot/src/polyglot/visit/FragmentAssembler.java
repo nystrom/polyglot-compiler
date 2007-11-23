@@ -3,6 +3,7 @@ package polyglot.visit;
 import java.util.Map;
 
 import polyglot.ast.*;
+import polyglot.frontend.Globals;
 import polyglot.frontend.Job;
 import polyglot.types.Def;
 
@@ -16,18 +17,31 @@ public class FragmentAssembler extends NodeVisitor {
 
     public Job job() { return job; }
 
-    public Node leave(Node parent, Node old, Node n, NodeVisitor v) {
-        Map<Def, ASTFragment> fragmentMap = job.fragmentMap();
-        
+    public ASTFragment getFragment(Def def) {
+        if (def == null) return null;
+        Job job = Globals.currentJob();
+        return job.fragmentMap().get(def);
+    }
+    
+    public ASTFragment getFragment(Node n) {
         if (n instanceof FragmentRoot) {
             FragmentRoot r = (FragmentRoot) n;
-            
             for (Def def : r.defs()) {
-                return fragmentMap.get(def).node();
+                return getFragment(def);
             }
         }
-
-        return n;
+        return null;
     }
-
+    
+    public Node override(Node parent, Node n) {
+        if (n instanceof FragmentRoot) {
+            ASTFragment f = getFragment(n);
+            if (f != null) {
+                Node m = f.node();
+                n = m;
+            }
+        }
+        
+        return n.visitChildren(this);
+    }
 }

@@ -8,9 +8,12 @@
 
 package polyglot.ast;
 
+import java.util.Collections;
+import java.util.List;
+
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
 import polyglot.visit.*;
-import polyglot.util.*;
-import java.util.*;
 
 /**
  * A <code>Branch</code> is an immutable representation of a branch

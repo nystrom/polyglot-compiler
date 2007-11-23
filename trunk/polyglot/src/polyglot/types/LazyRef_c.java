@@ -4,6 +4,7 @@ import java.io.*;
 
 import polyglot.frontend.*;
 import polyglot.frontend.Goal.Status;
+import polyglot.util.InternalCompilerError;
 import polyglot.util.TypeInputStream;
 
 public class LazyRef_c<T extends TypeObject> extends AbstractRef_c<T> implements LazyRef<T>, Symbol<T>, Serializable {

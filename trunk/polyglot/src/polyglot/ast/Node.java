@@ -7,15 +7,12 @@
 
 package polyglot.ast;
 
-import polyglot.util.Copy;
-import polyglot.util.CodeWriter;
-import polyglot.util.Position;
-import polyglot.types.ParsedClassType;
-import polyglot.types.Type;
-import polyglot.visit.*;
-
-import java.util.Collection;
 import java.util.List;
+
+import polyglot.types.Type;
+import polyglot.util.*;
+import polyglot.visit.AscriptionVisitor;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>Node</code> represents an AST node.  All AST nodes must implement

@@ -20,7 +20,7 @@ import polyglot.visit.*;
 /**
  * A method declaration.
  */
-public class MethodDecl_c extends Term_c implements MethodDecl
+public class MethodDecl_c extends FragmentRoot_c implements MethodDecl
 {
     protected Flags flags;
     protected TypeNode returnType;
@@ -241,65 +241,22 @@ public class MethodDecl_c extends Term_c implements MethodDecl
         return c;
     }
     
+    @Override
+    public Node visitSignature(NodeVisitor v) {
+        TypeNode returnType = (TypeNode) this.visitChild(this.returnType, v);
+        Id name = (Id) this.visitChild(this.name, v);
+        List<Formal> formals = this.visitList(this.formals, v);
+        List<TypeNode> throwTypes = this.visitList(this.throwTypes, v);
+        return reconstruct(returnType, name, formals, throwTypes, this.body);
+    }
+    
     /** Type check the declaration. */
     @Override
-    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-  
-        TypeChecker childtc;
-        NodeVisitor childv = tc.enter(parent, this);
-        if (childv instanceof TypeChecker) {
-            childtc = (TypeChecker) childv;
-        }
-        else {
-            return this;
-        }
-
-        TypeNode returnType = this.returnType;
-        Id name = this.name;
-        List<Formal> formals = this.formals;
-        List<TypeNode> throwTypes = this.throwTypes;
-        Block body = this.body;
-
-        switch (tc.scope()) {
-        case SUPER: {
-            return this;
-        }
-        case SIGNATURES: {
-            returnType = (TypeNode) this.visitChild(returnType, childtc);
-            name = (Id) this.visitChild(name, childtc);
-            formals = this.visitList(formals, childtc);
-            throwTypes = this.visitList(throwTypes, childtc);
-
-            MethodDecl_c n = reconstruct(returnType, name, formals, throwTypes, body);
-            
-            return n;
-        }
-        case BODY: {
-            returnType = (TypeNode) this.visitChild(returnType, childtc);
-            name = (Id) this.visitChild(name, childtc);
-            formals = this.visitList(formals, childtc);
-            throwTypes = this.visitList(throwTypes, childtc);
-            
-            MethodDecl_c n = reconstruct(returnType, name, formals, throwTypes, body);
-
-            switch (tc.mode(this)) {
-            case NON_ROOT:
-                assert false;
-                break;
-            case INNER_ROOT:
-                break;
-            case CURRENT_ROOT:
-                body = (Block) this.visitChild(this.body, childtc);
-                n = (MethodDecl_c) n.body(body);
-                n = (MethodDecl_c) tc.leave(parent, this, n, childtc);
-            }
-            
-            return n;
-        }
-        }
-        
-        return this;
+    public Node typeCheckRootFromInside(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
+        MethodDecl_c n = this;
+        Block body = (Block) n.visitChild(n.body, childtc);
+        n = (MethodDecl_c) n.body(body);
+        return n;
     }
 
     /** Type check the method. */
@@ -311,7 +268,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
         Flags flags = mi.flags();
         
         if (tc.context().currentClass().flags().isInterface()) {
-            if (! flags.isPublic()) {
+            if (flags.isProtected() || flags.isPrivate()) {
                 throw new SemanticException("Interface methods must be public.",
                                             position());
             }
@@ -395,8 +352,9 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	w.allowBreak(2, 2, "", 0);
 	w.begin(0);
 
-	for (Iterator i = formals.iterator(); i.hasNext(); ) {
-	    Formal f = (Formal) i.next();
+	for (Iterator<Formal> i = formals.iterator(); i.hasNext(); ) {
+	    Formal f = i.next();
+	    
 	    print(f, w, tr);
 
 	    if (i.hasNext()) {

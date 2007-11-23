@@ -14,7 +14,6 @@ import java.util.*;
 
 import polyglot.frontend.Compiler;
 import polyglot.frontend.ExtensionInfo;
-import polyglot.main.Options;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
