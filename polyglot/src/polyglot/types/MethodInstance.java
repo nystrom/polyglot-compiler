@@ -53,14 +53,4 @@ public interface MethodInstance extends FunctionInstance<MethodDef>, MemberInsta
      * @see polyglot.types.Type
      */
     boolean methodCallValid(String name, List<Type> actualTypes);
-
-    /**
-     * Return true if this method can override <code>mi</code>.
-     * This method should not be called except by <code>TypeSystem</code>
-     * and by subclasses.
-     * If quiet is true and this method cannot override <code>mi</code>, then
-     * false is returned; otherwise, if quiet is false and this method cannot 
-     * override <code>mi</code>, then a SemanticException is thrown.
-     */
-    boolean canOverride(MethodInstance mi, boolean quiet) throws SemanticException;
 }

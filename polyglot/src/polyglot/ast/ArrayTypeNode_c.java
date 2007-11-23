@@ -8,7 +8,6 @@
 
 package polyglot.ast;
 
-import polyglot.frontend.Globals;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -59,6 +58,9 @@ public class ArrayTypeNode_c extends TypeNode_c implements ArrayTypeNode
     public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
 	TypeSystem ts = ar.typeSystem();
 	NodeFactory nf = ar.nodeFactory();
+	if (base.type() instanceof UnknownType) {
+	    return nf.CanonicalTypeNode(position(), base.type());
+	}
         return nf.CanonicalTypeNode(position(),
 		                    ts.arrayOf(position(), base.type()));
     }

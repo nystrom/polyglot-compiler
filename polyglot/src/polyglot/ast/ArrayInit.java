@@ -7,8 +7,10 @@
 
 package polyglot.ast;
 
-import polyglot.types.*;
 import java.util.List;
+
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
 
 /**
  * An <code>ArrayInit</code> is an immutable representation of
@@ -22,13 +24,13 @@ public interface ArrayInit extends Expr
      * Get the initializer elements.
      * @return A list of {@link polyglot.ast.Expr Expr}.
      */
-    List elements();
+    List<Expr> elements();
 
     /**
      * Set the initializer elements.
      * @param elements A list of {@link polyglot.ast.Expr Expr}.
      */
-    ArrayInit elements(List elements);
+    ArrayInit elements(List<Expr> elements);
 
     /**
      * Type check the individual elements of the array initializer against the

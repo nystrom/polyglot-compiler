@@ -12,7 +12,8 @@ import java.util.List;
 
 import polyglot.types.*;
 import polyglot.types.Package;
-import polyglot.util.*;
+import polyglot.util.CollectionUtil;
+import polyglot.util.Position;
 
 /**
  * A <code>NodeFactory</code> constructs AST nodes.  All node construction

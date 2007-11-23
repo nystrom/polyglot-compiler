@@ -8,11 +8,11 @@
 
 package polyglot.ast;
 
-import polyglot.types.*;
-import polyglot.visit.*;
-import polyglot.util.*;
+import java.util.List;
 
-import java.util.*;
+import polyglot.types.SemanticException;
+import polyglot.util.*;
+import polyglot.visit.*;
 
 /**
  * An <code>AmbExpr</code> is an ambiguous AST node composed of a single

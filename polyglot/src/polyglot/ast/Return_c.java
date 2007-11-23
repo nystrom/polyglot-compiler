@@ -8,11 +8,12 @@
 
 package polyglot.ast;
 
-import polyglot.ast.*;
+import java.util.Collections;
+import java.util.List;
+
 import polyglot.types.*;
-import polyglot.visit.*;
 import polyglot.util.*;
-import java.util.*;
+import polyglot.visit.*;
 
 /**
  * A <code>Return</code> represents a <code>return</code> statement in Java.

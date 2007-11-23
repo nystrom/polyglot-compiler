@@ -17,17 +17,17 @@ import java.util.*;
  */
 public class Flags implements Serializable
 {
-    protected Set flags;
+    protected Set<String> flags;
 
-    protected static class FlagComparator implements Comparator {
-        protected static List order = new ArrayList(
+    protected static class FlagComparator implements Comparator<String> {
+        protected static List<String> order = new ArrayList<String>(
             Arrays.asList(new String[] {
                 "public", "private", "protected", "static", "final",
                 "synchronized", "transient", "native", "interface",
                 "abstract", "volatile", "strictfp"
             }));
 
-        public int compare(Object o1, Object o2) {
+        public int compare(String o1, String o2) {
             if (o1.equals(o2)) return 0;
 
             for (int i = 0; i < order.size(); i++) {
@@ -35,7 +35,7 @@ public class Flags implements Serializable
                 if (o2.equals(order.get(i))) return 1;
             }
 
-            return ((String) o1).compareTo((String) o2);
+            return o1.compareTo(o2);
         }
     }
 
@@ -149,8 +149,7 @@ public class Flags implements Serializable
      * Check if <i>any</i> flags in <code>other</code> are set.
      */
     public boolean intersects(Flags other) {
-        for (Iterator i = this.flags.iterator(); i.hasNext(); ) {
-            String name = (String) i.next();
+        for (String name : this.flags) {
             if (other.flags.contains(name)) {
                 return true;
             }

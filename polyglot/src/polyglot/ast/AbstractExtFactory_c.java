@@ -7,8 +7,6 @@
 
 package polyglot.ast;
 
-import polyglot.ast.Ext;
-import polyglot.ast.ExtFactory;
 
 /**
  * This abstract implementation of <code>ExtFactory</code> provides

@@ -151,8 +151,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
         }
         else if (acceptable.size() > 1) {
             Set<Type> containers = new HashSet<Type>(acceptable.size());
-            for (Iterator<Named> i = acceptable.iterator(); i.hasNext(); ) {
-                Named n = (Named) i.next();
+            for (Named n : acceptable) {
                 if (n instanceof MemberInstance) {
                     MemberInstance<?> mi = (MemberInstance<?>) n;
                     containers.add(mi.container());

@@ -8,10 +8,12 @@
 
 package polyglot.ast;
 
-import polyglot.frontend.*;
+import polyglot.frontend.Globals;
+import polyglot.frontend.Goal;
 import polyglot.types.*;
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
 import polyglot.visit.*;
-import polyglot.util.*;
 
 /**
  * An <code>AmbTypeNode</code> is an ambiguous AST node composed of
@@ -21,12 +23,15 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
   protected QualifierNode qual;
   protected Id name;
 
+//  protected Expr dummy;
+  
   public AmbTypeNode_c(Position pos, QualifierNode qual,
                        Id name) {
     super(pos);
     assert(name != null); // qual may be null
     this.qual = qual;
     this.name = name;
+//    this.dummy = Globals.NF().ExprFromQualifiedName(pos, "java.util.Collections.EMPTY_LIST");
   }
 
   public Id id() {
@@ -69,6 +74,14 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
   public Node visitChildren(NodeVisitor v) {
       QualifierNode qual = (QualifierNode) visitChild(this.qual, v);
       Id name = (Id) visitChild(this.name, v);
+
+//      Expr dummy = (Expr) visitChild(this.dummy, v);
+//      if (dummy != this.dummy) {
+//          AmbTypeNode_c tn = (AmbTypeNode_c) reconstruct(qual, name).copy();
+//          tn.dummy = dummy;
+//          return tn;
+//      }
+
       return reconstruct(qual, name);
   }
 

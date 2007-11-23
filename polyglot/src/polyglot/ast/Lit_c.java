@@ -7,9 +7,10 @@
 
 package polyglot.ast;
 
-import polyglot.visit.*;
-import polyglot.util.*;
 import java.util.List;
+
+import polyglot.util.Position;
+import polyglot.visit.CFGBuilder;
 
 /**
  * <code>Lit</code> represents any Java literal.

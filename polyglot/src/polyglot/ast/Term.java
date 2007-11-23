@@ -7,9 +7,10 @@
 
 package polyglot.ast;
 
+import java.util.List;
+
 import polyglot.util.SubtypeSet;
-import polyglot.visit.*;
-import java.util.*;
+import polyglot.visit.CFGBuilder;
 
 /**
  * A <code>Term</code> represents any Java expression or statement on which

@@ -598,8 +598,7 @@ public class TypeSystem_c implements TypeSystem
 
 	checkCycles(superType, goal);
 
-	for (Iterator<Type> i = curr.interfaces().iterator(); i.hasNext(); ) {
-	    Type si = (Type) i.next();
+	for (Type si : curr.interfaces()) {
 
 	    if (si == goal) {
                 throw new SemanticException("Circular inheritance involving " + goal, 
@@ -837,8 +836,7 @@ public class TypeSystem_c implements TypeSystem
 	if (container.isClass()) {
 	    ClassType ct = container.toClass();
 	
-	    for (Iterator<Type> i = ct.interfaces().iterator(); i.hasNext(); ) {
-		Type it = (Type) i.next();
+	    for (Type it : ct.interfaces()) {
                 if (hasMethodNamed(it.toReference(), name)) {
                     return true;
                 }
@@ -1371,19 +1369,11 @@ public class TypeSystem_c implements TypeSystem
     }
 
     public boolean canOverride(MethodInstance mi, MethodInstance mj) {
-        try {
-            return mi.canOverride(mj, true);
-        }
-        catch (SemanticException e) {
-            // this is the exception thrown by the canOverrideImpl check.
-            // It should never be thrown if the quiet argument of
-            // canOverrideImpl is true.
-            throw new InternalCompilerError(e);
-        }
+        return mi.canOverride(mj);
     }
 
     public void checkOverride(MethodInstance mi, MethodInstance mj) throws SemanticException {
-        mi.canOverride(mj, false);
+        mi.checkOverride(mj);
     }
 
     /**
@@ -2016,9 +2006,10 @@ public class TypeSystem_c implements TypeSystem
         List<Type> superInterfaces = new LinkedList<Type>();
         superInterfaces.add(rt);
 
-        for (Iterator<Type> iter = rt.interfaces().iterator(); iter.hasNext(); ) {
-            ClassType interf = (ClassType) iter.next();
-            superInterfaces.addAll(abstractSuperInterfaces(interf));
+        for (Type interf : rt.interfaces()) {
+            if (interf instanceof ReferenceType) {
+                superInterfaces.addAll(abstractSuperInterfaces((ReferenceType) interf));
+            }
         }
 
         if (rt.superType() != null) {

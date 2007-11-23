@@ -8,9 +8,12 @@
 
 package polyglot.ast;
 
-import polyglot.visit.*;
-import polyglot.util.*;
-import java.util.*;
+import java.util.List;
+
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
+import polyglot.visit.CFGBuilder;
+import polyglot.visit.PrettyPrinter;
 
 /**
  * <code>Empty</code> is the class for a empty statement <code>(;)</code>.

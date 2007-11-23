@@ -30,5 +30,6 @@ public class Globals {
     public static Job currentJob() { return Scheduler().currentJob(); }
     public static Pass currentPass() { return Scheduler().currentPass(); }
     public static GoalSet currentView() { return Scheduler().currentView(); }
-    public static GoalSet currentPhase() { return Scheduler().reachedGoals(); }
+    public static GoalSet currentPhase() { return Scheduler().reachedGoals().union(currentView()); }
+    public static Goal currentGoal() { return Scheduler().currentGoal(); }
 }

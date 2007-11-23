@@ -10,7 +10,8 @@ package polyglot.ast;
 
 import java.util.*;
 
-import polyglot.frontend.*;
+import polyglot.frontend.Globals;
+import polyglot.frontend.Goal;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -167,23 +168,11 @@ public class New_c extends Expr_c implements New
             TypeBuilder tb2 = tb.pushAnonClass(position());
             ClassDef type = tb2.currentClass();
 
-            Goal sup = Globals.Scheduler().SupertypeDef(tb.job(), type);
-            Goal sig = Globals.Scheduler().SignatureDef(tb.job(), type);
-            Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), type);
-
-            // To figure out the supertype, we need to type check the enclosing method.
-//            sup.addPrereq(tb.goal());
-            // ### BUT, we will reach here WHILE type-checking the method and not AFTER.
-            // the prereq causes a dependency cycle.
-            
-            if (false)
-            sig.addPrereq(sup);
-            if (false)
-            chk.addPrereq(sig);
-            
             n = (New_c) n.anonType(type);
             
-            body = (ClassBody) n.visitChild(n.body(), tb2.pushGoal(chk));
+//            Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), type);
+//            body = (ClassBody) n.visitChild(n.body(), tb2.pushGoal(chk));
+            body = (ClassBody) n.visitChild(n.body(), tb2);
         }
         
         n = n.reconstruct(qual, objectType, arguments, body);
@@ -205,7 +194,11 @@ public class New_c extends Expr_c implements New
         
         if (qualifier == null) {
             tn = (TypeNode) n.visitChild(tn, childtc);
-            if (childtc.hasErrors()) throw new SemanticException();
+//            if (childtc.hasErrors()) throw new SemanticException();
+            
+            if (tn.type() instanceof UnknownType) {
+                throw new SemanticException();
+            }
             
             if (tn.type().isClass()) {
                 ClassType ct = tn.type().toClass();
@@ -267,92 +260,41 @@ public class New_c extends Expr_c implements New
         TypeSystem ts = tc.typeSystem();
         NodeFactory nf = tc.nodeFactory();
         Context c = childtc.context();
-        
+
         New_c old = this;
 
         New_c n = this;
+
+
+        n = n.typeCheckObjectType(childtc);
 
         Expr qualifier = n.qualifier;
         TypeNode tn = n.tn;
         List<Expr> arguments = n.arguments;
         ClassBody body = n.body;
 
-        switch (tc.scope()) {
-        case SUPER: {
-            switch (tc.mode(n)) {
-            case NON_ROOT:
-            case INNER_ROOT:
-                break;
-            case CURRENT_ROOT:
-                // Disambiguate the qualifier and object type, if possible.
-                assert body != null;
-                if (body != null) {
-                    n = n.typeCheckObjectType(childtc);
-                    if (childtc.hasErrors()) throw new SemanticException();
-                    
-                    qualifier = n.qualifier;
-                    tn = n.tn;
-                    arguments = n.arguments;
-                    body = n.body;
+        if (body != null) {
+            Ref<? extends Type> ct = tn.typeRef();
+            ClassDef anonType = n.anonType();
 
-                    Ref<? extends Type> ct = tn.typeRef();
-                    ClassDef anonType = n.anonType();
+            assert anonType != null;
 
-                    assert anonType != null;
-                    
-                    if (! ct.get().toClass().flags().isInterface()) {
-                        anonType.superType(ct);
-                    }
-                    else {
-                        anonType.superType(Types.<Type>ref(ts.Object()));
-                        anonType.addInterface(ct);
-                    }
-
-                    // Don't visit the body!  This will be done when type-checking the body.
-                }
-
-                break;
+            if (! ct.get().toClass().flags().isInterface()) {
+                anonType.superType(ct);
             }
-
-            return n;
-        }
-        case SIGNATURES: {
-            return n;
-        }
-        case BODY: {
-            switch (tc.mode(this)) {
-            case NON_ROOT:
-            case INNER_ROOT:
-                //                if (body == null || ! Globals.Scheduler().reached(Globals.Scheduler().SupertypeDef(tc.job(), anonType))) {
-                n = n.typeCheckObjectType(childtc);
-                if (childtc.hasErrors()) throw new SemanticException();
-                
-                qualifier = n.qualifier;
-                tn = n.tn;
-                arguments = n.arguments;
-                body = n.body;
-                //                }
-                arguments = visitList(arguments, childtc);
-                if (childtc.hasErrors()) throw new SemanticException();
-                
-                n = n.reconstruct(qualifier, tn, arguments, body);
-                n = (New_c) tc.leave(parent, old, n, childtc);
-                break;
-            case CURRENT_ROOT:
-                assert body != null;
-                body = (ClassBody) n.visitChild(body, childtc);
-                if (childtc.hasErrors()) throw new SemanticException();
-                
-                n = n.reconstruct(qualifier, tn, arguments, body);
-//                n = (New_c) tc.leave(parent, old, n, childtc);
-                break;
+            else {
+                anonType.superType(Types.<Type>ref(ts.Object()));
+                anonType.addInterface(ct);
             }
-
-            return n;
-        }
         }
 
-        return this;
+        arguments = visitList(arguments, childtc);
+        body = (ClassBody) n.visitChild(body, childtc);
+
+        n = n.reconstruct(qualifier, tn, arguments, body);
+        n = (New_c) tc.leave(parent, old, n, childtc);
+
+        return n;
     }
 
     /**

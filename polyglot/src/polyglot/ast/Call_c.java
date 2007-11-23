@@ -346,8 +346,8 @@ public class Call_c extends Expr_c implements Call
 	w.allowBreak(2, 2, "", 0); // miser mode
 	w.begin(0);
 		    
-	for(Iterator i = arguments.iterator(); i.hasNext();) {
-	    Expr e = (Expr) i.next();
+	for (Iterator<Expr> i = arguments.iterator(); i.hasNext(); ) {
+	    Expr e = i.next();
 	    print(e, w, tr);
 
 	    if (i.hasNext()) {

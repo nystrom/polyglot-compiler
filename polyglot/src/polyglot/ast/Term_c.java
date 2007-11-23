@@ -7,12 +7,12 @@
 
 package polyglot.ast;
 
-import polyglot.ast.*;
-import polyglot.types.*;
-import polyglot.visit.*;
-import polyglot.util.*;
+import java.util.List;
 
-import java.util.*;
+import polyglot.types.SemanticException;
+import polyglot.util.*;
+import polyglot.visit.CFGBuilder;
+import polyglot.visit.ExceptionChecker;
 
 /**
  * A <code>Term</code> represents any Java expression or statement on which

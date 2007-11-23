@@ -13,8 +13,8 @@ import java.util.List;
 
 import polyglot.frontend.ExtensionInfo;
 import polyglot.types.*;
+import polyglot.util.CodeWriter;
 import polyglot.visit.*;
-import polyglot.util.*;
 
 /**
  * <code>JL_c</code> is the super class of JL node delegates objects.

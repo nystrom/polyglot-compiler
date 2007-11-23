@@ -8,11 +8,12 @@
 
 package polyglot.ast;
 
-import polyglot.util.*;
-import polyglot.types.*;
-import polyglot.visit.*;
+import java.util.List;
 
-import java.util.*;
+import polyglot.types.*;
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
+import polyglot.visit.*;
 
 /**
  * A <code>Catch</code> represents one half of a <code>try-catch</code>

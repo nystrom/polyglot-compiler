@@ -8,9 +8,12 @@
 
 package polyglot.ast;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
 import polyglot.visit.*;
-import polyglot.util.*;
-import java.util.*;
 
 /**
  * Am immutable representation of a Java statement with a label.  A labeled

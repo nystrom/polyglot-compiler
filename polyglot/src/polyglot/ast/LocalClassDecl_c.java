@@ -8,11 +8,11 @@
 
 package polyglot.ast;
 
-import polyglot.types.*;
+import java.util.*;
+
+import polyglot.types.Context;
 import polyglot.util.*;
 import polyglot.visit.*;
-
-import java.util.*;
 
 /**
  * A local class declaration statement.  The node is just a wrapper around

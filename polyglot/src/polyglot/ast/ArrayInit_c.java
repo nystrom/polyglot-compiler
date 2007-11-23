@@ -8,10 +8,12 @@
 
 package polyglot.ast;
 
+import java.util.Iterator;
+import java.util.List;
+
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
-import java.util.*;
 
 /**
  * An <code>ArrayInit</code> is an immutable representation of
@@ -21,28 +23,28 @@ import java.util.*;
  */
 public class ArrayInit_c extends Expr_c implements ArrayInit
 {
-    protected List elements;
+    protected List<Expr> elements;
 
-    public ArrayInit_c(Position pos, List elements) {
+    public ArrayInit_c(Position pos, List<Expr> elements) {
 	super(pos);
 	assert(elements != null);
 	this.elements = TypedList.copyAndCheck(elements, Expr.class, true);
     }
 
     /** Get the elements of the initializer. */
-    public List elements() {
+    public List<Expr> elements() {
 	return this.elements;
     }
 
     /** Set the elements of the initializer. */
-    public ArrayInit elements(List elements) {
+    public ArrayInit elements(List<Expr> elements) {
 	ArrayInit_c n = (ArrayInit_c) copy();
 	n.elements = TypedList.copyAndCheck(elements, Expr.class, true);
 	return n;
     }
 
     /** Reconstruct the initializer. */
-    protected ArrayInit_c reconstruct(List elements) {
+    protected ArrayInit_c reconstruct(List<Expr> elements) {
 	if (! CollectionUtil.equals(elements, this.elements)) {
 	    ArrayInit_c n = (ArrayInit_c) copy();
 	    n.elements = TypedList.copyAndCheck(elements, Expr.class, true);
@@ -54,7 +56,7 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
 
     /** Visit the children of the initializer. */
     public Node visitChildren(NodeVisitor v) {
-	List elements = visitList(this.elements, v);
+	List<Expr> elements = visitList(this.elements, v);
 	return reconstruct(elements);
     }
 
@@ -64,9 +66,7 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
 
 	Type type = null;
 
-	for (Iterator i = elements.iterator(); i.hasNext(); ) {
-	    Expr e = (Expr) i.next();
-
+	for (Expr e : elements) {
 	    if (type == null) {
 	        type = e.type();
 	    }
@@ -152,8 +152,9 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
 	w.write("{ ");
 
-	for (Iterator i = elements.iterator(); i.hasNext(); ) {
-	    Expr e = (Expr) i.next();
+	for (Iterator<Expr> i = elements.iterator(); i.hasNext(); ) {
+	    Expr e = i.next();
+	    
 	    print(e, w, tr);
 
 	    if (i.hasNext()) {

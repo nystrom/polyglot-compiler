@@ -714,7 +714,7 @@ public abstract class DataFlow extends ErrorHandlingVisitor
                 // We currently only update the key in the peerMap.
                 // We DO NOT update the Terms inside the peers, nor the
                 // List of Terms that are the path maps. 
-                Object o = currentFlowGraph().peerMap.get(new IdentityKey(old));
+                Map o = currentFlowGraph().peerMap.get(new IdentityKey(old));
                 if (o != null) {
                     currentFlowGraph().peerMap.put(new IdentityKey(n), o);
                 }
@@ -820,8 +820,7 @@ public abstract class DataFlow extends ErrorHandlingVisitor
      */
     public static final Map itemToMap(Item i, Set edgeKeys) {
         Map m = new HashMap();
-        for (Iterator iter = edgeKeys.iterator(); iter.hasNext(); ) {
-            Object o = iter.next();
+        for (Object o : edgeKeys) {
             m.put(o, i);
         }
         return m;

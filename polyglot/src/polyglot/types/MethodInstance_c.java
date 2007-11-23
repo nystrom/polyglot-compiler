@@ -42,7 +42,7 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
 
             ReferenceType sup = null;
             
-            if (rt.superType() != null && rt.superType().isReference()) {
+            if (rt.superType() instanceof ReferenceType) {
                 sup = (ReferenceType) rt.superType();    
             }
             
@@ -52,28 +52,27 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
         return l;
     }
 
-    public final void checkOverride(MethodInstance mj) throws SemanticException {
-        canOverride(mj, false);
-    }
-
     /**
      * Leave this method in for historic reasons, to make sure that extensions
      * modify their code correctly.
      */
     public boolean canOverride(MethodInstance mj) {
         try {
-            return canOverride(mj, true);
+            checkOverride(mj);
+            return true;
         }
         catch (SemanticException e) {
             return false;
         }
     }
     
-    public boolean canOverride(MethodInstance mj, boolean quiet) throws SemanticException {
+    public void checkOverride(MethodInstance mj) throws SemanticException {
         MethodInstance mi = this;
+        
+        if (mi == mj)
+            return;
 
         if (!(mi.name().equals(mj.name()) && mi.hasFormals(mj.formalTypes()))) {
-            if (quiet) return false;
             throw new SemanticException(mi.signature() + " in " + mi.container() +
                                         " cannot override " + 
                                         mj.signature() + " in " + mj.container() + 
@@ -99,7 +98,6 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
             if (Report.should_report(Report.types, 3))
                 Report.report(3, "return type " + mi.returnType() +
                               " != " + mj.returnType());
-            if (quiet) return false;
             throw new SemanticException(mi.signature() + " in " + mi.container() +
                                         " cannot override " + 
                                         mj.signature() + " in " + mj.container() + 
@@ -114,7 +112,6 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
             if (Report.should_report(Report.types, 3))
                 Report.report(3, mi.throwTypes() + " not subset of " +
                               mj.throwTypes());
-            if (quiet) return false;
             throw new SemanticException(mi.signature() + " in " + mi.container() +
                                         " cannot override " + 
                                         mj.signature() + " in " + mj.container() + 
@@ -127,7 +124,6 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
             if (Report.should_report(Report.types, 3))
                 Report.report(3, mi.flags() + " more restrictive than " +
                               mj.flags());
-            if (quiet) return false;
             throw new SemanticException(mi.signature() + " in " + mi.container() +
                                         " cannot override " + 
                                         mj.signature() + " in " + mj.container() + 
@@ -142,7 +138,6 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
                               (mi.flags().isStatic() ? "" : "not") + 
                               " static but " + mj.signature() + " is " +
                               (mj.flags().isStatic() ? "" : "not") + " static");
-            if (quiet) return false;
             throw new SemanticException(mi.signature() + " in " + mi.container() +
                                         " cannot override " + 
                                         mj.signature() + " in " + mj.container() + 
@@ -156,15 +151,12 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
             // mi can "override" a final method mj if mi and mj are the same method instance.
             if (Report.should_report(Report.types, 3))
                 Report.report(3, mj.flags() + " final");
-            if (quiet) return false;
             throw new SemanticException(mi.signature() + " in " + mi.container() +
                                         " cannot override " + 
                                         mj.signature() + " in " + mj.container() + 
                                         "; overridden method is final", 
                                         mi.position());
         }
-
-        return true;
     }
     
     public List<MethodInstance> implemented() {
@@ -180,14 +172,16 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
         l.addAll(rt.methods(name(), formalTypes()));
 
         Type superType = rt.superType();
-        if (superType != null) {
+        if (superType instanceof ReferenceType) {
             l.addAll(implemented(superType.toReference())); 
         }
         
         List<Type> ints = rt.interfaces();
-        for (Iterator<Type> i = ints.iterator(); i.hasNext(); ) {
-            ReferenceType rt2 = (ReferenceType) i.next();
-            l.addAll(implemented(rt2));
+        for (Type t : ints) {
+            if (t instanceof ReferenceType) {
+                ReferenceType rt2 = (ReferenceType) t;
+                l.addAll(implemented(rt2));
+            }
         }
         
         return l;

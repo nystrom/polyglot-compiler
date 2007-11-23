@@ -8,13 +8,12 @@
 
 package polyglot.ast;
 
-import polyglot.ast.Assert;
+import java.util.List;
+
 import polyglot.frontend.Globals;
 import polyglot.types.*;
-import polyglot.visit.*;
 import polyglot.util.*;
-import polyglot.main.Options;
-import java.util.*;
+import polyglot.visit.*;
 
 /**
  * An <code>Assert</code> is an assert statement.

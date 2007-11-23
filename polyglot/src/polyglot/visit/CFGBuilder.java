@@ -246,11 +246,10 @@ public class CFGBuilder implements Copy
      * <code>after</code>'s entry node; if it's Term.EXIT, it's 
      * <code>after</code>'s exit.
      */
-    public void visitCFGList(List elements, Term after, int entry) {
+    public void visitCFGList(List<? extends Term> elements, Term after, int entry) {
         Term prev = null;
 
-        for (Iterator i = elements.iterator(); i.hasNext(); ) {
-            Term c = (Term) i.next();
+        for (Term c : elements) {
 
             if (prev != null) {
                 visitCFG(prev, c, Term.ENTRY);

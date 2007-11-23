@@ -36,7 +36,7 @@ public class FlowGraph {
      * These points may have different data flows.
      * </p>
      */
-    protected Map peerMap;
+    protected Map<IdentityKey,Map> peerMap;
 
     /**
      * The root of the AST that this is a flow graph for.
@@ -91,8 +91,7 @@ public class FlowGraph {
      */
     public Collection peers() {
         Collection c = new ArrayList();
-        for (Iterator i = peerMap.values().iterator(); i.hasNext();) {
-            Map m = (Map) i.next();
+        for (Map m : peerMap.values()) {
             for (Iterator j = m.values().iterator(); j.hasNext();) {
                 c.add(j.next());
             }

@@ -8,12 +8,13 @@
 
 package polyglot.ast;
 
-import polyglot.ast.*;
-import polyglot.util.*;
-import polyglot.visit.*;
-import polyglot.types.*;
+import java.util.Collections;
+import java.util.List;
 
-import java.util.*;
+import polyglot.types.*;
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
+import polyglot.visit.*;
 
 /**
  * A <code>Binary</code> represents a Java binary expression, an

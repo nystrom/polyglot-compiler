@@ -8,8 +8,8 @@
 
 package polyglot.ast;
 
-import polyglot.visit.*;
 import polyglot.util.*;
+import polyglot.visit.PrettyPrinter;
 
 /**
  * An <code>AmbExpr</code> is an ambiguous AST node composed of a single

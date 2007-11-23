@@ -164,8 +164,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
 
     /** Get a field of the class by name. */
     public FieldInstance fieldNamed(String name) {
-        for (Iterator i = fields().iterator(); i.hasNext(); ) {
-	    FieldInstance fi = (FieldInstance) i.next();
+        for (FieldInstance fi : fields()) {
 	    if (fi.name().equals(name)) {
 	        return fi;
 	    }

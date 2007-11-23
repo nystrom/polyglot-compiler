@@ -146,8 +146,7 @@ public class Translator extends PrettyPrinter implements Copy
 
             boolean okay = true;
 
-            for (Iterator i = sc.sources().iterator(); i.hasNext(); ) {
-                SourceFile sfn = (SourceFile) i.next();
+            for (SourceFile sfn : sc.sources()) {
                 okay &= translateSource(sfn);
             }
 
@@ -202,9 +201,9 @@ public class Translator extends PrettyPrinter implements Copy
     	    
     	    writeHeader(sfn, w);
     	    
-    	    for (Iterator i = sfn.decls().iterator(); i.hasNext(); ) {
-    	        TopLevelDecl decl = (TopLevelDecl) i.next();
-    	        
+    	    for (Iterator<TopLevelDecl> i = sfn.decls().iterator(); i.hasNext(); ) {
+    	        TopLevelDecl decl = i.next();
+
     	        if (decl.flags().isPublic() && decl != first) {
     	            // We hit a new exported declaration, open a new file.
     	            // But, first close the old file.
@@ -261,8 +260,7 @@ public class Translator extends PrettyPrinter implements Copy
 
 	boolean newline = false;
 
-	for (Iterator i = sfn.imports().iterator(); i.hasNext(); ) {
-	    Import imp = (Import) i.next();
+	for (Import imp : sfn.imports()) {
 	    imp.del().translate(w, this);
 	    newline = true;
 	}

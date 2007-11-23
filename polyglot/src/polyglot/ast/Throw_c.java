@@ -8,12 +8,12 @@
 
 package polyglot.ast;
 
-import polyglot.ast.*;
+import java.util.Collections;
+import java.util.List;
 
-import polyglot.util.*;
 import polyglot.types.*;
+import polyglot.util.*;
 import polyglot.visit.*;
-import java.util.*;
 
 /**
  * A <code>Throw</code> is an immutable representation of a <code>throw</code>

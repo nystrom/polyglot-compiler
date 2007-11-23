@@ -8,13 +8,12 @@
 
 package polyglot.ast;
 
-import polyglot.ast.*;
-import polyglot.types.*;
-import polyglot.visit.*;
-import polyglot.util.*;
-import polyglot.frontend.Source;
-import polyglot.types.Package;
 import java.util.*;
+
+import polyglot.frontend.Source;
+import polyglot.types.*;
+import polyglot.util.*;
+import polyglot.visit.*;
 
 /**
  * A <code>SourceFile</code> is an immutable representations of a Java

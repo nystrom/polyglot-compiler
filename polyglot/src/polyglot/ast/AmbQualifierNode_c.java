@@ -8,10 +8,9 @@
 
 package polyglot.ast;
 
-import polyglot.frontend.Globals;
 import polyglot.types.*;
-import polyglot.visit.*;
 import polyglot.util.*;
+import polyglot.visit.*;
 
 /**
  * An <code>AmbQualifierNode</code> is an ambiguous AST node composed of
@@ -93,7 +92,7 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 
     public Node disambiguate(AmbiguityRemover sc) throws SemanticException {
         SemanticException ex;
-
+        
         try {
             Node n = sc.nodeFactory().disamb().disambiguate(this, sc, position(), qual, name);
 

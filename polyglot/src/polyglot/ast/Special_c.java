@@ -10,7 +10,6 @@ package polyglot.ast;
 
 import java.util.List;
 
-import polyglot.ast.*;
 import polyglot.types.*;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;

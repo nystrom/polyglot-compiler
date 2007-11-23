@@ -211,8 +211,7 @@ public class LoadedClassResolver implements TopLevelResolver
         }
 
         if (Report.should_report(Report.serialize, 2)) {
-            for (Iterator<MethodInstance> i = ct.methods().iterator(); i.hasNext(); ) {
-                MethodInstance mi = (MethodInstance) i.next();
+            for (MethodInstance mi : ct.methods()) {
                 Report.report(2, "* " + mi);
             }
             for (Iterator<FieldInstance> i = ct.fields().iterator(); i.hasNext(); ) {

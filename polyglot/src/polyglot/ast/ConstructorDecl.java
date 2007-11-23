@@ -7,8 +7,9 @@
 
 package polyglot.ast;
 
-import polyglot.types.ConstructorDef;
 import java.util.List;
+
+import polyglot.types.ConstructorDef;
 import polyglot.types.Flags;
 
 /**
