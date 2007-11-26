@@ -185,36 +185,31 @@ public class ConstructorDecl_c extends FragmentRoot_c implements ConstructorDecl
         Symbol<ConstructorDef> sym = Types.<ConstructorDef>symbol(ci);
         ct.addConstructor(ci);
 
-        Goal g = Globals.Scheduler().SignatureDef(tb.job(), ci);
-        if (false)
-            g.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
-        TypeBuilder tb2 = tb.pushCode(ci, g);
+        Goal sig = Globals.Scheduler().SignatureDef(tb.job(), ci);
+        TypeBuilder tbSig = tb.pushCode(ci, sig);
 
-        Goal g2 = Globals.Scheduler().TypeCheckDef(tb.job(), ci);
-        if (false)
-            g2.addPrereq(g);
-        TypeBuilder tb3 = tb.pushCode(ci, g2);
+        Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), ci);
+        TypeBuilder tbChk = tb.pushCode(ci, chk);
 
-        List<Formal> formals = this.visitList(this.formals, tb2);
-        List<TypeNode> throwTypeNodes = this.visitList(this.throwTypes, tb2);
-
-        List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(formals.size());
-        for (Formal f : formals) {
-            formalTypes.add(f.type().typeRef());
+        ConstructorDecl_c n = (ConstructorDecl_c) visitSignature(tbSig);
+        
+        List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(n.formals().size());
+        for (Formal f : n.formals()) {
+             formalTypes.add(f.type().typeRef());
         }
 
-        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(throwTypeNodes.size());
-        for (TypeNode tn : throwTypeNodes) {
+        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(n.throwTypes().size());
+        for (TypeNode tn : n.throwTypes()) {
             throwTypes.add(tn.typeRef());
         }
 
         ci.setFormalTypes(formalTypes);
         ci.setThrowTypes(throwTypes);
 
-        Id name = (Id) this.visitChild(this.name, tb);
-        Block body = (Block) this.visitChild(this.body, tb3);
-
-        return reconstruct(name, formals, throwTypeNodes, body).constructorDef(ci);
+        Block body = (Block) n.visitChild(n.body, tbChk);
+        
+        n = (ConstructorDecl_c) n.body(body);
+        return n.constructorDef(ci);
     }
 
     public Context enterScope(Context c) {

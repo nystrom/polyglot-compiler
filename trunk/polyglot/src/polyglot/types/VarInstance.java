@@ -1,6 +1,6 @@
 package polyglot.types;
 
-public interface VarType<T extends VarDef> extends Use<T> {
+public interface VarInstance<T extends VarDef> extends Use<T> {
     /**
      * The flags of the variable.
      */

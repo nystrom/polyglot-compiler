@@ -20,12 +20,12 @@ import polyglot.util.*;
  */
 public abstract class ClassType_c extends ReferenceType_c implements ClassType
 {
-    Ref<ClassDef> def;
+    Ref<? extends ClassDef> def;
     
     /** Used for deserializing types. */
     protected ClassType_c() { }
 
-    public ClassType_c(TypeSystem ts, Position pos, Ref<ClassDef> def) {
+    public ClassType_c(TypeSystem ts, Position pos, Ref<? extends ClassDef> def) {
         super(ts, pos);
         this.def = def;
     }
@@ -36,8 +36,8 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     
     public boolean equalsImpl(TypeObject t) {
         if (t instanceof ClassType_c) {
-            Ref<ClassDef> thisDef = def;
-            Ref<ClassDef> thatDef = ((ClassType_c) t).def;
+            Ref<? extends ClassDef> thisDef = def;
+            Ref<? extends ClassDef> thatDef = ((ClassType_c) t).def;
             return thisDef == thatDef;
         }
         return false;

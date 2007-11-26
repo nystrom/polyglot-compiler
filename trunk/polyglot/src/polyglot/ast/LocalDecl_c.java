@@ -159,7 +159,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
 
         TypeSystem ts = tb.typeSystem();
 
-        LocalDef li = ts.localInstance(position(), flags(), type.typeRef(), name.id());
+        LocalDef li = ts.localDef(position(), flags(), type.typeRef(), name.id());
         Symbol<LocalDef> sym = Types.<LocalDef>symbol(li);
         return n.localDef(li);
     }

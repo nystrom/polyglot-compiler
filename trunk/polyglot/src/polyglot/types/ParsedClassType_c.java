@@ -34,7 +34,7 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
         this(def.typeSystem(), def.position(), Types.ref(def));
     }
 
-    public ParsedClassType_c(TypeSystem ts, Position pos, Ref<ClassDef> def) {
+    public ParsedClassType_c(TypeSystem ts, Position pos, Ref<? extends ClassDef> def) {
         super(ts, pos, def);
     }
     

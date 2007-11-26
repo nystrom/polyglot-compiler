@@ -166,7 +166,7 @@ public class Disamb_c implements Disamb
     protected Node disambiguateNoPrefix() throws SemanticException {
         if (exprOK()) {
             // First try local variables and fields.
-            VarType vi = c.findVariableSilent(name.id());
+            VarInstance vi = c.findVariableSilent(name.id());
             
             if (vi != null) {
                 Node n = disambiguateVarInstance(vi);
@@ -202,7 +202,7 @@ public class Disamb_c implements Disamb
         return null;
     }
 
-    protected Node disambiguateVarInstance(VarType vi) throws SemanticException {
+    protected Node disambiguateVarInstance(VarInstance vi) throws SemanticException {
         if (vi instanceof FieldInstance) {
             FieldInstance fi = (FieldInstance) vi;
             Receiver r = makeMissingFieldTarget(fi);

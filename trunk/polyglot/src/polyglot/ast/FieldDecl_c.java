@@ -210,14 +210,11 @@ public class FieldDecl_c extends FragmentRoot_c implements FieldDecl {
         TypeBuilder tbSig = tb.pushDef(fi).pushGoal(sig);
         TypeBuilder tbChk = tb.pushDef(fi).pushGoal(chk);
 
-        Id name = (Id) this.visitChild(this.name, tb);
+        FieldDecl_c n = (FieldDecl_c) this.visitSignature(tbSig);
+        fi.setType(n.type().typeRef());
 
-        TypeNode type = (TypeNode) this.visitChild(this.type, tbSig);
-        fi.setType(type.typeRef());
-
-        Expr init = (Expr) this.visitChild(this.init, tbChk);
-
-        FieldDecl_c n = reconstruct(type, name, init);
+        Expr init = (Expr) n.visitChild(n.init, tbChk);
+        n = (FieldDecl_c) n.init(init);
 
         n = (FieldDecl_c) n.fieldDef(fi);
 

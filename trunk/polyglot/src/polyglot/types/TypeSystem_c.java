@@ -154,7 +154,7 @@ public class TypeSystem_c implements TypeSystem
         }
     }
 
-    void assert_(Ref<?> ref) { }
+    protected void assert_(Ref<?> ref) { }
 
     protected void assert_(TypeObject o) {
         if (o != null && o.typeSystem() != this) {
@@ -252,7 +252,7 @@ public class TypeSystem_c implements TypeSystem
 	return new FieldDef_c(this, pos, container, flags, type, name);
     }
 
-    public LocalDef localInstance(Position pos,
+    public LocalDef localDef(Position pos,
 	                               Flags flags, Ref<? extends Type> type, String name) {
         assert_(type);
 	return new LocalDef_c(this, pos, flags, type, name);
@@ -1018,19 +1018,19 @@ public class TypeSystem_c implements TypeSystem
 	return maximal;
     }
     
-    protected static class TypeEquals implements Predicate2<Type> {
+    public static class TypeEquals implements Predicate2<Type> {
         public boolean isTrue(Type o, Type p) {
             return o.typeEquals(p);
         }
     }
 
-    protected static class ImplicitCastValid implements Predicate2<Type> {
+    public static class ImplicitCastValid implements Predicate2<Type> {
         public boolean isTrue(Type o, Type p) {
             return o.isImplicitCastValid(p);
         }
     }
 
-    protected static class Subtype implements Predicate2<Type> {
+    public static class Subtype implements Predicate2<Type> {
         public boolean isTrue(Type o, Type p) {
             return o.isSubtype(p);
         }

@@ -144,7 +144,7 @@ public class Formal_c extends Term_c implements Formal
 
         TypeSystem ts = tb.typeSystem();
 
-        LocalDef li = ts.localInstance(position(), flags(), type.typeRef(), name.id());
+        LocalDef li = ts.localDef(position(), flags(), type.typeRef(), name.id());
         Symbol<LocalDef> sym = Types.<LocalDef>symbol(li);
         
         // Formal parameters are never compile-time constants.

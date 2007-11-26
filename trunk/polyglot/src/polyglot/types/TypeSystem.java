@@ -136,7 +136,7 @@ public interface TypeSystem {
      * @param type The local variable's type.
      * @param name The local variable's name.
      */
-    LocalDef localInstance(Position pos, Flags flags, Ref<? extends Type> type,
+    LocalDef localDef(Position pos, Flags flags, Ref<? extends Type> type,
                                 String name);
 
     /** Create a default constructor instance.

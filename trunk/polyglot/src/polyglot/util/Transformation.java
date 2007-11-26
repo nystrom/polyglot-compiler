@@ -11,6 +11,7 @@
 
 package polyglot.util;
 
+
 /**
  * Transformation
  *
@@ -19,6 +20,7 @@ package polyglot.util;
  **/
 public interface Transformation<S,T> { 
   public T transform(S o);  
+//  public List<T> transform(List<S> l) { return new TransformingList<S, T>(l, this); }
 }
 
 
