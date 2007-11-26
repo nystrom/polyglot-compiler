@@ -7,7 +7,7 @@ import polyglot.types.TypeSystem_c.TypeEquals;
 import polyglot.util.*;
 
 public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implements ProcedureInstance<T> {
-    ProcedureInstance_c(TypeSystem ts, Position pos, Ref<T> def) {
+    ProcedureInstance_c(TypeSystem ts, Position pos, Ref<? extends T> def) {
         super(ts, pos, def);
     }
 

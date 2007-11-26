@@ -8,7 +8,7 @@
 package polyglot.ast;
 
 import polyglot.types.Flags;
-import polyglot.types.VarType;
+import polyglot.types.VarInstance;
 
 /** 
  * An interface representing a variable.  A Variable is any expression
@@ -23,5 +23,5 @@ public interface NamedVariable extends Variable
     public String name();
 
     /** Return the type object for the variable. */
-    public VarType varInstance();
+    public VarInstance varInstance();
 }

@@ -22,13 +22,14 @@ import polyglot.util.Copy;
  */
 public interface Context extends Resolver, Copy
 {
+    /** Deep copy the context so that it can be saved away. */
     Context freeze();
     
     /** The type system. */
     TypeSystem typeSystem();
 
     /** Add a variable to the current scope. */
-    void addVariable(VarType vi);
+    void addVariable(VarInstance vi);
 
     /** Add a named type object to the current scope. */
     void addNamed(Named t);
@@ -40,10 +41,10 @@ public interface Context extends Resolver, Copy
     MethodInstance findMethod(String name, List<Type> argTypes) throws SemanticException;
 
     /** Looks up a local variable or field in the current scope. */
-    VarType findVariable(String name) throws SemanticException;
+    VarInstance<?> findVariable(String name) throws SemanticException;
 
     /** Looks up a local variable or field in the current scope. */
-    VarType findVariableSilent(String name);
+    VarInstance<?> findVariableSilent(String name);
 
     /** Looks up a local variable in the current scope. */
     LocalInstance findLocal(String name) throws SemanticException;

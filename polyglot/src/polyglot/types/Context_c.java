@@ -88,8 +88,8 @@ public class Context_c implements Context
     protected ClassType type;
     protected ClassDef scope;
     protected CodeDef code;
-    protected Map types;
-    protected Map vars;
+    protected Map<String,Named> types;
+    protected Map<String,VarInstance<?>> vars;
     protected boolean inCode;
 
     /**
@@ -171,7 +171,7 @@ public class Context_c implements Context
      * Gets a local of a particular name.
      */
     public LocalInstance findLocal(String name) throws SemanticException {
-	VarType vi = findVariableSilent(name);
+	VarInstance vi = findVariableSilent(name);
 
 	if (vi instanceof LocalInstance) {
 	    return (LocalInstance) vi;
@@ -187,7 +187,7 @@ public class Context_c implements Context
         if (Report.should_report(TOPICS, 3))
           Report.report(3, "find-field-scope " + name + " in " + this);
 
-	VarType vi = findVariableInThisScope(name);
+	VarInstance vi = findVariableInThisScope(name);
 
         if (vi instanceof FieldInstance) {
             if (Report.should_report(TOPICS, 3))
@@ -227,7 +227,7 @@ public class Context_c implements Context
      * Gets a field of a particular name.
      */
     public FieldInstance findField(String name) throws SemanticException {
-	VarType vi = findVariableSilent(name);
+	VarInstance vi = findVariableSilent(name);
 
 	if (vi instanceof FieldInstance) {
 	    FieldInstance fi = (FieldInstance) vi;
@@ -247,8 +247,8 @@ public class Context_c implements Context
     /**
      * Gets a local or field of a particular name.
      */
-    public VarType findVariable(String name) throws SemanticException {
-        VarType vi = findVariableSilent(name);
+    public VarInstance<?> findVariable(String name) throws SemanticException {
+        VarInstance<?> vi = findVariableSilent(name);
 
 	if (vi != null) {
             if (Report.should_report(TOPICS, 3))
@@ -262,11 +262,11 @@ public class Context_c implements Context
     /**
      * Gets a local or field of a particular name.
      */
-    public VarType findVariableSilent(String name) {
+    public VarInstance<?> findVariableSilent(String name) {
         if (Report.should_report(TOPICS, 3))
           Report.report(3, "find-var " + name + " in " + this);
 
-        VarType vi = findVariableInThisScope(name);
+        VarInstance<?> vi = findVariableInThisScope(name);
 
         if (vi != null) {
             if (Report.should_report(TOPICS, 3))
@@ -444,7 +444,7 @@ public class Context_c implements Context
     /**
      * Adds a symbol to the current scoping level.
      */
-    public void addVariable(VarType vi) {
+    public void addVariable(VarInstance vi) {
         if (Report.should_report(TOPICS, 3))
           Report.report(3, "Adding " + vi + " to context.");
         addVariableToThisScope(vi);
@@ -492,11 +492,11 @@ public class Context_c implements Context
         return null;
     }
 
-    public VarType findVariableInThisScope(String name) {
-        VarType vi = null;
+    public VarInstance<?> findVariableInThisScope(String name) {
+        VarInstance<?> vi = null;
         
         if (vars != null) {
-            vi = (VarType) vars.get(name);
+            vi = (VarInstance<?>) vars.get(name);
         }
         
         if (vi == null && isClass()) {
@@ -510,8 +510,8 @@ public class Context_c implements Context
         return vi;
     }
 
-    public void addVariableToThisScope(VarType var) {
-        if (vars == null) vars = new HashMap();
+    public void addVariableToThisScope(VarInstance<?> var) {
+        if (vars == null) vars = new HashMap<String,VarInstance<?>>();
         vars.put(var.name(), var);
     }
 

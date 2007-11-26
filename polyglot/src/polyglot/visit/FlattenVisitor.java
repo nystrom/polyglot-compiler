@@ -203,7 +203,7 @@ public class FlattenVisitor extends NodeVisitor
 					 nf.CanonicalTypeNode(e.position(),
 					                      Types.<Type>ref(e.type())),
 					 nf.Id(e.position(), name), e);
-	    LocalDef li = ts.localInstance(e.position(), Flags.FINAL,
+	    LocalDef li = ts.localDef(e.position(), Flags.FINAL,
         		     Types.<Type>ref(e.type()), name);
 	    def = def.localDef(li);
 

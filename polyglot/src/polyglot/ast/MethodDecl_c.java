@@ -201,37 +201,31 @@ public class MethodDecl_c extends FragmentRoot_c implements MethodDecl
         ct.addMethod(mi);
 	
 	Goal sig = Globals.Scheduler().SignatureDef(tb.job(), mi);
-	if (false)
-	sig.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
 	TypeBuilder tbSig = tb.pushCode(mi, sig);
 
 	Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), mi);
-	if (false)
-	chk.addPrereq(sig);
 	TypeBuilder tbChk = tb.pushCode(mi, chk);
 
-	TypeNode returnType = (TypeNode) this.visitChild(this.returnType, tbSig);
-	List<Formal> formals = this.visitList(this.formals, tbSig);
-	List<TypeNode> throwTypeNodes = this.visitList(this.throwTypes, tbSig);
+	MethodDecl_c n = (MethodDecl_c) visitSignature(tbSig);
         
-	List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(formals.size());
-        for (Formal f : formals) {
+	List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(n.formals().size());
+        for (Formal f : n.formals()) {
              formalTypes.add(f.type().typeRef());
         }
 
-        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(throwTypeNodes.size());
-        for (TypeNode tn : throwTypeNodes) {
+        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(n.throwTypes().size());
+        for (TypeNode tn : n.throwTypes()) {
             throwTypes.add(tn.typeRef());
         }
 
-        mi.setReturnType(returnType.typeRef());
+        mi.setReturnType(n.returnType().typeRef());
         mi.setFormalTypes(formalTypes);
         mi.setThrowTypes(throwTypes);
 
-        Id name = (Id) this.visitChild(this.name, tb);
-        Block body = (Block) this.visitChild(this.body, tbChk);
+        Block body = (Block) n.visitChild(n.body, tbChk);
         
-        return reconstruct(returnType, name, formals, throwTypeNodes, body).methodDef(mi);
+        n = (MethodDecl_c) n.body(body);
+        return n.methodDef(mi);
     }
 
     public Context enterScope(Context c) {

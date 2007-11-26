@@ -81,7 +81,7 @@ public class Field_c extends Expr_c implements Field
   }
 
   /** Get the field instance of the field. */
-  public VarType varInstance() {
+  public VarInstance varInstance() {
     return fi;
   }
 
@@ -278,7 +278,7 @@ public class Field_c extends Expr_c implements Field
    */
   protected void checkConsistency(Context c) {
       if (targetImplicit) {
-          VarType vi = c.findVariableSilent(name.id());
+          VarInstance vi = c.findVariableSilent(name.id());
           if (vi instanceof FieldInstance) {
               FieldInstance rfi = (FieldInstance) vi;
               // Compare the original (declaration) fis, not the actuals.

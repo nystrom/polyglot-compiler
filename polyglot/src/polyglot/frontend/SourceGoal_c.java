@@ -3,15 +3,15 @@ package polyglot.frontend;
 
 
 public abstract class SourceGoal_c extends AbstractGoal_c implements SourceGoal {
-    Job job;
+    protected Job job;
 
-    SourceGoal_c(String name, Job job) {
+    public SourceGoal_c(String name, Job job) {
         super(name);
         assert job != null;
         this.job = job;
     }
     
-    SourceGoal_c(Job job) {
+    public SourceGoal_c(Job job) {
         super();
         assert job != null;
         this.job = job;

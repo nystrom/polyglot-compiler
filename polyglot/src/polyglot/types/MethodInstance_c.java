@@ -7,7 +7,7 @@ import polyglot.util.Position;
 
 public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements MethodInstance {
 
-    public MethodInstance_c(TypeSystem ts, Position pos, Ref<MethodDef> def) {
+    public MethodInstance_c(TypeSystem ts, Position pos, Ref<? extends MethodDef> def) {
         super(ts, pos, def);
     }
     

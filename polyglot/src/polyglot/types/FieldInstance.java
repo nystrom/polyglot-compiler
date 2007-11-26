@@ -1,4 +1,4 @@
 package polyglot.types;
 
-public interface FieldInstance extends VarType<FieldDef>, MemberInstance<FieldDef> {
+public interface FieldInstance extends VarInstance<FieldDef>, MemberInstance<FieldDef> {
 }
