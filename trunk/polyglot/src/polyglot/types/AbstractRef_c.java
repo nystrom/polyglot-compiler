@@ -7,7 +7,6 @@ import polyglot.frontend.*;
 import polyglot.util.TypeInputStream;
 
 public abstract class AbstractRef_c<T extends TypeObject> implements Ref<T>, Serializable {
-
         History<T> history;
         
         public AbstractRef_c() {
@@ -91,14 +90,8 @@ public abstract class AbstractRef_c<T extends TypeObject> implements Ref<T>, Ser
 
             // Nothing in the history is valid.  Bring the latest version up-to-date.
             complete(view);
-
+            
             // Not successful.  Probably should have thrown an exception here.
-            assert history != null;
-            
-            if (history == null) {
-                return null;
-            }
-            
             return history.value;
         }
         
@@ -113,7 +106,7 @@ public abstract class AbstractRef_c<T extends TypeObject> implements Ref<T>, Ser
         }
         
         public String toString() {
-            return "REF(" + (nonnull() ? history.value : "") + ")";
+            return "REF(" + history.value + ")";
         }
 
 }

@@ -145,6 +145,9 @@ public interface TypeSystem {
      */
     ConstructorDef defaultConstructor(Position pos, Ref<? extends ClassType> container);
 
+    /** Get an unknown class def. */
+    ClassDef unknownClassDef();
+
     /** Get an unknown type. */
     UnknownType unknownType(Position pos);
 
@@ -183,6 +186,9 @@ public interface TypeSystem {
      * Returns true iff type1 and type2 represent the same type object.
      */
     boolean equals(TypeObject type1, TypeObject type2);
+    void equals(Type type1, Type type2);
+    void equals(Type type1, TypeObject type2);
+    void equals(TypeObject type1, Type type2);
 
     /**
      * Returns true iff type1 and type2 are equivalent.
@@ -602,6 +608,13 @@ public interface TypeSystem {
      */
     ClassDef createClassDef(Source fromSource);
 
+    ParsedClassType createClassType(Position pos, Ref<? extends ClassDef> def);
+    ConstructorInstance createConstructorInstance(Position pos, Ref<? extends ConstructorDef> def);
+    MethodInstance createMethodInstance(Position pos, Ref<? extends MethodDef> def);
+    FieldInstance createFieldInstance(Position pos, Ref<? extends FieldDef> def);
+    LocalInstance createLocalInstance(Position pos, Ref<? extends LocalDef> def);
+    InitializerInstance createInitializerInstance(Position pos, Ref<? extends InitializerDef> def);
+    
     /**
      * Return the set of objects that should be serialized into the
      * type information for the given TypeObject.

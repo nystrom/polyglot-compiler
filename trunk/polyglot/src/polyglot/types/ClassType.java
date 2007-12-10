@@ -16,6 +16,9 @@ import java.util.List;
  */
 public interface ClassType extends Importable, ReferenceType, MemberInstance<ClassDef>, Use<ClassDef>
 {
+    ClassType flags(Flags flags);
+    ClassType container(ReferenceType container);
+    
     /**
      * A resolver to access member classes of the class.
      */

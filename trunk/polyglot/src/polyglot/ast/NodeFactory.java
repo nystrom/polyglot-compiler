@@ -61,7 +61,7 @@ public interface NodeFactory
     ArrayAccess ArrayAccess(Position pos, Expr base, Expr index);
 
     ArrayInit ArrayInit(Position pos);
-    ArrayInit ArrayInit(Position pos, List<? extends Expr> elements);
+    ArrayInit ArrayInit(Position pos, List<Expr> elements);
 
     Assert Assert(Position pos, Expr cond);
     Assert Assert(Position pos, Expr cond, Expr errorMessage);
@@ -79,9 +79,9 @@ public interface NodeFactory
     Block Block(Position pos, Stmt s1, Stmt s2);
     Block Block(Position pos, Stmt s1, Stmt s2, Stmt s3);
     Block Block(Position pos, Stmt s1, Stmt s2, Stmt s3, Stmt s4);
-    Block Block(Position pos, List<? extends Stmt> statements);
+    Block Block(Position pos, List<Stmt> statements);
 
-    SwitchBlock SwitchBlock(Position pos, List<? extends Stmt> statements);
+    SwitchBlock SwitchBlock(Position pos, List<Stmt> statements);
 
     BooleanLit BooleanLit(Position pos, boolean value);
 
@@ -99,14 +99,14 @@ public interface NodeFactory
     Call Call(Position pos, Id name, Expr a1, Expr a2);
     Call Call(Position pos, Id name, Expr a1, Expr a2, Expr a3);
     Call Call(Position pos, Id name, Expr a1, Expr a2, Expr a3, Expr a4);
-    Call Call(Position pos, Id name, List<? extends Expr> args);
+    Call Call(Position pos, Id name, List<Expr> args);
     
     Call Call(Position pos, Receiver target, Id name);
     Call Call(Position pos, Receiver target, Id name, Expr a1);
     Call Call(Position pos, Receiver target, Id name, Expr a1, Expr a2);
     Call Call(Position pos, Receiver target, Id name, Expr a1, Expr a2, Expr a3);
     Call Call(Position pos, Receiver target, Id name, Expr a1, Expr a2, Expr a3, Expr a4);
-    Call Call(Position pos, Receiver target, Id name, List<? extends Expr> args);
+    Call Call(Position pos, Receiver target, Id name, List<Expr> args);
 
     Case Default(Position pos);
     Case Case(Position pos, Expr expr);
@@ -117,25 +117,25 @@ public interface NodeFactory
 
     CharLit CharLit(Position pos, char value);
 
-    ClassBody ClassBody(Position pos, List<? extends ClassMember> members);
+    ClassBody ClassBody(Position pos, List<ClassMember> members);
 
     ClassDecl ClassDecl(Position pos, Flags flags, Id name,
-            TypeNode superClass, List<? extends TypeNode> interfaces, ClassBody body);
+            TypeNode superClass, List<TypeNode> interfaces, ClassBody body);
 
     ClassLit ClassLit(Position pos, TypeNode typeNode);
 
     Conditional Conditional(Position pos, Expr cond, Expr consequent, Expr alternative);
 
-    ConstructorCall ThisCall(Position pos, List<? extends Expr> args);
-    ConstructorCall ThisCall(Position pos, Expr outer, List<? extends Expr> args);
-    ConstructorCall SuperCall(Position pos, List<? extends Expr> args);
-    ConstructorCall SuperCall(Position pos, Expr outer, List<? extends Expr> args);
-    ConstructorCall ConstructorCall(Position pos, ConstructorCall.Kind kind, List<? extends Expr> args);
+    ConstructorCall ThisCall(Position pos, List<Expr> args);
+    ConstructorCall ThisCall(Position pos, Expr outer, List<Expr> args);
+    ConstructorCall SuperCall(Position pos, List<Expr> args);
+    ConstructorCall SuperCall(Position pos, Expr outer, List<Expr> args);
+    ConstructorCall ConstructorCall(Position pos, ConstructorCall.Kind kind, List<Expr> args);
     ConstructorCall ConstructorCall(Position pos, ConstructorCall.Kind kind,
-	                            Expr outer, List<? extends Expr> args);
+	                            Expr outer, List<Expr> args);
 
     ConstructorDecl ConstructorDecl(Position pos, Flags flags, Id name,
-            List<? extends Formal> formals, List<? extends TypeNode> throwTypes,
+            List<Formal> formals, List<TypeNode> throwTypes,
             Block body);
 
     FieldDecl FieldDecl(Position pos, Flags flags, TypeNode type, Id name);
@@ -152,7 +152,7 @@ public interface NodeFactory
 
     FloatLit FloatLit(Position pos, FloatLit.Kind kind, double value);
 
-    For For(Position pos, List<? extends ForInit> inits, Expr cond, List<? extends ForUpdate> iters, Stmt body);
+    For For(Position pos, List<ForInit> inits, Expr cond, List<ForUpdate> iters, Stmt body);
 
     Formal Formal(Position pos, Flags flags, TypeNode type, Id name);
 
@@ -177,32 +177,32 @@ public interface NodeFactory
     LocalDecl LocalDecl(Position pos, Flags flags, TypeNode type, Id name, Expr init);
 
     MethodDecl MethodDecl(Position pos, Flags flags, TypeNode returnType, Id name,
-            List<? extends Formal> formals, List<? extends TypeNode> throwTypes, Block body);
+            List<Formal> formals, List<TypeNode> throwTypes, Block body);
 
-    New New(Position pos, TypeNode type, List<? extends Expr> args);
-    New New(Position pos, TypeNode type, List<? extends Expr> args, ClassBody body);
+    New New(Position pos, TypeNode type, List<Expr> args);
+    New New(Position pos, TypeNode type, List<Expr> args, ClassBody body);
 
-    New New(Position pos, Expr outer, TypeNode objectType, List<? extends Expr> args);
-    New New(Position pos, Expr outer, TypeNode objectType, List<? extends Expr> args, ClassBody body);
+    New New(Position pos, Expr outer, TypeNode objectType, List<Expr> args);
+    New New(Position pos, Expr outer, TypeNode objectType, List<Expr> args, ClassBody body);
 
-    NewArray NewArray(Position pos, TypeNode base, List<? extends Expr> dims);
-    NewArray NewArray(Position pos, TypeNode base, List<? extends Expr> dims, int addDims);
+    NewArray NewArray(Position pos, TypeNode base, List<Expr> dims);
+    NewArray NewArray(Position pos, TypeNode base, List<Expr> dims, int addDims);
     NewArray NewArray(Position pos, TypeNode base, int addDims, ArrayInit init);
-    NewArray NewArray(Position pos, TypeNode base, List<? extends Expr> dims, int addDims, ArrayInit init);
+    NewArray NewArray(Position pos, TypeNode base, List<Expr> dims, int addDims, ArrayInit init);
     
-    NodeList NodeList(Position pos, List<? extends Node> nodes);
-    NodeList NodeList(Position pos, NodeFactory nf, List<? extends Node> nodes);
+    NodeList NodeList(Position pos, List<Node> nodes);
+    NodeList NodeList(Position pos, NodeFactory nf, List<Node> nodes);
 
     NullLit NullLit(Position pos);
 
     Return Return(Position pos);
     Return Return(Position pos, Expr expr);
 
-    SourceCollection SourceCollection(Position pos, List<? extends SourceFile> sources);
+    SourceCollection SourceCollection(Position pos, List<SourceFile> sources);
 
-    SourceFile SourceFile(Position pos, List<? extends TopLevelDecl> decls);
-    SourceFile SourceFile(Position pos, List<? extends Import> imports, List<? extends TopLevelDecl> decls);
-    SourceFile SourceFile(Position pos, PackageNode packageName, List<? extends Import> imports, List<? extends TopLevelDecl> decls);
+    SourceFile SourceFile(Position pos, List<TopLevelDecl> decls);
+    SourceFile SourceFile(Position pos, List<Import> imports, List<TopLevelDecl> decls);
+    SourceFile SourceFile(Position pos, PackageNode packageName, List<Import> imports, List<TopLevelDecl> decls);
 
     Special This(Position pos);
     Special This(Position pos, TypeNode outer);
@@ -214,14 +214,14 @@ public interface NodeFactory
 
     StringLit StringLit(Position pos, String value);
 
-    Switch Switch(Position pos, Expr expr, List<? extends SwitchElement> elements);
+    Switch Switch(Position pos, Expr expr, List<SwitchElement> elements);
 
     Synchronized Synchronized(Position pos, Expr expr, Block body);
 
     Throw Throw(Position pos, Expr expr);
 
-    Try Try(Position pos, Block tryBlock, List<? extends Catch> catchBlocks);
-    Try Try(Position pos, Block tryBlock, List<? extends Catch> catchBlocks, Block finallyBlock);
+    Try Try(Position pos, Block tryBlock, List<Catch> catchBlocks);
+    Try Try(Position pos, Block tryBlock, List<Catch> catchBlocks, Block finallyBlock);
 
     PackageNode PackageNode(Position pos, Ref<? extends Package> p);
 

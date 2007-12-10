@@ -109,10 +109,6 @@ public class Switch_c extends Stmt_c implements Switch
                     key = "default";
                     str = "default";
                 }
-                else if (! c.expr().constantValueSet()) {
-                    // Constant not known yet; we'll try again later.
-                    return this;
-                }
                 else if (c.expr().isConstant()) {
                     key = Long.valueOf(c.value());
                     str = c.expr().toString() + " (" + c.value() + ")";

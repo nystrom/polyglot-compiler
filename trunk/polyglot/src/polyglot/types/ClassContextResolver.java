@@ -37,6 +37,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
     /**
      * Find a type object in the context of the class.
      * @param name The name to search for.
+     * @param accessor Class the name is accesses from.  If null, no access checks are performed.
      */
     public Named find(String name, ClassDef accessor) throws SemanticException {
         if (Report.should_report(TOPICS, 2))

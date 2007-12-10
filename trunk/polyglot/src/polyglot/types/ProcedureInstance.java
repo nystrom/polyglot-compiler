@@ -13,13 +13,14 @@ import java.util.List;
  * A <code>ProcedureInstance</code> contains the type information for a Java
  * procedure (either a method or a constructor).
  */
-public interface ProcedureInstance<T extends ProcedureDef> extends Use<T> {
+public interface ProcedureInstance<T extends ProcedureDef> extends CodeInstance<T> {
     /**
      * List of formal parameter types.
      * @return A list of <code>Type</code>.
      * @see polyglot.types.Type
      */
     List<Type> formalTypes();
+    ProcedureInstance<T> formalTypes(List<Type> formalTypes);
 
     /**
      * List of declared exception types thrown.
@@ -27,6 +28,7 @@ public interface ProcedureInstance<T extends ProcedureDef> extends Use<T> {
      * @see polyglot.types.Type
      */
     List<Type> throwTypes();
+    ProcedureInstance<T> throwTypes(List<Type> throwTypes);
 
     /**
      * Returns a String representing the signature of the procedure.

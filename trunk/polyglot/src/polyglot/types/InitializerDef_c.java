@@ -33,6 +33,15 @@ public class InitializerDef_c extends Def_c
         return container;
     }
     
+    InitializerInstance asInstance;
+    
+    public InitializerInstance asInstance() {
+        if (asInstance == null) {
+            asInstance = ts.createInitializerInstance(position(), Types.ref(this));
+        }
+        return asInstance;
+    }
+    
     /**
      * @param container The container to set.
      */
@@ -53,15 +62,5 @@ public class InitializerDef_c extends Def_c
 
     public String toString() {
         return flags.translate() + "initializer";
-    }
-    
-    @Override
-    public boolean equalsImpl(TypeObject o) {
-        return super.equalsImpl(o);
-    }
-    
-    @Override
-    public int hashCode() {
-        return super.hashCode();
     }
 }

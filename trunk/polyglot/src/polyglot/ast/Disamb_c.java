@@ -228,7 +228,7 @@ public class Disamb_c implements Disamb
             // type of the class we want.
             ClassType scope = c.findFieldScope(name.id());
 
-            if (! ts.equals(scope, c.currentClass())) {
+            if (! ts.typeEquals(scope, c.currentClass())) {
                 r = nf.This(pos.startOf(), nf.CanonicalTypeNode(pos, scope)).type(scope);
             }
             else {

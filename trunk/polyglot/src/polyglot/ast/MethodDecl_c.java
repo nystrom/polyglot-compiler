@@ -12,6 +12,8 @@ import java.util.*;
 
 import polyglot.frontend.Globals;
 import polyglot.frontend.Goal;
+import polyglot.frontend.JLScheduler.SignatureDef;
+import polyglot.frontend.JLScheduler.SupertypeDef;
 import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.util.*;
@@ -175,12 +177,9 @@ public class MethodDecl_c extends FragmentRoot_c implements MethodDecl
 
     /** Visit the children of the method. */
     public Node visitChildren(NodeVisitor v) {
-        Id name = (Id) visitChild(this.name, v);
-        List<Formal> formals = visitList(this.formals, v);
-	TypeNode returnType = (TypeNode) visitChild(this.returnType, v);
-	List<TypeNode> throwTypes = visitList(this.throwTypes, v);
-	Block body = (Block) visitChild(this.body, v);
-	return reconstruct(returnType, name, formals, throwTypes, body);
+        MethodDecl_c n = (MethodDecl_c) visitSignature(v);
+	Block body = (Block) n.visitChild(n.body, v);
+	return body == n.body ? n : n.body(body);
     }
 
     public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
@@ -200,14 +199,19 @@ public class MethodDecl_c extends FragmentRoot_c implements MethodDecl
         Symbol<MethodDef> sym = Types.<MethodDef>symbol(mi);
         ct.addMethod(mi);
 	
-	Goal sig = Globals.Scheduler().SignatureDef(tb.job(), mi);
-	TypeBuilder tbSig = tb.pushCode(mi, sig);
-
 	Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), mi);
 	TypeBuilder tbChk = tb.pushCode(mi, chk);
 
-	MethodDecl_c n = (MethodDecl_c) visitSignature(tbSig);
-        
+	final TypeBuilder tbx = tb;
+	final MethodDef mix = mi;
+	
+	MethodDecl_c n = (MethodDecl_c) this.visitSignature(new NodeVisitor() {
+            int key = 0;
+            public Node override(Node n) {
+                return MethodDecl_c.this.visitChild(n, tbx.pushCode(mix, Globals.Scheduler().SignatureDef(tbx.job(), mix, key++)));
+            }
+        });
+
 	List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(n.formals().size());
         for (Formal f : n.formals()) {
              formalTypes.add(f.type().typeRef());
@@ -246,10 +250,24 @@ public class MethodDecl_c extends FragmentRoot_c implements MethodDecl
     
     /** Type check the declaration. */
     @Override
-    public Node typeCheckRootFromInside(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
+    public Node typeCheckBody(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
         MethodDecl_c n = this;
         Block body = (Block) n.visitChild(n.body, childtc);
         n = (MethodDecl_c) n.body(body);
+        return n;
+    }
+
+    @Override
+    protected Node typeCheckInnerRoot(Node parent, TypeChecker tc, TypeChecker childtc, Goal goal, Def def) throws SemanticException {
+        FragmentRoot_c n = this;
+        
+        if (goal instanceof SupertypeDef) {
+        }
+        else if (goal instanceof SignatureDef) {
+        }
+        else {
+            return super.typeCheckInnerRoot(parent, tc, childtc, goal, def);
+        }
         return n;
     }
 
@@ -429,4 +447,18 @@ public class MethodDecl_c extends FragmentRoot_c implements MethodDecl
         return nf.MethodDecl(this.position, this.flags, this.returnType, this.name, this.formals, this.throwTypes, this.body);
     }
 
+    public List<Goal> pregoals(final TypeChecker tc, final Def def) {
+        final List<Goal> goals = new ArrayList<Goal>();
+        
+        this.visitSignature(new NodeVisitor() {
+            int key = 0;
+            public Node override(Node n) {
+              goals.add(Globals.Scheduler().SignatureDef(tc.job(), def, key++));
+              return n;
+            }
+        });
+        
+        goals.add(Globals.Scheduler().TypeCheckDef(tc.job(), def));
+        return goals;
+    }
 }

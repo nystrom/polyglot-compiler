@@ -13,4 +13,5 @@ package polyglot.types;
  */
 public interface InitializerDef extends CodeDef, MemberDef
 {
+    InitializerInstance asInstance();
 }

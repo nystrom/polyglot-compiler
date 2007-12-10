@@ -10,6 +10,7 @@ package polyglot.types.reflect;
 import java.util.*;
 
 import polyglot.frontend.Globals;
+import polyglot.frontend.GoalSet;
 import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.types.reflect.InnerClasses.Info;
@@ -289,7 +290,7 @@ public class ClassFileLazyClassInitializer {
         if (Report.should_report(verbose, 2))
             Report.report(2, "resolving " + name);
         
-        LazyRef<ClassDef> sym = Types.typeRef();
+        LazyRef<ClassDef> sym = Types.lazyRef(ts.unknownClassDef(), null, GoalSet.EMPTY);
         
         if (flags == null) {
             sym.setResolver(Globals.Scheduler().LookupGlobalTypeDef(sym, name));
@@ -310,7 +311,7 @@ public class ClassFileLazyClassInitializer {
     }
 
     protected Ref<? extends Type> typeForName(String name, Flags flags) {
-        return Types.<Type>ref(new ParsedClassType_c(ts, position(), defForName(name, flags)));
+        return Types.<Type>ref(ts.createClassType(position(), defForName(name, flags)));
     }
 
     public void initTypeObject() {

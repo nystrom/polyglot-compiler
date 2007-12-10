@@ -207,7 +207,7 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
         return Call(pos, null, name, l);
     }
 
-    public final Call Call(Position pos, Id name, List<? extends Expr> args) {
+    public final Call Call(Position pos, Id name, List<Expr> args) {
         return Call(pos, null, name, args);
     }
     
@@ -249,23 +249,23 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
 	return Case(pos, null);
     }
 
-    public final ConstructorCall ThisCall(Position pos, List<? extends Expr> args) {
+    public final ConstructorCall ThisCall(Position pos, List<Expr> args) {
 	return ConstructorCall(pos, ConstructorCall.THIS, null, args);
     }
 
-    public final ConstructorCall ThisCall(Position pos, Expr outer, List<? extends Expr> args) {
+    public final ConstructorCall ThisCall(Position pos, Expr outer, List<Expr> args) {
 	return ConstructorCall(pos, ConstructorCall.THIS, outer, args);
     }
 
-    public final ConstructorCall SuperCall(Position pos, List<? extends Expr> args) {
+    public final ConstructorCall SuperCall(Position pos, List<Expr> args) {
 	return ConstructorCall(pos, ConstructorCall.SUPER, null, args);
     }
 
-    public final ConstructorCall SuperCall(Position pos, Expr outer, List<? extends Expr> args) {
+    public final ConstructorCall SuperCall(Position pos, Expr outer, List<Expr> args) {
 	return ConstructorCall(pos, ConstructorCall.SUPER, outer, args);
     }
 
-    public final ConstructorCall ConstructorCall(Position pos, ConstructorCall.Kind kind, List<? extends Expr> args) {
+    public final ConstructorCall ConstructorCall(Position pos, ConstructorCall.Kind kind, List<Expr> args) {
 	return ConstructorCall(pos, kind, null, args);
     }
 
@@ -285,23 +285,23 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
         return LocalDecl(pos, flags, type, name, null);
     }
 
-    public final New New(Position pos, TypeNode type, List<? extends Expr> args) {
+    public final New New(Position pos, TypeNode type, List<Expr> args) {
         return New(pos, null, type, args, null);
     }
 
-    public final New New(Position pos, TypeNode type, List<? extends Expr> args, ClassBody body) {
+    public final New New(Position pos, TypeNode type, List<Expr> args, ClassBody body) {
 	return New(pos, null, type, args, body);
     }
 
-    public final New New(Position pos, Expr outer, TypeNode objectType, List<? extends Expr> args) {
+    public final New New(Position pos, Expr outer, TypeNode objectType, List<Expr> args) {
         return New(pos, outer, objectType, args, null);
     }
 
-    public final NewArray NewArray(Position pos, TypeNode base, List<? extends Expr> dims) {
+    public final NewArray NewArray(Position pos, TypeNode base, List<Expr> dims) {
 	return NewArray(pos, base, dims, 0, null);
     }
 
-    public final NewArray NewArray(Position pos, TypeNode base, List<? extends Expr> dims, int addDims) {
+    public final NewArray NewArray(Position pos, TypeNode base, List<Expr> dims, int addDims) {
 	return NewArray(pos, base, dims, addDims, null);
     }
 
@@ -309,7 +309,7 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
 	return NewArray(pos, base, Collections.<Expr>emptyList(), addDims, init);
     }
     
-    public final NodeList NodeList(Position pos, List<? extends Node> nodes) {
+    public final NodeList NodeList(Position pos, List<Node> nodes) {
         return NodeList(pos, this, nodes);
     }
 
@@ -317,11 +317,11 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
 	return Return(pos, null);
     }
 
-    public final SourceFile SourceFile(Position pos, List<? extends TopLevelDecl> decls) {
+    public final SourceFile SourceFile(Position pos, List<TopLevelDecl> decls) {
         return SourceFile(pos, null, Collections.<Import>emptyList(), decls);
     }
 
-    public final SourceFile SourceFile(Position pos, List<? extends Import> imports, List<? extends TopLevelDecl> decls) {
+    public final SourceFile SourceFile(Position pos, List<Import> imports, List<TopLevelDecl> decls) {
         return SourceFile(pos, null, imports, decls);
     }
 
@@ -345,7 +345,7 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
         return Special(pos, kind, null);
     }
 
-    public final Try Try(Position pos, Block tryBlock, List<? extends Catch> catchBlocks) {
+    public final Try Try(Position pos, Block tryBlock, List<Catch> catchBlocks) {
         return Try(pos, tryBlock, catchBlocks, null);
     }
 

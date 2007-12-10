@@ -101,7 +101,7 @@ public class Local_c extends Expr_c implements Local
 
       TypeSystem ts = tb.typeSystem();
 
-      LocalInstance li = new LocalInstance_c(ts, position(), new ErrorRef_c<LocalDef>(ts, position()));
+      LocalInstance li = ts.createLocalInstance(position(), new ErrorRef_c<LocalDef>(ts, position()));
       return n.localInstance(li);
   }
 
@@ -153,10 +153,6 @@ public class Local_c extends Expr_c implements Local
     }
   }
   
-  public boolean constantValueSet() {
-      return li != null && li.constantValueSet();
-  }
-
   public boolean isConstant() {
     return li != null && li.isConstant();
   }

@@ -39,7 +39,7 @@ public class MethodDef_c extends ProcedureDef_c
     public MethodInstance asInstance() {
         if (Report.should_report("asi", 1)) asInstance = null;
         if (asInstance == null) {
-            asInstance = new MethodInstance_c(ts, position(), Types.<MethodDef>ref(this));
+            asInstance = ts.createMethodInstance(position(), Types.ref(this));
         }
         return asInstance;
     }
@@ -64,25 +64,6 @@ public class MethodDef_c extends ProcedureDef_c
      */
     public void setReturnType(Ref<? extends Type> returnType) {
         this.returnType = returnType;
-    }
-    
-    public int hashCode() {
-        //return container.hashCode() + flags.hashCode() +
-	//       returnType.hashCode() + name.hashCode();
-	return flags.hashCode() + name.hashCode();
-    }
-
-    public boolean equalsImpl(TypeObject o) {
-        return o == this;
-//        if (o instanceof MethodDef) {
-//	    MethodDef i = (MethodDef) o;
-//	    return ts.equals(returnType, i.returnType())
-//	        && name.equals(i.name())
-//                && ts.equals(container, i.container())
-//		&& super.equalsImpl(i);
-//	}
-//
-//	return false;
     }
 
     public String toString() {

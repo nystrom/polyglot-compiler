@@ -59,10 +59,6 @@ public abstract class Expr_c extends Term_c implements Expr
 	return Precedence.UNKNOWN;
     }
 
-    public boolean constantValueSet() {
-        return true;
-    }
-
     public boolean isConstant() {
         return false;
     }

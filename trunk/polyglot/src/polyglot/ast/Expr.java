@@ -25,8 +25,6 @@ public interface Expr extends Receiver, Term
     /** Get the precedence of the expression. */
     Precedence precedence();
 
-    boolean constantValueSet();
-
     /**
      * Return whether the expression evaluates to a constant.
      * This is not valid until after disambiguation.

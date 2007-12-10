@@ -12,6 +12,8 @@ import java.util.*;
 
 import polyglot.frontend.Globals;
 import polyglot.frontend.Goal;
+import polyglot.frontend.JLScheduler.SignatureDef;
+import polyglot.frontend.JLScheduler.SupertypeDef;
 import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.util.*;
@@ -151,13 +153,19 @@ public class ClassDecl_c extends FragmentRoot_c implements ClassDecl
         v.visitCFG(this.body(), this, EXIT);
         return succs;
     }
-
-    public Node visitChildren(NodeVisitor v) {
+    
+    public Node visitSignature(NodeVisitor v) {
         Id name = (Id) visitChild(this.name, v);
         TypeNode superClass = (TypeNode) visitChild(this.superClass, v);
         List<TypeNode> interfaces = visitList(this.interfaces, v);
-        ClassBody body = (ClassBody) visitChild(this.body, v);
+        ClassBody body = this.body;
         return reconstruct(name, superClass, interfaces, body);
+    }
+
+    public Node visitChildren(NodeVisitor v) {
+        ClassDecl_c n = (ClassDecl_c) visitSignature(v);
+        ClassBody body = (ClassBody) n.visitChild(n.body, v);
+        return body == n.body ? n : n.body(body);
     }
 
     public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
@@ -183,37 +191,11 @@ public class ClassDecl_c extends FragmentRoot_c implements ClassDecl
         Ref<ClassDef> sym = Types.<ClassDef>symbol(type);
         
         Goal tSup = Globals.Scheduler().SupertypeDef(tb.job(), type);
-        Goal tSig = Globals.Scheduler().SignatureDef(tb.job(), type);
         Goal tChk = Globals.Scheduler().TypeCheckDef(tb.job(), type);
 
         TypeBuilder tbSup = tb.pushGoal(tSup);
-        TypeBuilder tbSig = tb.pushGoal(tSig);
         TypeBuilder tbChk = tb.pushGoal(tChk);
         
-        ClassDef outer = tb.pop().currentClass();
-        if (outer != null) {
-            Goal oSup = Globals.Scheduler().SupertypeDef(tb.job(), outer);
-            Goal oSig = Globals.Scheduler().SignatureDef(tb.job(), outer);
-            Goal oChk = Globals.Scheduler().TypeCheckDef(tb.job(), outer);
-            
-            if (false)
-            tSup.addPrereq(oSup);
-            if (false)
-            tSig.addPrereq(oSig);
-            
-            if (tb.def() instanceof CodeDef) {
-                // In a local class.  We will not visit the body when type-checking the enclosing method.
-                // Add a dependency on the enclosing method.
-                if (false)
-                tSup.addPrereq(oChk);
-            }
-        }
-
-        if (false)
-        tSig.addPrereq(tSup);
-        if (false)
-        tChk.addPrereq(tSig);
-
         ClassDecl_c n = this;
         Id name = (Id) n.visitChild(n.name, tb);
 
@@ -238,6 +220,8 @@ public class ClassDecl_c extends FragmentRoot_c implements ClassDecl
             n.defaultCI = cd.constructorDef();
         }
 
+        n.type = type;
+        
         return n;
     }
 
@@ -246,7 +230,7 @@ public class ClassDecl_c extends FragmentRoot_c implements ClassDecl
             TypeSystem ts = c.typeSystem();
             c = c.pushClass(type, type.asType());
         }
-        else {
+        else if (child == this.superClass || this.interfaces.contains(child)) {
             // Add this class to the context, but don't push a class scope.
             // This allows us to detect loops in the inheritance
             // hierarchy, but avoids an infinite loop.
@@ -276,7 +260,8 @@ public class ClassDecl_c extends FragmentRoot_c implements ClassDecl
         Ref<? extends Type> stref = type.superType();
         if (stref != null) {
             Type t = stref.get();
-            assert ! (t instanceof UnknownType);
+            if (t instanceof UnknownType)
+                throw new SemanticException(); // already reported
             if (! t.isClass() || t.toClass().flags().isInterface()) {
                 throw new SemanticException("Cannot extend type " +
                         t + "; not a class.",
@@ -369,25 +354,60 @@ public class ClassDecl_c extends FragmentRoot_c implements ClassDecl
                 block);
         return cd;
     }
+    
+    public List<Goal> pregoals(TypeChecker tc, Def def) {
+            List<Goal> goals = Arrays.asList(new Goal[] {
+                                                         Globals.Scheduler().SupertypeDef(tc.job(), def),
+                                                         Globals.Scheduler().TypeCheckDef(tc.job(), def)
+            });
+            return goals;
+    }
+    
+    @Override
+    protected Node typeCheckInnerRoot(Node parent, TypeChecker tc, TypeChecker childtc, Goal goal, Def def) throws SemanticException {
+        if (goal instanceof SupertypeDef) {
+            assert false;
+        }
+        else {
+            return super.typeCheckInnerRoot(parent, tc, childtc, goal, def);
+        }
+
+        return this;
+    }
 
     @Override
-    public Node typeCheckSupersOfRootFromInside(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
-        ClassDecl_c old = this;
-
+    protected Node typeCheckCurrentRoot(Node parent, TypeChecker tc, TypeChecker childtc, Goal goal) throws SemanticException {
         ClassDecl_c n = this;
+        
+        if (goal instanceof SupertypeDef) {
+            n = (ClassDecl_c) n.typeCheckSupers(parent, tc, childtc);
+        }
+        else {
+            n = (ClassDecl_c) super.typeCheckCurrentRoot(parent, tc, childtc, goal);
+        }
+        
+        return n;
+    }
+
+    public Node typeCheckSupers(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
+        ClassDecl_c n = this;
+
+        // ### This should be done somewhere else, but before entering the body.
+        Context c = tc.context();
+        type.inStaticContext(c.inStaticContext());
 
         Id name = n.name;
         TypeNode superClass = n.superClass;
         List<TypeNode> interfaces = n.interfaces;
         ClassBody body = n.body;
 
-        // Disambiguate the super types.
-        Context c = tc.context();
-        type.inStaticContext(c.inStaticContext());
 
         name = (Id) visitChild(n.name, childtc);
         superClass = (TypeNode) n.visitChild(n.superClass, childtc);
         interfaces = n.visitList(n.interfaces, childtc);
+
+        // Lookup the node again in case another pass ran
+        n = (ClassDecl_c) tc.getFragment(type).node();
 
         n = n.reconstruct(name, superClass, interfaces, body);
         n.checkSupertypeCycles(tc.typeSystem());
@@ -397,7 +417,7 @@ public class ClassDecl_c extends FragmentRoot_c implements ClassDecl
 
 
     @Override
-    public Node typeCheckRootFromInside(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
+    public Node typeCheckBody(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
         ClassDecl_c old = this;
 
         ClassDecl_c n = this;
@@ -408,7 +428,9 @@ public class ClassDecl_c extends FragmentRoot_c implements ClassDecl
         ClassBody body = n.body;
 
         body = (ClassBody) n.visitChild(body, childtc);
-        //                if (childtc.hasErrors()) throw new SemanticException();
+
+        // Lookup the node again in case another pass ran
+        n = (ClassDecl_c) tc.getFragment(type).node();
 
         n = n.reconstruct(name, superClass, interfaces, body);
         n = (ClassDecl_c) tc.leave(parent, old, n, childtc);

@@ -44,6 +44,11 @@ public class PackageContextResolver extends AbstractAccessControlResolver
 
     /**
      * Find a type object by name.
+     * @param name Name of the class or package to find.
+     * @param accessor
+     *                Class the name is accesses from. If null, no access checks
+     *                are performed.
+     * 
      */
     public Named find(String name, ClassDef accessor) throws SemanticException {
 	if (! StringUtil.isNameShort(name)) {

@@ -14,7 +14,17 @@ public class Def_c extends TypeObject_c {
         super(ts, pos);
     }
 
-    public boolean equalsImpl(TypeObject o) {
+    public final boolean equalsImpl(TypeObject o) {
         return this == o;
     }
+    
+    public final int hashCode() {
+        return System.identityHashCode(this);
+    }
+    
+    public Object copy() {
+        assert false;
+        return super.copy();
+    }
+
 }

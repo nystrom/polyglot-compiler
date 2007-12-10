@@ -102,6 +102,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     public LocalDecl localDef(LocalDef li) {
         if (li == this.li) return this;
         LocalDecl_c n = (LocalDecl_c) copy();
+        assert li != null;
         n.li = li;
         return n;
     }
@@ -156,7 +157,6 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
 
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         LocalDecl_c n = (LocalDecl_c) super.buildTypes(tb);
-
         TypeSystem ts = tb.typeSystem();
 
         LocalDef li = ts.localDef(position(), flags(), type.typeRef(), name.id());
@@ -225,8 +225,8 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
                 }
             }
         }
-
-        return localDef(li);
+        
+        return this;
     }
     
     public Node checkConstants(TypeChecker tc) throws SemanticException {

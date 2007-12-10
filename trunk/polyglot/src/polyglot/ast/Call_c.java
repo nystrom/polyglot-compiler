@@ -151,7 +151,7 @@ public class Call_c extends Expr_c implements Call
 
     TypeSystem ts = tb.typeSystem();
 
-    MethodInstance mi = new MethodInstance_c(ts, position(), new ErrorRef_c<MethodDef>(ts, position()));
+    MethodInstance mi = ts.createMethodInstance(position(), new ErrorRef_c<MethodDef>(ts, position()));
     return n.methodInstance(mi);
   }
   
@@ -184,7 +184,7 @@ public class Call_c extends Expr_c implements Call
             // of the class we want.
             ClassType scope = c.findMethodScope(name.id());
 
-            if (! ts.equals(scope, c.currentClass())) {
+            if (! ts.typeEquals(scope, c.currentClass())) {
                 r = nf.This(position().startOf(),
                             nf.CanonicalTypeNode(position().startOf(), scope)).type(scope);
             }
@@ -194,8 +194,10 @@ public class Call_c extends Expr_c implements Call
         }
 
         // we call computeTypes on the reciever too.
-        Call_c call = (Call_c) this.targetImplicit(true).target(r);        
-        return call.visit(tc.rethrowMissingDependencies(true));
+        Call_c call = (Call_c) this.targetImplicit(true).target(r);       
+        call = (Call_c)call.methodInstance(mi).type(mi.returnType());
+//        call = (Call_c) call.methodInstance(mi);
+        return call;
     }
 
     /**

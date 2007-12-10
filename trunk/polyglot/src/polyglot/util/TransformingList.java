@@ -27,6 +27,8 @@ public class TransformingList<S,T> extends AbstractList<T> {
     }
 
     public TransformingList(List<S> underlying, Transformation<S,T> trans) {
+      assert underlying != null;
+      assert trans != null;
       this.underlying = underlying;
       this.trans = trans;
     }

@@ -9,8 +9,7 @@ package polyglot.types;
 
 import java.util.*;
 
-import polyglot.frontend.Job;
-import polyglot.frontend.Source;
+import polyglot.frontend.*;
 import polyglot.util.*;
 
 /**
@@ -24,6 +23,28 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
 {
     protected ParsedClassType_c() {
 	super();
+    }
+    
+    protected Flags flags;
+    protected ReferenceType container;
+    
+    public ReferenceType container() {
+        if (container == null) {
+            container = super.container();
+        }
+        return container;
+    }
+    
+    public ClassType flags(Flags flags) {
+        ParsedClassType_c t = (ParsedClassType_c) copy();
+        t.flags = flags;
+        return t;
+    }
+    
+    public ClassType container(ReferenceType container) {
+        ParsedClassType_c t = (ParsedClassType_c) copy();
+        t.container = container;
+        return t;
     }
     
     public Job job() {
@@ -72,7 +93,10 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
 
     /** Get the class's flags. */
     public Flags flags() {
-        return def().flags();
+        if (flags == null) {
+            flags = def().flags();
+        }
+        return flags;
     }
     
     public boolean defaultConstructorNeeded() {
@@ -140,10 +164,6 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
     }
 
     public String toString() {
-        if (! def.nonnull()) {
-            return "<unknown class>";
-        }
-        
-        return def().toString();
+        return def.get(GoalSet.EMPTY).toString();
     }
 }

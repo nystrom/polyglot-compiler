@@ -11,6 +11,7 @@ package polyglot.visit;
 import java.util.*;
 
 import polyglot.ast.*;
+import polyglot.frontend.Globals;
 import polyglot.frontend.Job;
 import polyglot.types.*;
 import polyglot.util.InternalCompilerError;
@@ -433,7 +434,7 @@ public class InitChecker extends DataFlow
      * @throws SemanticException
      */
     protected void checkNonStaticFinalFieldsInit(ClassBody cb) throws SemanticException {
-        // for each non-static final field instance, check that all 
+        // for each non-static final field def, check that all 
         // constructors intialize it exactly once, taking into account constructor calls.
         for (Iterator<FieldDef> iter = currCBI.currClassFinalFieldInitCounts.keySet().iterator(); 
                 iter.hasNext(); ) {
@@ -548,7 +549,7 @@ public class InitChecker extends DataFlow
      */
     public Item confluence(List inItems, Term node, boolean entry, FlowGraph graph) {        
         // Resolve any conflicts pairwise.
-        Iterator iter = inItems.iterator();
+        Iterator<Item> iter = inItems.iterator();
         Map<VarDef, MinMaxInitCount> m = null;
         while (iter.hasNext()) {
             Item itm = (Item)iter.next();
@@ -558,8 +559,8 @@ public class InitChecker extends DataFlow
             } 
             else { 
                 Map<VarDef, MinMaxInitCount> n = ((DataFlowItem)itm).initStatus;
-                for (Iterator iter2 = n.entrySet().iterator(); iter2.hasNext(); ) {
-                    Map.Entry e = (Map.Entry)iter2.next();
+                for (Iterator<Map.Entry<VarDef, MinMaxInitCount>> iter2 = n.entrySet().iterator(); iter2.hasNext(); ) {
+                    Map.Entry<VarDef, MinMaxInitCount> e = (Map.Entry<VarDef, MinMaxInitCount>)iter2.next();
                     VarDef v = (VarDef)e.getKey();
                     MinMaxInitCount initCount1 = m.get(v);
                     MinMaxInitCount initCount2 = (MinMaxInitCount)e.getValue();
@@ -833,6 +834,8 @@ public class InitChecker extends DataFlow
             dfIn = createInitDFI();
         }
         
+        long t = System.currentTimeMillis();
+        
         DataFlowItem dfOut = null;
         if (!entry && outItems != null && !outItems.isEmpty()) {
             // due to the flow equations, all DataFlowItems in the outItems map
@@ -860,6 +863,8 @@ public class InitChecker extends DataFlow
             // probably a node in a finally block. Just ignore it.
         }
         
+        long t2 = System.currentTimeMillis();
+        
         if (n == graph.root() && !entry) {            
             if (currCBI.currCodeDecl instanceof Initializer) {
                 finishInitializer(graph, 
@@ -873,7 +878,14 @@ public class InitChecker extends DataFlow
                                     dfIn, 
                                     dfOut);
             }
-        }        
+        }
+        
+        long t3 = System.currentTimeMillis();
+        
+        Globals.Stats().accumulate("InitChecker.check", 1);
+        Globals.Stats().accumulate("InitChecker.1", (t2-t));
+        Globals.Stats().accumulate("InitChecker.2", (t3-t2));
+        Globals.Stats().accumulate("InitChecker.1+2", (t3-t));
     }
 
     /**
@@ -1101,11 +1113,11 @@ public class InitChecker extends DataFlow
      */
     protected void checkLocalsUsedByInnerClass(FlowGraph graph, 
                                                ClassBody cb,
-                                               Set localsUsed,
+                                               Set<LocalDef> localsUsed,
                                                DataFlowItem dfIn,
                                                DataFlowItem dfOut) 
     throws SemanticException {
-        for (Iterator iter = localsUsed.iterator(); iter.hasNext(); ) {
+        for (Iterator<LocalDef> iter = localsUsed.iterator(); iter.hasNext(); ) {
             LocalDef li = (LocalDef)iter.next();
             MinMaxInitCount initCount = dfOut.initStatus.get(li);                                
             if (!currCBI.localDeclarations.contains(li)) {

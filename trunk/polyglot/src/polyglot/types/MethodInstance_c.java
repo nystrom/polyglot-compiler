@@ -11,16 +11,59 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
         super(ts, pos, def);
     }
     
+    protected String name;
+    protected Flags flags;
+    protected ReferenceType container;
+    
+    public MethodInstance container(ReferenceType container) {
+        MethodInstance_c p = (MethodInstance_c) copy();
+        p.container = container;
+        return p;
+    }
+
     public ReferenceType container() {
-        return Types.get(def().container());
+        if (this.container == null) {
+            this.container = Types.get(def().container());
+        }
+        return this.container;
+    }
+    
+    public MethodInstance flags(Flags flags) {
+        MethodInstance_c p = (MethodInstance_c) copy();
+        p.flags = flags;
+        return p;
     }
     
     public Flags flags() {
-        return def().flags();
+        if (this.flags == null) { 
+            this.flags = def().flags();
+        }
+        return this.flags;
     }
     
+    public MethodInstance name(String name) {
+        MethodInstance_c p = (MethodInstance_c) copy();
+        p.name = name;
+        return p;
+    }
+
     public String name() {
-        return def().name();
+        if (this.name == null) { 
+            this.name = def().name();
+        }
+        return this.name;
+    }
+    
+    public MethodInstance returnType(Type returnType) {
+        return (MethodInstance) super.returnType(returnType);
+    }
+
+    public MethodInstance formalTypes(List<Type> formalTypes) {
+        return (MethodInstance) super.formalTypes(formalTypes);
+    }
+    
+    public MethodInstance throwTypes(List<Type> throwTypes) {
+        return (MethodInstance) super.throwTypes(throwTypes);
     }
     
     /** Returns true iff <this> is the same method as <m> */

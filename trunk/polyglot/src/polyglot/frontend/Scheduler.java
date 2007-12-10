@@ -52,6 +52,8 @@ public abstract class Scheduler {
     protected Map<Goal,Goal> internCache = new HashMap<Goal,Goal>();
     
     public Goal intern(Goal goal) {
+        Globals.Stats().accumulate("intern", 1);
+        Globals.Stats().accumulate("intern:" + (goal instanceof VisitorGoal ? ((VisitorGoal) goal).v.getClass().getName() : goal.getClass().getName()), 1);
         Goal g = internCache.get(goal);
         if (g == null) {
             g = goal;
@@ -181,8 +183,14 @@ public abstract class Scheduler {
 
         while (okay && ! worklist.isEmpty()) {
             Goal goal = worklist.removeFirst();
-            okay = attempt(goal);
+            try {
+                okay = attempt(goal);
+            }
+            catch (CyclicDependencyException e) {
+                throw new InternalCompilerError("Cyclic dependency at top-level.", e);
+            }
         }
+            
 
         if (Report.should_report(Report.frontend, 1))
             Report.report(1, "Finished all passes for " + this.getClass().getName() + " -- " +
@@ -248,8 +256,9 @@ public abstract class Scheduler {
     
     /**
      * Run passes until the <code>goal</code> is attempted.  Returns true iff the goal is reached.
+     * @throws CyclicDependencyException 
      */ 
-    public boolean attempt(Goal goal) {
+    public boolean attempt(Goal goal) throws CyclicDependencyException {
         assert currentGoal() == null
         || currentGoal().state() == Goal.Status.RUNNING
         || currentGoal().state() == Goal.Status.RUNNING_RECURSIVE;
@@ -297,7 +306,7 @@ public abstract class Scheduler {
         }
     }
 
-    protected boolean attemptGoalAndPrereqs(Goal goal, Set<Goal> above) {
+    protected boolean attemptGoalAndPrereqs(Goal goal, Set<Goal> above) throws CyclicDependencyException {
         if (Report.should_report(Report.frontend, 2))
             Report.report(2, "Running to goal " + goal);
 
@@ -392,14 +401,14 @@ public abstract class Scheduler {
             this.goal = goal;
         }
     }
-   
+    
     /**         
      * Run the pass <code>pass</code>.  All subgoals of the pass's goal
      * required to start the pass should be satisfied.  Running the pass
      * may not satisfy the goal, forcing it to be retried later with new
      * subgoals.
      */
-    protected boolean runPass(Goal goal) {
+    protected boolean runPass(Goal goal) throws CyclicDependencyException {
         Pass pass = goal.createPass();
         
         Job job = pass.job();
@@ -423,7 +432,7 @@ public abstract class Scheduler {
         
         if (goal.state() == Goal.Status.RUNNING || goal.state() == Goal.Status.RUNNING_RECURSIVE) {
             if (! pass.isReentrant()) {
-                throw new InternalCompilerError("Cannot reenter a non-reentrant pass for " + goal);
+                throw new CyclicDependencyException("Cannot reenter a non-reentrant pass for " + goal);
             }
             reentrant = true;
         }
@@ -456,15 +465,15 @@ public abstract class Scheduler {
             long t = System.currentTimeMillis();
             String key = pass.toString();
 
-            extInfo.getStats().accumulate(key + " attempts", 1, 1);
-            extInfo.getStats().accumulate("total goal attempts", 1, 1);
+            extInfo.getStats().accumulate(key + " attempts", 1);
+            extInfo.getStats().accumulate("total goal attempts", 1);
             
             try {
                 result = pass.run();
 
                 if (result && goal.state() == Goal.Status.RUNNING) {
-                    extInfo.getStats().accumulate(key + " reached", 1, 1);
-                    extInfo.getStats().accumulate("total goal reached", 1, 1);
+                    extInfo.getStats().accumulate(key + " reached", 1);
+                    extInfo.getStats().accumulate("total goal reached", 1);
 
                     markReached(goal);
 
@@ -472,8 +481,8 @@ public abstract class Scheduler {
                         Report.report(1, "Completed pass " + pass + " for " + goal);
                 }
                 else {
-                    extInfo.getStats().accumulate(key + " unreached", 1, 1);
-                    extInfo.getStats().accumulate("total goal unreached", 1, 1);
+                    extInfo.getStats().accumulate(key + " unreached", 1);
+                    extInfo.getStats().accumulate("total goal unreached", 1);
 
                     goal.setState(Goal.Status.FAIL);                    
 
@@ -491,15 +500,15 @@ public abstract class Scheduler {
                 if (Report.should_report(Report.frontend, 1))
                     Report.report(1, "Did not complete pass " + pass + " for " + goal);
 
-                extInfo.getStats().accumulate(key + " aborts", 1, 1);
-                extInfo.getStats().accumulate("goal aborts", 1, 1);
+                extInfo.getStats().accumulate(key + " aborts", 1);
+                extInfo.getStats().accumulate("goal aborts", 1);
                 
                 goal.setState(Goal.Status.FAIL);
                 result = true;
             }
             finally {
                 t = System.currentTimeMillis() - t;
-                extInfo.getStats().accumulate(key, t, t);
+                extInfo.getStats().accumulate(key, t);
                 pass.toggleTimers(false);
 
                 if (job != null) {
@@ -537,8 +546,7 @@ public abstract class Scheduler {
         }   
             
         Stats stats = extInfo.getStats();
-        stats.accumulate(pass.name(), pass.inclusiveTime(),
-                             pass.exclusiveTime());
+        stats.accumulate(pass.name(), pass.inclusiveTime());
 
         if (! result) {
             failed = true;
@@ -649,11 +657,15 @@ public abstract class Scheduler {
 
         Goal prev = null;
 
+        // Be careful: the list might include goals already run.
         for (Goal goal : goals) {
+            assert goal instanceof SourceGoal;
             if (prev != null) {
                 goal.addPrereq(prev);
             }
-            prev = goal;
+            if (! goal.hasBeenReached()) {
+                prev = goal;
+            }
         }
         
         assert prev == End(job);
@@ -682,7 +694,7 @@ public abstract class Scheduler {
     
     public abstract Goal FragmentAST(Job job);
 
-    public abstract Goal SignatureDef(Job job, Def def);
+    public abstract Goal SignatureDef(Job job, Def def, int key);
     public abstract Goal SupertypeDef(Job job, Def def);
     public abstract Goal TypeCheckDef(Job job, Def def);
 

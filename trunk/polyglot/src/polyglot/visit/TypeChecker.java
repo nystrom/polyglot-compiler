@@ -7,11 +7,8 @@
 
 package polyglot.visit;
 
-import java.util.*;
-
 import polyglot.ast.*;
 import polyglot.frontend.*;
-import polyglot.frontend.JLScheduler.FragmentGoal;
 import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.util.ErrorInfo;
@@ -20,54 +17,25 @@ import polyglot.util.Position;
 /** Visitor which performs type checking on the AST. */
 public class TypeChecker extends ContextVisitor
 {
-    Scope scope;
-    
-    public static enum Scope {
-        SUPER,
-        SIGNATURES,
-        BODY,
-    }
-
-    public static enum Mode {
-        CURRENT_ROOT,
-        INNER_ROOT,
-        NON_ROOT
-    }
-    
-    public Mode mode(Node n) {
-        ASTFragment currentFragment = currentFragment();
-        ASTFragment fragment = getFragment(n);
-        boolean isRoot = currentFragment != null && currentFragment == fragment;
-
-        Mode mode;
-        
-        if (isRoot) {
-            mode = Mode.CURRENT_ROOT;
-        }
-        else if (fragment != null) {
-            mode = Mode.INNER_ROOT;
-        }
-        else {
-            mode = Mode.NON_ROOT;
-        }
-
-        return mode;
-    }
-    
-    public Scope scope() {
-        return scope;
-    }
-    
     protected Def rootDef;
+    protected int key;
+    
+    public Goal goal() {
+        return Globals.currentGoal();
+    }
     
     public TypeChecker(Job job, TypeSystem ts, NodeFactory nf) {
-        this(job, ts, nf, TypeChecker.Scope.BODY, null);
+        this(job, ts, nf, null);
     }
     
-    public TypeChecker(Job job, TypeSystem ts, NodeFactory nf, Scope scope, Def def) {
+    public TypeChecker(Job job, TypeSystem ts, NodeFactory nf, Def def) {
+        this(job, ts, nf, def, 0);
+    }
+
+    public TypeChecker(Job job, TypeSystem ts, NodeFactory nf, Def def, int key) {
         super(job, ts, nf);
-        this.scope = scope;
         this.rootDef = def;
+        this.key = key;
     }
     
     public ASTFragment getFragment(Def def) {
@@ -148,6 +116,9 @@ public class TypeChecker extends ContextVisitor
             FragmentRoot r = (FragmentRoot) m;
             for (Def def : r.defs()) {
                 ASTFragment f = getFragment(def);
+                if (f == null)
+                    assert false;
+                else
                 f.setNode(r);
             }
         }

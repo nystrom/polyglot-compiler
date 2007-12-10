@@ -83,8 +83,16 @@ public class Return_c extends Stmt_c implements Return
 
 	if (ci instanceof FunctionDef) {
 	    FunctionDef fi = (FunctionDef) ci;
-	    Type returnType = fi.returnType().get();
+	    Type returnType = Types.get(fi.returnType());
 	    
+	    if (returnType == null) {
+	        throw new InternalCompilerError("Null return type for " + fi);
+	    }
+	    
+	    if (returnType instanceof UnknownType) {
+	        throw new SemanticException();
+	    }
+
 	    if (returnType.isVoid()) {
                 if (expr != null) {
                     throw new SemanticException("Cannot return a value from " +

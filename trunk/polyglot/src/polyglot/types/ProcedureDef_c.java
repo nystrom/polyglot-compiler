@@ -80,13 +80,4 @@ public abstract class ProcedureDef_c extends Def_c
     public void setThrowTypes(List<Ref<? extends Type>> throwTypes) {
         this.throwTypes = TypedList.copyAndCheck(throwTypes, Ref.class, true);
     }
-     
-    public int hashCode() {
-        return container.hashCode() + flags.hashCode();
-    }
-
-    public boolean equalsImpl(TypeObject o) {
-        return this == o;
-    }
-
 }

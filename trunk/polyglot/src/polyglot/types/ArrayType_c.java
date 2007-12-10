@@ -154,9 +154,9 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
     }
 
     /** Get the interfaces implemented by the array type. */
-    public List interfaces() {
+    public List<Type> interfaces() {
         init();
-	return Collections.unmodifiableList(interfaces);
+        return new TransformingList<Ref<? extends Type>,Type>(interfaces, new DerefTransform<Type>());
     }
 
     public int hashCode() {
@@ -166,7 +166,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
     public boolean equalsImpl(TypeObject t) {
         if (t instanceof ArrayType) {
             ArrayType a = (ArrayType) t;
-            return ts.equals(base(), a.base());
+            return ts.equals((TypeObject) base(), (TypeObject) a.base());
         }
 	return false;
     }

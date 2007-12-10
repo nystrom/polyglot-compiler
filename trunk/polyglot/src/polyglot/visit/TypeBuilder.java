@@ -210,7 +210,7 @@ public class TypeBuilder extends NodeVisitor
         return tb;
     }
 
-    protected TypeBuilder pushClass(ClassDef classDef) throws SemanticException {
+    public TypeBuilder pushClass(ClassDef classDef) throws SemanticException {
         if (Report.should_report(Report.visit, 4))
 	    Report.report(4, "TB pushing class " + classDef + ": " + context());
 

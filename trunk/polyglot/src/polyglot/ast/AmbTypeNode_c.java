@@ -67,7 +67,7 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
 
   public Node buildTypes(TypeBuilder tb) throws SemanticException {
       TypeSystem ts = tb.typeSystem();
-      LazyRef<? extends Type> sym = Types.typeRef(ts.unknownType(position()), tb.goal());
+      LazyRef<? extends Type> sym = Types.lazyRef(ts.unknownType(position()), tb.goal());
       return typeRef(sym);
   }
 

@@ -167,7 +167,7 @@ public class Formal_c extends Term_c implements Formal
             // not found, so not multiply defined
         }
 
-        if (outerLocal != null && outerLocal != li && c.isLocal(li.name())) {
+        if (outerLocal != null && ! li.equals(outerLocal.def()) && c.isLocal(li.name())) {
             throw new SemanticException(
                 "Local variable \"" + name + "\" multiply defined.  "
                     + "Previous definition at " + outerLocal.position() + ".",
