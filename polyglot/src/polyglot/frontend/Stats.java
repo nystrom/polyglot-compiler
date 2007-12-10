@@ -23,8 +23,7 @@ import polyglot.main.Report;
 public class Stats
 {
     protected static class Counts {
-        public long inclusive;
-        public long exclusive;
+        public long count;
     }
 
     /** Extension we're collecting stats for. */
@@ -49,25 +48,24 @@ public class Stats
     }
 
     /** Return the accumulated times for a pass. */
-    public long getCount(Object key, boolean inclusive) {
+    public long getCount(Object key) {
         Counts t = counts.get(key);
         if (t == null) {
             return 0;
         }
 
-        return inclusive ? t.inclusive : t.exclusive;
+        return t.count;
     }
 
     /** Accumulate inclusive and exclusive times for a pass. */
-    public void accumulate(Object key, long in, long ex) {
+    public void accumulate(Object key, long count) {
         Counts t = counts.get(key);
         if (t == null) {
             keys.add(key);
             t = new Counts();
             counts.put(key, t);
         }
-        t.inclusive += in;
-        t.exclusive += ex;
+        t.count += count;
     }
 
     /** Report the stats. */
@@ -75,16 +73,26 @@ public class Stats
         if (Report.should_report(Report.time, 1)) {
             Report.report(1, "\nStatistics for " + ext.compilerName() +
                           " (" + ext.getClass().getName() + ")");
-            Report.report(1, "Inclusive Exclusive Key");
-            Report.report(1, "--------- --------- ---");
+            Report.report(1, format("Count", "Key"));
+            Report.report(1, format("-----", "---"));
 
             for (Iterator<Object> i = keys.iterator(); i.hasNext(); ) {
                 Object key = i.next();
                 Counts t = counts.get(key);
 
-                Report.report(1, t.inclusive + " " + t.exclusive + " " +
-                                 key.toString());
+                Report.report(1, format(key.toString(), Long.toString(t.count)));
             }
         }
+    }
+    
+    public String format(String key, String value) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = value.length(); i < 16; i++) {
+            sb.append(' ');
+        }
+        sb.append(value);
+        sb.append(' ');
+        sb.append(key);
+        return sb.toString();
     }
 }

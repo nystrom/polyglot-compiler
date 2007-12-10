@@ -41,7 +41,7 @@ public class ClassDef_c extends Def_c implements ClassDef
     public ClassType asType() {
         if (Report.should_report("asi", 1)) asType = null;
         if (asType == null) {
-            asType = new ParsedClassType_c(this);
+            asType = ts.createClassType(position(), Types.ref(this));
         }
         return asType;
     }
@@ -138,7 +138,6 @@ public class ClassDef_c extends Def_c implements ClassDef
         return kind;
     }
 
-
     public void inStaticContext(boolean inStaticContext) {
         this.inStaticContext = inStaticContext;
     }
@@ -151,7 +150,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         if (kind() == TOP_LEVEL)
             return null;
         if (outer == null)
-            throw new InternalCompilerError("Nested classes must have outer classes.");
+            throw new InternalCompilerError("Nested class " + this + " must have outer classes.");
         return outer;
     }
 
@@ -199,7 +198,7 @@ public class ClassDef_c extends Def_c implements ClassDef
     }
     
     public Ref<? extends ReferenceType> container() {
-        return Types.<ClassType>ref(new ParsedClassType_c(ts, position(), this.outer));
+        return Types.<ClassType>ref(ts.createClassType(position(), this.outer));
     }
     
     public void name(String name) {

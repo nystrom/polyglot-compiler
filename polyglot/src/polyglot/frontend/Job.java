@@ -10,9 +10,11 @@ package polyglot.frontend;
 import java.util.*;
 
 import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
 import polyglot.types.Def;
+import polyglot.types.TypeSystem;
 import polyglot.util.CodeWriter;
-import polyglot.visit.ASTFragment;
+import polyglot.visit.*;
 
 /**
  * A <code>Job</code> encapsulates work done by the compiler for a single
@@ -176,5 +178,28 @@ public class Job
     
     public boolean equals(Object o) {
         return o instanceof Job && ((Job) o).source.equals(source);
+    }
+
+    Goal TypesInitialized;
+    Goal FragmentAST;
+    
+    public Goal TypesInitialized(Scheduler scheduler) {
+        if (TypesInitialized == null) {
+            Job job = this;
+            TypeSystem ts = job.extensionInfo().typeSystem();
+            NodeFactory nf = job.extensionInfo().nodeFactory();
+            TypesInitialized = new VisitorGoal("TypesInitialized", job, new TypeBuilder(job, ts, nf)).intern(scheduler);
+        }
+        return TypesInitialized;
+    }
+    
+    public Goal FragmentAST(Scheduler scheduler) {
+        if (FragmentAST == null) {
+            Job job = this;
+            TypeSystem ts = job.extensionInfo().typeSystem();
+            NodeFactory nf = job.extensionInfo().nodeFactory();
+            FragmentAST = new VisitorGoal("FragmentAST", job, new ASTFragmenter(job, ts, nf)).intern(scheduler);
+        }
+        return FragmentAST;
     }
 }

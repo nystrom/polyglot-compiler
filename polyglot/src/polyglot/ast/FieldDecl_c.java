@@ -8,11 +8,12 @@
 
 package polyglot.ast;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import polyglot.frontend.Globals;
 import polyglot.frontend.Goal;
+import polyglot.frontend.JLScheduler.SignatureDef;
+import polyglot.frontend.JLScheduler.SupertypeDef;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -169,10 +170,9 @@ public class FieldDecl_c extends FragmentRoot_c implements FieldDecl {
 
     /** Visit the children of the declaration. */
     public Node visitChildren(NodeVisitor v) {
-        TypeNode type = (TypeNode) visitChild(this.type, v);
-        Id name = (Id) visitChild(this.name, v);
-        Expr init = (Expr) visitChild(this.init, v);
-        return reconstruct(type, name, init);
+        FieldDecl_c n = (FieldDecl_c) visitSignature(v);
+        Expr init = (Expr) n.visitChild(n.init, v);
+        return init == n.init ? n : n.init(init);
     }
 
     public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
@@ -191,36 +191,41 @@ public class FieldDecl_c extends FragmentRoot_c implements FieldDecl {
         Symbol<FieldDef> sym = Types.<FieldDef>symbol(fi);
         ct.addField(fi);
 
-        Goal sig = Globals.Scheduler().SignatureDef(tb.job(), fi);
-        if (false)
-            sig.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
-
         Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), fi);
-        if (false)
-            chk.addPrereq(sig);
-
+        TypeBuilder tbChk = tb.pushDef(fi).pushGoal(chk);
+        
         InitializerDef ii = null;
 
         if (init != null) {
             Flags iflags = flags.isStatic() ? Flags.STATIC : Flags.NONE;
             ii = ts.initializerDef(init.position(), Types.<ClassType>ref(ct.asType()), iflags);
-            tb = tb.pushCode(ii, sig);
+            fi.setInitializer(ii);
+            tbChk = tbChk.pushCode(ii, chk);
         }
 
-        TypeBuilder tbSig = tb.pushDef(fi).pushGoal(sig);
-        TypeBuilder tbChk = tb.pushDef(fi).pushGoal(chk);
-
-        FieldDecl_c n = (FieldDecl_c) this.visitSignature(tbSig);
+        final TypeBuilder tbx = tb;
+        final FieldDef mix = fi;
+        
+        FieldDecl_c n = (FieldDecl_c) this.visitSignature(new NodeVisitor() {
+            int key = 0;
+            public Node override(Node n) {
+                Goal g = Globals.Scheduler().SignatureDef(tbx.job(), mix, key++);
+                return FieldDecl_c.this.visitChild(n, tbx.pushDef(mix).pushGoal(g));
+            }
+        });
+        
         fi.setType(n.type().typeRef());
 
         Expr init = (Expr) n.visitChild(n.init, tbChk);
         n = (FieldDecl_c) n.init(init);
 
         n = (FieldDecl_c) n.fieldDef(fi);
-
+        
         if (ii != null) {
             n = (FieldDecl_c) n.initializerDef(ii);
         }
+
+        n = (FieldDecl_c) n.flags(flags);
 
         return n;
     }
@@ -255,10 +260,24 @@ public class FieldDecl_c extends FragmentRoot_c implements FieldDecl {
     }
 
     @Override
-    public Node typeCheckRootFromInside(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
+    public Node typeCheckBody(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
         FieldDecl_c n = this;
         Expr init = (Expr) n.visitChild(n.init, childtc);
         n = (FieldDecl_c) n.init(init);
+        return n.checkConstants(tc);
+    }
+
+    @Override
+    protected Node typeCheckInnerRoot(Node parent, TypeChecker tc, TypeChecker childtc, Goal goal, Def def) throws SemanticException {
+        FragmentRoot_c n = this;
+        
+        if (goal instanceof SupertypeDef) {
+        }
+        else if (goal instanceof SignatureDef) {
+        }
+        else {
+            return super.typeCheckInnerRoot(parent, tc, childtc, goal, def);
+        }
         return n;
     }
 
@@ -401,8 +420,24 @@ public class FieldDecl_c extends FragmentRoot_c implements FieldDecl {
         w.write("(name " + name + ")");
         w.end();
     }
+    
     public Node copy(NodeFactory nf) {
         return nf.FieldDecl(this.position, this.flags, this.type, this.name, this.init);
+    }
+
+    public List<Goal> pregoals(final TypeChecker tc, final Def def) {
+        final List<Goal> goals = new ArrayList<Goal>();
+        
+        this.visitSignature(new NodeVisitor() {
+            int key = 0;
+            public Node override(Node n) {
+              goals.add(Globals.Scheduler().SignatureDef(tc.job(), def, key++));
+              return n;
+            }
+        });
+        
+        goals.add(Globals.Scheduler().TypeCheckDef(tc.job(), def));
+        return goals;
     }
 
 }

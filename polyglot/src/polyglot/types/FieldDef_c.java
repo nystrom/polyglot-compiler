@@ -17,6 +17,7 @@ import polyglot.util.Position;
 public class FieldDef_c extends VarDef_c implements FieldDef
 {
     protected Ref<? extends ReferenceType> container;
+    protected InitializerDef initializer;
 
     /** Used for deserializing types. */
     protected FieldDef_c() { }
@@ -28,12 +29,20 @@ public class FieldDef_c extends VarDef_c implements FieldDef
         this.container = container;
     }
  
+    public InitializerDef initializer() {
+        return initializer;
+    }
+
+    public void setInitializer(InitializerDef initializer) {
+        this.initializer = initializer;
+    }
+    
     protected transient FieldInstance asInstance;
 
     public FieldInstance asInstance() {
         if (Report.should_report("asi", 1)) asInstance = null;
         if (asInstance == null) {
-            asInstance = new FieldInstance_c(ts, position(), Types.<FieldDef> ref(this));
+            asInstance = ts.createFieldInstance(position(), Types.ref(this));
         }
         return asInstance;
     }
@@ -88,7 +97,15 @@ public class FieldDef_c extends VarDef_c implements FieldDef
                     setNotConstant();
                 }
                 else {
-                    scheduler.attempt(g);
+                    try {
+                        scheduler.attempt(g);
+                    }
+                    catch (CyclicDependencyException e) {
+                        scheduler.markReached(g);
+                        setNotConstant();
+                        return;
+                    }
+                    
                     assert g.hasBeenReached();
                     assert constantValueSet;
                 }
@@ -103,10 +120,6 @@ public class FieldDef_c extends VarDef_c implements FieldDef
      */
     public void setContainer(Ref<? extends ReferenceType> container) {
         this.container = container;
-    }
-     
-    public boolean equalsImpl(TypeObject o) {
-        return this == o;
     }
 
     public String toString() {

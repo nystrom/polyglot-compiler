@@ -13,4 +13,7 @@ package polyglot.types;
 public interface FieldDef extends VarDef, MemberDef
 {
     FieldInstance asInstance();
+    
+    InitializerDef initializer();
+    void setInitializer(InitializerDef initializer);
 }

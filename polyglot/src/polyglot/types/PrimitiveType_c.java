@@ -64,7 +64,7 @@ public class PrimitiveType_c extends Type_c implements PrimitiveType
     }
 
     public boolean typeEquals(Type t) {
-        return ts.equals(this, t);
+        return ts.equals((TypeObject) this, (TypeObject) t);
     }
 
     public String wrapperTypeString(TypeSystem ts) {

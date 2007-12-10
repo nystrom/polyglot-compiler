@@ -67,23 +67,19 @@ public class JLScheduler extends Scheduler {
     }    
 
     public Goal ImportTableInitialized(Job job) {
-        return new SourceGoal_c("ImportTableInitialized", job) {
-            public Pass createPass() {
-                TypeSystem ts = extInfo.typeSystem();
-                NodeFactory nf = extInfo.nodeFactory();
-                return new VisitorPass(this, job, new InitImportsVisitor(job, ts, nf));
-            }
-        }.intern(this);
+        TypeSystem ts = job.extensionInfo().typeSystem();
+        NodeFactory nf = job.extensionInfo().nodeFactory();
+        Goal g = new VisitorGoal("ImportTableInitialized", job, new InitImportsVisitor(job, ts, nf));
+        Goal g2 = g.intern(this);
+        if (g == g2) {
+            g.addPrereq(TypesInitializedForCommandLine());
+        }
+        return g2;
     }
 
     public Goal TypesInitialized(Job job) {
-        return new SourceGoal_c("TypesInitialized", job) {
-            public Pass createPass() {
-                TypeSystem ts = extInfo.typeSystem();
-                NodeFactory nf = extInfo.nodeFactory();
-                return new VisitorPass(this, job, new TypeBuilder(job, ts, nf));
-            }
-        }.intern(this);
+        // For this one, the goal is stored in the job.  This is called a lot from the system resolver and interning is expensive.
+        return job.TypesInitialized(this);
     }
 
     public Goal TypesInitializedForCommandLine() {
@@ -97,21 +93,15 @@ public class JLScheduler extends Scheduler {
     }
 
     public Goal FragmentAST(Job job) {
-        return new SourceGoal_c("FragmentAST", job) {
-            public Pass createPass() {
-                TypeSystem ts = extInfo.typeSystem();
-                NodeFactory nf = extInfo.nodeFactory();
-                return new VisitorPass(this, job, new ASTFragmenter(job, ts, nf));
-            }
-        }.intern(this);
+        return job.FragmentAST(this);
     }
     
     public Goal SupertypeDef(Job job, final Def def) {
         return new SupertypeDef("SupertypeDef", job, def).intern(this);
     }
     
-    public Goal SignatureDef(Job job, final Def def) {
-        return new SignatureDef("SignatureDef", job, def).intern(this);
+    public Goal SignatureDef(Job job, final Def def, int key) {
+        return new SignatureDef("SignatureDef", job, def, key).intern(this);
     }
     
     public Goal TypeCheckDef(Job job, final Def def) {
@@ -119,14 +109,9 @@ public class JLScheduler extends Scheduler {
     }
 
     public Goal TypeChecked(Job job) {
-        return new SourceGoal_c("TypeChecked", job) {
-            
-            public Pass createPass() {
-                TypeSystem ts = extInfo.typeSystem();
-                NodeFactory nf = extInfo.nodeFactory();
-                return new VisitorPass(this, job, new TypeChecker(job, ts, nf));
-            }
-        }.intern(this);
+        TypeSystem ts = job.extensionInfo().typeSystem();
+        NodeFactory nf = job.extensionInfo().nodeFactory();
+        return new VisitorGoal("TypeChecked", job, new TypeChecker(job, ts, nf)).intern(this);
     }
 
     public Goal ReassembleAST(Job job) {
@@ -155,63 +140,39 @@ public class JLScheduler extends Scheduler {
     }
 
     public Goal ReachabilityChecked(Job job) {
-        return new SourceGoal_c("ReachChecked", job) {
-            public Pass createPass() {
-                TypeSystem ts = extInfo.typeSystem();
-                NodeFactory nf = extInfo.nodeFactory();
-                return new VisitorPass(this, job, new ReachChecker(job, ts, nf));
-            }
-        }.intern(this);
+        TypeSystem ts = job.extensionInfo().typeSystem();
+        NodeFactory nf = job.extensionInfo().nodeFactory();
+        return new VisitorGoal("ReachChecked", job, new ReachChecker(job, ts, nf)).intern(this);
     }
 
     public Goal ExceptionsChecked(Job job) {
-        return new SourceGoal_c("ExceptionsChecked", job) {
-            public Pass createPass() {
-                TypeSystem ts = extInfo.typeSystem();
-                NodeFactory nf = extInfo.nodeFactory();
-                return new VisitorPass(this, job, new ExceptionChecker(job, ts, nf));
-            }
-        }.intern(this);
+        TypeSystem ts = job.extensionInfo().typeSystem();
+        NodeFactory nf = job.extensionInfo().nodeFactory();
+        return new VisitorGoal("ExceptionsChecked", job, new ExceptionChecker(job, ts, nf)).intern(this);
     }
 
     public Goal ExitPathsChecked(Job job) {
-        return new SourceGoal_c("ExitChecked", job) {
-            public Pass createPass() {
-                TypeSystem ts = extInfo.typeSystem();
-                NodeFactory nf = extInfo.nodeFactory();
-                return new VisitorPass(this, job, new ExitChecker(job, ts, nf));
-            }
-        }.intern(this);
+        TypeSystem ts = job.extensionInfo().typeSystem();
+        NodeFactory nf = job.extensionInfo().nodeFactory();
+        return new VisitorGoal("ExitChecked", job, new ExitChecker(job, ts, nf)).intern(this);
     }
 
     public Goal InitializationsChecked(Job job) {
-        return new SourceGoal_c("InitializationsChecked", job) {
-            public Pass createPass() {
-                TypeSystem ts = extInfo.typeSystem();
-                NodeFactory nf = extInfo.nodeFactory();
-                return new VisitorPass(this, job, new InitChecker(job, ts, nf));
-            }
-        }.intern(this);
+        TypeSystem ts = job.extensionInfo().typeSystem();
+        NodeFactory nf = job.extensionInfo().nodeFactory();
+        return new VisitorGoal("InitializationsChecked", job, new InitChecker(job, ts, nf)).intern(this);
     }
 
     public Goal ConstructorCallsChecked(Job job) {
-        return new SourceGoal_c("ContructorCallsChecked", job) {
-            public Pass createPass() {
-                TypeSystem ts = extInfo.typeSystem();
-                NodeFactory nf = extInfo.nodeFactory();
-                return new VisitorPass(this, job, new ConstructorCallChecker(job, ts, nf));
-            }
-        }.intern(this);
+        TypeSystem ts = job.extensionInfo().typeSystem();
+        NodeFactory nf = job.extensionInfo().nodeFactory();
+        return new VisitorGoal("ContructorCallsChecked", job, new ConstructorCallChecker(job, ts, nf)).intern(this);
     }
 
     public Goal ForwardReferencesChecked(Job job) {
-        return new SourceGoal_c("ForwardRefsChecked", job) {
-            public Pass createPass() {
-                TypeSystem ts = extInfo.typeSystem();
-                NodeFactory nf = extInfo.nodeFactory();
-                return new VisitorPass(this, job, new FwdReferenceChecker(job, ts, nf));
-            }
-        }.intern(this);
+        TypeSystem ts = job.extensionInfo().typeSystem();
+        NodeFactory nf = job.extensionInfo().nodeFactory();
+        return new VisitorGoal("ForwardRefsChecked", job, new FwdReferenceChecker(job, ts, nf)).intern(this);
     }
 
     public Goal Serialized(Job job) {
@@ -303,85 +264,9 @@ public class JLScheduler extends Scheduler {
         }
     }
 
-    public static abstract class FragmentGoal extends SourceGoal_c {
-        protected Def def;
-        protected ContextVisitor v;
-        
-        protected FragmentGoal(String name, Job job, Def def, ContextVisitor v) {
-            super(name, job);
-            assert def != null;
-            assert v != null;
-            this.def = def;
-            this.v = v;
-        }
-        
-        GoalSet view = null;
-        
-        @Override
-        public GoalSet requiredView() {
-            if (view == null)
-                view = createRequiredView();    
-            return view;
-        }
-
-        public Def def() {
-            return def;
-        }
-        
-        @Override
-        public List<Goal> prereqs() {
-            List<Goal> l = new ArrayList<Goal>();
-            l.addAll(super.prereqs());
-            l.add(Globals.Scheduler().FragmentAST(job()));
-            return l;
-        }
-        
-        public GoalSet createRequiredView() {
-            return defaultRequiredView();
-        }
-        
-        public GoalSet defaultRequiredView() {
-            return new RuleBasedGoalSet() {
-                public boolean contains(Goal g) {
-                    return FragmentGoal.super.requiredView().contains(g) ||
-                    g instanceof LookupGlobalType ||
-                    g instanceof LookupGlobalTypeDefAndSetFlags;
-                }
-                
-                public String toString() { return "DefGoalRuleSet(" + FragmentGoal.this + ")"; }
-            };
-        }
-        
-        public boolean equals(Object o) {
-            if (o == this)
-                return true;
-            if (o instanceof FragmentGoal) {
-                FragmentGoal g = (FragmentGoal) o;
-                return super.equals(o) && name.equals(g.name) && (def != null ? def.equals(g.def) : g.def == null) && v.getClass() == g.v.getClass();
-            }
-            return false;
-        }
-        
-        public int hashCode() {
-            return super.hashCode() + (def != null ? def.hashCode() : 0);
-        }
-        
-        public String toString() {
-            return job() + ":" + job().extensionInfo() + ":"
-            + name() + ":" + def + " (" + stateString() + ")";
-        }
-        
-        public Pass createPass() {
-            ExtensionInfo extInfo = Globals.Extension();
-            TypeSystem ts = extInfo.typeSystem();
-            NodeFactory nf = extInfo.nodeFactory();
-            return new FragmentPass(this, job, def, v);
-        }
-    }
-    
-    protected static class SupertypeDef extends FragmentGoal {
+    public static class SupertypeDef extends FragmentGoal {
         protected SupertypeDef(String name, Job job, Def def) {
-            super(name, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), TypeChecker.Scope.SUPER, def));
+            super(name, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), def));
         }
 
         @Override
@@ -402,9 +287,21 @@ public class JLScheduler extends Scheduler {
         }
     }
     
-    protected static class SignatureDef extends FragmentGoal {
-        protected SignatureDef(String name, Job job, Def def) {
-            super(name, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), TypeChecker.Scope.SIGNATURES, def));
+    public static class SignatureDef extends FragmentGoal {
+        int key;
+        
+        protected SignatureDef(String name, Job job, Def def, int key) {
+            super(name + key, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), def, key));
+            this.key = key;
+        }
+        
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof SignatureDef) {
+                SignatureDef s = (SignatureDef) o;
+                return super.equals(s) && key == s.key;
+            }
+            return false;
         }
         
         @Override
@@ -434,11 +331,15 @@ public class JLScheduler extends Scheduler {
 //            }
             return l;
         }
+
+        public int key() {
+            return key;
+        }
     }
     
-    protected static class TypeCheckDef extends FragmentGoal {
+    public static class TypeCheckDef extends FragmentGoal {
         protected TypeCheckDef(String name, Job job, Def def) {
-            super(name, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), TypeChecker.Scope.BODY, def));
+            super(name, job, def, new TypeChecker(job, job.extensionInfo().typeSystem(), job.extensionInfo().nodeFactory(), def));
         }
         
         @Override

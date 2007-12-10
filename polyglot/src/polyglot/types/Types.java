@@ -1,6 +1,7 @@
 package polyglot.types;
 
 import polyglot.frontend.Goal;
+import polyglot.frontend.GoalSet;
 
 public class Types {
 
@@ -18,9 +19,9 @@ public class Types {
         return sym;
     }
     
-    public static <T extends TypeObject> LazyRef<T> typeRef() {
-        return new LazyRef_c<T>();
-    }
+//    public static <T extends TypeObject> LazyRef<T> lazyRef() {
+//        return new LazyRef_c<T>();
+//    }
 
     /** Create a lazy reference to a type object, with an initial value.
      * @param v initial value
@@ -28,8 +29,16 @@ public class Types {
      * 
      * ### resolver should be a map
      */
-    public static <T extends TypeObject> LazyRef<T> typeRef(T v, Goal resolver) {
+    public static <T extends TypeObject> LazyRef<T> lazyRef(T v) {
+        return new LazyRef_c<T>(v);
+    }
+
+    public static <T extends TypeObject> LazyRef<T> lazyRef(T v, Goal resolver) {
         return new LazyRef_c<T>(v, resolver);
+    }
+
+    public static <T extends TypeObject> LazyRef<T> lazyRef(T v, Goal resolver, GoalSet view) {
+        return new LazyRef_c<T>(v, resolver, view);
     }
 
 }

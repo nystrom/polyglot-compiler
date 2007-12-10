@@ -33,7 +33,7 @@ public class ConstructorDef_c extends ProcedureDef_c
     public ConstructorInstance asInstance() {
         if (Report.should_report("asi", 1)) asInstance = null;
         if (asInstance == null) {
-            asInstance = new ConstructorInstance_c(ts, position(), Types.<ConstructorDef> ref(this));
+            asInstance = ts.createConstructorInstance(position(), Types.ref(this));
         }
         return asInstance;
     }

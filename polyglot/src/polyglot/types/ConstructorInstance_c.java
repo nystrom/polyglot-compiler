@@ -1,17 +1,48 @@
 package polyglot.types;
 
+import java.util.List;
+
 import polyglot.util.Position;
 
 public class ConstructorInstance_c extends ProcedureInstance_c<ConstructorDef> implements ConstructorInstance {
     public ConstructorInstance_c(TypeSystem ts, Position pos, Ref<? extends ConstructorDef> def) {
         super(ts, pos, def);
     }
+
+    protected Flags flags;
+    protected ReferenceType container;
     
+    public ConstructorInstance container(ReferenceType container) {
+        ConstructorInstance_c p = (ConstructorInstance_c) copy();
+        p.container = container;
+        return p;
+    }
+
     public ReferenceType container() {
-        return Types.get(def().container());
+        if (this.container == null) {
+            this.container = Types.get(def().container());
+        }
+        return this.container;
     }
     
+    public ConstructorInstance flags(Flags flags) {
+        ConstructorInstance_c p = (ConstructorInstance_c) copy();
+        p.flags = flags;
+        return p;
+    }
+
     public Flags flags() {
-        return def().flags();
+        if (this.flags == null) { 
+            this.flags = def().flags();
+        }
+        return this.flags;
+    }
+    
+    public ConstructorInstance formalTypes(List<Type> formalTypes) {
+        return (ConstructorInstance) super.formalTypes(formalTypes);
+    }
+    
+    public ConstructorInstance throwTypes(List<Type> throwTypes) {
+        return (ConstructorInstance) super.throwTypes(throwTypes);
     }
 }

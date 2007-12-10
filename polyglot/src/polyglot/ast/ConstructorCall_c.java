@@ -123,7 +123,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 
         ConstructorCall_c n = (ConstructorCall_c) super.buildTypes(tb);
 
-        ConstructorInstance ci = new ConstructorInstance_c(ts, position(), new ErrorRef_c<ConstructorDef>(ts, position()));
+        ConstructorInstance ci = ts.createConstructorInstance(position(), new ErrorRef_c<ConstructorDef>(ts, position()));
         return n.constructorInstance(ci);
     }
 

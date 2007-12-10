@@ -12,6 +12,8 @@ import java.util.*;
 
 import polyglot.frontend.Globals;
 import polyglot.frontend.Goal;
+import polyglot.frontend.JLScheduler.SignatureDef;
+import polyglot.frontend.JLScheduler.SupertypeDef;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -124,21 +126,39 @@ public class Initializer_c extends FragmentRoot_c implements Initializer
         return succs;
     }
 
-    /** Build type objects for the method. */
-    public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
+    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
         TypeSystem ts = tb.typeSystem();
-        ClassDef ct = tb.currentClass();
-        InitializerDef ii = ts.initializerDef(position(), Types.ref(ct.asType()), flags);
-        
-        Goal g = Globals.Scheduler().TypeCheckDef(tb.job(), ii);
-        if (false)
-        g.addPrereq(Globals.Scheduler().SupertypeDef(tb.job(), ct));
-        return tb.pushCode(ii, g);
-    }
 
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        InitializerDef ii = (InitializerDef) tb.def();
-        return initializerDef(ii);
+        ClassDef ct = tb.currentClass();
+        assert ct != null;
+
+        Flags flags = this.flags;
+
+        InitializerDef ii = ts.initializerDef(position(), Types.ref(ct.asType()), flags);
+        Symbol<InitializerDef> sym = Types.<InitializerDef> symbol(ii);
+
+        ii = ts.initializerDef(position(), Types.<ClassType> ref(ct.asType()), flags);
+        Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), ii);
+        TypeBuilder tbChk = tb.pushCode(ii, chk);
+
+        final TypeBuilder tbx = tb;
+        final InitializerDef mix = ii;
+
+        Initializer_c n = (Initializer_c) this.visitSignature(new NodeVisitor() {
+            int key = 0;
+
+            public Node override(Node n) {
+                Goal g = Globals.Scheduler().SignatureDef(tbx.job(), mix, key++);
+                return Initializer_c.this.visitChild(n, tbx.pushCode(mix, g));
+            }
+        });
+
+        Block body = (Block) n.visitChild(n.body, tbChk);
+        n = (Initializer_c) n.body(body);
+
+        n = (Initializer_c) n.initializerDef(ii);
+
+        return n;
     }
 
     @Override
@@ -148,7 +168,7 @@ public class Initializer_c extends FragmentRoot_c implements Initializer
 
     /** Type check the declaration. */
     @Override
-    public Node typeCheckRootFromInside(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
+    public Node typeCheckBody(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
         Initializer_c n;
@@ -157,6 +177,20 @@ public class Initializer_c extends FragmentRoot_c implements Initializer
         n = reconstruct(body);
         n = (Initializer_c) tc.leave(parent, this, n, childtc);
 
+        return n;
+    }
+
+    @Override
+    protected Node typeCheckInnerRoot(Node parent, TypeChecker tc, TypeChecker childtc, Goal goal, Def def) throws SemanticException {
+        FragmentRoot_c n = this;
+        
+        if (goal instanceof SupertypeDef) {
+        }
+        else if (goal instanceof SignatureDef) {
+        }
+        else {
+            return super.typeCheckInnerRoot(parent, tc, childtc, goal, def);
+        }
         return n;
     }
 
@@ -263,6 +297,21 @@ public class Initializer_c extends FragmentRoot_c implements Initializer
     
     public Node copy(NodeFactory nf) {
         return nf.Initializer(this.position, this.flags, this.body);
+    }
+
+    public List<Goal> pregoals(final TypeChecker tc, final Def def) {
+        final List<Goal> goals = new ArrayList<Goal>();
+        
+        this.visitSignature(new NodeVisitor() {
+            int key = 0;
+            public Node override(Node n) {
+              goals.add(Globals.Scheduler().SignatureDef(tc.job(), def, key++));
+              return n;
+            }
+        });
+        
+        goals.add(Globals.Scheduler().TypeCheckDef(tc.job(), def));
+        return goals;
     }
 
 }

@@ -14,4 +14,5 @@ package polyglot.types;
  */
 public interface CodeDef extends Def
 {
+    CodeInstance<?> asInstance();
 }

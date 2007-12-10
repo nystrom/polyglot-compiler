@@ -360,6 +360,18 @@ public class TypeSystem_c implements TypeSystem
         if (type1 == null || type2 == null) return false;
         return type1.equalsImpl(type2);
     }
+    
+    public final void equals(Type type1, Type type2) {
+        assert false;
+    }
+
+    public final void equals(Type type1, TypeObject type2) {
+        assert false;
+    }
+
+    public final void equals(TypeObject type1, Type type2) {
+        assert false;
+    }
 
     /**
      * Returns true iff type1 and type2 are equivalent.
@@ -599,7 +611,6 @@ public class TypeSystem_c implements TypeSystem
 	checkCycles(superType, goal);
 
 	for (Type si : curr.interfaces()) {
-
 	    if (si == goal) {
                 throw new SemanticException("Circular inheritance involving " + goal, 
                                             curr.position());
@@ -607,6 +618,7 @@ public class TypeSystem_c implements TypeSystem
 
 	    checkCycles(si.toReference(), goal);
         }    
+	
         if (curr.isClass()) {
             checkCycles(curr.toClass().outer(), goal);
         }
@@ -1518,7 +1530,7 @@ public class TypeSystem_c implements TypeSystem
                 String name = getTransformedClassName(ct);
 
                 TypeSystem_c ts = this;
-                LazyRef<ClassDef> sym = Types.typeRef();
+                LazyRef<ClassDef> sym = Types.lazyRef(unknownClassDef(), null, GoalSet.EMPTY);
                 Goal resolver = Globals.Scheduler().LookupGlobalTypeDef(sym, name);
                 Globals.Scheduler().markReached(resolver);
                 sym.setResolver(resolver);
@@ -1528,6 +1540,17 @@ public class TypeSystem_c implements TypeSystem
 
 	return o;
     }
+    
+    public ClassDef unknownClassDef() {
+        if (unknownClassDef == null) {
+            unknownClassDef = new ClassDef_c(this, null);
+            unknownClassDef.name("<unknown class>");
+            unknownClassDef.kind(ClassDef.TOP_LEVEL);
+        }
+        return unknownClassDef;
+    }
+    
+    protected ClassDef unknownClassDef = null;
 
     protected UnknownType unknownType = new UnknownType_c(this);
     protected UnknownPackage unknownPackage = new UnknownPackage_c(this);
@@ -1626,10 +1649,14 @@ public class TypeSystem_c implements TypeSystem
     protected ArrayType arrayType(Position pos, Ref<? extends Type> type) {
         ArrayType t = (ArrayType) arrayTypeCache.get(type);
         if (t == null) {
-            t = new ArrayType_c(this, pos, type);
+            t = createArrayType(pos, type);
             arrayTypeCache.put(type, t);
         }
         return t;
+    }
+    
+    protected ArrayType createArrayType(Position pos, Ref<? extends Type> type) {
+        return new ArrayType_c(this, pos, type);
     }
 
     public ArrayType arrayOf(Ref<? extends Type> type, int dims) {
@@ -1755,12 +1782,32 @@ public class TypeSystem_c implements TypeSystem
         return createClassDef((Source) null);
     }
     
-    public final ClassDef createClassDef(Source fromSource) {
+    public ClassDef createClassDef(Source fromSource) {
         return new ClassDef_c(this, fromSource);
     }
 
-    public ParsedClassType createClassType(ClassDef def) {
-        return new ParsedClassType_c(this, def.position(), Types.<ClassDef>ref(def));
+    public ParsedClassType createClassType(Position pos, Ref<? extends ClassDef> def) {
+        return new ParsedClassType_c(this, pos, def);
+    }
+
+    public ConstructorInstance createConstructorInstance(Position pos, Ref<? extends ConstructorDef> def) {
+        return new ConstructorInstance_c(this, pos, def);
+    }
+
+    public MethodInstance createMethodInstance(Position pos, Ref<? extends MethodDef> def) {
+        return new MethodInstance_c(this, pos, def);
+    }
+
+    public FieldInstance createFieldInstance(Position pos, Ref<? extends FieldDef> def) {
+        return new FieldInstance_c(this, pos, def);
+    }
+
+    public LocalInstance createLocalInstance(Position pos, Ref<? extends LocalDef> def) {
+        return new LocalInstance_c(this, pos, def);
+    }
+    
+    public InitializerInstance createInitializerInstance(Position pos, Ref<? extends InitializerDef> def) {
+        return new InitializerInstance_c(this, pos, def);
     }
 
     public List<String> defaultPackageImports() {

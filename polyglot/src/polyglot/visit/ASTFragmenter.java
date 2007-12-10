@@ -37,11 +37,16 @@ public class ASTFragmenter extends ContextVisitor
         super.finish(ast);
         job.setFragmentMap(fragmentMap);
     }
-    
+
+    @Override
     protected Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException {
         if (Report.should_report(Report.visit, 2))
             Report.report(2, ">> " + this + "::leave " + n);
 
+        if (v instanceof PruningVisitor) {
+            return n;
+        }
+        
         Context c = context().freeze();
         
         if (n instanceof FragmentRoot) {

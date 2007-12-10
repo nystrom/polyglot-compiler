@@ -7,9 +7,12 @@ public interface MethodInstance extends FunctionInstance<MethodDef>, MemberInsta
      * The method's name.
      */
     String name();
-    
-    Flags flags();
 
+    MethodInstance name(String name);
+    MethodInstance returnType(Type returnType);
+    MethodInstance formalTypes(List<Type> formalTypes);
+    MethodInstance throwTypes(List<Type> throwTypes);
+    
     /**
      * Get the list of methods this method (potentially) overrides, in order
      * from this class (i.e., including <code>this</code>) to super classes.

@@ -11,6 +11,7 @@ package polyglot.visit;
 import java.util.*;
 
 import polyglot.ast.*;
+import polyglot.frontend.Globals;
 import polyglot.frontend.Job;
 import polyglot.main.Report;
 import polyglot.types.*;
@@ -424,6 +425,8 @@ public abstract class DataFlow extends ErrorHandlingVisitor
                 // Build the control flow graph.
                 CFGBuilder v = createCFGBuilder(ts, g);
 
+                long t1 = System.currentTimeMillis();
+                
                 try {
                     v.visitGraph();
                 }
@@ -431,9 +434,19 @@ public abstract class DataFlow extends ErrorHandlingVisitor
                     throw new SemanticException(e.message(), e.position());
                 }
 
+                long t2 = System.currentTimeMillis();
+                
                 dataflow(g);
 
+                long t3 = System.currentTimeMillis();
+
                 post(g, cd);
+                
+                long t4 = System.currentTimeMillis();
+
+                Globals.Stats().accumulate("DataFlow.cfg.build", (t2-t1));
+                Globals.Stats().accumulate("DataFlow.dataflow", (t3-t2));
+                Globals.Stats().accumulate("DataFlow.post", (t4-t3));
 
                 // push the CFG onto the stack if we are dataflowing on entry
                 if (dataflowOnEntry)

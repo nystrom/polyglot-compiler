@@ -12,6 +12,7 @@ import polyglot.frontend.Compiler;
 import polyglot.main.Report;
 import polyglot.types.reflect.ClassFile;
 import polyglot.types.reflect.ClassFileLoader;
+import polyglot.util.InternalCompilerError;
 
 /**
  * Loads class information from source files, class files, or serialized
@@ -115,11 +116,9 @@ public class SourceClassResolver extends LoadedClassResolver
     if (super.packageExists(name)) {
         return true;
     }
-    /*
     if (ext.sourceLoader().packageExists(name)) {
         return true;
     }
-    */
     return false;
   }
 
@@ -263,7 +262,12 @@ public class SourceClassResolver extends LoadedClassResolver
         Goal g = scheduler.TypesInitialized(job);
 
         if (! scheduler.reached(g)) {
-            scheduler.attempt(g);
+            try {
+                scheduler.attempt(g);
+            }
+            catch (CyclicDependencyException e) {
+                throw new InternalCompilerError("Could not initialize symbol table for " + source + "; cyclic dependency found.", e);
+            }
         }
         
         n = ts.systemResolver().check(name);

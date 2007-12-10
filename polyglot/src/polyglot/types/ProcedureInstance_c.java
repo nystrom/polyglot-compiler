@@ -7,8 +7,37 @@ import polyglot.types.TypeSystem_c.TypeEquals;
 import polyglot.util.*;
 
 public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implements ProcedureInstance<T> {
-    ProcedureInstance_c(TypeSystem ts, Position pos, Ref<? extends T> def) {
+    protected ProcedureInstance_c(TypeSystem ts, Position pos, Ref<? extends T> def) {
         super(ts, pos, def);
+    }
+
+    protected List<Type> formalTypes;
+    protected List<Type> throwTypes;
+    
+    public ProcedureInstance<T> formalTypes(List<Type> formalTypes) {
+        ProcedureInstance_c<T> p = (ProcedureInstance_c<T>) copy();
+        p.formalTypes = formalTypes;
+        return p;
+    }
+    
+    public ProcedureInstance<T> throwTypes(List<Type> throwTypes) {
+        ProcedureInstance_c<T> p = (ProcedureInstance_c<T>) copy();
+        p.throwTypes = throwTypes;
+        return p;
+    }
+    
+    public List<Type> formalTypes() {
+        if (this.formalTypes == null) {
+            this.formalTypes = new TransformingList<Ref<? extends Type>, Type>(def().formalTypes(), new DerefTransform<Type>());
+        }
+        return this.formalTypes;
+    }
+
+    public List<Type> throwTypes() {
+        if (this.throwTypes == null) {
+            this.throwTypes = new TransformingList<Ref<? extends Type>, Type>(def().throwTypes(), new DerefTransform<Type>());
+        }
+        return this.throwTypes;
     }
 
     /**
@@ -104,13 +133,4 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
     public String signature() {
         return def().signature();
     }
-
-    public List<Type> formalTypes() {
-        return new TransformingList<Ref<? extends Type>, Type>(def().formalTypes(), new DerefTransform<Type>());
-    }
-
-    public List<Type> throwTypes() {
-        return new TransformingList<Ref<? extends Type>, Type>(def().throwTypes(), new DerefTransform<Type>());
-    }
-
 }

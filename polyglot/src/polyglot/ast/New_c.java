@@ -155,7 +155,7 @@ public class New_c extends Expr_c implements New
 
         New_c n = this;
 
-        ConstructorInstance ci = new ConstructorInstance_c(ts, position(), new ErrorRef_c<ConstructorDef>(ts, position()));
+        ConstructorInstance ci = ts.createConstructorInstance(position(), new ErrorRef_c<ConstructorDef>(ts, position()));
         n = (New_c) n.constructorInstance(ci);
         
         Expr qual = (Expr) n.visitChild(n.qualifier(), tb);

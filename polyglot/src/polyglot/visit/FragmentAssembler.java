@@ -17,6 +17,11 @@ public class FragmentAssembler extends NodeVisitor {
 
     public Job job() { return job; }
 
+    public void finish(Node ast) {
+        // ### Do NOT clear fragment map; it's used to compute the prereqs for this goal.
+//        job.setFragmentMap(null);
+    }
+
     public ASTFragment getFragment(Def def) {
         if (def == null) return null;
         Job job = Globals.currentJob();

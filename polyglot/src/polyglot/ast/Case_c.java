@@ -104,11 +104,6 @@ public class Case_c extends Stmt_c implements Case
             return this;
         }
         
-        if (! expr.constantValueSet()) {
-            // Not ready yet; pass will get rerun.
-            return this;
-        }
-        
         if (expr.isConstant()) {
             Object o = expr.constantValue();
             

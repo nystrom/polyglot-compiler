@@ -132,7 +132,7 @@ public class Field_c extends Expr_c implements Field
 
       TypeSystem ts = tb.typeSystem();
 
-      FieldInstance fi = new FieldInstance_c(ts, position(), new ErrorRef_c<FieldDef>(ts, position()));
+      FieldInstance fi = ts.createFieldInstance(position(), new ErrorRef_c<FieldDef>(ts, position()));
       return n.fieldInstance(fi);
   }
 
@@ -244,15 +244,6 @@ public class Field_c extends Expr_c implements Field
       return Collections.EMPTY_LIST;
   }
 
-  public boolean constantValueSet() {
-      if (fi != null &&
-              (target instanceof TypeNode ||
-                      (target instanceof Special && targetImplicit))) {
-          return fi.constantValueSet();
-      }
-      return fi != null;
-  }
-  
   public boolean isConstant() {
       if (fi != null &&
               (target instanceof TypeNode ||

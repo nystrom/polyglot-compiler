@@ -67,10 +67,6 @@ public abstract class VarDef_c extends Def_c implements VarDef
         return name;
     }
 
-    public int hashCode() {
-        return flags.hashCode() + name.hashCode();
-    }
-
     public void setType(Ref<? extends Type> type) {
         this.type = type;
     }
