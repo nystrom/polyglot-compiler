@@ -432,7 +432,7 @@ public abstract class Scheduler {
         
         if (goal.state() == Goal.Status.RUNNING || goal.state() == Goal.Status.RUNNING_RECURSIVE) {
             if (! pass.isReentrant()) {
-                throw new CyclicDependencyException("Cannot reenter a non-reentrant pass for " + goal);
+                throw new CyclicDependencyException("Cannot reenter a non-reentrant pass.", goal);
             }
             reentrant = true;
         }

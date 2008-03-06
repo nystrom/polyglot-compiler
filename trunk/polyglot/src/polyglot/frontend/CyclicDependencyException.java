@@ -13,11 +13,17 @@ package polyglot.frontend;
  * already running.
  */
 public class CyclicDependencyException extends Exception {
+    protected Goal goal;
+	
     public CyclicDependencyException() {
         super();
     }
 
     public CyclicDependencyException(String m) {
         super(m);
+    }
+    public CyclicDependencyException(String m, Goal g) {
+    	super(m);
+    	this.goal = g;
     }
 }
