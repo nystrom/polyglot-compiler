@@ -12,7 +12,7 @@ import polyglot.util.CodeWriter;
 import polyglot.visit.PrettyPrinter;
 
 /** An output pass generates output code from the processed AST. */
-public class PrettyPrintPass extends AbstractPass
+public class PrettyPrintGoal extends SourceGoal_c
 {
     protected PrettyPrinter pp;
     protected CodeWriter w;
@@ -21,8 +21,8 @@ public class PrettyPrintPass extends AbstractPass
      * Create a PrettyPrinter.  The output of the visitor is a collection of files
      * whose names are added to the collection <code>outputFiles</code>.
      */
-    public PrettyPrintPass(Goal goal, Job job, CodeWriter w, PrettyPrinter pp) {
-	super(goal, job);
+    public PrettyPrintGoal(Job job, CodeWriter w, PrettyPrinter pp) {
+    	super(job);
         this.pp = pp;
         this.w = w;
     }

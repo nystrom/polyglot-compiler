@@ -109,7 +109,7 @@ public interface Context extends Resolver, Copy
     ClassType currentClass();
  
     /** Return the innermost class in scope. */
-    ClassDef currentClassScope();
+    ClassDef currentClassDef();
 
     /** Return the innermost method or constructor in scope. */
     CodeDef currentCode();

@@ -7,8 +7,8 @@
 
 package polyglot.ast;
 
-import polyglot.types.Package;
 import polyglot.types.Ref;
+import polyglot.types.Package;
 
 /**
  * A <code>PackageNode</code> is the syntactic representation of a 

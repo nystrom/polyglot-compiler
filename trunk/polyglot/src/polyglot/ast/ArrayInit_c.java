@@ -84,7 +84,7 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
     }
 
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
-        if (elements.isEmpty()) {
+		if (elements.isEmpty()) {
             return child.type();
         }
 
@@ -115,8 +115,8 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
         return child.type();
     }
 
-    public void typeCheckElements(Type lhsType) throws SemanticException {
-        TypeSystem ts = lhsType.typeSystem();
+    public void typeCheckElements(TypeChecker tc, Type lhsType) throws SemanticException {
+    	TypeSystem ts = tc.typeSystem();
 
         if (! lhsType.isArray()) {
           throw new SemanticException("Cannot initialize " + lhsType +
@@ -131,7 +131,7 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
             Type s = e.type();
 
             if (e instanceof ArrayInit) {
-                ((ArrayInit) e).typeCheckElements(t);
+                ((ArrayInit) e).typeCheckElements(tc, t);
                 continue;
             }
 

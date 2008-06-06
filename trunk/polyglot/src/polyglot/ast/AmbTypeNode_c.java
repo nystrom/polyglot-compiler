@@ -20,8 +20,8 @@ import polyglot.visit.*;
  * dot-separated list of identifiers that must resolve to a type.
  */
 public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
-  protected QualifierNode qual;
-  protected Id name;
+	protected QualifierNode qual;
+	protected Id name;
 
 //  protected Expr dummy;
   
@@ -31,7 +31,6 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
     assert(name != null); // qual may be null
     this.qual = qual;
     this.name = name;
-//    this.dummy = Globals.NF().ExprFromQualifiedName(pos, "java.util.Collections.EMPTY_LIST");
   }
 
   public Id id() {
@@ -65,12 +64,6 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
     return this;
   }
 
-  public Node buildTypes(TypeBuilder tb) throws SemanticException {
-      TypeSystem ts = tb.typeSystem();
-      LazyRef<? extends Type> sym = Types.lazyRef(ts.unknownType(position()), tb.goal());
-      return typeRef(sym);
-  }
-
   public Node visitChildren(NodeVisitor v) {
       QualifierNode qual = (QualifierNode) visitChild(this.qual, v);
       Id name = (Id) visitChild(this.name, v);
@@ -84,12 +77,12 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
 
       return reconstruct(qual, name);
   }
-
-  public Node disambiguate(AmbiguityRemover sc) throws SemanticException {
+  
+  public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
       SemanticException ex;
       
       try {
-          Node n = sc.nodeFactory().disamb().disambiguate(this, sc, position(), qual, name);
+          Node n = ar.nodeFactory().disamb().disambiguate(this, ar, position(), qual, name);
 
           if (n instanceof TypeNode) {
               TypeNode tn = (TypeNode) n;
@@ -113,7 +106,7 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
 
       // Mark the type as an error, so we don't try looking it up again.
       LazyRef<Type> sym = (LazyRef<Type>) type;
-      sym.update(sc.typeSystem().unknownType(position()));
+      sym.update(ar.typeSystem().unknownType(position()));
 
       throw ex;
   }

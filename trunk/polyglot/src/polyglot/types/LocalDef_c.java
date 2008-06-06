@@ -8,6 +8,7 @@
 package polyglot.types;
 
 import polyglot.main.Report;
+import polyglot.types.VarDef_c.ConstantValue;
 import polyglot.util.Position;
 
 /**
@@ -33,8 +34,27 @@ public class LocalDef_c extends VarDef_c implements LocalDef
         return asInstance;
     }
 
+
     public String toString() {
-        return "local " + flags.translate() + type + " " + name +
-	    (constantValue != null ? (" = " + constantValue) : "");
+        ConstantValue cv = constantRef.getCached();
+        String cvStr = "";
+        
+        if (cv != null && cv.isConstant()) {
+        	Object v = cv.value();
+        	if (v instanceof String) {
+        		String s = (String) v;
+
+        		if (s.length() > 8) {
+        			s = s.substring(0, 8) + "...";
+        		}
+
+        		v = "\"" + s + "\"";
+        	}
+
+        	cvStr = " = " + v;
+        }
+        
+        return "local " + flags.translate() + type + " " +
+        name + cvStr;
     }
 }

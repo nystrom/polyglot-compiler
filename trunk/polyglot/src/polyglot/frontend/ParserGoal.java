@@ -21,12 +21,12 @@ import polyglot.util.Position;
  * A pass which runs a parser.  After parsing it stores the AST in the Job.
  * so it can be accessed by later passes.
  */
-public class ParserPass extends AbstractPass
+public class ParserGoal extends SourceGoal_c
 {
     protected Compiler compiler;
 
-    public ParserPass(Goal goal, Compiler compiler, Job job) {
-        super(goal, job, "Parser");
+    public ParserGoal(Compiler compiler, Job job) {
+        super("Parser", job);
 	this.compiler = compiler;
     }
 

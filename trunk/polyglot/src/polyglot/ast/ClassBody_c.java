@@ -73,7 +73,7 @@ public class ClassBody_c extends Term_c implements ClassBody
     }
 
     protected void duplicateFieldCheck(TypeChecker tc) throws SemanticException {
-        ClassDef type = tc.context().currentClassScope();
+        ClassDef type = tc.context().currentClassDef();
 
         ArrayList<FieldDef> l = new ArrayList<FieldDef>(type.fields());
 
@@ -91,7 +91,7 @@ public class ClassBody_c extends Term_c implements ClassBody
     }
 
     protected void duplicateConstructorCheck(TypeChecker tc) throws SemanticException {
-        ClassDef type = tc.context().currentClassScope();
+        ClassDef type = tc.context().currentClassDef();
         TypeSystem ts = tc.typeSystem();
 
         ArrayList<ConstructorDef> l = new ArrayList<ConstructorDef>(type.constructors());
@@ -112,7 +112,8 @@ public class ClassBody_c extends Term_c implements ClassBody
     }
 
     protected void duplicateMethodCheck(TypeChecker tc) throws SemanticException {
-        ClassDef type = tc.context().currentClassScope();
+        ClassDef type = tc.context().currentClassDef();
+
         TypeSystem ts = tc.typeSystem();
 
         ArrayList<MethodDef> l = new ArrayList<MethodDef>(type.methods());
@@ -133,7 +134,7 @@ public class ClassBody_c extends Term_c implements ClassBody
     }
 
     protected void duplicateMemberClassCheck(TypeChecker tc) throws SemanticException {
-        ClassDef type = tc.context().currentClassScope();
+        ClassDef type = tc.context().currentClassDef();
 
         ArrayList<Ref<? extends Type>> l = new ArrayList<Ref<? extends Type>>(type.memberClasses());
 
@@ -152,8 +153,8 @@ public class ClassBody_c extends Term_c implements ClassBody
         }
     }
 
-    protected boolean isSameMethod(TypeSystem ts, MethodInstance mi,
-                                   MethodInstance mj) {
+    protected boolean isSameMethod(TypeSystem ts,
+                                   MethodInstance mi, MethodInstance mj) {
         return mi.isSameMethod(mj);
     }
 

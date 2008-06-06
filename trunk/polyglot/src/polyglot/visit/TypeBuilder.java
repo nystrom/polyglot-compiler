@@ -31,7 +31,6 @@ public class TypeBuilder extends NodeVisitor
     protected boolean global; // true if all scopes pushed have been classes.
     protected Package package_;
     protected ClassDef type; // last class pushed.
-    protected Goal goal;
     protected Def def;
 
     public TypeBuilder(Job job, TypeSystem ts, NodeFactory nf) {
@@ -53,10 +52,6 @@ public class TypeBuilder extends NodeVisitor
     
     public Def def() {
         return def;
-    }
-    
-    public Goal goal() {
-        return goal;
     }
     
     public Job job() {
@@ -156,7 +151,7 @@ public class TypeBuilder extends NodeVisitor
                 if (! inCode) {
                     // entering code
                     inCode = true;
-                    tb = tb.pushCode(c.currentCode(), Globals.Scheduler().TypeCheckDef(tb.job(), def));
+                    tb = tb.pushCode(c.currentCode());
                 }
             }
             else {
@@ -169,9 +164,9 @@ public class TypeBuilder extends NodeVisitor
                     // entering package context in source
                     tb = tb.pushPackage(c.package_());
                 }
-                if (c.currentClassScope() != tb.currentClass()) {
+                if (c.currentClassDef() != tb.currentClass()) {
                     // entering class
-                    tb = tb.pushClass(c.currentClassScope());
+                    tb = tb.pushClass(c.currentClassDef());
                 }
             }
         }
@@ -185,12 +180,6 @@ public class TypeBuilder extends NodeVisitor
         return tb;
     }
     
-    public TypeBuilder pushGoal(Goal goal) {
-        TypeBuilder tb = push();
-        tb.goal = goal;
-        return tb;
-    }
-        
     public TypeBuilder pushPackage(Package p) {
         if (Report.should_report(Report.visit, 4))
 	    Report.report(4, "TB pushing package " + p + ": " + context());
@@ -200,11 +189,10 @@ public class TypeBuilder extends NodeVisitor
         return tb;
     }
 
-    public TypeBuilder pushCode(CodeDef def, Goal goal) {
+    public TypeBuilder pushCode(CodeDef def) {
         if (Report.should_report(Report.visit, 4))
 	    Report.report(4, "TB pushing code: " + context());
         TypeBuilder tb = pushDef(def);
-        tb.goal = goal;
         tb.inCode = true;
         tb.global = false;
         return tb;
@@ -215,7 +203,6 @@ public class TypeBuilder extends NodeVisitor
 	    Report.report(4, "TB pushing class " + classDef + ": " + context());
 
         TypeBuilder tb = pushDef(classDef);
-        tb.goal = Globals.Scheduler().TypeCheckDef(job(), classDef);
         tb.inCode = false;
         tb.type = classDef;
 

@@ -93,7 +93,7 @@ public class ExtensionCleaner extends NodeVisitor {
         }
 
         if (n instanceof Expr) {
-            n = ((Expr) n).type(null);
+            n = ((Expr) n).type((Type) null);
         }
 
         return n;

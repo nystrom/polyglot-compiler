@@ -23,7 +23,7 @@ public class Def_c extends TypeObject_c {
     }
     
     public Object copy() {
-        assert false;
+//        assert false;
         return super.copy();
     }
 

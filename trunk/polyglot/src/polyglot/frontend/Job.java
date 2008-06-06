@@ -11,10 +11,9 @@ import java.util.*;
 
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
-import polyglot.types.Def;
 import polyglot.types.TypeSystem;
 import polyglot.util.CodeWriter;
-import polyglot.visit.*;
+import polyglot.visit.TypeBuilder;
 
 /**
  * A <code>Job</code> encapsulates work done by the compiler for a single
@@ -35,11 +34,8 @@ public class Job
     /** The AST constructed from the source file. */
     protected Node ast;
     
-    /** Map from definitions to AST nodes. */
-    protected Map<Def,ASTFragment> fragmentMap;
-
-    /** The pass currently running over the job, or null. */
-    protected Pass runningPass;
+    /** Map for memoizing nodes during type-checking. */
+    protected Map<Node,Node> nodeMemo;
 
     /** True if all passes run so far have been successful. */
     protected boolean status;
@@ -59,57 +55,24 @@ public class Job
         this.source = source;
         this.ast = ast;
 
-        this.runningPass = null;
         this.status = true;
         this.initialErrorCount = 0;
         this.reportedErrors = false;
     }
     
-    public List<Pass> passes() {
-        return Collections.<Pass>emptyList();
-    }
-    
-    public Map<Def,ASTFragment> fragmentMap() {
-        if (fragmentMap == null) {
-            fragmentMap = new HashMap<Def,ASTFragment>();
+    public Map<Node,Node> nodeMemo() {
+        if (nodeMemo == null) {
+            nodeMemo = new HashMap<Node,Node>();
         }
-        return fragmentMap;
+        return nodeMemo;
     }
     
-    public void setFragmentMap(Map<Def,ASTFragment> map) {
-        this.fragmentMap = map;
+    public void setNodeMemo(Map<Node,Node> map) {
+        this.nodeMemo = map;
     }
     
     public JobExt ext() {
       return ext;
-    }
-
-    public void setRunningPass(Pass pass) {
-        // The pass is not-null iff the job is running
-        if (pass != null) {
-            // We're starting to run the pass. 
-            // Record the initial error count.
-            this.initialErrorCount = compiler().errorQueue().errorCount();
-        }
-        else {
-            // We've stopped running a pass. 
-            // Check if the error count changed.
-            int errorCount = compiler().errorQueue().errorCount();
-
-            if (errorCount > initialErrorCount) {
-                reportedErrors = true;
-            }
-        }
-
-        runningPass = pass;
-    }
-
-    public boolean isRunning() {
-        return runningPass != null;
-    }
-
-    public Pass runningPass() {
-        return runningPass;
     }
 
     /** Get the state's AST. */
@@ -181,7 +144,6 @@ public class Job
     }
 
     Goal TypesInitialized;
-    Goal FragmentAST;
     
     public Goal TypesInitialized(Scheduler scheduler) {
         if (TypesInitialized == null) {
@@ -191,15 +153,5 @@ public class Job
             TypesInitialized = new VisitorGoal("TypesInitialized", job, new TypeBuilder(job, ts, nf)).intern(scheduler);
         }
         return TypesInitialized;
-    }
-    
-    public Goal FragmentAST(Scheduler scheduler) {
-        if (FragmentAST == null) {
-            Job job = this;
-            TypeSystem ts = job.extensionInfo().typeSystem();
-            NodeFactory nf = job.extensionInfo().nodeFactory();
-            FragmentAST = new VisitorGoal("FragmentAST", job, new ASTFragmenter(job, ts, nf)).intern(scheduler);
-        }
-        return FragmentAST;
     }
 }

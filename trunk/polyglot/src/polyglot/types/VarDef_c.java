@@ -7,6 +7,7 @@
 
 package polyglot.types;
 
+import polyglot.frontend.*;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 
@@ -19,42 +20,61 @@ public abstract class VarDef_c extends Def_c implements VarDef
     protected Flags flags;
     protected Ref<? extends Type> type;
     protected String name;
-    protected Object constantValue;
-    protected boolean isConstant;
-    protected boolean constantValueSet;
+    Ref<ConstantValue> constantRef;
 
     /** Used for deserializing types. */
     protected VarDef_c() { }
 
     public VarDef_c(TypeSystem ts, Position pos,
 	                 Flags flags, Ref<? extends Type> type, String name) {
-        super(ts, pos);
-	this.flags = flags;
-	this.type = type;
-	this.name = name;
+    	super(ts, pos);
+    	this.flags = flags;
+    	this.type = type;
+    	this.name = name;
+    	this.constantRef = Types.<ConstantValue>lazyRef(null);
     }
-    
-    public boolean constantValueSet() {
-        return constantValueSet;
-    }
-    
-    public boolean isConstant() {
-        if (! constantValueSet) {
-            if (! flags.isFinal()) {
-                setNotConstant();
-                return isConstant;
-            }
-        }
-        return isConstant;
+
+    public static class ConstantValue {
+    	private Object value;
+    	private boolean isConstant;
+    	public ConstantValue() {
+    		this.value = null;
+    		this.isConstant = false;
+    	}
+    	public ConstantValue(Object v) {
+    		this.value = v;
+    		this.isConstant = true;
+    	}
+		public void setValue(Object value) {
+			this.value = value;
+		}
+		public Object value() {
+			return value;
+		}
+		public void setConstant(boolean isConstant) {
+			this.isConstant = isConstant;
+		}
+		public boolean isConstant() {
+			return isConstant;
+		}
     }
 
     public Object constantValue() {
-        if (isConstant()) {
-            return constantValue;
-        }
-        return null;
+    	ConstantValue cv = constantRef.get();
+    	if (cv == null) return null;
+    	return cv.value();
     }
-
+    
+    public boolean isConstant() {
+    	ConstantValue cv = constantRef.get();
+    	if (cv == null) return false;
+    	return cv.isConstant();
+    }
+    
+    public Ref<ConstantValue> constantValueRef() {
+    	return constantRef;
+    }
+ 
     public Flags flags() {
         return flags;
     }
@@ -87,15 +107,11 @@ public abstract class VarDef_c extends Def_c implements VarDef
             "Can only set constant value to a primitive or String.");
         }
 
-        this.constantValue = constantValue;
-        this.isConstant = true;
-        this.constantValueSet = true;
+        this.constantRef.update(new ConstantValue(constantValue));
     }
     
     public void setNotConstant() {
-        this.constantValue = null;
-        this.isConstant = false;
-        this.constantValueSet = true;
+    	this.constantRef.update(new ConstantValue());
     }
     
     /**

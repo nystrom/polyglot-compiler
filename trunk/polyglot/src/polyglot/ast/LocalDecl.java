@@ -34,6 +34,4 @@ public interface LocalDecl extends ForInit, VarDecl, VarInit
      * Set the type object for the local we are declaring.
      */
     LocalDecl localDef(LocalDef li);
-    
-    boolean constantValueSet();
 }

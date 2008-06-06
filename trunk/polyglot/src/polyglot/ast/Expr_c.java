@@ -7,12 +7,10 @@
 
 package polyglot.ast;
 
-import polyglot.types.SemanticException;
-import polyglot.types.Type;
+import polyglot.types.*;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeBuilder;
+import polyglot.visit.*;
 
 /**
  * An <code>Expr</code> represents any Java expression.  All expressions
@@ -20,7 +18,7 @@ import polyglot.visit.TypeBuilder;
  */
 public abstract class Expr_c extends Term_c implements Expr
 {
-    protected Type type;
+	protected Type type;
 
     public Expr_c(Position pos) {
 	super(pos);
@@ -32,15 +30,15 @@ public abstract class Expr_c extends Term_c implements Expr
      * correct type after type-checking.
      */
     public Type type() {
-	return this.type;
+    	return this.type;
     }
-
+    
     /** Set the type of the expression. */
     public Expr type(Type type) {
-        if (type == this.type) return this;
-	Expr_c n = (Expr_c) copy();
-	n.type = type;
-	return n;
+    	if (type == this.type) return this;
+    	Expr_c n = (Expr_c) copy();
+    	n.type = type;
+    	return n;
     }
 
     public void dump(CodeWriter w) {

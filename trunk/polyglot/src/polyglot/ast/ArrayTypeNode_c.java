@@ -52,17 +52,14 @@ public class ArrayTypeNode_c extends TypeNode_c implements ArrayTypeNode
     }
 
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
-	return typeRef(Types.<Type>ref(tb.typeSystem().arrayOf(position(), base.typeRef())));
+    	return typeRef(Types.<Type>ref(tb.typeSystem().arrayOf(position(), base.typeRef())));
     }
 
     public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
 	TypeSystem ts = ar.typeSystem();
 	NodeFactory nf = ar.nodeFactory();
-	if (base.type() instanceof UnknownType) {
-	    return nf.CanonicalTypeNode(position(), base.type());
-	}
         return nf.CanonicalTypeNode(position(),
-		                    ts.arrayOf(position(), base.type()));
+		                    ts.arrayOf(position(), base.typeRef()));
     }
 
     public Node typeCheck(TypeChecker tc) throws SemanticException {

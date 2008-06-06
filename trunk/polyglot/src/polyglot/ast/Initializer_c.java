@@ -12,8 +12,6 @@ import java.util.*;
 
 import polyglot.frontend.Globals;
 import polyglot.frontend.Goal;
-import polyglot.frontend.JLScheduler.SignatureDef;
-import polyglot.frontend.JLScheduler.SupertypeDef;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -25,7 +23,7 @@ import polyglot.visit.*;
  * constructors.  Such a block can optionally be static, in which case
  * it is executed when the class is loaded.
  */
-public class Initializer_c extends FragmentRoot_c implements Initializer
+public class Initializer_c extends Term_c implements Initializer
 {
     protected Flags flags;
     protected Block body;
@@ -135,21 +133,16 @@ public class Initializer_c extends FragmentRoot_c implements Initializer
         Flags flags = this.flags;
 
         InitializerDef ii = ts.initializerDef(position(), Types.ref(ct.asType()), flags);
-        Symbol<InitializerDef> sym = Types.<InitializerDef> symbol(ii);
 
         ii = ts.initializerDef(position(), Types.<ClassType> ref(ct.asType()), flags);
-        Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), ii);
-        TypeBuilder tbChk = tb.pushCode(ii, chk);
+        TypeBuilder tbChk = tb.pushCode(ii);
 
         final TypeBuilder tbx = tb;
         final InitializerDef mix = ii;
 
         Initializer_c n = (Initializer_c) this.visitSignature(new NodeVisitor() {
-            int key = 0;
-
             public Node override(Node n) {
-                Goal g = Globals.Scheduler().SignatureDef(tbx.job(), mix, key++);
-                return Initializer_c.this.visitChild(n, tbx.pushCode(mix, g));
+                return Initializer_c.this.visitChild(n, tbx.pushCode(mix));
             }
         });
 
@@ -161,13 +154,11 @@ public class Initializer_c extends FragmentRoot_c implements Initializer
         return n;
     }
 
-    @Override
     public Node visitSignature(NodeVisitor v) {
         return this;
     }
 
     /** Type check the declaration. */
-    @Override
     public Node typeCheckBody(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
@@ -177,20 +168,6 @@ public class Initializer_c extends FragmentRoot_c implements Initializer
         n = reconstruct(body);
         n = (Initializer_c) tc.leave(parent, this, n, childtc);
 
-        return n;
-    }
-
-    @Override
-    protected Node typeCheckInnerRoot(Node parent, TypeChecker tc, TypeChecker childtc, Goal goal, Def def) throws SemanticException {
-        FragmentRoot_c n = this;
-        
-        if (goal instanceof SupertypeDef) {
-        }
-        else if (goal instanceof SignatureDef) {
-        }
-        else {
-            return super.typeCheckInnerRoot(parent, tc, childtc, goal, def);
-        }
         return n;
     }
 
@@ -297,21 +274,6 @@ public class Initializer_c extends FragmentRoot_c implements Initializer
     
     public Node copy(NodeFactory nf) {
         return nf.Initializer(this.position, this.flags, this.body);
-    }
-
-    public List<Goal> pregoals(final TypeChecker tc, final Def def) {
-        final List<Goal> goals = new ArrayList<Goal>();
-        
-        this.visitSignature(new NodeVisitor() {
-            int key = 0;
-            public Node override(Node n) {
-              goals.add(Globals.Scheduler().SignatureDef(tc.job(), def, key++));
-              return n;
-            }
-        });
-        
-        goals.add(Globals.Scheduler().TypeCheckDef(tc.job(), def));
-        return goals;
     }
 
 }

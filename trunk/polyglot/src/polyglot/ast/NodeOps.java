@@ -97,41 +97,9 @@ public interface NodeOps
     Node buildTypes(TypeBuilder tb) throws SemanticException;
 
     /**
-     * Disambiguate the AST.
-     *
-     * This method is called by the <code>override()</code> method of the
-     * visitor.  If this method returns non-null, the node's children
-     * will not be visited automatically.  Thus, the method should check
-     * both the node <code>this</code> and it's children, usually by
-     * invoking <code>visitChildren</code> with <code>tc</code> or
-     * with another visitor, returning a non-null node.  OR, the method
-     * should do nothing and simply return <code>null</code> to allow
-     * <code>enter</code>, <code>visitChildren</code>, and <code>leave</code>
-     * to be invoked on the node.
-     *
-     * The default implementation returns <code>null</code>.
-     * Overriding of this method is discouraged, but sometimes necessary.
-     *
-     * @param ar The visitor which disambiguates.
-     */
-    Node disambiguateOverride(Node parent, AmbiguityRemover ar) throws SemanticException;
-
-    /**
      * Remove any remaining ambiguities from the AST.
-     *
-     * This method is called by the <code>enter()</code> method of the
-     * visitor.  The * method should perform work that should be done
-     * before visiting the children of the node.  The method may return
-     * <code>this</code> or a new copy of the node on which
-     * <code>visitChildren()</code> and <code>leave()</code> will be
-     * invoked.
-     *
-     * @param ar The visitor which disambiguates.
-     */
-    NodeVisitor disambiguateEnter(AmbiguityRemover ar) throws SemanticException;
-
-    /**
-     * Remove any remaining ambiguities from the AST.
+     * This method is called after the compute types pass and
+     * reconstructs the node from the type information computed there.
      *
      * This method is called by the <code>leave()</code> method of the
      * visitor.  The method should perform work that should be done
@@ -146,6 +114,9 @@ public interface NodeOps
      * @param ar The visitor which disambiguates.
      */
     Node disambiguate(AmbiguityRemover ar) throws SemanticException;
+
+    Node setResolverOverride(Node parent, TypeCheckPreparer v);
+    void setResolver(Node parent, TypeCheckPreparer v);
 
     /**
      * Type check the AST.

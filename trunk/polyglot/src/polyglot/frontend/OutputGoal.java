@@ -12,7 +12,7 @@ import polyglot.util.InternalCompilerError;
 import polyglot.visit.Translator;
 
 /** An output pass generates output code from the processed AST. */
-public class OutputPass extends AbstractPass
+public class OutputGoal extends SourceGoal_c
 {
     protected Translator translator;
 
@@ -20,8 +20,8 @@ public class OutputPass extends AbstractPass
      * Create a Translator.  The output of the visitor is a collection of files
      * whose names are added to the collection <code>outputFiles</code>.
      */
-    public OutputPass(Goal goal, Job job, Translator translator) {
-	super(goal, job);
+    public OutputGoal(Job job, Translator translator) {
+    	super("CodeGenerated", job);
         this.translator = translator;
     }
 

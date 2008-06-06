@@ -153,8 +153,8 @@ public class ExceptionChecker extends ErrorHandlingVisitor
      * type t is not allowed to be thrown at this point; the exception t will be
      * added to the throwsSet of all exception checkers in the stack, up to (and
      * not including) the exception checker that catches the exception.
-     * 
      * @param t The type of exception that the node throws.
+     * 
      * @throws SemanticException
      */
     public void throwsException(Type t, Position pos) throws SemanticException {
@@ -226,7 +226,7 @@ public class ExceptionChecker extends ErrorHandlingVisitor
             this.codeType = codeType;
         }
         void uncaughtType(Type t, Position pos) throws SemanticException {
-            throw new SemanticException("A " + codeType + " can not " +
+            throw new SemanticException("A " + codeType + " cannot " +
                         "throw a \"" + t + "\".", pos);
         }
     }

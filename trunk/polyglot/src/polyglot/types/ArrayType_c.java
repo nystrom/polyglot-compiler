@@ -116,7 +116,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
     public String translate(Resolver c) {
         return base().translate(c) + "[]"; 
     }
-
+    
     public boolean isArray() { return true; }
     public ArrayType toArray() { return this; }
 
@@ -169,60 +169,5 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
             return ts.equals((TypeObject) base(), (TypeObject) a.base());
         }
 	return false;
-    }
-
-    public boolean typeEquals(Type t) {
-        if (t instanceof ArrayType) {
-            ArrayType a = (ArrayType) t;
-            return ts.typeEquals(base(), a.base());
-        }
-	return false;
-    }
-
-    public boolean isImplicitCastValid(Type toType) {
-        if (toType.isArray()) {
-            Type fromBase = base();
-            Type toBase = toType.toArray().base();
-            if (fromBase.isPrimitive() || toBase.isPrimitive()) {
-                return ts.typeEquals(fromBase, toBase);
-            }
-            else {
-                return ts.isImplicitCastValid(fromBase, toBase);
-            }
-        }
-
-        // toType is not an array, but this is.  Check if the array
-        // is a subtype of the toType.  This happens when toType
-        // is java.lang.Object.
-        return ts.isSubtype(this, toType);
-    }
-
-    /**
-     * Requires: all type arguments are canonical.  ToType is not a NullType.
-     *
-     * Returns true iff a cast from this to toType is valid; in other
-     * words, some non-null members of this are also members of toType.
-     **/
-    public boolean isCastValid(Type toType) {
-        if (! toType.isReference()) return false;
-
-	if (toType.isArray()) {
-	    Type fromBase = base();
-	    Type toBase = toType.toArray().base();
-
-	    if (fromBase.isPrimitive()) return ts.typeEquals(toBase, fromBase);
-	    if (toBase.isPrimitive()) return false;
-
-	    if (fromBase.isNull()) return false;
-	    if (toBase.isNull()) return false;
-
-	    // Both are reference types.
-	    return ts.isCastValid(fromBase, toBase);
-	}
-
-        // Ancestor is not an array, but child is.  Check if the array
-        // is a subtype of the ancestor.  This happens when ancestor
-        // is java.lang.Object.
-        return ts.isSubtype(this, toType);
     }
 }

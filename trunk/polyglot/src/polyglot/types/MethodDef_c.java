@@ -10,6 +10,7 @@ package polyglot.types;
 import java.util.List;
 
 import polyglot.main.Report;
+import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 
 /**
@@ -71,14 +72,14 @@ public class MethodDef_c extends ProcedureDef_c
                    container() + "." + signature();
 
 	if (! throwTypes.isEmpty()) {
-	    s += " throws " + TypeSystem_c.listToString(throwTypes);
+	    s += " throws " + CollectionUtil.listToString(throwTypes);
 	}
 
 	return s;
     }
 
     public String signature() {
-        return name + "(" + TypeSystem_c.listToString(formalTypes) + ")";
+        return name + "(" + CollectionUtil.listToString(formalTypes) + ")";
     }
 
     public String designator() {

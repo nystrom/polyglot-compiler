@@ -3,11 +3,10 @@
  */
 package polyglot.types;
 
-import polyglot.frontend.GoalSet;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 
-public class ErrorRef_c<T extends TypeObject>  extends TypeObject_c implements Ref<T> {
+public class ErrorRef_c<T> extends TypeObject_c implements Ref<T> {
       public ErrorRef_c(TypeSystem ts, Position pos) {
           super(ts, pos);
       }
@@ -16,11 +15,19 @@ public class ErrorRef_c<T extends TypeObject>  extends TypeObject_c implements R
           throw new InternalCompilerError("Bad", position());
       }
       
-      public T get(GoalSet view) {
+      public T getCached() {
           throw new InternalCompilerError("Bad", position());
       }
       
-      public boolean nonnull() {
+      public boolean known() {
           return false;
+      }
+
+      public void update(T v) {
+    	  throw new InternalCompilerError("Bad", position());
+      }
+      
+      public void when(Handler<T> h) {
+    	  throw new InternalCompilerError("Bad", position());
       }
   }

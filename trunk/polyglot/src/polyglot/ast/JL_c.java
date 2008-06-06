@@ -125,25 +125,6 @@ public class JL_c extends Ext_c implements JL {
     /**
      * Remove any remaining ambiguities from the AST.
      *
-     * This method is called by the <code>enter()</code> method of the
-     * visitor.  The * method should perform work that should be done
-     * before visiting the children of the node.  The method may return
-     * <code>this</code> or a new copy of the node on which
-     * <code>visitChildren()</code> and <code>leave()</code> will be
-     * invoked.
-     *
-     * @param ar The visitor which disambiguates.
-     */
-    public Node disambiguateOverride(Node parent, AmbiguityRemover ar) throws SemanticException {
-	return jl().disambiguateOverride(parent, ar);
-    }
-    public NodeVisitor disambiguateEnter(AmbiguityRemover ar) throws SemanticException {
-	return jl().disambiguateEnter(ar);
-    }
-
-    /**
-     * Remove any remaining ambiguities from the AST.
-     *
      * This method is called by the <code>leave()</code> method of the
      * visitor.  The method should perform work that should be done
      * after visiting the children of the node.  The method may return
@@ -153,7 +134,15 @@ public class JL_c extends Ext_c implements JL {
      * @param ar The visitor which disambiguates.
      */
     public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
-	return jl().disambiguate(ar);
+    	return jl().disambiguate(ar);
+    }
+
+    public Node setResolverOverride(Node parent, TypeCheckPreparer v) {
+    	return jl().setResolverOverride(parent, v);
+    }
+    
+    public void setResolver(Node parent, TypeCheckPreparer v) {
+    	jl().setResolver(parent, v);
     }
 
     /**

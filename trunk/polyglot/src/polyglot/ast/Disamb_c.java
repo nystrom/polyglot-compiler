@@ -124,7 +124,7 @@ public class Disamb_c implements Disamb
 
         if (t.isReference() && exprOK()) {
             try {
-                FieldInstance fi = ts.findField(t.toReference(), name.id(), c.currentClassScope());
+                FieldInstance fi = ts.findField(t.toReference(), name.id(), c.currentClassDef());
                 return nf.Field(pos, tn, name).fieldInstance(fi);
             } catch (NoMemberException e) {
                 if (e.getKind() != NoMemberException.FIELD) {

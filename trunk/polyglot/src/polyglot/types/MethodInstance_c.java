@@ -71,8 +71,8 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
         return this.name().equals(m.name()) && hasFormals(m.formalTypes());
     }
 
-    public boolean methodCallValid(String name, List<Type> argTypes) {
-        return name().equals(name) && this.callValid(argTypes);
+    public boolean methodCallValid(String name, Type thisType, List<Type> argTypes) {
+        return name().equals(name) && this.callValid(thisType, argTypes);
     }
 
     public List<MethodInstance> overrides() {
@@ -207,26 +207,26 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
     }
 
     public List<MethodInstance> implemented(ReferenceType rt) {
-        if (rt == null) {
-            return Collections.<MethodInstance>emptyList();
-        }
+	    if (rt == null) {
+		    return Collections.<MethodInstance>emptyList();
+	    }
+	    
+	    List<MethodInstance> l = new LinkedList<MethodInstance>();
+	    l.addAll(rt.methods(name(), formalTypes()));
 
-        List<MethodInstance> l = new LinkedList<MethodInstance>();
-        l.addAll(rt.methods(name(), formalTypes()));
+	    Type superType = rt.superType();
+	    if (superType instanceof ReferenceType) {
+		    l.addAll(implemented(superType.toReference())); 
+	    }
 
-        Type superType = rt.superType();
-        if (superType instanceof ReferenceType) {
-            l.addAll(implemented(superType.toReference())); 
-        }
-        
-        List<Type> ints = rt.interfaces();
-        for (Type t : ints) {
-            if (t instanceof ReferenceType) {
-                ReferenceType rt2 = (ReferenceType) t;
-                l.addAll(implemented(rt2));
-            }
-        }
-        
-        return l;
+	    List<Type> ints = rt.interfaces();
+	    for (Type t : ints) {
+		    if (t instanceof ReferenceType) {
+			    ReferenceType rt2 = (ReferenceType) t;
+			    l.addAll(implemented(rt2));
+		    }
+	    }
+
+	    return l;
     }
 }

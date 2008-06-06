@@ -10,10 +10,6 @@ package polyglot.ast;
 
 import java.util.*;
 
-import polyglot.frontend.Globals;
-import polyglot.frontend.Goal;
-import polyglot.frontend.JLScheduler.SignatureDef;
-import polyglot.frontend.JLScheduler.SupertypeDef;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -22,7 +18,7 @@ import polyglot.visit.*;
  * A <code>ConstructorDecl</code> is an immutable representation of a
  * constructor declaration as part of a class body.
  */
-public class ConstructorDecl_c extends FragmentRoot_c implements ConstructorDecl
+public class ConstructorDecl_c extends Term_c implements ConstructorDecl
 {
     protected Flags flags;
     protected Id name;
@@ -182,11 +178,9 @@ public class ConstructorDecl_c extends FragmentRoot_c implements ConstructorDecl
 
         ConstructorDef ci = ts.constructorDef(position(), Types.ref(ct.asType()), flags,
                                               Collections.<Ref<? extends Type>>emptyList(), Collections.<Ref<? extends Type>>emptyList());
-        Symbol<ConstructorDef> sym = Types.<ConstructorDef>symbol(ci);
         ct.addConstructor(ci);
 
-        Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), ci);
-        TypeBuilder tbChk = tb.pushCode(ci, chk);
+        TypeBuilder tbChk = tb.pushCode(ci);
         
         final TypeBuilder tbx = tb;
         final ConstructorDef mix = ci;
@@ -194,7 +188,7 @@ public class ConstructorDecl_c extends FragmentRoot_c implements ConstructorDecl
         ConstructorDecl_c n = (ConstructorDecl_c) this.visitSignature(new NodeVisitor() {
             int key = 0;
             public Node override(Node n) {
-                return ConstructorDecl_c.this.visitChild(n, tbx.pushCode(mix, Globals.Scheduler().SignatureDef(tbx.job(), mix, key++)));
+                return ConstructorDecl_c.this.visitChild(n, tbx.pushCode(mix));
             }
         });
 
@@ -221,7 +215,6 @@ public class ConstructorDecl_c extends FragmentRoot_c implements ConstructorDecl
         return c.pushCode(ci);
     }
 
-    @Override
     public Node visitSignature(NodeVisitor v) {
         Id name = (Id) this.visitChild(this.name, v);
         List<Formal> formals = this.visitList(this.formals, v);
@@ -230,25 +223,10 @@ public class ConstructorDecl_c extends FragmentRoot_c implements ConstructorDecl
     }
 
     /** Type check the declaration. */
-    @Override
     public Node typeCheckBody(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
         ConstructorDecl_c n = this;
         Block body = (Block) n.visitChild(n.body, childtc);
         n = (ConstructorDecl_c) n.body(body);
-        return n;
-    }
-
-    @Override
-    protected Node typeCheckInnerRoot(Node parent, TypeChecker tc, TypeChecker childtc, Goal goal, Def def) throws SemanticException {
-        FragmentRoot_c n = this;
-        
-        if (goal instanceof SupertypeDef) {
-        }
-        else if (goal instanceof SignatureDef) {
-        }
-        else {
-            return super.typeCheckInnerRoot(parent, tc, childtc, goal, def);
-        }
         return n;
     }
 
@@ -396,21 +374,6 @@ public class ConstructorDecl_c extends FragmentRoot_c implements ConstructorDecl
     }
     public Node copy(NodeFactory nf) {
         return nf.ConstructorDecl(this.position, this.flags, this.name, this.formals, this.throwTypes, this.body);
-    }
-
-    public List<Goal> pregoals(final TypeChecker tc, final Def def) {
-        final List<Goal> goals = new ArrayList<Goal>();
-        
-        this.visitSignature(new NodeVisitor() {
-            int key = 0;
-            public Node override(Node n) {
-              goals.add(Globals.Scheduler().SignatureDef(tc.job(), def, key++));
-              return n;
-            }
-        });
-        
-        goals.add(Globals.Scheduler().TypeCheckDef(tc.job(), def));
-        return goals;
     }
 
 }

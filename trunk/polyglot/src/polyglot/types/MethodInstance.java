@@ -52,8 +52,9 @@ public interface MethodInstance extends FunctionInstance<MethodDef>, MemberInsta
      * Return true if this method can be called with name <code>name</code>
      * and actual parameters of types <code>actualTypes</code>.
      * @param name The method to call.
+     * @param thisType TODO
      * @param actualTypes A list of argument types of type <code>Type</code>.
      * @see polyglot.types.Type
      */
-    boolean methodCallValid(String name, List<Type> actualTypes);
+    boolean methodCallValid(String name, Type thisType, List<Type> actualTypes);
 }

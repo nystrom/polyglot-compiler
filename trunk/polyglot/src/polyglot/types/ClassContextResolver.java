@@ -48,9 +48,6 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
                 "Cannot lookup qualified name " + name);
         }
 
-        // Check if the name is for a member class.
-        ClassType mt = null;
-
         Named m = null;
         
         String fullName = type.isGloballyAccessible() ? type.fullName() + "." + name : null;
@@ -68,7 +65,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
 
         // Check if the member was explicitly declared.
         if (m == null) {
-            m = type.memberClassNamed(name);
+            m = type.memberTypeNamed(name);
         }
 
         if (m == null && fullName != null) {
@@ -93,10 +90,10 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
                 }
             }
         }
-
+        
         // If we found something, make sure it's accessible.
         if (m instanceof ClassType) {
-            mt = (ClassType) m;
+            ClassType mt = (ClassType) m;
 
             if (! mt.isMember()) {
                 throw new SemanticException("Class " + mt +
@@ -104,17 +101,30 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
                                             " but was found in " + type + ".");
             }
             
-            if (! mt.outer().typeEquals(type)) {
+            if (! mt.outer().equals((Object) type)) {
                 throw new SemanticException("Class " + mt +
                                             " is not a member class " +
                                             " of " + type + ".");
             }
-            
-            if (! canAccess(mt, accessor)) {
-                throw new SemanticException("Cannot access member type \"" + mt + "\".");
-            }
 
             return mt;
+        }
+        
+        if (m instanceof MemberInstance) {
+        	MemberInstance<?> mi = (MemberInstance<?>) m;
+        	
+        	if (! mi.container().equals((Object) type)) {
+        		throw new SemanticException("Type " + mi +
+        		                            " is not a member " +
+        		                            " of " + type + ".");
+        	}
+        }
+        
+        if (m != null) {
+        	if (! canAccess(m, accessor)) {
+        		throw new SemanticException("Cannot access member type \"" + m + "\".");
+        	}
+        	return m;
         }
         
         // Collect all members of the super types.
@@ -174,7 +184,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             else {
                 throw new SemanticException("Member \"" + name +
                                             "\" of " + type + " is ambiguous; it is defined in " +
-                                            TypeSystem_c.listToString(new ArrayList<Type>(containers)) + ".");
+                                            CollectionUtil.listToString(new ArrayList<Type>(containers)) + ".");
             }
         }
         
