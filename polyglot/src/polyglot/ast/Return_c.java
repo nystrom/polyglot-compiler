@@ -111,8 +111,7 @@ public class Return_c extends Stmt_c implements Return
 	        return this;
 	    }
 
-            if (ts.numericConversionValid(returnType,
-                                          expr.constantValue())) {
+            if (ts.numericConversionValid(returnType, expr.constantValue())) {
                 return this;
             }
 
@@ -120,7 +119,7 @@ public class Return_c extends Stmt_c implements Return
 		expr.type() + " from " + fi + ".", expr.position());
 	}
 
-	throw new InternalCompilerError("Unrecognized code type.");
+	throw new SemanticException("Cannot return from this context.", position());
     }
   
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
@@ -135,8 +134,7 @@ public class Return_c extends Stmt_c implements Return
 
                 // If expr is an integral constant, we can relax the expected
                 // type to the type of the constant.
-                if (ts.numericConversionValid(mi.returnType().get(),
-                                              child.constantValue())) {
+                if (ts.numericConversionValid(mi.returnType().get(), child.constantValue())) {
                     return child.type();
                 }
                 else {

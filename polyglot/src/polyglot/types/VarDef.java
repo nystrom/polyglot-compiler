@@ -7,6 +7,8 @@
 
 package polyglot.types;
 
+import polyglot.types.VarDef_c.ConstantValue;
+
 /**
  * A <code>VarInstance</code> contains type information for a variable.  It may
  * be either a local or a field.
@@ -29,10 +31,7 @@ public interface VarDef extends TypeObject, Def
      */
     Ref<? extends Type> type();
 
-    /**
-     * Whether the variable's constant value has been set yet.
-     */
-    boolean constantValueSet();
+    Ref<ConstantValue> constantValueRef();
     
     /**
      * The variable's constant value, or null.

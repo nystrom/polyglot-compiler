@@ -245,7 +245,7 @@ public class NodeFactory_c extends AbstractNodeFactory_c
         return n;
     }
     
-    public ClassDecl ClassDecl(Position pos, Flags flags, Id name, TypeNode superClass, List interfaces, ClassBody body) {
+    public ClassDecl ClassDecl(Position pos, Flags flags, Id name, TypeNode superClass, List<TypeNode> interfaces, ClassBody body) {
         ClassDecl n = new ClassDecl_c(pos, flags, name, superClass, CollectionUtil.nonNullList(interfaces), body);
         n = (ClassDecl)n.ext(extFactory.extClassDecl());
         n = (ClassDecl)n.del(delFactory.delClassDecl());

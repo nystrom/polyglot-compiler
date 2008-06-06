@@ -16,7 +16,7 @@ import polyglot.types.Flags;
  * A <code>ClassDecl</code> represents a top-level, member, or local class
  * declaration.
  */
-public interface ClassDecl extends Term, TopLevelDecl, ClassMember, FragmentRoot
+public interface ClassDecl extends Term, TopLevelDecl, ClassMember
 {
     /**
      * The type of the class declaration.

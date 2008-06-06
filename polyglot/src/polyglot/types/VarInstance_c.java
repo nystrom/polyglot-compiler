@@ -12,7 +12,7 @@ public class VarInstance_c<T extends VarDef> extends Use_c<T> implements VarInst
     Object constantValue;
 
     public Object constantValue() {
-        if (!constantValueSet) {
+        if (!constantValueSet && def.known()) {
             isConstant = def().isConstant();
             constantValue = def().constantValue();
         }
@@ -20,7 +20,7 @@ public class VarInstance_c<T extends VarDef> extends Use_c<T> implements VarInst
     }
 
     public boolean isConstant() {
-        if (!constantValueSet) {
+    	if (!constantValueSet && def.known()) {
             isConstant = def().isConstant();
             constantValue = def().constantValue();
         }

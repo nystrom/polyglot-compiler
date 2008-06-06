@@ -212,6 +212,7 @@ public class Call_c extends Expr_c implements Call
     /** Type check the call. */
     public Node typeCheck(TypeChecker tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
+
         Context c = tc.context();
 
         List<Type> argTypes = new ArrayList<Type>(this.arguments.size());
@@ -228,8 +229,7 @@ public class Call_c extends Expr_c implements Call
         ReferenceType targetType = this.findTargetType();
         MethodInstance mi = ts.findMethod(targetType, 
                                           this.name.id(), 
-                                          argTypes, 
-                                          c.currentClassScope());
+                                          argTypes, c.currentClassDef());
         
         /* This call is in a static context if and only if
          * the target (possibly implicit) is a type node.

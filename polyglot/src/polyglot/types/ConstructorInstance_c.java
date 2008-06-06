@@ -45,4 +45,9 @@ public class ConstructorInstance_c extends ProcedureInstance_c<ConstructorDef> i
     public ConstructorInstance throwTypes(List<Type> throwTypes) {
         return (ConstructorInstance) super.throwTypes(throwTypes);
     }
+    
+    public ConstructorInstance instantiate(ClassType objectType,
+    		List<Type> argumentTypes) throws SemanticException {
+    	return this;
+    }
 }

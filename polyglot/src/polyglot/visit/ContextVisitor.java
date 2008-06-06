@@ -94,7 +94,8 @@ public class ContextVisitor extends ErrorHandlingVisitor
      * visiting the node.
      */
     protected void addDecls(Node n) {
-        n.addDecls(context);
+	    if (n != null)
+		    n.addDecls(context);
     }
     
     public final NodeVisitor enter(Node n) {

@@ -17,8 +17,6 @@ public abstract class SourceGoal_c extends AbstractGoal_c implements SourceGoal 
         this.job = job;
     }
 
-    public abstract Pass createPass();
-
     public Job job() {
         return job;
     }

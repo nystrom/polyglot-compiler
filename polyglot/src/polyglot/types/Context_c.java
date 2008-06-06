@@ -33,7 +33,7 @@ public class Context_c implements Context
 	    super(name);
 	}
     }
-
+    
     public static final Kind BLOCK = new Kind("block");
     public static final Kind CLASS = new Kind("class");
     public static final Kind CODE = new Kind("code");
@@ -156,8 +156,7 @@ public class Context_c implements Context
 
             // Found a class which has a method of the right name.
             // Now need to check if the method is of the correct type.
-            return ts.findMethod(this.currentClass(),
-                                 name, argTypes, this.currentClassScope());
+            return ts.findMethod(this.currentClass(), name, argTypes, this.currentClassDef());
         }
 
         if (outer != null) {
@@ -232,7 +231,7 @@ public class Context_c implements Context
 	if (vi instanceof FieldInstance) {
 	    FieldInstance fi = (FieldInstance) vi;
 
-	    if (! ts.isAccessible(fi, this.currentClassScope())) {
+	    if (! ts.isAccessible(fi, this.currentClassDef())) {
                 throw new SemanticException("Field " + name + " not accessible.");
 	    }
 
@@ -437,7 +436,7 @@ public class Context_c implements Context
     /**
      * Gets current class
      */
-    public ClassDef currentClassScope() {
+    public ClassDef currentClassDef() {
         return scope;
     }
 
@@ -471,7 +470,7 @@ public class Context_c implements Context
             }
             else {
                 try {
-                    return ts.findMemberClass(this.currentClass(), name, this.currentClassScope());
+                    return ts.findMemberClass(this.currentClass(), name, this.currentClassDef());
                 }
                 catch (SemanticException e) {
                 }
@@ -501,7 +500,7 @@ public class Context_c implements Context
         
         if (vi == null && isClass()) {
             try {
-                return ts.findField(this.currentClass(), name, this.currentClassScope());
+                return ts.findField(this.currentClass(), name, this.currentClassDef());
             }
             catch (SemanticException e) {
                 return null;

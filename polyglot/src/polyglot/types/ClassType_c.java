@@ -38,16 +38,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         if (t instanceof ClassType_c) {
             Ref<? extends ClassDef> thisDef = def;
             Ref<? extends ClassDef> thatDef = ((ClassType_c) t).def;
-            return thisDef == thatDef;
-        }
-        return false;
-    }
-
-    public boolean typeEquals(Type t) {
-        if (t instanceof ClassType) {
-            ClassDef thisDef = def();
-            ClassDef thatDef = ((ClassType) t).def();
-            return thisDef.equalsImpl(thatDef);
+            return thisDef.get() == thatDef.get();
         }
         return false;
     }
@@ -162,17 +153,6 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         return l;
     }
 
-    /** Get a field of the class by name. */
-    public FieldInstance fieldNamed(String name) {
-        for (FieldInstance fi : fields()) {
-	    if (fi.name().equals(name)) {
-	        return fi;
-	    }
-	}
-
-	return null;
-    }
-
     /** Get a member class of the class by name. */
     public ClassType memberClassNamed(String name) {
         for (Iterator i = memberClasses().iterator(); i.hasNext(); ) {
@@ -185,133 +165,10 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
 	return null;
     }
 
-    public boolean descendsFrom(Type ancestor) {
-        if (ancestor.isNull()) {
-            return false;
-        }
-
-        if (ts.typeEquals(this, ancestor)) {
-            return false;
-        }
-
-        if (! ancestor.isReference()) {
-            return false;
-        }
-
-        if (ts.typeEquals(ancestor, ts.Object())) {
-            return true;
-        }
-
-        // Check subtype relation for classes.
-        if (! flags().isInterface()) {
-            if (ts.typeEquals(this, ts.Object())) {
-                return false;
-            }
-
-            if (superType() == null) {
-                return false;
-            }
-
-            if (ts.isSubtype(superType(), ancestor)) {
-                return true;
-            }
-        }
-
-        // Next check interfaces.
-        for (Iterator<Type> i = interfaces().iterator(); i.hasNext(); ) {
-            Type parentType = i.next();
-
-            if (ts.isSubtype(parentType, ancestor)) {
-                return true;
-            }
-        }
-
-        return false;
+    public Named memberTypeNamed(String name) {
+	    return memberClassNamed(name);
     }
-
-    public boolean isThrowable() {
-        return ts.isSubtype(this, ts.Throwable());
-    }
-
-    public boolean isUncheckedException() {
-        if (isThrowable()) {
-            Collection c = ts.uncheckedExceptions();
-                                  
-            for (Iterator i = c.iterator(); i.hasNext(); ) {
-                Type t = (Type) i.next();
-
-                if (ts.isSubtype(this, t)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    public boolean isImplicitCastValid(Type toType) {
-        if (! toType.isClass()) return false;
-        return ts.isSubtype(this, toType);
-    }
-
-    /**
-     * Requires: all type arguments are canonical.  ToType is not a NullType.
-     *
-     * Returns true iff a cast from this to toType is valid; in other
-     * words, some non-null members of this are also members of toType.
-     **/
-    public boolean isCastValid(Type toType) {
-	if (! toType.isReference()) return false;
-
-	if (toType.isArray()) {
-	    // From type is not an array, but to type is.  Check if the array
-	    // is a subtype of the from type.  This happens when from type
-	    // is java.lang.Object.
-	    return ts.isSubtype(toType, this);
-	}
-
-	// Both types should be classes now.
-	if (! toType.isClass()) return false;
-
-	// From and to are neither primitive nor an array. They are distinct.
-	boolean fromInterface = flags().isInterface();
-	boolean toInterface   = toType.toClass().flags().isInterface();
-	boolean fromFinal     = flags().isFinal();
-	boolean toFinal       = toType.toClass().flags().isFinal();
-
-	// This is taken from Section 5.5 of the JLS.
-	if (! fromInterface) {
-	    // From is not an interface.
-	    if (! toInterface) {
-		// Nether from nor to is an interface.
-		return ts.isSubtype(this, toType) || ts.isSubtype(toType, this);
-	    }
-
-	    if (fromFinal) {
-		// From is a final class, and to is an interface
-		return ts.isSubtype(this, toType);
-	    }
-
-	    // From is a non-final class, and to is an interface.
-	    return true;
-	}
-	else {
-	    // From is an interface
-	    if (! toInterface && ! toFinal) {
-		// To is a non-final class.
-		return true;
-	    }
-
-	    if (toFinal) {
-		// To is a final class.
-		return ts.isSubtype(toType, this);
-	    }
-
-	    // To and From are both interfaces.
-	    return true;
-	}
-    }
-
+    
     public String translate(Resolver c) {
         if (isTopLevel()) {
             if (package_() == null) {
@@ -411,7 +268,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         if (isTopLevel())
             return false;
         else if (outer() != null)
-            return outer().typeEquals(maybe_outer) ||
+            return outer().equals((Object) maybe_outer) ||
                   outer().isEnclosed(maybe_outer);
         else
             throw new InternalCompilerError("Non top-level classes " + 
@@ -423,7 +280,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
      * an enclosing instance of <code>encl</code>. 
      */
     public boolean hasEnclosingInstance(ClassType encl) {
-        if (this.typeEquals(encl)) {
+        if (this.equals((Object) encl)) {
             // object o is the zeroth lexically enclosing instance of itself. 
             return true;
         }

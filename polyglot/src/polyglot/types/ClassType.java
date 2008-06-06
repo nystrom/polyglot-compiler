@@ -91,6 +91,7 @@ public interface ClassType extends Importable, ReferenceType, MemberInstance<Cla
 
     /** Returns the member class with the given name, or null. */
     ClassType memberClassNamed(String name);
+    Named memberTypeNamed(String name);
     
     /** Return true if the class is strictly contained in <code>outer</code>. */
     boolean isEnclosed(ClassType outer);

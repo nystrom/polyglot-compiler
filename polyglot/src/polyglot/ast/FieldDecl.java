@@ -13,7 +13,7 @@ import polyglot.types.*;
  * A <code>FieldDecl</code> is an immutable representation of the declaration
  * of a field of a class.
  */
-public interface FieldDecl extends ClassMember, VarInit, CodeNode, FragmentRoot
+public interface FieldDecl extends ClassMember, VarInit, CodeNode
 {
     /** Get the type object for the declaration's type. */
     Type declType();
@@ -57,6 +57,4 @@ public interface FieldDecl extends ClassMember, VarInit, CodeNode, FragmentRoot
 
     /** Set the type object for the initializer expression. */
     FieldDecl initializerDef(InitializerDef fi);
-    
-    boolean constantValueSet();
 }

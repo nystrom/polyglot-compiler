@@ -1,6 +1,6 @@
 package polyglot.types;
 
-import polyglot.frontend.GoalSet;
+
 
 /** Reference to a type object. */
 public class Ref_c<T extends TypeObject> extends TypeObject_c implements Ref<T> {
@@ -13,15 +13,15 @@ public class Ref_c<T extends TypeObject> extends TypeObject_c implements Ref<T> 
     }
     
     /** Return true if the reference is not null. */
-    public boolean nonnull() {
+    public boolean known() {
         return v != null;
     }
     
-    public T get() {
-        return v;
+    public T getCached() {
+    	return v;
     }
-
-    public T get(GoalSet view) {
+    
+    public T get() {
         return v;
     }
     
@@ -29,5 +29,13 @@ public class Ref_c<T extends TypeObject> extends TypeObject_c implements Ref<T> 
         if (v == null) return "null";
         return v.toString();
     }
+
+	public void update(T v) {
+		this.v = v;
+	}
+	
+	public void when(final Handler<T> h) {
+		h.handle(v);
+	}
 }
 

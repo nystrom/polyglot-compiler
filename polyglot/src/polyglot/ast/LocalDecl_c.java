@@ -160,7 +160,6 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         TypeSystem ts = tb.typeSystem();
 
         LocalDef li = ts.localDef(position(), flags(), type.typeRef(), name.id());
-        Symbol<LocalDef> sym = Types.<LocalDef>symbol(li);
         return n.localDef(li);
     }
 
@@ -209,13 +208,12 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
 
         if (init != null) {
             if (init instanceof ArrayInit) {
-                ((ArrayInit) init).typeCheckElements(type.type());
+                ((ArrayInit) init).typeCheckElements(tc, type.type());
             }
             else {
                 if (! ts.isImplicitCastValid(init.type(), type.type()) &&
                     ! ts.typeEquals(init.type(), type.type()) &&
-                    ! ts.numericConversionValid(type.type(),
-                                                init.constantValue())) {
+                    ! ts.numericConversionValid(type.type(), init.constantValue())) {
                     throw new SemanticException("The type of the variable " +
                                                 "initializer \"" + init.type() +
                                                 "\" does not match that of " +
@@ -240,10 +238,6 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         return this;
     }
     
-    public boolean constantValueSet() {
-        return li != null && li.constantValueSet();
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         if (child == init) {
             TypeSystem ts = av.typeSystem();

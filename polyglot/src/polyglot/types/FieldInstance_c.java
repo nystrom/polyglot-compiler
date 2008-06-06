@@ -1,5 +1,6 @@
 package polyglot.types;
 
+import polyglot.types.VarDef_c.ConstantValue;
 import polyglot.util.Position;
 
 public class FieldInstance_c extends VarInstance_c<FieldDef> implements FieldInstance {
@@ -41,4 +42,28 @@ public class FieldInstance_c extends VarInstance_c<FieldDef> implements FieldIns
     public FieldInstance notConstant() {
         return (FieldInstance) super.notConstant();
     }
+    
+    public String toString() {
+	    FieldDef r = def.getCached();
+	ConstantValue cv = r.constantValueRef().getCached();
+	String cvStr = "";
+	
+	if (cv != null && cv.isConstant()) {
+		Object v = cv.value();
+		if (v instanceof String) {
+			String s = (String) v;
+	
+			if (s.length() > 8) {
+				s = s.substring(0, 8) + "...";
+			}
+	
+			v = "\"" + s + "\"";
+		}
+	
+		cvStr = " = " + v;
+	}
+	
+	return "field " + flags.translate() + type + " " + container + "." + name + cvStr;
+    }
+
 }

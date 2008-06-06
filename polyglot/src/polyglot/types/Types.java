@@ -1,7 +1,7 @@
 package polyglot.types;
 
+import polyglot.frontend.AbstractGoal_c;
 import polyglot.frontend.Goal;
-import polyglot.frontend.GoalSet;
 
 public class Types {
 
@@ -9,36 +9,39 @@ public class Types {
         return ref != null ? ref.get() : null;
     }
 
-    public static <T extends TypeObject> Ref_c<T> ref(T v) {
-        return v != null ? new Ref_c<T>(v) : null;
-    }
-
-    public static <T extends Def> Symbol<T> symbol(T v) {
-        Symbol<T> sym = new Symbol_c<T>(v);
-        v.setSymbol(sym);
-        return sym;
+    public static <T> Ref<T> ref(T v) {
+	    if (v instanceof TypeObject)
+		    return (Ref<T>) new Ref_c((TypeObject) v);
+	    else if (v == null)
+		    return null;
+	    else {
+		    Ref<T> ref = lazyRef(v, new AbstractGoal_c("OK!") {
+			    public boolean run() {
+				    return true;
+			    }
+		    });
+		    ref.update(v);
+		    return ref;
+	    }
     }
     
+
 //    public static <T extends TypeObject> LazyRef<T> lazyRef() {
 //        return new LazyRef_c<T>();
 //    }
 
     /** Create a lazy reference to a type object, with an initial value.
-     * @param v initial value
+     * @param defaultValue initial value
      * @param resolver goal used to bring the reference up-to-date
      * 
      * ### resolver should be a map
      */
-    public static <T extends TypeObject> LazyRef<T> lazyRef(T v) {
-        return new LazyRef_c<T>(v);
+    public static <T> LazyRef<T> lazyRef(T defaultValue) {
+        return new LazyRef_c<T>(defaultValue);
     }
 
-    public static <T extends TypeObject> LazyRef<T> lazyRef(T v, Goal resolver) {
-        return new LazyRef_c<T>(v, resolver);
-    }
-
-    public static <T extends TypeObject> LazyRef<T> lazyRef(T v, Goal resolver, GoalSet view) {
-        return new LazyRef_c<T>(v, resolver, view);
+    public static <T> LazyRef<T> lazyRef(T defaultValue, Goal resolver) {
+        return new LazyRef_c<T>(defaultValue, resolver);
     }
 
 }

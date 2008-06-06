@@ -10,9 +10,8 @@ public interface Goal {
 
     Goal intern(Scheduler s);
     
-    GoalSet requiredView();
     String name();
-    Pass createPass();
+    boolean run();
     
     /** Mark the goal as reached or not reached. */
     public Status state();

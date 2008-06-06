@@ -9,6 +9,7 @@ package polyglot.ast;
 
 import java.util.List;
 
+import polyglot.frontend.SetResolverGoal;
 import polyglot.types.*;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
@@ -50,13 +51,22 @@ public abstract class TypeNode_c extends Term_c implements TypeNode
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         if (type == null) {
             TypeSystem ts = tb.typeSystem();
-            return typeRef(new ErrorRef_c<Type>(ts, position()));
+            return typeRef(Types.lazyRef(ts.unknownType(position()), new SetResolverGoal(tb.job())));
         }
         else {
             return this;
         }
     }
-
+    
+    public void setResolver(Node parent, final TypeCheckPreparer v) {
+    	if (typeRef() instanceof LazyRef) {
+    		LazyRef<Type> r = (LazyRef<Type>) typeRef();
+    		TypeChecker tc = new TypeChecker(v.job(), v.typeSystem(), v.nodeFactory(), v.getMemo());
+    		tc = (TypeChecker) tc.context(v.context().freeze());
+    		r.setResolver(new TypeCheckFragmentGoal(parent, this, tc, r));
+    	}
+    }
+	
     public Term firstChild() {
         return null;
     }

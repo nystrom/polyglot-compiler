@@ -22,7 +22,4 @@ import polyglot.types.VarDef;
 public interface VarInit {
     /** The variable being initialized. */
     VarDef varDef();
-    
-    /** Whether the initializer has been determined to be constant or not. */
-    boolean constantValueSet();
 }

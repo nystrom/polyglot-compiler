@@ -44,36 +44,37 @@ public abstract class Type_c extends TypeObject_c implements Type
 
     /* To be filled in by subtypes. */
     public boolean isPrimitive() { return false; }
-    public boolean isNumeric() { return false; }
-    public boolean isIntOrLess() { return false; }
-    public boolean isLongOrLess() { return false; }
-    public boolean isVoid() { return false; }
-    public boolean isBoolean() { return false; }
-    public boolean isChar() { return false; }
-    public boolean isByte() { return false; }
-    public boolean isShort() { return false; }
-    public boolean isInt() { return false; }
-    public boolean isLong() { return false; }
-    public boolean isFloat() { return false; }
-    public boolean isDouble() { return false; }
-
-    public boolean isReference() { return false; }
+    public boolean isReference() { return false; } 
     public boolean isNull() { return false; }
     public boolean isClass() { return false; }
     public boolean isArray() { return false; }
+    
+    public final boolean isNumeric() { return ts.isNumeric(this); }
+    public final boolean isIntOrLess() { return ts.isIntOrLess(this); }
+    public final boolean isLongOrLess() { return ts.isLongOrLess(this); }
+    public final boolean isVoid() { return ts.isVoid(this); }
+    public final boolean isBoolean() { return ts.isBoolean(this); }
+    public final boolean isChar() { return ts.isChar(this); }
+    public final boolean isByte() { return ts.isByte(this); }
+    public final boolean isShort() { return ts.isShort(this); }
+    public final boolean isInt() { return ts.isInt(this); }
+    public final boolean isLong() { return ts.isLong(this); }
+    public final boolean isFloat() { return ts.isFloat(this); }
+    public final boolean isDouble() { return ts.isDouble(this); }
+
 
     /**
      * Return true if a subclass of Throwable.
      */
-    public boolean isThrowable() {
-	return false;
+    public final boolean isThrowable() {
+	    return ts.isThrowable(this);
     }
 
     /**
      * Return true if an unchecked exception.
      */
-    public boolean isUncheckedException() {
-	return false;
+    public final boolean isUncheckedException() {
+	    return ts.isUncheckedException(this);
     }
     
     /** Returns a non-null iff isClass() returns true. */
@@ -115,12 +116,12 @@ public abstract class Type_c extends TypeObject_c implements Type
 	return ts.arrayOf(this);
     }  
     
-    public boolean typeEquals(Type t) {
-        return this == t;
+    public final boolean typeEquals(Type t) {
+	    return ts.typeEquals(this, t);
     }
     
     public final void typeEqualsImpl(Type t) { }
-    public final void isSubtypeImp(Type t) { }
+    public final void isSubtypeImpl(Type t) { }
     public final void descendsFromImpl(Type t) { }
     public final void isCastValidImpl(Type t) { }
     public final void isImplicitCastValidImpl(Type t) { }
@@ -130,46 +131,46 @@ public abstract class Type_c extends TypeObject_c implements Type
     /**
      * Return true if this type is a subtype of <code>ancestor</code>.
      */
-    public boolean isSubtype(Type t) {
-	return ts.typeEquals(this, t) || ts.descendsFrom(this, t);
+    public final boolean isSubtype(Type t) {
+	return ts.isSubtype(this, t);
     }
     
     /**
-     * Return true if this type descends from <code>ancestor</code>.
+     * Return true if this type descends from <code>ancestor</code> and is not equal to ancestor.
      */
-    public boolean descendsFrom(Type t) {
-        return false;
+    public final boolean descendsFrom(Type t) {
+	    return ts.descendsFrom(this, t);
     }
 
 
     /**
      * Return true if this type can be cast to <code>toType</code>.
      */
-    public boolean isCastValid(Type toType) {
-	return false;
+    public final boolean isCastValid(Type toType) {
+	    return ts.isCastValid(this, toType);
     }
     
     /**
      * Return true if a value of this type can be assigned to a variable of
      * type <code>toType</code>.
      */
-    public boolean isImplicitCastValid(Type toType) {
-        return false;
+    public final boolean isImplicitCastValid(Type toType) {
+	    return ts.isImplicitCastValid(this, toType);
     }
 
     /**
      * Return true a literal <code>value</code> can be converted to this type.
      * This method should be removed.  It is kept for backward compatibility.
      */
-    public boolean numericConversionValid(long value) {
-        return false;
+    public final boolean numericConversionValid(long value) {
+	    return ts.numericConversionValid(this, value);
     }
     
     /**
      * Return true a literal <code>value</code> can be converted to this type.
      */
-    public boolean numericConversionValid(Object value) {
-        return false;
+    public final boolean numericConversionValid(Object value) {
+	    return ts.numericConversionValid(this, value);
     }
     
     /**

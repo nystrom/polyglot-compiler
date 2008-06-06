@@ -10,6 +10,10 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
     protected ProcedureInstance_c(TypeSystem ts, Position pos, Ref<? extends T> def) {
         super(ts, pos, def);
     }
+    
+    public ProcedureInstance<T> instantiate(ReferenceType receiverType, List<Type> argumentTypes) throws SemanticException {
+	    return this;
+    }
 
     protected List<Type> formalTypes;
     protected List<Type> throwTypes;
@@ -45,7 +49,7 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
      * <code>p</code>, where <i>more specific</i> is defined as JLS
      * 15.12.2.2.
      *<p>
-     * <b>Note:</b> There is a fair amount of guesswork since the JLS
+     * <b>Note:</b> There is a fair amount of guess work since the JLS
      * does not include any info regarding Java 1.2, so all inner class
      * rules are found empirically using jikes and javac.
      */
@@ -79,7 +83,7 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
         }
 
         // rule 2:
-        return p2.callValid(p1.formalTypes());
+        return p2.callValid(t1, p1.formalTypes());
     }
 
     /** Returns true if the procedure has the given formal parameter types. */
@@ -107,7 +111,7 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
     }
 
     /** Returns true if a call can be made with the given argument types. */
-    public boolean callValid(List<Type> argTypes) {
+    public boolean callValid(Type thisType, List<Type> argTypes) {
         List<Type> l1 = this.formalTypes();
         List<Type> l2 = argTypes;
 

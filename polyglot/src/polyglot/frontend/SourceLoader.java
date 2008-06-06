@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 import polyglot.main.Report;
+import polyglot.util.FileUtil;
 import polyglot.util.InternalCompilerError;
 
 /** A <code>SourceLoader</code> is responsible for loading source files. */
@@ -146,7 +147,7 @@ public class SourceLoader
 
             File f = new File(directory, fileName);
 
-            if (f.exists() && f.isDirectory()) {
+            if (f.isDirectory() && FileUtil.checkNameFromRoot(directory, f)) {
                 return true;
             }
         }

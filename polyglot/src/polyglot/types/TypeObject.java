@@ -9,7 +9,6 @@ package polyglot.types;
 
 import java.io.Serializable;
 
-import polyglot.frontend.GoalSet;
 import polyglot.util.Copy;
 import polyglot.util.Position;
 
@@ -20,8 +19,6 @@ import polyglot.util.Position;
  */
 public interface TypeObject extends Copy, Serializable
 {
-    void complete(GoalSet phase);
-    
     /**
      * The object's type system.
      */

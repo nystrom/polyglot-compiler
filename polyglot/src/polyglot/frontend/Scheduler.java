@@ -20,7 +20,6 @@ import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Option;
-import polyglot.visit.ReentrantVisitor;
 
 
 /**
@@ -85,7 +84,7 @@ public abstract class Scheduler {
     protected static final Option<Job> COMPLETED_JOB = Option.<Job>None();
 
     /** The currently running pass, or null if no pass is running. */
-    protected Pass currentPass;
+    protected Goal currentGoal;
     
     public Scheduler(ExtensionInfo extInfo) {
         this.extInfo = extInfo;
@@ -93,7 +92,7 @@ public abstract class Scheduler {
         this.jobs = new HashMap<Source, Option<Job>>();
         this.inWorklist = new HashSet<Goal>();
         this.worklist = new LinkedList<Goal>();
-        this.currentPass = null;
+        this.currentGoal = null;
     }
     
     public Collection<Job> commandLineJobs() {
@@ -138,19 +137,15 @@ public abstract class Scheduler {
     public List<Goal> prerequisites(Goal goal) {
         return goal.prereqs();
     }
-
+    
     protected Goal End(Job job) {
         return new SourceGoal_c("End", job) {
-            public Pass createPass() {
-                return new AbstractPass(this) {
-                    public boolean run() {
-                        // The job has finished.  Let's remove it from the job map
-                        // so it can be garbage collected, and free up the AST.
-                        completeJob(job);
-                        return true;
-                    }
-                };
-            }
+        	public boolean run() {
+        		// The job has finished.  Let's remove it from the job map
+        		// so it can be garbage collected, and free up the AST.
+        		completeJob(job);
+        		return true;
+        	}
         }.intern(this);
     }
 
@@ -179,18 +174,13 @@ public abstract class Scheduler {
      * should be empty at return.
      */ 
     public boolean runToCompletion() {
-        boolean okay = true;
+    	boolean okay = false;
 
-        while (okay && ! worklist.isEmpty()) {
-            Goal goal = worklist.removeFirst();
-            try {
-                okay = attempt(goal);
-            }
-            catch (CyclicDependencyException e) {
-                throw new InternalCompilerError("Cyclic dependency at top-level.", e);
-            }
-        }
-            
+    	try {
+    		okay = attempt(EndAll());
+    	}
+    	catch (CyclicDependencyException e) {
+    	}
 
         if (Report.should_report(Report.frontend, 1))
             Report.report(1, "Finished all passes for " + this.getClass().getName() + " -- " +
@@ -231,27 +221,13 @@ public abstract class Scheduler {
     }
     
     public Goal currentGoal() {
-        return currentPass != null ? currentPass.goal() : null;
-    }
-    
-    GoalSet reached = new SimpleGoalSet(Collections.<Goal>emptySet());
-    
-    public GoalSet reachedGoals() {
-        return reached;
-    }
-
-    public GoalSet currentView() {
-        if (currentGoal() != null)
-            return currentGoal().requiredView();
-        return GoalSet.EMPTY;
+    	return currentGoal;
     }
     
     public Job currentJob() {
-        return currentPass != null ? currentPass.job() : null;
-    }
-    
-    public Pass currentPass() {
-        return currentPass;
+    	if (currentGoal instanceof SourceGoal_c)
+    		return ((SourceGoal_c) currentGoal).job();
+    	return null;
     }
     
     /**
@@ -263,8 +239,15 @@ public abstract class Scheduler {
         || currentGoal().state() == Goal.Status.RUNNING
         || currentGoal().state() == Goal.Status.RUNNING_RECURSIVE;
 
-        boolean result = attemptGoalAndPrereqs(goal, new HashSet<Goal>());
-
+        boolean result = false;
+        
+        try {
+        	result = attemptGoalAndPrereqs(goal, new HashSet<Goal>());
+		}
+        catch (CyclicDependencyException e) {
+        	throw e;
+        }
+        
         // If the spawned goal recursively spawned the current goal, terminate the current goal.
         // The exception should be caught in runPass.
         if (currentGoal() != null) {
@@ -409,20 +392,18 @@ public abstract class Scheduler {
      * subgoals.
      */
     protected boolean runPass(Goal goal) throws CyclicDependencyException {
-        Pass pass = goal.createPass();
-        
-        Job job = pass.job();
+        Job job = goal instanceof SourceGoal ? ((SourceGoal) goal).job() : null;
                 
-        if (extInfo.getOptions().disable_passes.contains(pass.name())) {
+        if (extInfo.getOptions().disable_passes.contains(goal.name())) {
             if (Report.should_report(Report.frontend, 1))
-                Report.report(1, "Skipping pass " + pass);
+                Report.report(1, "Skipping pass " + goal);
             
             markReached(goal);
             return true;
         }
         
         if (Report.should_report(Report.frontend, 1))
-            Report.report(1, "Running pass " + pass + " for " + goal);
+            Report.report(1, "Running pass for " + goal);
 
         if (reached(goal)) {
             throw new InternalCompilerError("Cannot run a pass for completed goal " + goal);
@@ -431,45 +412,33 @@ public abstract class Scheduler {
         boolean reentrant = false;
         
         if (goal.state() == Goal.Status.RUNNING || goal.state() == Goal.Status.RUNNING_RECURSIVE) {
-            if (! pass.isReentrant()) {
-                throw new CyclicDependencyException("Cannot reenter a non-reentrant pass.", goal);
-            }
             reentrant = true;
         }
-        
-        pass.resetTimers();
 
         boolean result = false;
 
         if (true || job == null || job.status()) {
-            Pass oldPass = this.currentPass;
-            this.currentPass = pass;
-            Report.should_report.push(pass.name());
-
-            // Stop the timer on the old pass. */
-            if (oldPass != null) {
-                oldPass.toggleTimers(true);
-            }
+            Report.should_report.push(goal.name());
 
             if (job != null) {
-                job.setRunningPass(pass);
+				    // We're starting to run the pass. 
+				    // Record the initial error count.
+				    job.initialErrorCount = job.compiler().errorQueue().errorCount();
             }
             
-            pass.toggleTimers(false);
-
             if (reentrant)
                 goal.setState(Goal.Status.RUNNING_RECURSIVE);
             else
                 goal.setState(Goal.Status.RUNNING);
 
             long t = System.currentTimeMillis();
-            String key = pass.toString();
+            String key = goal.toString();
 
             extInfo.getStats().accumulate(key + " attempts", 1);
             extInfo.getStats().accumulate("total goal attempts", 1);
             
             try {
-                result = pass.run();
+                result = goal.run();
 
                 if (result && goal.state() == Goal.Status.RUNNING) {
                     extInfo.getStats().accumulate(key + " reached", 1);
@@ -478,7 +447,7 @@ public abstract class Scheduler {
                     markReached(goal);
 
                     if (Report.should_report(Report.frontend, 1))
-                        Report.report(1, "Completed pass " + pass + " for " + goal);
+                        Report.report(1, "Completed pass for " + goal);
                 }
                 else {
                     extInfo.getStats().accumulate(key + " unreached", 1);
@@ -487,7 +456,7 @@ public abstract class Scheduler {
                     goal.setState(Goal.Status.FAIL);                    
 
                     if (Report.should_report(Report.frontend, 1))
-                        Report.report(1, "Completed (unreached) pass " + pass + " for " + goal);
+                        Report.report(1, "Completed (unreached) pass for " + goal);
                 }
             }
             catch (Complete c) {
@@ -498,7 +467,7 @@ public abstract class Scheduler {
             }
             catch (SchedulerException e) {
                 if (Report.should_report(Report.frontend, 1))
-                    Report.report(1, "Did not complete pass " + pass + " for " + goal);
+                    Report.report(1, "Did not complete pass for " + goal);
 
                 extInfo.getStats().accumulate(key + " aborts", 1);
                 extInfo.getStats().accumulate("goal aborts", 1);
@@ -509,44 +478,40 @@ public abstract class Scheduler {
             finally {
                 t = System.currentTimeMillis() - t;
                 extInfo.getStats().accumulate(key, t);
-                pass.toggleTimers(false);
 
                 if (job != null) {
-                    job.setRunningPass(null);
-                }
+				    // We've stopped running a pass. 
+				    // Check if the error count changed.
+				    int errorCount = job.compiler().errorQueue().errorCount();
+				
+				    if (errorCount > job.initialErrorCount) {
+				        job.reportedErrors = true;
+				    }
+				}
 
                 Report.should_report.pop();
-                this.currentPass = oldPass;
-
-                // Restart the timer on the old pass. */
-                if (oldPass != null) {
-                    oldPass.toggleTimers(true);
-                }
             }
 
             // pretty-print this pass if we need to.
-            if (job != null && extInfo.getOptions().print_ast.contains(pass.name())) {
+            if (job != null && extInfo.getOptions().print_ast.contains(goal.name())) {
                 System.err.println("--------------------------------" +
                                    "--------------------------------");
                 System.err.println("Pretty-printing AST for " + job +
-                                   " after " + pass.name());
+                                   " after " + goal.name());
 
                 job.ast().prettyPrint(System.err);
             }
 
             // dump this pass if we need to.
-            if (job != null && extInfo.getOptions().dump_ast.contains(pass.name())) {
+            if (job != null && extInfo.getOptions().dump_ast.contains(goal.name())) {
                 System.err.println("--------------------------------" +
                                    "--------------------------------");
                 System.err.println("Dumping AST for " + job +
-                                   " after " + pass.name());
+                                   " after " + goal.name());
                 
                 job.ast().dump(System.err);
             }
         }   
-            
-        Stats stats = extInfo.getStats();
-        stats.accumulate(pass.name(), pass.inclusiveTime());
 
         if (! result) {
             failed = true;
@@ -554,14 +519,8 @@ public abstract class Scheduler {
         
         // Record the progress made before running the pass and then update
         // the current progress.
-        if (Report.should_report(Report.time, 2)) {
-            Report.report(2, "Finished " + pass +
-                          " status=" + statusString(result) + " inclusive_time=" +
-                          pass.inclusiveTime() + " exclusive_time=" +
-                          pass.exclusiveTime());
-        }
-        else if (Report.should_report(Report.frontend, 1)) {
-            Report.report(1, "Finished " + pass +
+        if (Report.should_report(Report.frontend, 1)) {
+            Report.report(1, "Finished " + goal +
                           " status=" + statusString(result));
         }
         
@@ -574,7 +533,6 @@ public abstract class Scheduler {
 
     public void markReached(Goal goal) {
         goal.setState(Goal.Status.SUCCESS);
-        reached = reached.union(new SimpleGoalSet(Collections.singleton(goal)));
     }           
                                    
     protected static String statusString(boolean okay) {
@@ -637,7 +595,7 @@ public abstract class Scheduler {
     
             if (Report.should_report(Report.frontend, 4)) {
                 Report.report(4, "Adding job for " + source + " at the " +
-                    "request of pass " + currentPass);
+                    "request of goal " + currentGoal);
             }
         }
         else {
@@ -649,7 +607,7 @@ public abstract class Scheduler {
 
     /** Get the goals for a particular job.  This creates the dependencies between them.  The list must include End(job). */
     public abstract List<Goal> goals(Job job);
-
+    
     public void addDependenciesForJob(Job job, boolean compile) {
         ExtensionInfo extInfo = this.extInfo;
 
@@ -659,7 +617,7 @@ public abstract class Scheduler {
 
         // Be careful: the list might include goals already run.
         for (Goal goal : goals) {
-            assert goal instanceof SourceGoal;
+//            assert goal instanceof SourceGoal;
             if (prev != null) {
                 goal.addPrereq(prev);
             }
@@ -691,17 +649,8 @@ public abstract class Scheduler {
     public abstract Goal ImportTableInitialized(Job job);
     public abstract Goal TypesInitialized(Job job);
     public abstract Goal TypesInitializedForCommandLine();
-    
-    public abstract Goal FragmentAST(Job job);
-
-    public abstract Goal SignatureDef(Job job, Def def, int key);
-    public abstract Goal SupertypeDef(Job job, Def def);
-    public abstract Goal TypeCheckDef(Job job, Def def);
-
+    public abstract Goal PreTypeCheck(Job job);
     public abstract Goal TypeChecked(Job job);
-    
-    public abstract Goal ReassembleAST(Job job);
-
     public abstract Goal ReachabilityChecked(Job job);
     public abstract Goal ExceptionsChecked(Job job);
     public abstract Goal ExitPathsChecked(Job job);
@@ -710,8 +659,6 @@ public abstract class Scheduler {
     public abstract Goal ForwardReferencesChecked(Job job);
     public abstract Goal Serialized(Job job);
     public abstract Goal CodeGenerated(Job job);
-
-    public abstract Goal FieldConstantsChecked(Symbol<FieldDef> f);
 
     public abstract Goal LookupGlobalType(LazyRef< Type> sym);
     public abstract Goal LookupGlobalTypeDef(LazyRef<ClassDef> sym, String name);

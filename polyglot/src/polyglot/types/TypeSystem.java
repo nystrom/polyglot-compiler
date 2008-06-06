@@ -293,12 +293,12 @@ public interface TypeSystem {
     /** Unary promotion for numeric types.
      * @exception SemanticException if the type cannot be promoted. 
      */
-    PrimitiveType promote(Type t) throws SemanticException;
+    Type promote(Type t) throws SemanticException;
 
     /** Binary promotion for numeric types.
      * @exception SemanticException if the types cannot be promoted. 
      */
-    PrimitiveType promote(Type t1, Type t2) throws SemanticException;
+    Type promote(Type t1, Type t2) throws SemanticException;
 
     ////
     // Functions for type membership.
@@ -330,9 +330,8 @@ public interface TypeSystem {
      * @exception SemanticException if the method cannot be found or is
      * inaccessible.
      */
-    MethodInstance findMethod(ReferenceType container,
-                              String name, List<Type> argTypes,
-                              ClassDef currClass) throws SemanticException;
+    MethodInstance findMethod(ReferenceType container, String name,
+                              List<Type> argTypes, ClassDef currClass) throws SemanticException;
 
     /**
      * Find a constructor.  We need to pass the class from which the constructor
@@ -342,8 +341,8 @@ public interface TypeSystem {
      * @exception SemanticException if the constructor cannot be found or is
      * inaccessible.
      */
-    ConstructorInstance findConstructor(ClassType container, List<Type> argTypes,
-                                        ClassDef currClass) throws SemanticException;
+    ConstructorInstance findConstructor(ClassType container,
+                                        List<Type> argTypes, ClassDef currClass) throws SemanticException;
 
     /**
      * Find a member class.
@@ -677,14 +676,16 @@ public interface TypeSystem {
     /**
      * Return true if <code>mi</code> can be called with name <code>name</code>
      * and actual parameters of types <code>actualTypes</code>.
+     * @param thisType TODO
      */
-    boolean methodCallValid(MethodInstance mi, String name, List<Type> argTypes);
+    boolean methodCallValid(MethodInstance mi, String name, Type thisType, List<Type> argTypes);
 
     /**
      * Return true if <code>pi</code> can be called with 
      * actual parameters of types <code>actualTypes</code>.
+     * @param thisType TODO
      */
-    boolean callValid(ProcedureInstance<? extends ProcedureDef> mi, List<Type> argTypes);
+    boolean callValid(ProcedureInstance<? extends ProcedureDef> mi, Type thisType, List<Type> argTypes);
 
     /**
      * Get the list of methods <code>mi</code> (potentially) overrides, in
@@ -846,4 +847,17 @@ public interface TypeSystem {
     public Flags Abstract();
     public Flags Volatile();
     public Flags StrictFP();
+
+    boolean isNumeric(Type t);
+    boolean isIntOrLess(Type t);
+    boolean isLongOrLess(Type t);
+    boolean isByte(Type t);
+    boolean isShort(Type t);
+    boolean isChar(Type t);
+    boolean isInt(Type t);
+    boolean isLong(Type t);
+    boolean isFloat(Type t);
+    boolean isDouble(Type t);
+    boolean isBoolean(Type t);
+    boolean isVoid(Type t);
 }

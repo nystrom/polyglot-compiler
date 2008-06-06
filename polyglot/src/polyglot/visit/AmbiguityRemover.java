@@ -23,73 +23,12 @@ import polyglot.util.*;
  */
 public class AmbiguityRemover extends ContextVisitor
 {
-    protected boolean visitSigs;
-    protected boolean visitBodies;
-    
-    public AmbiguityRemover(Job job, TypeSystem ts, NodeFactory nf) {
-        this(job, ts, nf, true, true);
-    }
-    
-    public AmbiguityRemover(Job job, TypeSystem ts, NodeFactory nf, boolean visitSigs, boolean visitBodies) {
-        super(job, ts, nf);
-        this.visitSigs = visitSigs;
-        this.visitBodies = visitBodies;
-    }
-    
-    public Node override(Node parent, Node n) {
-        if (! visitSigs && n instanceof ClassMember && ! (n instanceof ClassDecl)) {
-            return n;
-        }
-        if ((! visitBodies || ! visitSigs) && parent instanceof ClassMember) {
-            if (parent instanceof FieldDecl && ((FieldDecl) parent).init() == n) {
-                return n;
-            }
-            if (parent instanceof CodeDecl && ((CodeDecl) parent).body() == n) {
-                return n;
-            }
-        }
-        
-        try {
-            if (Report.should_report(Report.visit, 2))
-                Report.report(2, ">> " + this + "::override " + n + " (" + n.getClass().getName() + ")");
-            
-            Node m = n.del().disambiguateOverride(parent, this);
-            
-            if (Report.should_report(Report.visit, 2))
-                Report.report(2, "<< " + this + "::override " + n + " -> " + m + (m != null ? (" (" + m.getClass().getName() + ")") : ""));
-            
-            return m;
-        }
-        catch (SemanticException e) {
-            if (e.getMessage() != null) {
-                Position position = e.position();
-                
-                if (position == null) {
-                    position = n.position();
-                }
-                
-                this.errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR,
-                                     e.getMessage(), position);
-            }
-            else {
-                // silent error; these should be thrown only
-                // when the error has already been reported 
-            }
-            
-            return n;
-        }    
-    }
-    
-    protected NodeVisitor enterCall(Node n) throws SemanticException {
-        if (Report.should_report(Report.visit, 2))
-            Report.report(2, ">> " + this + "::enter " + n + " (" + n.getClass().getName() + ")");
-        
-        AmbiguityRemover v = (AmbiguityRemover) n.del().disambiguateEnter(this);
-        
-        if (Report.should_report(Report.visit, 2))
-            Report.report(2, "<< " + this + "::enter " + n+ " (" + n.getClass().getName() + ")" + " -> " + v);
-        
-        return v;
+	TypeChecker tc;
+	
+    public AmbiguityRemover(TypeChecker tc) {
+        super(tc.job(), tc.typeSystem(), tc.nodeFactory());
+        this.tc = tc;
+        this.context = tc.context();
     }
     
     protected Node leaveCall(Node old, Node n, NodeVisitor v) throws SemanticException {
@@ -103,21 +42,8 @@ public class AmbiguityRemover extends ContextVisitor
         
         return m;
     }
-    
-    public HaltingVisitor bypass(Collection c) {
-        throw new InternalCompilerError("AmbiguityRemover does not support bypassing. " +
-                                        "Implement any required functionality using " +
-                                        "Node.disambiguateOverride(Node, AmbiguityRemover).");
-    }
-    public HaltingVisitor bypass(Node n) {
-        throw new InternalCompilerError("AmbiguityRemover does not support bypassing. " +
-                                        "Implement any required functionality using " +
-                                        "Node.disambiguateOverride(Node, AmbiguityRemover).");
-    }
-   
-    public HaltingVisitor bypassChildren(Node n) {
-        throw new InternalCompilerError("AmbiguityRemover does not support bypassing. " +
-                                        "Implement any required functionality using " +
-                                        "Node.disambiguateOverride(Node, AmbiguityRemover).");
-    }
+
+	public TypeChecker typeChecker() {
+		return tc;
+	}
 }

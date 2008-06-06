@@ -9,8 +9,6 @@ package polyglot.types;
 
 import java.io.*;
 
-import polyglot.frontend.GoalSet;
-import polyglot.frontend.Scheduler;
 import polyglot.util.*;
 
 /**
@@ -21,18 +19,6 @@ public abstract class TypeObject_c implements TypeObject
 {
     protected transient TypeSystem ts;
     protected Position position;
-    protected GoalSet phase;
-    protected Symbol<? extends TypeObject> sym;
-
-    public void complete(GoalSet phase) { }
-
-    public void setPhase(GoalSet phase) {
-        this.phase = phase;    
-    }
-
-    public GoalSet phase() {
-        return phase;
-    }
 
     /** Used for deserializing types. */
     protected TypeObject_c() {
@@ -108,12 +94,4 @@ public abstract class TypeObject_c implements TypeObject
     public final void equalsImpl(Object o) { assert false; }
     public final void typeEqualsImpl(Object o) { assert false; }
     public final void typeEqualsImpl(TypeObject o) { assert false; }
-
-    public <T extends TypeObject> Symbol<T> symbol() {
-        return (Symbol<T>) sym;
-    }
-
-    public void setSymbol(Symbol<? extends TypeObject> sym) {
-        this.sym = sym;
-    }
 }

@@ -259,7 +259,7 @@ public class SourceClassResolver extends LoadedClassResolver
             return n;
         }
         
-        Goal g = scheduler.TypesInitialized(job);
+        Goal g = scheduler.PreTypeCheck(job);
 
         if (! scheduler.reached(g)) {
             try {

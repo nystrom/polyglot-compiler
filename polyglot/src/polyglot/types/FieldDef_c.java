@@ -28,7 +28,7 @@ public class FieldDef_c extends VarDef_c implements FieldDef
         super(ts, pos, flags, type, name);
         this.container = container;
     }
- 
+    
     public InitializerDef initializer() {
         return initializer;
     }
@@ -50,70 +50,7 @@ public class FieldDef_c extends VarDef_c implements FieldDef
     public Ref<? extends ReferenceType> container() {
         return container;
     }
-    
-    public boolean isConstant() {
-        setConstant();
-        assert constantValueSet;
-        return isConstant;
-    }
-    
-    public void complete(GoalSet phase) {
-        Scheduler scheduler = typeSystem().extensionInfo().scheduler();
-        
-        if (phase.contains(scheduler.FieldConstantsChecked(this.<FieldDef>symbol()))) {
-            setConstant();
-        }
-    }
-    
-    boolean recursive = false;
-    
-    void setConstant() {
-        if (! constantValueSet) {
-            if (! flags.isFinal()) {
-                setNotConstant();
-                return;
-            }
-            
-            if (recursive) {
-                // The field is not constant if the initializer is recursive.
-                //
-                // But, we could be checking if the field is constant for another
-                // reference in the same file:
-                //
-                // m() { use x; }
-                // final int x = 1;
-                //
-                // So this is incorrect.  The goal below needs to be refined to only visit the initializer.
-                setNotConstant();
-            }
-            else {
-                recursive = true;
-                
-                Scheduler scheduler = typeSystem().extensionInfo().scheduler();
-                Goal g = scheduler.FieldConstantsChecked(this.<FieldDef>symbol());
-                
-                // Avoid a recursive call.
-                if (g.state() == Goal.Status.RUNNING || g.state() == Goal.Status.RUNNING_RECURSIVE) {
-                    setNotConstant();
-                }
-                else {
-                    try {
-                        scheduler.attempt(g);
-                    }
-                    catch (CyclicDependencyException e) {
-                        scheduler.markReached(g);
-                        setNotConstant();
-                        return;
-                    }
-                    
-                    assert g.hasBeenReached();
-                    assert constantValueSet;
-                }
-                
-                recursive = false;
-            }
-        }
-    }
+
 
     /**
      * @param container The container to set.
@@ -123,19 +60,25 @@ public class FieldDef_c extends VarDef_c implements FieldDef
     }
 
     public String toString() {
-        Object v = constantValue;
-        if (v instanceof String) {
-          String s = (String) v;
+        ConstantValue cv = constantRef.getCached();
+        String cvStr = "";
+        
+        if (cv != null && cv.isConstant()) {
+        	Object v = cv.value();
+        	if (v instanceof String) {
+        		String s = (String) v;
 
-          if (s.length() > 8) {
-            s = s.substring(0, 8) + "...";
-          }
+        		if (s.length() > 8) {
+        			s = s.substring(0, 8) + "...";
+        		}
 
-          v = "\"" + s + "\"";
+        		v = "\"" + s + "\"";
+        	}
+
+        	cvStr = " = " + v;
         }
-
+        
         return "field " + flags.translate() + type + " " +
-            container + "." + name +
-	    (isConstant ? (" = " + v) : "");
+        container + "." + name + cvStr;
     }
 }

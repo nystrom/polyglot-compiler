@@ -296,8 +296,8 @@ public class CFGBuilder implements Copy
      * <code>entry1</code> and <code>entry2</code> determine whether the
      * successors are entry or exit nodes. They can be Term.ENTRY or Term.EXIT.
      */
-    public void visitCFG(Term a, FlowGraph.EdgeKey edgeKey1, Term succ1, int entry1,
-                                 FlowGraph.EdgeKey edgeKey2, Term succ2, int entry2) {
+    public void visitCFG(Term a, FlowGraph.EdgeKey edgeKey1, Term succ1,
+                                 int entry1, FlowGraph.EdgeKey edgeKey2, Term succ2, int entry2) {
         visitCFG(a, CollectionUtil.list(new EdgeKeyTermPair(edgeKey1, succ1, entry1), 
                                         new EdgeKeyTermPair(edgeKey2, succ2, entry2)));
     }
@@ -310,8 +310,8 @@ public class CFGBuilder implements Copy
      * treated as entry nodes; if it's Term.EXIT, they are treated as exit
      * nodes.
      */
-    public void visitCFG(Term a, FlowGraph.EdgeKey edgeKey, 
-            List succ, int entry) {
+    public void visitCFG(Term a, 
+            FlowGraph.EdgeKey edgeKey, List succ, int entry) {
         List l = new ArrayList(succ.size());
         
         for (Iterator i = succ.iterator(); i.hasNext();) {
@@ -331,8 +331,8 @@ public class CFGBuilder implements Copy
      * <code>succ</code>, and each corresponding element determines whether a
      * successor is an entry or exit node (using Term.ENTRY or Term.EXIT).
      */
-    public void visitCFG(Term a, FlowGraph.EdgeKey edgeKey, 
-            List succ, List entry) {
+    public void visitCFG(Term a, 
+            FlowGraph.EdgeKey edgeKey, List succ, List entry) {
         if (succ.size() != entry.size()) {
             throw new IllegalArgumentException();
         }
@@ -369,7 +369,6 @@ public class CFGBuilder implements Copy
     /**
      * Create edges for a node <code>a</code> with successors
      * <code>succs</code>.
-     * 
      * @param a the source node for the edges.
      * @param succs a list of <code>EdgeKeyTermPair</code>s
      */
@@ -467,14 +466,13 @@ public class CFGBuilder implements Copy
 
     /**
      * Create edges for the finally block of a try-finally construct. 
-     * 
      * @param v v.innermostTarget is the Try term that the finallyBlock is assoicated with. @@@XXX
      * @param last the last term visited before the finally block is entered.
      * @param last_visitor @@@XXX
      * @param finallyBlock the finally block associated with a try finally block.
      */
-    protected static CFGBuilder tryFinally(CFGBuilder v, Term last,
-                                 CFGBuilder last_visitor, Block finallyBlock) {
+    protected static CFGBuilder tryFinally(CFGBuilder v,
+                                 Term last, CFGBuilder last_visitor, Block finallyBlock) {
         //###@@@ I think that we may be using the wrong visitor to perform the
         // enterFinally on; should it maybe be last_visitor? we want to make 
         // sure that the path_to_finally list grows correctly.

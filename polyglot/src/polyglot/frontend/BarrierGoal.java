@@ -28,7 +28,7 @@ public abstract class BarrierGoal extends AbstractGoal_c {
         return l;
     }
     
-    public Pass createPass() {
-        return new EmptyPass(this);
+    public boolean run() {
+    	return true;
     }
 }

@@ -11,8 +11,7 @@ package polyglot.ast;
 import java.util.ArrayList;
 import java.util.List;
 
-import polyglot.types.Type;
-import polyglot.types.TypeSystem;
+import polyglot.types.*;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 import polyglot.visit.CFGBuilder;

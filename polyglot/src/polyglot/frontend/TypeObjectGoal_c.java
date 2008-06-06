@@ -27,8 +27,8 @@ public class TypeObjectGoal_c<T extends TypeObject> extends AbstractGoal_c imple
        return v;
    }
     
-   public Pass createPass() {
-       return new EmptyPass(this);
+   public boolean run() {
+	   return true;
    }
    
    @Override

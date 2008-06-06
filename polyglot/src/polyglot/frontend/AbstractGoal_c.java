@@ -23,9 +23,7 @@ public abstract class AbstractGoal_c implements Goal {
         this.name = name;
     }
     
-    public GoalSet requiredView() {
-        return new SimpleGoalSet(prereqs());
-    }
+    public abstract boolean run();
     
     public List<Goal> prereqs() {
         if (prereqs == null) {
@@ -36,14 +34,13 @@ public abstract class AbstractGoal_c implements Goal {
         }
     }
     
-    public void addPrereq(Goal goal) {
+    public void addPrereq(final Goal goal) {
         if (prereqs == null) {
             prereqs = new ArrayList<Goal>();
         }
+        
         prereqs.add(goal);
     }
-    
-    public abstract Pass createPass();
     
     public boolean hasBeenReached() {
         return state == Status.SUCCESS;

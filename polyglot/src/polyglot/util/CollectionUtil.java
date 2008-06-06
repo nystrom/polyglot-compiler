@@ -85,6 +85,13 @@ public class CollectionUtil
 
 		return true;
 	}
+	
+	public static <T> List<T> append(Collection<? extends T> l1, Collection<? extends T> l2) {
+		List<T> l = new ArrayList<T>();
+		l.addAll(l1);
+		l.addAll(l2);
+		return l;
+	}
 
 	/** Return an empty list. */
 	public static <T> List<T> list() {
@@ -151,5 +158,23 @@ public class CollectionUtil
 		if (l != null)
 			return l;
 		return Collections.<T>emptyList();
+	}
+
+	public static String listToString(List<?> l) {
+		StringBuffer sb = new StringBuffer();
+	
+		for (Iterator<?> i = l.iterator(); i.hasNext(); ) {
+			Object o = i.next();
+			if (o == null)
+				sb.append("null");
+			else
+				sb.append(o.toString());
+	
+			if (i.hasNext()) {
+				sb.append(", ");
+			}
+		}
+	
+		return sb.toString();
 	}
 }

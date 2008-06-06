@@ -219,7 +219,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	    ct = ct.superType().toClass();
 	}
 	
-	ConstructorInstance ci = ts.findConstructor(ct, argTypes, c.currentClassScope());
+	ConstructorInstance ci = ts.findConstructor(ct, argTypes, c.currentClassDef());
 
 	return constructorInstance(ci);
     }

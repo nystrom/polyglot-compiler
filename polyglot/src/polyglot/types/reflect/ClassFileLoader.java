@@ -8,6 +8,7 @@
 package polyglot.types.reflect;
 
 import polyglot.main.Report;
+import polyglot.util.FileUtil;
 import polyglot.util.InternalCompilerError;
 import polyglot.frontend.ExtensionInfo;
 
@@ -81,7 +82,7 @@ public class ClassFileLoader
             else {
                 String entryName = name.replace('.', File.separatorChar);
                 File f = new File(dir, entryName);
-                return f.exists() && f.isDirectory();
+                return f.isDirectory() && FileUtil.checkNameFromRoot(dir, f);
             }
         }
         catch (FileNotFoundException e) {

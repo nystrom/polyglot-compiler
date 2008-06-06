@@ -1,6 +1,5 @@
 package polyglot.types;
 
-import java.util.List;
 
 public interface FieldInstance extends VarInstance<FieldDef>, MemberInstance<FieldDef> {
     FieldInstance container(ReferenceType container);

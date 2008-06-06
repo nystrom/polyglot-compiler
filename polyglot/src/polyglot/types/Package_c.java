@@ -69,6 +69,8 @@ public class Package_c extends TypeObject_c implements Package
     }
         
     public boolean packageEquals(Package p) {
+	    if (p == null)
+		    return false;
         if (name.equals(p.name())) {
             if (prefix == null)
                 return p.prefix() == null;

@@ -31,12 +31,31 @@ public abstract class Node_c implements Node
     protected Ext ext;
     protected boolean error;
 
+    public final int hashCode() {
+    	return super.hashCode();
+    }
+    
+    public final boolean equals(Object o) {
+    	return this == o;
+    }
+    
     public Node_c(Position pos) {
     	assert(pos != null);
         this.position = pos;
         this.error = false;
     }
 
+    public void computeTypes(ContextVisitor v) throws SemanticException {
+    }
+
+
+    public Node setResolverOverride(Node parent, TypeCheckPreparer v) {
+    	return null;
+    }
+    
+    public void setResolver(Node parent, TypeCheckPreparer v) {
+    }
+    
     public void init(Node node) {
         if (node != this) {
             throw new InternalCompilerError("Cannot use a Node as a delegate or extension.");

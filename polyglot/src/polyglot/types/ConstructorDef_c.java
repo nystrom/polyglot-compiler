@@ -10,6 +10,7 @@ package polyglot.types;
 import java.util.List;
 
 import polyglot.main.Report;
+import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 
 /**
@@ -43,7 +44,7 @@ public class ConstructorDef_c extends ProcedureDef_c
     }
     
     public String signature() {
-        return container + "(" + TypeSystem_c.listToString(formalTypes) + ")";
+        return container + "(" + CollectionUtil.listToString(formalTypes) + ")";
     }
 
     public String designator() {

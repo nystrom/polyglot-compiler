@@ -249,7 +249,7 @@ public class Binary_c extends Expr_c implements Binary
 
         return null;
     }
-
+    
     /** Type check the expression. */
     public Node typeCheck(TypeChecker tc) throws SemanticException {
         Type l = left.type();
@@ -424,7 +424,7 @@ public class Binary_c extends Expr_c implements Binary
                 return child.type();
             }
 
-            if (op == ADD && ts.typeEquals(type, ts.String())) {
+            if (op == ADD && ts.typeEquals(type(), ts.String())) {
                 // Implicit coercion to String. 
                 return ts.String();
             }
@@ -554,25 +554,25 @@ public class Binary_c extends Expr_c implements Binary
         if (op == COND_AND) {
           // AND operator
           // short circuit means that left is false
-          v.visitCFG(left, FlowGraph.EDGE_KEY_TRUE, right, ENTRY, 
-                           FlowGraph.EDGE_KEY_FALSE, this, EXIT);
+          v.visitCFG(left, FlowGraph.EDGE_KEY_TRUE, right, 
+                           ENTRY, FlowGraph.EDGE_KEY_FALSE, this, EXIT);
         }
         else {
           // OR operator
           // short circuit means that left is true
-          v.visitCFG(left, FlowGraph.EDGE_KEY_FALSE, right, ENTRY, 
-                           FlowGraph.EDGE_KEY_TRUE, this, EXIT);
+          v.visitCFG(left, FlowGraph.EDGE_KEY_FALSE, right, 
+                           ENTRY, FlowGraph.EDGE_KEY_TRUE, this, EXIT);
         }
-        v.visitCFG(right, FlowGraph.EDGE_KEY_TRUE, this, EXIT,
-                          FlowGraph.EDGE_KEY_FALSE, this, EXIT);
+        v.visitCFG(right, FlowGraph.EDGE_KEY_TRUE, this,
+                          EXIT, FlowGraph.EDGE_KEY_FALSE, this, EXIT);
       }
     }
     else {
       if (left.type().isBoolean() && right.type().isBoolean()) {        
-          v.visitCFG(left, FlowGraph.EDGE_KEY_TRUE, right, ENTRY,
-                           FlowGraph.EDGE_KEY_FALSE, right, ENTRY);
-          v.visitCFG(right, FlowGraph.EDGE_KEY_TRUE, this, EXIT,
-                            FlowGraph.EDGE_KEY_FALSE, this, EXIT);
+          v.visitCFG(left, FlowGraph.EDGE_KEY_TRUE, right,
+                           ENTRY, FlowGraph.EDGE_KEY_FALSE, right, ENTRY);
+          v.visitCFG(right, FlowGraph.EDGE_KEY_TRUE, this,
+                            EXIT, FlowGraph.EDGE_KEY_FALSE, this, EXIT);
       }
       else {
           v.visitCFG(left, right, ENTRY);

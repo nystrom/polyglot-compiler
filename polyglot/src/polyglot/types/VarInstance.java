@@ -5,7 +5,7 @@ public interface VarInstance<T extends VarDef> extends Use<T> {
      * The flags of the variable.
      */
     Flags flags();
-    VarInstance<T> flags(Flags flags);
+//    VarInstance<T> flags(Flags flags);   // FIXME causes problems with javac; eclipse doesn't complain
 
     /**
      * The name of the variable.

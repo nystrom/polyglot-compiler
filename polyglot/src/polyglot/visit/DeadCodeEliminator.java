@@ -281,7 +281,7 @@ public class DeadCodeEliminator extends DataFlow {
 	return new DefUseFinder(def, use);
     }
 
-    protected static class DefUseFinder extends HaltingVisitor {
+    protected static class DefUseFinder extends NodeVisitor {
 	protected Set def;
 	protected Set use;
 
@@ -289,13 +289,16 @@ public class DeadCodeEliminator extends DataFlow {
 	    this.def = def;
 	    this.use = use;
 	}
-
-	public NodeVisitor enter(Node n) {
-	    if (n instanceof LocalAssign) {
-		return bypass(((Assign)n).left());
-	    }
-
-	    return super.enter(n);
+	
+	public Node override(Node parent, Node n) {
+		if (parent instanceof LocalAssign) {
+			LocalAssign a = (LocalAssign) parent;
+			if (n == a.left()) {
+				return n;
+			}
+		}
+		
+		return null;
 	}
 
 	public Node leave(Node old, Node n, NodeVisitor v) {
@@ -323,11 +326,11 @@ public class DeadCodeEliminator extends DataFlow {
 	final List result = new LinkedList();
 	final Position pos = Position.COMPILER_GENERATED;
 
-	NodeVisitor v = new HaltingVisitor() {
-	    public NodeVisitor enter(Node n) {
-		if (n instanceof Assign || n instanceof ProcedureCall) {
-		    return bypassChildren(n);
-		}
+	NodeVisitor v = new NodeVisitor() {
+		public Node override(Node parent, Node n) {
+			if (n instanceof Assign || n instanceof ProcedureCall) {
+				return leave(parent, n, n, this);
+			}
 
 		// XXX Cast
 
@@ -336,11 +339,11 @@ public class DeadCodeEliminator extends DataFlow {
 		    if (op == Unary.POST_INC || op == Unary.POST_DEC
 			|| op == Unary.PRE_INC || op == Unary.PRE_INC) {
 
-			return bypassChildren(n);
+		    	return leave(parent, n, n, this);
 		    }
 		}
 
-		return this;
+		return n;
 	    }
 
 	    public Node leave(Node old, Node n, NodeVisitor v) {

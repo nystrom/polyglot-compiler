@@ -135,14 +135,14 @@ public class Field_c extends Expr_c implements Field
       FieldInstance fi = ts.createFieldInstance(position(), new ErrorRef_c<FieldDef>(ts, position()));
       return n.fieldInstance(fi);
   }
-
+  
   /** Type check the field. */
   public Node typeCheck(TypeChecker tc) throws SemanticException {
       Context c = tc.context();
       TypeSystem ts = tc.typeSystem();
       
       if (target.type().isReference()) {
-	  FieldInstance fi = ts.findField(target.type().toReference(), name.id(), c.currentClassScope());
+	  FieldInstance fi = ts.findField(target.type().toReference(), name.id(), c.currentClassDef());
 	  
 	  if (fi == null) {
 	      throw new InternalCompilerError("Cannot access field on node of type " +

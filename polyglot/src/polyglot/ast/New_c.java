@@ -170,8 +170,6 @@ public class New_c extends Expr_c implements New
 
             n = (New_c) n.anonType(type);
             
-//            Goal chk = Globals.Scheduler().TypeCheckDef(tb.job(), type);
-//            body = (ClassBody) n.visitChild(n.body(), tb2.pushGoal(chk));
             body = (ClassBody) n.visitChild(n.body(), tb2);
         }
         
@@ -232,7 +230,7 @@ public class New_c extends Expr_c implements New
                     throw new SemanticException("Cannot instantiate member class of non-class type.", n.position());
                 }
                 ClassType outer = qualifier.type().toClass();
-                ClassType ct = ts.findMemberClass(outer, name, c.currentClassScope());
+                ClassType ct = ts.findMemberClass(outer, name, c.currentClassDef());
                 tn = nf.CanonicalTypeNode(n.objectType().position(), ct);
             }
             else {
@@ -308,7 +306,7 @@ public class New_c extends Expr_c implements New
         NodeFactory nf = ar.nodeFactory();
         TypeSystem ts = ar.typeSystem();
         Context c = ar.context();
-        
+
         // Search for the outer class of the member.  The outer class is
         // not just ct.outer(); it may be a subclass of ct.outer().
         Type outer = null;
@@ -324,7 +322,7 @@ public class New_c extends Expr_c implements New
         // Search all enclosing classes for the type.
         while (t != null) {
             try {
-                ClassType mt = ts.findMemberClass(t, name, c.currentClassScope());
+                ClassType mt = ts.findMemberClass(t, name, c.currentClassDef());
                 
                 if (ts.typeEquals(mt, ct)) {
                     outer = t;
@@ -378,7 +376,7 @@ public class New_c extends Expr_c implements New
             if (anonType != null) {
                 c = c.pushClass(anonType, anonType.asType());
             }
-            ci = ts.findConstructor(ct, argTypes, c.currentClassScope());
+            ci = ts.findConstructor(ct, argTypes, c.currentClassDef());
         }
         else {
             ConstructorDef dci = ts.defaultConstructor(this.position(), Types.<ClassType>ref(ct));
