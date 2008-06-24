@@ -27,7 +27,7 @@ public class TypeObjectGoal_c<T extends TypeObject> extends AbstractGoal_c imple
        return v;
    }
     
-   public boolean run() {
+   public boolean runTask() {
 	   return true;
    }
    
@@ -50,7 +50,7 @@ public class TypeObjectGoal_c<T extends TypeObject> extends AbstractGoal_c imple
        
        if (in instanceof TypeInputStream) {
            // When deserializing, mark the goal as unreached to force the ref to be re-resolved.
-           state = Status.NEW;
+	       update(Status.NEW);
        }
    }
 }

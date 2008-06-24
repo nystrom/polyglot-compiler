@@ -207,10 +207,10 @@ public abstract class BaseParser extends java_cup.runtime.lr_parser {
             if (a.prefix() != null) {
                 return nf.AmbQualifierNode(pos(p),
                                            prefixToQualifier(a.prefix()),
-                                           nf.Id(pos(p), a.name()));
+                                           nf.Id(pos(p), a.nameString()));
             }
             else {
-                return nf.AmbQualifierNode(pos(p), nf.Id(pos(p), a.name()));
+                return nf.AmbQualifierNode(pos(p), nf.Id(pos(p), a.nameString()));
             }
         }
 
@@ -220,10 +220,10 @@ public abstract class BaseParser extends java_cup.runtime.lr_parser {
             if (a.prefix() != null) {
                 return nf.AmbQualifierNode(pos(p),
                                            prefixToQualifier(a.prefix()),
-                                           nf.Id(pos(p), a.name()));
+                                           nf.Id(pos(p), a.nameString()));
             }
             else {
-                return nf.AmbQualifierNode(pos(p), nf.Id(pos(p), a.name()));
+                return nf.AmbQualifierNode(pos(p), nf.Id(pos(p), a.nameString()));
             }
         }
 
@@ -239,11 +239,10 @@ public abstract class BaseParser extends java_cup.runtime.lr_parser {
             AmbTypeNode a = (AmbTypeNode) t;
 
             if (a.qualifierRef() != null) {
-                return nf.AmbQualifierNode(pos(t), a.qual(), nf.Id(pos(a),
-                                                                   a.name()));
+                return nf.AmbQualifierNode(pos(t), a.qual(),   a.name());
             }
             else {
-                return nf.AmbQualifierNode(pos(t), nf.Id(pos(a), a.name()));
+                return nf.AmbQualifierNode(pos(t), a.name());
             }
         }
 
@@ -257,14 +256,14 @@ public abstract class BaseParser extends java_cup.runtime.lr_parser {
     protected QualifierNode exprToQualifier(Expr e) throws Exception {
         if (e instanceof AmbExpr) {
             AmbExpr a = (AmbExpr) e;
-            return nf.AmbQualifierNode(pos(e), nf.Id(pos(a), a.name()));
+            return nf.AmbQualifierNode(pos(e), nf.Id(pos(a), a.nameString()));
         }
 
         if (e instanceof Field) {
             Field f = (Field) e;
             Receiver r = f.target();
             return nf.AmbQualifierNode(pos(e), prefixToQualifier(r),
-                                       nf.Id(pos(f), f.name()));
+                                       nf.Id(pos(f), f.nameString()));
         }
 
         die(pos(e));
@@ -278,14 +277,14 @@ public abstract class BaseParser extends java_cup.runtime.lr_parser {
     public TypeNode exprToType(Expr e) throws Exception {
         if (e instanceof AmbExpr) {
             AmbExpr a = (AmbExpr) e;
-            return nf.AmbTypeNode(pos(e), nf.Id(pos(a), a.name()));
+            return nf.AmbTypeNode(pos(e), nf.Id(pos(a), a.nameString()));
         }
 
         if (e instanceof Field) {
             Field f = (Field) e;
             Receiver r = f.target();
             return nf.AmbTypeNode(pos(e), prefixToQualifier(r), nf.Id(pos(f),
-                                                                      f.name()));
+                                                                      f.nameString()));
         }
 
         die(pos(e));

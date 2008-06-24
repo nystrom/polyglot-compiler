@@ -16,6 +16,7 @@ package polyglot.frontend;
 import java.util.*;
 
 import polyglot.ast.Node;
+import polyglot.frontend.Goal.Status;
 import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.util.InternalCompilerError;
@@ -50,6 +51,8 @@ public abstract class Scheduler {
     /** map used for interning goals. */
     protected Map<Goal,Goal> internCache = new HashMap<Goal,Goal>();
     
+    // TODO: remove this, we only need to intern the goal status, not the goal itself.
+    // Actually, the lazy ref to the goal status is the goal.  The run() method is the resolver for the lazy ref.
     public Goal intern(Goal goal) {
         Globals.Stats().accumulate("intern", 1);
         Globals.Stats().accumulate("intern:" + (goal instanceof VisitorGoal ? ((VisitorGoal) goal).v.getClass().getName() : goal.getClass().getName()), 1);
@@ -63,9 +66,6 @@ public abstract class Scheduler {
         }
         return g;
     }
-    
-    protected Set<Goal> inWorklist;
-    protected LinkedList<Goal> worklist;
     
     /**
      * A map from <code>Source</code>s to <code>Job</code>s or to
@@ -88,10 +88,7 @@ public abstract class Scheduler {
     
     public Scheduler(ExtensionInfo extInfo) {
         this.extInfo = extInfo;
-
         this.jobs = new HashMap<Source, Option<Job>>();
-        this.inWorklist = new HashSet<Goal>();
-        this.worklist = new LinkedList<Goal>();
         this.currentGoal = null;
     }
     
@@ -101,20 +98,6 @@ public abstract class Scheduler {
     
     public void setCommandLineJobs(Collection<Job> c) {
         this.commandLineJobs = Collections.unmodifiableCollection(c);
-    }
-    
-    /** Add <code>goal</code> to the worklist. */
-    public void enqueue(Goal goal) {
-        if (! inWorklist.contains(goal)) {
-            inWorklist.add(goal);
-            worklist.add(goal);
-        }
-    }
-    
-    public void enqueueAll(Collection<Goal> goals) {
-        for (Goal goal : goals) {
-            enqueue(goal);
-        }
     }
     
     public boolean reached(Goal goal) {
@@ -130,41 +113,48 @@ public abstract class Scheduler {
         }
     }
 
-    protected List<Goal> worklist() {
-        return worklist;
-    }
-    
     public List<Goal> prerequisites(Goal goal) {
         return goal.prereqs();
     }
     
+    Goal End;
+    Goal EndAll;
+    Goal EndCommandLine;
+    
     protected Goal End(Job job) {
-        return new SourceGoal_c("End", job) {
-        	public boolean run() {
-        		// The job has finished.  Let's remove it from the job map
-        		// so it can be garbage collected, and free up the AST.
-        		completeJob(job);
-        		return true;
-        	}
-        }.intern(this);
+	    if (End == null)
+		    End = new SourceGoal_c("End", job) {
+		    public boolean runTask() {
+			    // The job has finished.  Let's remove it from the job map
+			    // so it can be garbage collected, and free up the AST.
+			    completeJob(job);
+			    return true;
+		    }
+	    };
+	    return End;
     }
+
 
     protected Goal EndAll() {
-        return new AllBarrierGoal("EndAll", this) {
-            public Goal prereqForJob(Job job) {
-                return End(job);
-            }
-        }.intern(this);
+	    if (EndAll == null)
+		    EndAll = new AllBarrierGoal("EndAll", this) {
+		    public Goal prereqForJob(Job job) {
+			    return End(job);
+		    }
+	    };
+	    return EndAll;
     }
-    
-    protected Goal EndCommandLine() {
-        return new BarrierGoal(commandLineJobs()) {
-            public Goal prereqForJob(Job job) {
-                return End(job);
-            }
 
-            public String name() { return "EndCommandLine"; }
-        }.intern(this);
+    protected Goal EndCommandLine() {
+	    if (EndCommandLine == null)
+		    EndCommandLine = new BarrierGoal(commandLineJobs()) {
+		    public Goal prereqForJob(Job job) {
+			    return End(job);
+		    }
+
+		    public String name() { return "EndCommandLine"; }
+	    };
+	    return EndCommandLine;
     }
 
     /**
@@ -173,11 +163,11 @@ public abstract class Scheduler {
      * successfully run and all goals in the worklist were reached. The worklist
      * should be empty at return.
      */ 
-    public boolean runToCompletion() {
+    public boolean runToCompletion(Goal endGoal) {
     	boolean okay = false;
 
     	try {
-    		okay = attempt(EndAll());
+    		okay = attempt(endGoal);
     	}
     	catch (CyclicDependencyException e) {
     	}
@@ -236,27 +226,12 @@ public abstract class Scheduler {
      */ 
     public boolean attempt(Goal goal) throws CyclicDependencyException {
         assert currentGoal() == null
-        || currentGoal().state() == Goal.Status.RUNNING
-        || currentGoal().state() == Goal.Status.RUNNING_RECURSIVE;
+        || currentGoal().getCached() == Goal.Status.RUNNING
+        || currentGoal().getCached() == Goal.Status.RUNNING_RECURSIVE;
 
-        boolean result = false;
+        Status state = goal.get();
         
-        try {
-        	result = attemptGoalAndPrereqs(goal, new HashSet<Goal>());
-		}
-        catch (CyclicDependencyException e) {
-        	throw e;
-        }
-        
-        // If the spawned goal recursively spawned the current goal, terminate the current goal.
-        // The exception should be caught in runPass.
-        if (currentGoal() != null) {
-            if (currentGoal().state() == Goal.Status.SUCCESS || currentGoal().state() == Goal.Status.FAIL) {
-                throw new Complete(currentGoal());
-            }
-        }
-
-        return result;
+        return state == Goal.Status.SUCCESS;
     }
 
     public static class State {
@@ -288,94 +263,6 @@ public abstract class Scheduler {
 //            ts.restoreSystemResolver(s.resolver);
         }
     }
-
-    protected boolean attemptGoalAndPrereqs(Goal goal, Set<Goal> above) throws CyclicDependencyException {
-        if (Report.should_report(Report.frontend, 2))
-            Report.report(2, "Running to goal " + goal);
-
-        if (above.contains(goal)) {
-            throw new InternalCompilerError("Goal " + goal + " is a prerequisite of itself.");
-        }
-
-        Set<Goal> newAbove = new HashSet<Goal>();
-        newAbove.addAll(above);
-        newAbove.add(goal);
-
-        assert ! reached(goal) : goal + " already reached";
-        
-        switch (goal.state()) {
-        case NEW: break;
-        case RUNNING: break;
-        case RUNNING_RECURSIVE: break;
-        case SUCCESS: return true;
-        case FAIL: return false;
-        case UNREACHABLE: return false;
-        }
-        
-        Goal.Status oldState = goal.state();
-        
-        if (goal.state() == Goal.Status.NEW) {
-            // Run the prerequisites of the goal.
-            LinkedList<Goal> worklist = new LinkedList<Goal>();
-            worklist.addAll(prerequisites(goal));
-            while (! worklist.isEmpty()) {
-                Goal subgoal = (Goal) worklist.removeFirst();
-                
-                if (reached(subgoal)) {
-                    continue;
-                }
-
-                if (Report.should_report(Report.frontend, 4))
-                    Report.report(4, "running prereq: " + subgoal + "->" + goal);
-
-                if (! attemptGoalAndPrereqs(subgoal, newAbove)) {
-                    goal.setState(Goal.Status.UNREACHABLE);
-                    return false;
-                }
-
-                // Add any prereqs that might have been added by the subgoal
-                worklist.addAll(prerequisites(goal));
-            }
-        }
-        
-        assert goal.state() == oldState;
-        
-        // Make sure all prerequisite subgoals have been completed.
-        for (Goal subgoal : prerequisites(goal)) {
-            switch (subgoal.state()) {
-            case NEW:
-            case RUNNING:
-            case RUNNING_RECURSIVE:
-                throw new InternalCompilerError("Cannot reach " + goal + "; prerequisite " + subgoal + " has already run.");
-            case SUCCESS:
-                break;
-            case FAIL:
-            case UNREACHABLE:
-                goal.setState(Goal.Status.UNREACHABLE);
-                return false;
-            }
-        }
-
-        // Now, run the goal itself.
-        if (Report.should_report(Report.frontend, 4))
-            Report.report(4, "running goal " + goal);
-        
-        if (Report.should_report(Report.frontend, 5)) {
-            if (currentGoal() != null) {
-                Report.report(5, "CURRENT = " + currentGoal());
-                Report.report(5, "SPAWN   = " + goal);
-            }
-        }
-
-        boolean result = runPass(goal);
-
-        if (! reached(goal)) {
-            result = false;
-        }
-
-
-        return result;
-    }
     
     protected static class Complete extends RuntimeException {
         protected Goal goal;
@@ -398,7 +285,7 @@ public abstract class Scheduler {
             if (Report.should_report(Report.frontend, 1))
                 Report.report(1, "Skipping pass " + goal);
             
-            markReached(goal);
+            goal.update(Goal.Status.SUCCESS);
             return true;
         }
         
@@ -409,12 +296,6 @@ public abstract class Scheduler {
             throw new InternalCompilerError("Cannot run a pass for completed goal " + goal);
         }
         
-        boolean reentrant = false;
-        
-        if (goal.state() == Goal.Status.RUNNING || goal.state() == Goal.Status.RUNNING_RECURSIVE) {
-            reentrant = true;
-        }
-
         boolean result = false;
 
         if (true || job == null || job.status()) {
@@ -426,11 +307,6 @@ public abstract class Scheduler {
 				    job.initialErrorCount = job.compiler().errorQueue().errorCount();
             }
             
-            if (reentrant)
-                goal.setState(Goal.Status.RUNNING_RECURSIVE);
-            else
-                goal.setState(Goal.Status.RUNNING);
-
             long t = System.currentTimeMillis();
             String key = goal.toString();
 
@@ -438,13 +314,13 @@ public abstract class Scheduler {
             extInfo.getStats().accumulate("total goal attempts", 1);
             
             try {
-                result = goal.run();
+                result = goal.runTask();
 
-                if (result && goal.state() == Goal.Status.RUNNING) {
+                if (result && goal.getCached() == Goal.Status.RUNNING) {
                     extInfo.getStats().accumulate(key + " reached", 1);
                     extInfo.getStats().accumulate("total goal reached", 1);
 
-                    markReached(goal);
+                    goal.update(Status.SUCCESS);
 
                     if (Report.should_report(Report.frontend, 1))
                         Report.report(1, "Completed pass for " + goal);
@@ -453,27 +329,9 @@ public abstract class Scheduler {
                     extInfo.getStats().accumulate(key + " unreached", 1);
                     extInfo.getStats().accumulate("total goal unreached", 1);
 
-                    goal.setState(Goal.Status.FAIL);                    
-
                     if (Report.should_report(Report.frontend, 1))
                         Report.report(1, "Completed (unreached) pass for " + goal);
                 }
-            }
-            catch (Complete c) {
-                if (c.goal == goal && ! reentrant) {
-                    return c.goal.state() == Goal.Status.SUCCESS;
-                }
-                throw c;
-            }
-            catch (SchedulerException e) {
-                if (Report.should_report(Report.frontend, 1))
-                    Report.report(1, "Did not complete pass for " + goal);
-
-                extInfo.getStats().accumulate(key + " aborts", 1);
-                extInfo.getStats().accumulate("goal aborts", 1);
-                
-                goal.setState(Goal.Status.FAIL);
-                result = true;
             }
             finally {
                 t = System.currentTimeMillis() - t;
@@ -530,10 +388,6 @@ public abstract class Scheduler {
                 
         return result;             
     }
-
-    public void markReached(Goal goal) {
-        goal.setState(Goal.Status.SUCCESS);
-    }           
                                    
     protected static String statusString(boolean okay) {
         if (okay) {
@@ -642,7 +496,7 @@ public abstract class Scheduler {
     }
 
     public String toString() {
-        return getClass().getName() + " worklist=" + worklist;
+        return getClass().getName();
     }   
     
     public abstract Goal Parsed(Job job);

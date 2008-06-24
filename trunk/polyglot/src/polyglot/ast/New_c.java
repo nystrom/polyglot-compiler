@@ -120,7 +120,7 @@ public class New_c extends Expr_c implements New
 
     /** Reconstruct the expression. */
     protected New_c reconstruct(Expr qualifier, TypeNode tn, List<Expr> arguments, ClassBody body) {
-	if (qualifier != this.qualifier || tn != this.tn || ! CollectionUtil.equals(arguments, this.arguments) || body != this.body) {
+	if (qualifier != this.qualifier || tn != this.tn || ! CollectionUtil.allEqual(arguments, this.arguments) || body != this.body) {
 	    New_c n = (New_c) copy();
 	    n.tn = tn;
 	    n.qualifier = qualifier;
@@ -223,7 +223,7 @@ public class New_c extends Expr_c implements New
                 // just a name.  We'll just punt here and let the extensions handle
                 // this complexity.
 
-                String name = ((AmbTypeNode) tn).id().id();
+                String name = ((AmbTypeNode) tn).name().id();
                 assert name != null;
 
                 if (! qualifier.type().isClass()) {
@@ -260,9 +260,7 @@ public class New_c extends Expr_c implements New
         Context c = childtc.context();
 
         New_c old = this;
-
         New_c n = this;
-
 
         n = n.typeCheckObjectType(childtc);
 
@@ -559,7 +557,7 @@ public class New_c extends Expr_c implements New
         // But, if we print "T.C", the post compiler will try to lookup "T"
         // in "T".  Instead, we print just "C".
         if (qualifier != null) {
-            w.write(tn.name());
+            w.write(tn.nameString());
         }
         else {
             print(tn, w, tr);

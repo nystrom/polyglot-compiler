@@ -21,14 +21,14 @@ import polyglot.visit.*;
  * of a field of a class.
  */
 public class FieldDecl_c extends Term_c implements FieldDecl {
-    protected Flags flags;
+    protected FlagsNode flags;
     protected TypeNode type;
     protected Id name;
     protected Expr init;
     protected FieldDef fi;
     protected InitializerDef ii;
 
-    public FieldDecl_c(Position pos, Flags flags, TypeNode type,
+    public FieldDecl_c(Position pos, FlagsNode flags, TypeNode type,
             Id name, Expr init)
     {
         super(pos);
@@ -78,13 +78,12 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     }
 
     /** Get the flags of the declaration. */
-    public Flags flags() {
+    public FlagsNode flags() {
         return flags;
     }
 
     /** Set the flags of the declaration. */
-    public FieldDecl flags(Flags flags) {
-        if (flags.equals(this.flags)) return this;
+    public FieldDecl flags(FlagsNode flags) {
         FieldDecl_c n = (FieldDecl_c) copy();
         n.flags = flags;
         return n;
@@ -103,25 +102,15 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     }
 
     /** Get the name of the declaration. */
-    public Id id() {
+    public Id name() {
         return name;
     }
 
     /** Set the name of the declaration. */
-    public FieldDecl id(Id name) {
+    public FieldDecl name(Id name) {
         FieldDecl_c n = (FieldDecl_c) copy();
         n.name = name;
         return n;
-    }
-
-    /** Get the name of the declaration. */
-    public String name() {
-        return name.id();
-    }
-
-    /** Set the name of the declaration. */
-    public FieldDecl name(String name) {
-        return id(this.name.id(name));
     }
 
     public Term codeBody() {
@@ -154,9 +143,10 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     }
 
     /** Reconstruct the declaration. */
-    protected FieldDecl_c reconstruct(TypeNode type, Id name, Expr init) {
-        if (this.type != type || this.name != name || this.init != init) {
+    protected FieldDecl_c reconstruct(FlagsNode flags, TypeNode type, Id name, Expr init) {
+        if (this.flags != flags || this.type != type || this.name != name || this.init != init) {
             FieldDecl_c n = (FieldDecl_c) copy();
+            n.flags = flags;
             n.type = type;
             n.name = name;
             n.init = init;
@@ -179,7 +169,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         ClassDef ct = tb.currentClass();
         assert ct != null;
 
-        Flags flags = this.flags;
+        Flags flags = this.flags.flags();
 
         if (ct.flags().isInterface()) {
             flags = flags.Public().Static().Final();
@@ -219,7 +209,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
             n = (FieldDecl_c) n.initializerDef(ii);
         }
 
-        n = (FieldDecl_c) n.flags(flags);
+        n = (FieldDecl_c) n.flags(n.flags.flags(flags));
 
         return n;
     }
@@ -241,7 +231,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     		  final TypeChecker tc = (TypeChecker) tc0.context(v.context().freeze());
     		  final Node n = this;
     		  r.setResolver(new AbstractGoal_c("ConstantValue") {
-    			  public boolean run() {
+    			  public boolean runTask() {
     				  if (state() == Goal.Status.RUNNING_RECURSIVE) {
     					  // The field is not constant if the initializer is recursive.
     					  //
@@ -277,9 +267,10 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     }
 
     public Node visitSignature(NodeVisitor v) {
+	FlagsNode flags = (FlagsNode) this.visitChild(this.flags, v);
         TypeNode type = (TypeNode) this.visitChild(this.type, v);
         Id name = (Id) this.visitChild(this.name, v);
-        return reconstruct(type, name, this.init);
+        return reconstruct(flags, type, name, this.init);
     }
 
     public Node typeCheckBody(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
@@ -331,10 +322,10 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
 
         // check that inner classes do not declare static fields, unless they
         // are compile-time constants
-        if (flags().isStatic() &&
+        if (flags.isStatic() &&
                 fieldDef().container().get().toClass().isInnerClass()) {
             // it's a static field in an inner class.
-            if (!flags().isFinal() || init == null || !init.isConstant()) {
+            if (!flags.isFinal() || init == null || !init.isConstant()) {
                 throw new SemanticException("Inner classes cannot declare " +
                                             "static fields, unless they are compile-time " +
                                             "constant fields.", this.position());
@@ -382,7 +373,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
 
 
     public String toString() {
-        return flags.translate() + type + " " + name +
+        return flags.flags().translate() + type + " " + name +
         (init != null ? " = " + init : "");
     }
 
@@ -390,7 +381,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         boolean isInterface = fi != null && fi.container() != null &&
         fi.container().get().toClass().flags().isInterface();
 
-        Flags f = flags;
+        Flags f = flags.flags();
 
         if (isInterface) {
             f = f.clearPublic();

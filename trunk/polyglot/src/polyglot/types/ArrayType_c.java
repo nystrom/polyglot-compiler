@@ -55,7 +55,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
             FieldDef fi = ts.fieldDef(position(),
                                         Types.<ArrayType_c>ref(this),
                                         ts.Public().Final(),
-                                        Types.<PrimitiveType>ref(ts.Int()),
+                                        Types.ref(ts.Int()),
                                         "length");
             fi.setNotConstant();
             fields.add(fi);

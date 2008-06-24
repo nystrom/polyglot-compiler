@@ -20,14 +20,14 @@ import polyglot.visit.*;
  */
 public class ConstructorDecl_c extends Term_c implements ConstructorDecl
 {
-    protected Flags flags;
+    protected FlagsNode flags;
     protected Id name;
     protected List<Formal> formals;
     protected List<TypeNode> throwTypes;
     protected Block body;
     protected ConstructorDef ci;
 
-    public ConstructorDecl_c(Position pos, Flags flags, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
+    public ConstructorDecl_c(Position pos, FlagsNode flags, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
         super(pos);
         assert(flags != null && name != null && formals != null && throwTypes != null); // body may be null
         this.flags = flags;
@@ -46,38 +46,37 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
     }
 
     /** Get the flags of the constructor. */
-    public Flags flags() {
+    public FlagsNode flags() {
         return this.flags;
     }
 
     /** Set the flags of the constructor. */
-    public ConstructorDecl flags(Flags flags) {
-        if (flags.equals(this.flags)) return this;
+    public ConstructorDecl flags(FlagsNode flags) {
         ConstructorDecl_c n = (ConstructorDecl_c) copy();
         n.flags = flags;
         return n;
     }
 
     /** Get the name of the constructor. */
-    public Id id() {
+    public Id name() {
         return this.name;
     }
 
     /** Set the name of the constructor. */
-    public ConstructorDecl id(Id name) {
+    public ConstructorDecl name(Id name) {
         ConstructorDecl_c n = (ConstructorDecl_c) copy();
         n.name = name;
         return n;
     }
 
     /** Get the name of the constructor. */
-    public String name() {
+    public String nameString() {
         return this.name.id();
     }
 
     /** Set the name of the constructor. */
-    public ConstructorDecl name(String name) {
-        return id(this.name.id(name));
+    public ConstructorDecl nameString(String name) {
+        return name(this.name.id(name));
     }
 
     /** Get the formals of the constructor. */
@@ -144,9 +143,10 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
     }
 
     /** Reconstruct the constructor. */
-    protected ConstructorDecl_c reconstruct(Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
-        if (name != this.name || ! CollectionUtil.equals(formals, this.formals) || ! CollectionUtil.equals(throwTypes, this.throwTypes) || body != this.body) {
+    protected ConstructorDecl_c reconstruct(FlagsNode flags, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
+        if (flags != this.flags || name != this.name || ! CollectionUtil.allEqual(formals, this.formals) || ! CollectionUtil.allEqual(throwTypes, this.throwTypes) || body != this.body) {
             ConstructorDecl_c n = (ConstructorDecl_c) copy();
+            n.flags = flags;
             n.name = name;
             n.formals = TypedList.copyAndCheck(formals, Formal.class, true);
             n.throwTypes = TypedList.copyAndCheck(throwTypes, TypeNode.class, true);
@@ -170,7 +170,7 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
         ClassDef ct = tb.currentClass();
         assert ct != null;
 
-        Flags flags = this.flags;
+        Flags flags = this.flags.flags();
 
         if (ct.flags().isInterface()) {
             flags = flags.Public().Abstract();
@@ -216,10 +216,11 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
     }
 
     public Node visitSignature(NodeVisitor v) {
+	FlagsNode flags = (FlagsNode) this.visitChild(this.flags, v);
         Id name = (Id) this.visitChild(this.name, v);
         List<Formal> formals = this.visitList(this.formals, v);
         List<TypeNode> throwTypes = this.visitList(this.throwTypes, v);
-        return reconstruct(name, formals, throwTypes, this.body);
+        return reconstruct(flags, name, formals, throwTypes, this.body);
     }
 
     /** Type check the declaration. */
@@ -257,19 +258,21 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
                                         ctName + "\".", position());
         }
 
+        Flags flags = flags().flags();
+
         try {
-            ts.checkConstructorFlags(flags());
+            ts.checkConstructorFlags(flags);
         }
         catch (SemanticException e) {
             throw new SemanticException(e.getMessage(), position());
         }
 
-        if (body == null && ! flags().isNative()) {
+        if (body == null && ! flags.isNative()) {
             throw new SemanticException("Missing constructor body.",
                                         position());
         }
 
-        if (body != null && flags().isNative()) {
+        if (body != null && flags.isNative()) {
             throw new SemanticException(
                                         "A native constructor cannot have a body.", position());
         }
@@ -291,14 +294,14 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
     }
 
     public String toString() {
-        return flags.translate() + name + "(...)";
+        return flags.flags().translate() + name + "(...)";
     }
 
     /** Write the constructor to an output file. */
     public void prettyPrintHeader(CodeWriter w, PrettyPrinter tr) {
         w.begin(0);
-        w.write(flags().translate());
-
+        
+        tr.print(this, flags, w);
         tr.print(this, name, w);
         w.write("(");
 

@@ -33,11 +33,11 @@ public class TypeCheckFragmentGoal extends AbstractGoal_c {
 			return CollectionUtil.<Goal>append(l, l2);
 	}
 
-	public boolean run() {
+	public boolean runTask() {
 		Goal g = v.job().extensionInfo().scheduler().PreTypeCheck(v.job());
 		assert g.hasBeenReached();
 		if (state() == Goal.Status.RUNNING_RECURSIVE) {
-			r.update(r.getCached());
+			r.update(r.getCached()); // marks r known
 			return false;
 		}
 

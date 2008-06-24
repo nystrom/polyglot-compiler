@@ -31,22 +31,22 @@ public interface ClassDecl extends Term, TopLevelDecl, ClassMember
     /**
      * The class declaration's flags.
      */
-    Flags flags();
+    FlagsNode flags();
 
     /**
      * Set the class declaration's flags.
      */
-    ClassDecl flags(Flags flags);
+    ClassDecl flags(FlagsNode flags);
 
     /**
      * The class declaration's name.
      */
-    Id id();
+    Id name();
     
     /**
      * Set the class declaration's name.
      */
-    ClassDecl id(Id name);
+    ClassDecl name(Id name);
 
     /**
      * The class's super class.

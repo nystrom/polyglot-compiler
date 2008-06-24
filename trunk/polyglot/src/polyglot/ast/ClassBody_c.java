@@ -49,7 +49,7 @@ public class ClassBody_c extends Term_c implements ClassBody
     }
 
     protected ClassBody_c reconstruct(List<ClassMember> members) {
-        if (! CollectionUtil.<ClassMember>equals(members, this.members)) {
+        if (! CollectionUtil.<ClassMember>allEqual(members, this.members)) {
             ClassBody_c n = (ClassBody_c) copy();
             n.members = TypedList.copyAndCheck(members,
                                                ClassMember.class, true);

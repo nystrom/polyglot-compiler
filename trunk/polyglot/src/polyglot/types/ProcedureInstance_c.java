@@ -88,7 +88,7 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
 
     /** Returns true if the procedure has the given formal parameter types. */
     public boolean hasFormals(List<Type> formalTypes) {
-        return CollectionUtil.equals(this.formalTypes(), formalTypes, new TypeEquals());
+        return CollectionUtil.allElementwise(this.formalTypes(), formalTypes, new TypeEquals());
     }
 
     /** Returns true iff <code>this</code> throws fewer exceptions than

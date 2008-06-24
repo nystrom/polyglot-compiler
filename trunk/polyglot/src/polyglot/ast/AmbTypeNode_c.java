@@ -33,11 +33,11 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
     this.name = name;
   }
 
-  public Id id() {
+  public Id name() {
       return this.name;
   }
   
-  public AmbTypeNode id(Id name) {
+  public AmbTypeNode name(Id name) {
       AmbTypeNode_c n = (AmbTypeNode_c) copy();
       n.name = name;
       return n;
@@ -91,7 +91,7 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
               
               // Reset the resolver goal to one that can run when the ref is deserialized.
               Goal resolver = Globals.Scheduler().LookupGlobalType(sym);
-              Globals.Scheduler().markReached(resolver);
+              resolver.update(Goal.Status.SUCCESS);
               sym.setResolver(resolver);
               return n;
           }
@@ -130,7 +130,7 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
       return nf.AmbTypeNode(this.position, this.qual, this.name);
   }
   
-  public String name() {
+  public String nameString() {
       return name.id();
   }
 }

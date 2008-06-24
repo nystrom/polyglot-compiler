@@ -19,11 +19,9 @@ public class CollectionUtil
 	}
 	
 	/**
-	 * Return true if <code>a</code> and <code>b</code> are
-	 * pointer equal, or if iterators over both return the same
-	 * sequence of pointer equal elements.
+	 * Return true if the predicate is true for each pair of elements from <code>a</code> and <code>b</code>.
 	 */
-	public static <T> boolean equals(Collection<? extends T> a, Collection<? extends T> b, Predicate2<T> eq) {
+	public static <T> boolean allElementwise(Collection<? extends T> a, Collection<? extends T> b, Predicate2<T> predicate) {
 	    if (a == b) {
 	        return true;
 	    }
@@ -40,7 +38,7 @@ public class CollectionUtil
 	        T o = i.next();
 	        T p = j.next();
 	        
-	        if (! eq.isTrue(o, p)) {
+	        if (! predicate.isTrue(o, p)) {
 	            return false;
 	        }
 	    }
@@ -57,7 +55,7 @@ public class CollectionUtil
 	 * pointer equal, or if iterators over both return the same
 	 * sequence of pointer equal elements.
 	 */
-	public static <T> boolean equals(Collection<? extends T> a, Collection<? extends T> b) {
+	public static <T> boolean allEqual(Collection<? extends T> a, Collection<? extends T> b) {
 		if (a == b) {
 			return true;
 		}

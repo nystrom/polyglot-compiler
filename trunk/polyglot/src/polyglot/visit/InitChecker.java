@@ -378,7 +378,7 @@ public class InitChecker extends DataFlow
             ClassMember cm = (ClassMember)classMembers.next();
             if (cm instanceof FieldDecl) {
                 FieldDecl fd = (FieldDecl)cm;
-                if (fd.flags().isFinal()) {
+                if (fd.flags().flags().isFinal()) {
                     MinMaxInitCount initCount;
                     if (fd.init() != null) {
                         // the field has an initializer
@@ -990,7 +990,7 @@ public class InitChecker extends DataFlow
                 // the local variable may not have been initialized. 
                 // However, we only want to complain if the local is reachable
                 if (l.reachable()) {
-                    throw new SemanticException("Local variable \"" + l.name() +
+                    throw new SemanticException("Local variable \"" + l.nameString() +
                             "\" may not have been initialized",
                             l.position());
             	}

@@ -232,7 +232,7 @@ public class TypeBuilder extends NodeVisitor
 	    ct.setJob(job());
 
 	    if (currentPackage() != null) {
-	      	ct.package_(Types.<Package>ref(currentPackage()));
+	      	ct.setPackage(Types.<Package>ref(currentPackage()));
 	    }
 
 	    return ct;
@@ -245,7 +245,7 @@ public class TypeBuilder extends NodeVisitor
 	    currentClass().addMemberClass(Types.<ClassType>ref(ct.asType()));
 
 	    if (currentPackage() != null) {
-	      	ct.package_(Types.<Package>ref(currentPackage()));
+	      	ct.setPackage(Types.<Package>ref(currentPackage()));
 	    }
 
             // if all the containing classes for this class are member
@@ -274,7 +274,7 @@ public class TypeBuilder extends NodeVisitor
             ct.setJob(job());
 
 	    if (currentPackage() != null) {
-	      	ct.package_(Types.<Package>ref(currentPackage()));
+	      	ct.setPackage(Types.<Package>ref(currentPackage()));
 	    }
 
             Named dup = typeSystem().systemResolver().check(ct.fullName());
@@ -308,7 +308,7 @@ public class TypeBuilder extends NodeVisitor
         ct.setJob(job());
 
         if (currentPackage() != null) {
-            ct.package_(Types.<Package>ref(currentPackage()));
+            ct.setPackage(Types.<Package>ref(currentPackage()));
         }
         
 //        ct.superType(ts.unknownType(pos));

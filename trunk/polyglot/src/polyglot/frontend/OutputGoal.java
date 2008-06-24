@@ -25,7 +25,7 @@ public class OutputGoal extends SourceGoal_c
         this.translator = translator;
     }
 
-    public boolean run() {
+    public boolean runTask() {
         Node ast = job().ast();
 
         if (ast == null) {

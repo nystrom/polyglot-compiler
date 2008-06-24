@@ -27,7 +27,7 @@ public class PrettyPrintGoal extends SourceGoal_c
         this.w = w;
     }
 
-    public boolean run() {
+    public boolean runTask() {
         Node ast = this.job().ast();
 
         if (ast == null) {

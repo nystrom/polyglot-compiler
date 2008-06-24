@@ -20,7 +20,7 @@ import polyglot.visit.*;
  */
 public class MethodDecl_c extends Term_c implements MethodDecl
 {
-    protected Flags flags;
+    protected FlagsNode flags;
     protected TypeNode returnType;
     protected Id name;
     protected List<Formal> formals;
@@ -28,7 +28,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     protected Block body;
     protected MethodDef mi;
 
-    public MethodDecl_c(Position pos, Flags flags, TypeNode returnType, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
+    public MethodDecl_c(Position pos, FlagsNode flags, TypeNode returnType, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
 	super(pos);
 	assert(flags != null && returnType != null && name != null && formals != null && throwTypes != null); // body may be null
 	this.flags = flags;
@@ -48,13 +48,12 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     }
 
     /** Get the flags of the method. */
-    public Flags flags() {
+    public FlagsNode flags() {
 	return this.flags;
     }
 
     /** Set the flags of the method. */
-    public MethodDecl flags(Flags flags) {
-        if (flags.equals(this.flags)) return this;
+    public MethodDecl flags(FlagsNode flags) {
 	MethodDecl_c n = (MethodDecl_c) copy();
 	n.flags = flags;
 	return n;
@@ -73,25 +72,25 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     }
 
     /** Get the name of the method. */
-    public Id id() {
+    public Id name() {
         return this.name;
     }
     
     /** Set the name of the method. */
-    public MethodDecl id(Id name) {
+    public MethodDecl name(Id name) {
         MethodDecl_c n = (MethodDecl_c) copy();
         n.name = name;
         return n;
     }
     
     /** Get the name of the method. */
-    public String name() {
+    public String nameString() {
         return this.name.id();
     }
 
     /** Set the name of the method. */
-    public MethodDecl name(String name) {
-        return id(this.name.id(name));
+    public MethodDecl nameString(String name) {
+        return name(this.name.id(name));
     }
 
     /** Get the formals of the method. */
@@ -157,9 +156,10 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     }
 
     /** Reconstruct the method. */
-    protected MethodDecl_c reconstruct(TypeNode returnType, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
-	if (returnType != this.returnType || name != this.name || ! CollectionUtil.<Formal>equals(formals, this.formals) || ! CollectionUtil.<TypeNode>equals(throwTypes, this.throwTypes) || body != this.body) {
+    protected MethodDecl_c reconstruct(FlagsNode flags, TypeNode returnType, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
+	if (flags != this.flags || returnType != this.returnType || name != this.name || ! CollectionUtil.<Formal>allEqual(formals, this.formals) || ! CollectionUtil.<TypeNode>allEqual(throwTypes, this.throwTypes) || body != this.body) {
 	    MethodDecl_c n = (MethodDecl_c) copy();
+	    n.flags = flags;
 	    n.returnType = returnType;
             n.name = name;
 	    n.formals = TypedList.copyAndCheck(formals, Formal.class, true);
@@ -184,7 +184,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
         ClassDef ct = tb.currentClass();
         assert ct != null;
 
-	Flags flags = this.flags;
+	Flags flags = this.flags.flags();
 
 	if (ct.flags().isInterface()) {
 	    flags = flags.Public().Abstract();
@@ -234,10 +234,11 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     
     public Node visitSignature(NodeVisitor v) {
         TypeNode returnType = (TypeNode) this.visitChild(this.returnType, v);
+        FlagsNode flags = (FlagsNode) this.visitChild(this.flags, v);
         Id name = (Id) this.visitChild(this.name, v);
         List<Formal> formals = this.visitList(this.formals, v);
         List<TypeNode> throwTypes = this.visitList(this.throwTypes, v);
-        return reconstruct(returnType, name, formals, throwTypes, this.body);
+        return reconstruct(flags, returnType, name, formals, throwTypes, this.body);
     }
     
     /** Type check the declaration. */
@@ -327,13 +328,13 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     }
 
     public String toString() {
-	return flags.translate() + returnType + " " + name + "(...)";
+	return flags.flags().translate() + returnType + " " + name + "(...)";
     }
 
     /** Write the method to an output file. */
-    public void prettyPrintHeader(Flags flags, CodeWriter w, PrettyPrinter tr) {
+    public void prettyPrintHeader(CodeWriter w, PrettyPrinter tr) {
 	w.begin(0);
-	w.write(flags.translate());
+	print(flags, w, tr);
 	print(returnType, w, tr);
 	w.allowBreak(2, 2, " ", 1);
 	w.write(name + "(");
@@ -374,7 +375,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     }
 
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-        prettyPrintHeader(flags(), w, tr);
+        prettyPrintHeader(w, tr);
 
 	if (body != null) {
 	    printSubStmt(body, w, tr);
