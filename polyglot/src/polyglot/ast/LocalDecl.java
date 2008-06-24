@@ -7,7 +7,6 @@
 
 package polyglot.ast;
 
-import polyglot.types.Flags;
 import polyglot.types.LocalDef;
 
 /** 
@@ -17,13 +16,13 @@ import polyglot.types.LocalDef;
 public interface LocalDecl extends ForInit, VarDecl, VarInit
 {
     /** Set the declaration's flags. */
-    LocalDecl flags(Flags flags);
+    LocalDecl flags(FlagsNode flags);
 
     /** Set the declaration's type. */
     LocalDecl type(TypeNode type);
 
     /** Set the declaration's name. */
-    LocalDecl id(Id name);
+    LocalDecl name(Id name);
 
     /** Get the declaration's initializer expression, or null. */
     Expr init();

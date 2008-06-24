@@ -36,22 +36,22 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 	return this.qualifier;
     }
     
-    public Id id() {
+    public Id name() {
         return this.name;
     }
     
-    public AmbQualifierNode id(Id name) {
+    public AmbQualifierNode name(Id name) {
         AmbQualifierNode_c n = (AmbQualifierNode_c) copy();
         n.name = name;
         return n;
     }
 
-    public String name() {
+    public String nameString() {
 	return this.name.id();
     }
 
-    public AmbQualifierNode name(String name) {
-        return id(this.name.id(name));
+    public AmbQualifierNode nameString(String name) {
+        return name(this.name.id(name));
     }
 
     public QualifierNode qual() {

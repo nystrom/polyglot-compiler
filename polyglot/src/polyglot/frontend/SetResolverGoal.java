@@ -19,7 +19,7 @@ public class SetResolverGoal extends AbstractGoal_c {
 	}
 
 	@Override
-	public boolean run() {
+	public boolean runTask() {
 		return true;
 	}
 }

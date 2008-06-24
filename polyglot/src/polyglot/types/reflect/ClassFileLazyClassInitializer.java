@@ -83,7 +83,7 @@ public class ClassFileLazyClassInitializer {
 
         // Set the ClassType's package.
         if (!packageName.equals("")) {
-            ct.package_(Types.ref(ts.packageForName(packageName)));
+            ct.setPackage(Types.ref(ts.packageForName(packageName)));
         }
 
         // This is the "C$I$J" part.

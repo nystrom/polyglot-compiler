@@ -67,6 +67,12 @@ public class NodeFactory_c extends AbstractNodeFactory_c
         return null;
     }
     
+    public FlagsNode FlagsNode(Position pos, Flags flags) {
+	    FlagsNode n = new FlagsNode_c(pos, flags);
+	    n = (FlagsNode) n.ext(extFactory.extFlagsNode());
+	    n = (FlagsNode) n.del(delFactory.delFlagsNode());
+	    return n;
+    }
     public Id Id(Position pos, String name) {
         Id n = new Id_c(pos, name);
         n = (Id) n.ext(extFactory.extId());
@@ -245,7 +251,7 @@ public class NodeFactory_c extends AbstractNodeFactory_c
         return n;
     }
     
-    public ClassDecl ClassDecl(Position pos, Flags flags, Id name, TypeNode superClass, List<TypeNode> interfaces, ClassBody body) {
+    public ClassDecl ClassDecl(Position pos, FlagsNode flags, Id name, TypeNode superClass, List<TypeNode> interfaces, ClassBody body) {
         ClassDecl n = new ClassDecl_c(pos, flags, name, superClass, CollectionUtil.nonNullList(interfaces), body);
         n = (ClassDecl)n.ext(extFactory.extClassDecl());
         n = (ClassDecl)n.del(delFactory.delClassDecl());
@@ -273,14 +279,14 @@ public class NodeFactory_c extends AbstractNodeFactory_c
         return n;
     }
     
-    public ConstructorDecl ConstructorDecl(Position pos, Flags flags, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
+    public ConstructorDecl ConstructorDecl(Position pos, FlagsNode flags, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
         ConstructorDecl n = new ConstructorDecl_c(pos, flags, name, CollectionUtil.nonNullList(formals), CollectionUtil.nonNullList(throwTypes), body);
         n = (ConstructorDecl)n.ext(extFactory.extConstructorDecl());
         n = (ConstructorDecl)n.del(delFactory.delConstructorDecl());
         return n;
     }
 
-    public FieldDecl FieldDecl(Position pos, Flags flags, TypeNode type, Id name, Expr init) {
+    public FieldDecl FieldDecl(Position pos, FlagsNode flags, TypeNode type, Id name, Expr init) {
         FieldDecl n = new FieldDecl_c(pos, flags, type, name, init);
         n = (FieldDecl)n.ext(extFactory.extFieldDecl());
         n = (FieldDecl)n.del(delFactory.delFieldDecl());
@@ -329,7 +335,7 @@ public class NodeFactory_c extends AbstractNodeFactory_c
         return n;
     }
 
-    public Formal Formal(Position pos, Flags flags, TypeNode type, Id name) {
+    public Formal Formal(Position pos, FlagsNode flags, TypeNode type, Id name) {
         Formal n = new Formal_c(pos, flags, type, name);
         n = (Formal)n.ext(extFactory.extFormal());
         n = (Formal)n.del(delFactory.delFormal());
@@ -350,7 +356,7 @@ public class NodeFactory_c extends AbstractNodeFactory_c
         return n;
     }
 
-    public Initializer Initializer(Position pos, Flags flags, Block body) {
+    public Initializer Initializer(Position pos, FlagsNode flags, Block body) {
         Initializer n = new Initializer_c(pos, flags, body);
         n = (Initializer)n.ext(extFactory.extInitializer());
         n = (Initializer)n.del(delFactory.delInitializer());
@@ -392,14 +398,14 @@ public class NodeFactory_c extends AbstractNodeFactory_c
         return n;
     }
     
-    public LocalDecl LocalDecl(Position pos, Flags flags, TypeNode type, Id name, Expr init) {
+    public LocalDecl LocalDecl(Position pos, FlagsNode flags, TypeNode type, Id name, Expr init) {
         LocalDecl n = new LocalDecl_c(pos, flags, type, name, init);
         n = (LocalDecl)n.ext(extFactory.extLocalDecl());
         n = (LocalDecl)n.del(delFactory.delLocalDecl());
         return n;
     }
 
-    public MethodDecl MethodDecl(Position pos, Flags flags, TypeNode returnType, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
+    public MethodDecl MethodDecl(Position pos, FlagsNode flags, TypeNode returnType, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
         MethodDecl n = new MethodDecl_c(pos, flags, returnType, name, CollectionUtil.nonNullList(formals), CollectionUtil.nonNullList(throwTypes), body);
         n = (MethodDecl)n.ext(extFactory.extMethodDecl());
         n = (MethodDecl)n.del(delFactory.delMethodDecl());

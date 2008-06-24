@@ -169,7 +169,7 @@ public class JLScheduler extends Scheduler {
     	}
     	else {
     		return new SourceGoal_c("Serialized", job) {
-    			public boolean run() {
+    			public boolean runTask() {
     				return true;
     			}
             }.intern(this);
@@ -213,7 +213,7 @@ public class JLScheduler extends Scheduler {
         
         LazyRef<ClassDef> ref;
         
-        public boolean run() {
+        public boolean runTask() {
         	ClassDef def = ref.get();
         	v.update(def.asType());
         	return true;
@@ -237,7 +237,7 @@ public class JLScheduler extends Scheduler {
                 return name + "(" + className + ", " + flags + ")";
         }
 
-        public boolean run() {
+        public boolean runTask() {
         	LazyRef<ClassDef> ref = (LazyRef<ClassDef>) typeRef();
         	try {
         		Named n = Globals.TS().systemResolver().find(className);

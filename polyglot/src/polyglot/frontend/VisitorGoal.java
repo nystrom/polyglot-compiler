@@ -23,7 +23,7 @@ public class VisitorGoal extends SourceGoal_c {
     	return v;
     }
 
-    public boolean run() {
+    public boolean runTask() {
     	NodeVisitor v = visitor();
     	
     	Node ast = job().ast();

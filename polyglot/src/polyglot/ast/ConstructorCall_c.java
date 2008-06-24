@@ -96,7 +96,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 
     /** Reconstruct the constructor call. */
     protected ConstructorCall_c reconstruct(Expr qualifier, List arguments) {
-	if (qualifier != this.qualifier || ! CollectionUtil.equals(arguments, this.arguments)) {
+	if (qualifier != this.qualifier || ! CollectionUtil.allEqual(arguments, this.arguments)) {
 	    ConstructorCall_c n = (ConstructorCall_c) copy();
 	    n.qualifier = qualifier;
 	    n.arguments = TypedList.copyAndCheck(arguments, Expr.class, true);

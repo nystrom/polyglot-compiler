@@ -56,25 +56,25 @@ public class Call_c extends Expr_c implements Call
   }
   
   /** Get the name of the call. */
-  public Id id() {
+  public Id name() {
       return this.name;
   }
   
   /** Set the name of the call. */
-  public Call id(Id name) {
+  public Call name(Id name) {
       Call_c n = (Call_c) copy();
       n.name = name;
       return n;
   }
 
   /** Get the name of the call. */
-  public String name() {
+  public String nameString() {
     return this.name.id();
   }
 
   /** Set the name of the call. */
-  public Call name(String name) {
-      return id(this.name.id(name));
+  public Call nameString(String name) {
+      return name(this.name.id(name));
   }
 
   public ProcedureInstance procedureInstance() {
@@ -122,7 +122,7 @@ public class Call_c extends Expr_c implements Call
 
   /** Reconstruct the call. */
   protected Call_c reconstruct(Receiver target, Id name, List<Expr> arguments) {
-    if (target != this.target || name != this.name || ! CollectionUtil.equals(arguments,
+    if (target != this.target || name != this.name || ! CollectionUtil.allEqual(arguments,
                                                          this.arguments)) {
       Call_c n = (Call_c) copy();
       

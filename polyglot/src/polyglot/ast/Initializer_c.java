@@ -25,11 +25,11 @@ import polyglot.visit.*;
  */
 public class Initializer_c extends Term_c implements Initializer
 {
-    protected Flags flags;
+    protected FlagsNode flags;
     protected Block body;
     protected InitializerDef ii;
 
-    public Initializer_c(Position pos, Flags flags, Block body) {
+    public Initializer_c(Position pos, FlagsNode flags, Block body) {
 	super(pos);
 	assert(flags != null && body != null);
 	this.flags = flags;
@@ -45,13 +45,12 @@ public class Initializer_c extends Term_c implements Initializer
     }
 
     /** Get the flags of the initializer. */
-    public Flags flags() {
+    public FlagsNode flags() {
 	return this.flags;
     }
 
     /** Set the flags of the initializer. */
-    public Initializer flags(Flags flags) {
-        if (flags.equals(this.flags)) return this;
+    public Initializer flags(FlagsNode flags) {
 	Initializer_c n = (Initializer_c) copy();
 	n.flags = flags;
 	return n;
@@ -91,9 +90,10 @@ public class Initializer_c extends Term_c implements Initializer
     }
 
     /** Reconstruct the initializer. */
-    protected Initializer_c reconstruct(Block body) {
-	if (body != this.body) {
+    protected Initializer_c reconstruct(FlagsNode flags, Block body) {
+	if (flags != this.flags || body != this.body) {
 	    Initializer_c n = (Initializer_c) copy();
+	    n.flags = flags;
 	    n.body = body;
 	    return n;
 	}
@@ -103,8 +103,9 @@ public class Initializer_c extends Term_c implements Initializer
 
     /** Visit the children of the initializer. */
     public Node visitChildren(NodeVisitor v) {
+	FlagsNode flags = (FlagsNode) visitChild(this.flags, v);
 	Block body = (Block) visitChild(this.body, v);
-	return reconstruct(body);
+	return reconstruct(flags, body);
     }
 
     public Context enterScope(Context c) {
@@ -130,7 +131,7 @@ public class Initializer_c extends Term_c implements Initializer
         ClassDef ct = tb.currentClass();
         assert ct != null;
 
-        Flags flags = this.flags;
+        Flags flags = this.flags.flags();
 
         InitializerDef ii = ts.initializerDef(position(), Types.ref(ct.asType()), flags);
 
@@ -165,7 +166,7 @@ public class Initializer_c extends Term_c implements Initializer
         Initializer_c n;
         Block body = this.body;
         body = (Block) this.visitChild(this.body, childtc);
-        n = reconstruct(body);
+        n = reconstruct(this.flags, body);
         n = (Initializer_c) tc.leave(parent, this, n, childtc);
 
         return n;
@@ -175,15 +176,17 @@ public class Initializer_c extends Term_c implements Initializer
     public Node typeCheck(TypeChecker tc) throws SemanticException {
 	TypeSystem ts = tc.typeSystem();
 
+	Flags flags = this.flags.flags();
+
 	try {
-	    ts.checkInitializerFlags(flags());
+	    ts.checkInitializerFlags(flags);
 	}
 	catch (SemanticException e) {
 	    throw new SemanticException(e.getMessage(), position());
 	}
 
         // check that inner classes do not declare static initializers
-        if (flags().isStatic() &&
+        if (flags.isStatic() &&
               initializerDef().container().get().toClass().isInnerClass()) {
             // it's a static initializer in an inner class.
             throw new SemanticException("Inner classes cannot declare " + 
@@ -252,7 +255,7 @@ public class Initializer_c extends Term_c implements Initializer
     /** Write the initializer to an output file. */
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
 	w.begin(0);
-	w.write(flags.translate());
+	print(flags, w, tr);
 	print(body, w, tr);
 	w.end();
     }
@@ -269,7 +272,7 @@ public class Initializer_c extends Term_c implements Initializer
     }
 
     public String toString() {
-	return flags.translate() + "{ ... }";
+	return flags.flags().translate() + "{ ... }";
     }
     
     public Node copy(NodeFactory nf) {

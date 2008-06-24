@@ -54,25 +54,25 @@ public class Field_c extends Expr_c implements Field
   }
   
   /** Get the name of the field. */
-  public Id id() {
+  public Id name() {
       return this.name;
   }
   
   /** Set the name of the field. */
-  public Field id(Id name) {
+  public Field name(Id name) {
       Field_c n = (Field_c) copy();
       n.name = name;
       return n;
   }
 
   /** Get the name of the field. */
-  public String name() {
+  public String nameString() {
     return this.name.id();
   }
 
   /** Set the name of the field. */
-  public Field name(String name) {
-      return id(this.name.id(name));
+  public Field nameString(String name) {
+      return name(this.name.id(name));
   }
 
   /** Return the access flags of the variable. */

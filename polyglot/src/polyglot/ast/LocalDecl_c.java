@@ -21,13 +21,13 @@ import polyglot.visit.*;
  * of a local variable.
  */
 public class LocalDecl_c extends Stmt_c implements LocalDecl {
-    protected Flags flags;
+    protected FlagsNode flags;
     protected TypeNode type;
     protected Id name;
     protected Expr init;
     protected LocalDef li;
 
-    public LocalDecl_c(Position pos, Flags flags, TypeNode type,
+    public LocalDecl_c(Position pos, FlagsNode flags, TypeNode type,
                        Id name, Expr init)
     {
         super(pos);
@@ -48,13 +48,12 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     }
 
     /** Get the flags of the declaration. */
-    public Flags flags() {
+    public FlagsNode flags() {
         return flags;
     }
 
     /** Set the flags of the declaration. */
-    public LocalDecl flags(Flags flags) {
-        if (flags.equals(this.flags)) return this;
+    public LocalDecl flags(FlagsNode flags) {
         LocalDecl_c n = (LocalDecl_c) copy();
         n.flags = flags;
         return n;
@@ -74,12 +73,12 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     }
     
     /** Get the name of the declaration. */
-    public Id id() {
+    public Id name() {
         return name;
     }
     
     /** Set the name of the declaration. */
-    public LocalDecl id(Id name) {
+    public LocalDecl name(Id name) {
         LocalDecl_c n = (LocalDecl_c) copy();
         n.name = name;
         return n;
@@ -117,9 +116,10 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     }
 
     /** Reconstruct the declaration. */
-    protected LocalDecl_c reconstruct(TypeNode type, Id name, Expr init) {
-        if (this.type != type || this.name != name || this.init != init) {
+    protected LocalDecl_c reconstruct(FlagsNode flags, TypeNode type, Id name, Expr init) {
+        if (this.flags != flags || this.type != type || this.name != name || this.init != init) {
             LocalDecl_c n = (LocalDecl_c) copy();
+            n.flags = flags;
             n.type = type;
             n.name = name;
             n.init = init;
@@ -132,9 +132,10 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     /** Visit the children of the declaration. */
     public Node visitChildren(NodeVisitor v) {
         TypeNode type = (TypeNode) visitChild(this.type, v);
+        FlagsNode flags = (FlagsNode) visitChild(this.flags, v);
         Id name = (Id) visitChild(this.name, v);
         Expr init = (Expr) visitChild(this.init, v);
-        return reconstruct(type, name, init);
+        return reconstruct(flags, type, name, init);
     }
 
     /**
@@ -159,7 +160,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         LocalDecl_c n = (LocalDecl_c) super.buildTypes(tb);
         TypeSystem ts = tb.typeSystem();
 
-        LocalDef li = ts.localDef(position(), flags(), type.typeRef(), name.id());
+        LocalDef li = ts.localDef(position(), flags().flags(), type.typeRef(), name.id());
         return n.localDef(li);
     }
 
@@ -197,10 +198,8 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     public Node typeCheck(TypeChecker tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
-        LocalDef li = this.li;
-
         try {
-            ts.checkLocalFlags(flags);
+            ts.checkLocalFlags(flags.flags());
         }
         catch (SemanticException e) {
             throw new SemanticException(e.getMessage(), position());
@@ -256,7 +255,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     }
 
     public String toString() {
-        return flags.translate() + type + " " + name +
+        return flags.flags().translate() + type + " " + name +
                 (init != null ? " = " + init : "") + ";";
     }
 
@@ -264,7 +263,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         boolean printSemi = tr.appendSemicolon(true);
         boolean printType = tr.printType(true);
 
-        w.write(flags.translate());
+        print(flags, w, tr);
         if (printType) {
             print(type, w, tr);
             w.write(" ");

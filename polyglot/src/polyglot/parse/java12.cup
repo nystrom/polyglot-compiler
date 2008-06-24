@@ -71,7 +71,7 @@ parser Grm extends BaseParser {:
     else return n.pos;
   }
 
-  public List variableDeclarators(TypeNode a, List b, Flags flags)
+  public List variableDeclarators(TypeNode a, List b, FlagsNode flags)
     throws Exception
   {
     List l = new TypedList(new LinkedList(), LocalDecl.class, false);
@@ -179,7 +179,7 @@ non terminal Import single_type_import_declaration;
 non terminal Import type_import_on_demand_declaration;
 non terminal ClassDecl type_declaration;
 // 19.7) Productions used only in the LALR(1) grammar
-non terminal Flags modifiers_opt, modifiers, modifier;
+non terminal FlagsNode modifiers_opt, modifiers, modifier;
 // 19.8.1) Class Declaration
 non terminal ClassDecl class_declaration;
 non terminal TypeNode super, super_opt;
@@ -201,7 +201,7 @@ non terminal List throws_opt, throws;
 non terminal List class_type_list;
 non terminal Block method_body;
 // 19.8.4) Static Initializers
-non terminal Block static_initializer;
+non terminal Initializer static_initializer;
 // 19.8.5) Constructor Declarations
 non terminal ConstructorDecl constructor_declaration;
 non terminal Block constructor_body;
@@ -510,7 +510,7 @@ type_declaration ::=
 // 19.7) Productions used only in the LALR(1) grammar
 modifiers_opt::=
                     // Flags
-            {: RESULT = Flags.NONE; :}
+            {: RESULT = parser.nf.FlagsNode(Position.COMPILER_GENERATED, Flags.NONE); :}
     |   modifiers:a
             {: RESULT = a; :}
     ;
@@ -519,33 +519,35 @@ modifiers ::=
         modifier:a 
             {: RESULT = a; :}
     |   modifiers:a modifier:b
-            {: if (a.intersects(b)) parser.die(parser.position());
-               RESULT = a.set(b); :}
+            {: Flags fa = a.flags();
+               Flags fb = b.flags();
+               if (fa.intersects(fb)) parser.die(parser.position());
+               RESULT = parser.nf.FlagsNode(parser.pos(a, b), fa.set(fb)); :}
     ;
 modifier ::=
                     // Flags
         PUBLIC:a
-            {: RESULT = Flags.PUBLIC; :}
+            {: RESULT = parser.nf.FlagsNode(parser.pos(a), Flags.PUBLIC); :}
     |   PROTECTED:a 
-            {: RESULT = Flags.PROTECTED; :}
+            {: RESULT = parser.nf.FlagsNode(parser.pos(a), Flags.PROTECTED); :}
     |   PRIVATE:a
-            {: RESULT = Flags.PRIVATE; :}
+            {: RESULT = parser.nf.FlagsNode(parser.pos(a), Flags.PRIVATE); :}
     |   STATIC:a
-            {: RESULT = Flags.STATIC; :}
+            {: RESULT = parser.nf.FlagsNode(parser.pos(a), Flags.STATIC); :}
     |   ABSTRACT:a 
-            {: RESULT = Flags.ABSTRACT; :}
+            {: RESULT = parser.nf.FlagsNode(parser.pos(a), Flags.ABSTRACT); :}
     |   FINAL:a 
-            {: RESULT = Flags.FINAL; :}
+            {: RESULT = parser.nf.FlagsNode(parser.pos(a), Flags.FINAL); :}
     |   NATIVE:a 
-            {: RESULT = Flags.NATIVE; :}
+            {: RESULT = parser.nf.FlagsNode(parser.pos(a), Flags.NATIVE); :}
     |   SYNCHRONIZED:a
-            {: RESULT = Flags.SYNCHRONIZED; :}
+            {: RESULT = parser.nf.FlagsNode(parser.pos(a), Flags.SYNCHRONIZED); :}
     |   TRANSIENT:a 
-            {: RESULT = Flags.TRANSIENT; :}
+            {: RESULT = parser.nf.FlagsNode(parser.pos(a), Flags.TRANSIENT); :}
     |   VOLATILE:a
-            {: RESULT = Flags.VOLATILE; :}
+            {: RESULT = parser.nf.FlagsNode(parser.pos(a), Flags.VOLATILE); :}
     |   STRICTFP:a
-            {: RESULT = Flags.STRICTFP; :}
+            {: RESULT = parser.nf.FlagsNode(parser.pos(a), Flags.STRICTFP); :}
     ;
 // 19.8) Classes
 
@@ -613,7 +615,7 @@ class_body_declaration ::=
             {: RESULT = a; :}
     |   static_initializer:a
             {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
-               l.add(parser.nf.Initializer(parser.pos(a), Flags.STATIC, a));
+               l.add(a);
                RESULT = l; :}
     |   constructor_declaration:a
             {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
@@ -621,7 +623,7 @@ class_body_declaration ::=
                RESULT = l; :}
     |   block:a
             {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
-               l.add(parser.nf.Initializer(parser.pos(a), Flags.NONE, a));
+               l.add(parser.nf.Initializer(parser.pos(a), parser.nf.FlagsNode(parser.pos(a), Flags.NONE), a));
                RESULT = l; :}
     |   SEMICOLON
             {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
@@ -739,10 +741,10 @@ formal_parameter_list ::=
 formal_parameter ::=
                     // Formal
         type:a variable_declarator_id:b
-            {: RESULT = parser.nf.Formal(parser.pos(a, b, b), Flags.NONE,
+            {: RESULT = parser.nf.Formal(parser.pos(a, b, b), parser.nf.FlagsNode(parser.pos(a), Flags.NONE),
                                          parser.array(a, b.dims), b.name); :}
-    |   FINAL type:a variable_declarator_id:b
-            {: RESULT = parser.nf.Formal(parser.pos(a, b, b), Flags.FINAL,
+    |   FINAL:x type:a variable_declarator_id:b
+            {: RESULT = parser.nf.Formal(parser.pos(a, b, b), parser.nf.FlagsNode(parser.pos(x), Flags.FINAL),
                      parser.array(a, b.dims), b.name); :}
     ;
 throws_opt ::=                
@@ -777,8 +779,8 @@ method_body ::=
 // 19.8.4) Static Initializers
 static_initializer ::=
                     // Block
-        STATIC block:a
-            {: RESULT = a; :}
+        STATIC:x block:a
+            {: RESULT = parser.nf.Initializer(parser.pos(x,a), parser.nf.FlagsNode(parser.pos(x), Flags.STATIC), a); :}
     ;
 
 // 19.8.5) Constructor Declarations
@@ -827,7 +829,7 @@ interface_declaration ::=
         modifiers_opt:a INTERFACE:n identifier:b
                 extends_interfaces_opt:c interface_body:d
             {: RESULT = parser.nf.ClassDecl(
-                    parser.pos(n, d), a.Interface(),
+                    parser.pos(n, d), a.flags(a.flags().Interface()),
                         b, null, c, d); :}
     ;
 extends_interfaces_opt ::=
@@ -964,9 +966,9 @@ local_variable_declaration_statement ::=
 local_variable_declaration ::=
                     // List of LocalDecl
         type:a variable_declarators:b
-            {: RESULT = parser.variableDeclarators(a, b, Flags.NONE); :}
-    |   FINAL type:a variable_declarators:b
-            {: RESULT = parser.variableDeclarators(a, b, Flags.FINAL); :}
+            {: RESULT = parser.variableDeclarators(a, b, parser.nf.FlagsNode(parser.pos(a), Flags.NONE)); :}
+    |   FINAL:x type:a variable_declarators:b
+            {: RESULT = parser.variableDeclarators(a, b, parser.nf.FlagsNode(parser.pos(x), Flags.FINAL)); :}
     ;
 statement ::=
                     // Stmt

@@ -85,7 +85,7 @@ public class For_c extends Loop_c implements For
 
     /** Reconstruct the statement. */
     protected For_c reconstruct(List inits, Expr cond, List iters, Stmt body) {
-	if (! CollectionUtil.equals(inits, this.inits) || cond != this.cond || ! CollectionUtil.equals(iters, this.iters) || body != this.body) {
+	if (! CollectionUtil.allEqual(inits, this.inits) || cond != this.cond || ! CollectionUtil.allEqual(iters, this.iters) || body != this.body) {
 	    For_c n = (For_c) copy();
 	    n.inits = TypedList.copyAndCheck(inits, ForInit.class, true);
 	    n.cond = cond;

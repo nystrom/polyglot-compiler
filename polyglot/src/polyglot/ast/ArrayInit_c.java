@@ -45,7 +45,7 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
 
     /** Reconstruct the initializer. */
     protected ArrayInit_c reconstruct(List<Expr> elements) {
-	if (! CollectionUtil.equals(elements, this.elements)) {
+	if (! CollectionUtil.allEqual(elements, this.elements)) {
 	    ArrayInit_c n = (ArrayInit_c) copy();
 	    n.elements = TypedList.copyAndCheck(elements, Expr.class, true);
 	    return n;

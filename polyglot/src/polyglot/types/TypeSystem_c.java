@@ -1317,7 +1317,7 @@ public class TypeSystem_c implements TypeSystem
 
 					List<Type> pFormals = new TransformingList<Ref<? extends Type>,Type>(pDecl.formalTypes(), new DerefTransform<Type>());
 
-					if (! CollectionUtil.equals(firstFormals, pFormals, new TypeEquals())) {
+					if (! CollectionUtil.allElementwise(firstFormals, pFormals, new TypeEquals())) {
 						// not all signatures match; must be ambiguous
 						return maximal;
 					}
@@ -1418,37 +1418,43 @@ public class TypeSystem_c implements TypeSystem
 					continue;
 				}
 
-				mi = (MethodInstance) mi.instantiate(container, argTypes);
+				try {
+					mi = (MethodInstance) mi.instantiate(container, argTypes);
 
-				if (methodCallValid(mi, name, container, argTypes)) {
-					if (isAccessible(mi, currClass)) {
-						if (Report.should_report(Report.types, 3)) {
-							Report.report(3, "->acceptable: " + mi + " in "
-									+ mi.container());
+					if (methodCallValid(mi, name, container, argTypes)) {
+						if (isAccessible(mi, currClass)) {
+							if (Report.should_report(Report.types, 3)) {
+								Report.report(3, "->acceptable: " + mi + " in "
+								              + mi.container());
+							}
+
+							acceptable.add(mi);
+						}
+						else {
+							// method call is valid, but the method is
+							// unacceptable.
+							unacceptable.add(mi);
+							if (error == null) {
+								error = new NoMemberException(NoMemberException.METHOD,
+								                              "Method " + mi.signature() +
+								                              " in " + container +
+								" is inaccessible."); 
+							}
 						}
 
-						acceptable.add(mi);
-					}
-					else {
-						// method call is valid, but the method is
-						// unacceptable.
-						unacceptable.add(mi);
-						if (error == null) {
-							error = new NoMemberException(NoMemberException.METHOD,
-									"Method " + mi.signature() +
-									" in " + container +
-							" is inaccessible."); 
-						}
+						continue;
 					}
 				}
-				else {
-					if (error == null) {
-						error = new NoMemberException(NoMemberException.METHOD,
-								"Method " + mi.signature() +
-								" in " + container +
-								" cannot be called with arguments " +
-								"(" + CollectionUtil.listToString(argTypes) + ")."); 
-					}
+				catch (SemanticException e) {
+					// Treat any instantiation errors as call invalid errors.
+				}
+
+				if (error == null) {
+					error = new NoMemberException(NoMemberException.METHOD,
+					                              "Method " + mi.signature() +
+					                              " in " + container +
+					                              " cannot be called with arguments " +
+					                              "(" + CollectionUtil.listToString(argTypes) + ")."); 
 				}
 			}
 			if (type.superType() != null) {
@@ -1506,36 +1512,40 @@ public class TypeSystem_c implements TypeSystem
 					" for constructor " + container + "(" +
 					CollectionUtil.listToString(argTypes) + ")");
 
-		for (Iterator<ConstructorInstance> i = container.constructors().iterator(); i.hasNext(); ) {
-			ConstructorInstance ci = i.next();
-
+		for (ConstructorInstance ci : container.constructors()) {
 			if (Report.should_report(Report.types, 3))
 				Report.report(3, "Trying " + ci);
 
-			ci = (ConstructorInstance) ci.instantiate(container, argTypes);
+			try {
+				ci = (ConstructorInstance) ci.instantiate(container, argTypes);
 
-			if (callValid(ci, container, argTypes)) {
-				if (isAccessible(ci, currClass)) {
-					if (Report.should_report(Report.types, 3))
-						Report.report(3, "->acceptable: " + ci);
-					acceptable.add(ci);
-				}
-				else {
-					if (error == null) {
-						error = new NoMemberException(NoMemberException.CONSTRUCTOR,
-								"Constructor " + ci.signature() +
-						" is inaccessible."); 
+				if (callValid(ci, container, argTypes)) {
+					if (isAccessible(ci, currClass)) {
+						if (Report.should_report(Report.types, 3))
+							Report.report(3, "->acceptable: " + ci);
+						acceptable.add(ci);
 					}
+					else {
+						if (error == null) {
+							error = new NoMemberException(NoMemberException.CONSTRUCTOR,
+							                              "Constructor " + ci.signature() +
+							" is inaccessible."); 
+						}
+					}
+
+					continue;
 				}
 			}
-			else {
-				if (error == null) {
-					error = new NoMemberException(NoMemberException.CONSTRUCTOR,
-							"Constructor " + ci.signature() +
-							" cannot be invoked with arguments " +
-							"(" + CollectionUtil.listToString(argTypes) + ")."); 
+			catch (SemanticException e) {
+				// Treat any instantiation errors as call invalid errors.
+			}
 
-				}
+			if (error == null) {
+				error = new NoMemberException(NoMemberException.CONSTRUCTOR,
+				                              "Constructor " + ci.signature() +
+				                              " cannot be invoked with arguments " +
+				                              "(" + CollectionUtil.listToString(argTypes) + ")."); 
+
 			}
 		}
 
@@ -1833,7 +1843,7 @@ public class TypeSystem_c implements TypeSystem
 				TypeSystem_c ts = this;
 				LazyRef<ClassDef> sym = Types.lazyRef(unknownClassDef(), null);
 				Goal resolver = Globals.Scheduler().LookupGlobalTypeDef(sym, name);
-				Globals.Scheduler().markReached(resolver);
+				resolver.update(Goal.Status.SUCCESS);
 				sym.setResolver(resolver);
 				return sym;
 			}

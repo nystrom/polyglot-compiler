@@ -98,7 +98,7 @@ public class NewArray_c extends Expr_c implements NewArray
 
     /** Reconstruct the expression. */
     protected NewArray_c reconstruct(TypeNode baseType, List dims, ArrayInit init) {
-	if (baseType != this.baseType || ! CollectionUtil.equals(dims, this.dims) || init != this.init) {
+	if (baseType != this.baseType || ! CollectionUtil.allEqual(dims, this.dims) || init != this.init) {
 	    NewArray_c n = (NewArray_c) copy();
 	    n.baseType = baseType;
 	    n.dims = TypedList.copyAndCheck(dims, Expr.class, true);

@@ -19,10 +19,10 @@ public interface FieldDecl extends ClassMember, VarInit, CodeNode
     Type declType();
 
     /** Get the declaration's flags. */
-    Flags flags();
+    FlagsNode flags();
 
     /** Set the declaration's flags. */
-    FieldDecl flags(Flags flags);
+    FieldDecl flags(FlagsNode flags);
 
     /** Get the declaration's type. */
     TypeNode type();
@@ -30,9 +30,9 @@ public interface FieldDecl extends ClassMember, VarInit, CodeNode
     FieldDecl type(TypeNode type);
     
     /** Get the declaration's name. */
-    Id id();
+    Id name();
     /** Set the declaration's name. */
-    FieldDecl id(Id name);
+    FieldDecl name(Id name);
 
     /** Get the declaration's initializer, or null. */
     Expr init();

@@ -1,7 +1,5 @@
 package polyglot.types;
 
-import polyglot.frontend.AbstractGoal_c;
-import polyglot.frontend.Goal;
 
 public class Types {
 
@@ -15,20 +13,13 @@ public class Types {
 	    else if (v == null)
 		    return null;
 	    else {
-		    Ref<T> ref = lazyRef(v, new AbstractGoal_c("OK!") {
-			    public boolean run() {
-				    return true;
-			    }
+		    Ref<T> ref = lazyRef(v, new Runnable() {
+			    public void run() { }
 		    });
 		    ref.update(v);
 		    return ref;
 	    }
     }
-    
-
-//    public static <T extends TypeObject> LazyRef<T> lazyRef() {
-//        return new LazyRef_c<T>();
-//    }
 
     /** Create a lazy reference to a type object, with an initial value.
      * @param defaultValue initial value
@@ -40,7 +31,7 @@ public class Types {
         return new LazyRef_c<T>(defaultValue);
     }
 
-    public static <T> LazyRef<T> lazyRef(T defaultValue, Goal resolver) {
+    public static <T> LazyRef<T> lazyRef(T defaultValue, Runnable resolver) {
         return new LazyRef_c<T>(defaultValue, resolver);
     }
 

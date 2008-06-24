@@ -26,7 +26,7 @@ public abstract class AllBarrierGoal extends AbstractGoal_c {
         return l;
     }
     
-    public boolean run() {
+    public boolean runTask() {
     	return true;
     }
 }

@@ -30,7 +30,7 @@ public class ParserGoal extends SourceGoal_c
 	this.compiler = compiler;
     }
 
-    public boolean run() {
+    public boolean runTask() {
 	ErrorQueue eq = compiler.errorQueue();
         
 	FileSource source = (FileSource) job().source();
