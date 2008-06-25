@@ -211,7 +211,7 @@ public class ClassDef_c extends Def_c implements ClassDef
 	this.position = pos;
     }
 
-    public void package_(Ref<? extends Package> p) {
+    public void setPackage(Ref<? extends Package> p) {
 	this.package_ = p;
     }
 
