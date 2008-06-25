@@ -384,7 +384,7 @@ public class FlowGraph {
         public boolean equals(Object other) {
             if (other instanceof PeerKey) {
                 PeerKey k = (PeerKey) other;
-                return CollectionUtil.equals(list, k.list) && entry == k.entry;
+                return CollectionUtil.allEqual(list, k.list) && entry == k.entry;
             } else {
                 return false;
             }

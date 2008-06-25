@@ -110,11 +110,14 @@ public class FinalLocalExtractor extends NodeVisitor {
         public Node leave(Node old, Node n, NodeVisitor v) {
             if (n instanceof Formal) {
                 Formal d = (Formal) n;
-                return d.flags(d.localDef().flags());
+                FlagsNode f = d.flags();
+                f = f.flags(d.localDef().flags());
             }
             if (n instanceof LocalDecl) {
                 LocalDecl d = (LocalDecl) n;
-                return d.flags(d.localDef().flags());
+                FlagsNode f = d.flags();
+                f = f.flags(d.localDef().flags());
+                return d.flags(f);
             }
             return n;
         }

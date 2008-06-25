@@ -54,7 +54,7 @@ public class AlphaRenamer extends NodeVisitor {
 
     if ( n instanceof LocalDecl ) {
       LocalDecl l = (LocalDecl)n;
-      String name = l.id().id();
+      String name = l.name().id();
 
       if ( !freshVars.contains(name) ) {
 	// Add a new entry to the current renaming map.
@@ -82,7 +82,7 @@ public class AlphaRenamer extends NodeVisitor {
     if ( n instanceof Local ) {
       // Rename the local if its name is in the renaming map.
       Local l = (Local)n;
-      String name = l.name();
+      String name = l.nameString();
 
       if ( !renamingMap.containsKey(name) ) {
 	return n;
@@ -93,13 +93,13 @@ public class AlphaRenamer extends NodeVisitor {
 //      LocalType li = l.localInstance();
 //      if (li != null) li.setName(newName);
 
-      return l.name(newName);
+      return l.nameString(newName);
     }
 
     if ( n instanceof LocalDecl ) {
       // Rename the local decl.
       LocalDecl l = (LocalDecl)n;
-      String name = l.id().id();
+      String name = l.name().id();
 
       if ( freshVars.contains(name) ) {
 	return n;
@@ -114,7 +114,7 @@ public class AlphaRenamer extends NodeVisitor {
       String newName = renamingMap.get(name);
       LocalDef li = l.localDef();
       if (li != null) li.setName(newName);
-      return l.id(l.id().id(newName));
+      return l.name(l.name().id(newName));
     }
 
     return n;

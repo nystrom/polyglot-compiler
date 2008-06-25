@@ -11,28 +11,28 @@ package polyglot.util;
  */
 public class Pair<S,T>
 {
-	protected S part1;
-	protected T part2;
+	protected S fst;
+	protected T snd;
 
 	public Pair(S p1, T p2) {
-		this.part1 = p1;
-		this.part2 = p2;
+		this.fst = p1;
+		this.snd = p2;
 	}
 
-	public S part1() {
-		return part1;
+	public S fst() {
+		return fst;
 	}
 
-	public T part2() {
-		return part2;
+	public T snd() {
+		return snd;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof Pair) {
 			Pair<?,?> p = (Pair<?,?>) obj;
-			boolean r1 = part1 == null ? p.part1 == null : part1.equals(p.part1);
-			boolean r2 = part2 == null ? p.part2 == null : part2.equals(p.part2);
+			boolean r1 = fst == null ? p.fst == null : fst.equals(p.fst);
+			boolean r2 = snd == null ? p.snd == null : snd.equals(p.snd);
 			return r1 && r2;
 		}
 		return false;
@@ -40,10 +40,10 @@ public class Pair<S,T>
 
 	@Override
 	public int hashCode() {
-		return (part1 == null ? 0 : part1.hashCode()) + (part2 == null ? 0 : part2.hashCode());
+		return (fst == null ? 0 : fst.hashCode()) + (snd == null ? 0 : snd.hashCode());
 	}
 
 	public String toString() {
-		return "<" + part1 + ", " + part2 + ">";
+		return "<" + fst + ", " + snd + ">";
 	}
 }

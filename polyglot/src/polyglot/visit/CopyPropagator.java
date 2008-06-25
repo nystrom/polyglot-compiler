@@ -361,7 +361,7 @@ public class CopyPropagator extends DataFlow {
 	    // with a value from a local variable.  We only care about
 	    // non-final local declarations because final locals have special
 	    // use in local classes.
-	    if (!n.flags().isFinal() && n.init() instanceof Local) {
+	    if (!n.flags().flags().isFinal() && n.init() instanceof Local) {
 		LocalDef from = ((Local)n.init()).localInstance().def();
 		result.add(from, to);
 	    }
@@ -435,7 +435,7 @@ public class CopyPropagator extends DataFlow {
 
 	    LocalDef root = in.getRoot(l.localInstance().def());
 	    if (root == null) return n;
-	    return l.name(root.name()).localInstance(root.asInstance());
+	    return l.nameString(root.name()).localInstance(root.asInstance());
 	}
 
 	if (n instanceof Unary) {

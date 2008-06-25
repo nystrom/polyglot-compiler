@@ -37,13 +37,13 @@ public class FwdReferenceChecker extends ContextVisitor
             
             FwdReferenceChecker frc = (FwdReferenceChecker)this.copy();
             frc.inInitialization = true;
-            frc.inStaticInit = fd.flags().isStatic();
+            frc.inStaticInit = fd.flags().flags().isStatic();
             return frc;
         }
         else if (n instanceof Initializer) {
             FwdReferenceChecker frc = (FwdReferenceChecker)this.copy();
             frc.inInitialization = true;
-            frc.inStaticInit = ((Initializer)n).flags().isStatic();
+            frc.inStaticInit = ((Initializer)n).flags().flags().isStatic();
             return frc;
         }
         else if (n instanceof FieldAssign) {
