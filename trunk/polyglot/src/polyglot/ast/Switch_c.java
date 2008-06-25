@@ -60,7 +60,7 @@ public class Switch_c extends Stmt_c implements Switch
 
     /** Reconstruct the statement. */
     protected Switch_c reconstruct(Expr expr, List elements) {
-	if (expr != this.expr || ! CollectionUtil.equals(elements, this.elements)) {
+	if (expr != this.expr || ! CollectionUtil.allEqual(elements, this.elements)) {
 	    Switch_c n = (Switch_c) copy();
 	    n.expr = expr;
 	    n.elements = TypedList.copyAndCheck(elements, SwitchElement.class, true);

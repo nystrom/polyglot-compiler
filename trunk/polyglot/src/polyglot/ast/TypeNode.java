@@ -23,5 +23,5 @@ public interface TypeNode extends Receiver, QualifierNode, Term
     Ref<? extends Type> typeRef();
     
     /** Short name of the type, or null if not a <code>Named</code> type. */
-    String name();
+    String nameString();
 }

@@ -32,12 +32,12 @@ public interface Call extends Expr, ProcedureCall
     /**
      * The name of the method to call.
      */
-    Id id();
+    Id name();
     
     /**
      * Set the name of the method to call.
      */
-    Call id(Id name);
+    Call name(Id name);
 
     /**
      * Indicates if the target of this call is implicit, that 

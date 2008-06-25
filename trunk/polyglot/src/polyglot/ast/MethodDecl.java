@@ -18,10 +18,10 @@ import polyglot.types.MethodDef;
 public interface MethodDecl extends ProcedureDecl 
 {
     /** The method's flags. */
-    Flags flags();
+    FlagsNode flags();
 
     /** Set the method's flags. */
-    MethodDecl flags(Flags flags);
+    MethodDecl flags(FlagsNode flags);
 
     /** The method's return type.  */
     TypeNode returnType();
@@ -30,10 +30,10 @@ public interface MethodDecl extends ProcedureDecl
     MethodDecl returnType(TypeNode returnType);
 
     /** The method's name. */
-    Id id();
+    Id name();
     
     /** Set the method's name. */
-    MethodDecl id(Id name);
+    MethodDecl name(Id name);
 
     /** The method's formal parameters.
      * @return A list of {@link polyglot.ast.Formal Formal}.

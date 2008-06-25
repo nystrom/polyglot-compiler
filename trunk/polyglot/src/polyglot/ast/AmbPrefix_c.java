@@ -34,20 +34,20 @@ public class AmbPrefix_c extends Node_c implements AmbPrefix
     }
     
     /** Set the name of the prefix. */
-    public AmbPrefix id(Id name) {
+    public AmbPrefix name(Id name) {
         AmbPrefix_c n = (AmbPrefix_c) copy();
         n.name = name;
         return n;
     }
 
     /** Get the name of the prefix. */
-    public String name() {
+    public String nameString() {
 	return this.name.id();
     }
 
     /** Set the name of the prefix. */
-    public AmbPrefix name(String name) {
-        return id(this.name.id(name));
+    public AmbPrefix nameString(String name) {
+        return name(this.name.id(name));
     }
 
     /** Get the prefix of the prefix. */

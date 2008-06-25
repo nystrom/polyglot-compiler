@@ -20,9 +20,9 @@ import polyglot.types.InitializerDef;
 public interface Initializer extends CodeDecl 
 {
     /** Get the initializer's flags. */
-    Flags flags();
+    FlagsNode flags();
     /** Set the initializer's flags. */
-    Initializer flags(Flags flags);
+    Initializer flags(FlagsNode flags);
 
     /**
      * Get the initializer's type object.  This field may not be valid until

@@ -73,6 +73,15 @@ public abstract class AbstractExtFactory_c implements ExtFactory
     // also has an extension. Finally, call an appropriate post method,
     // to allow subclasses to perform operations on the construction Exts
     // ******************************************
+    public final Ext extFlagsNode() {
+	    Ext e = extFlagsNodeImpl();
+	    
+	    if (nextExtFactory != null) {
+		    Ext e2 = nextExtFactory.extId();
+		    e = composeExts(e, e2);
+	    }
+	    return postExtFlagsNode(e);
+    }
     public final Ext extId() {
         Ext e = extIdImpl();
         
@@ -868,8 +877,16 @@ public abstract class AbstractExtFactory_c implements ExtFactory
     // ********************************************
     
     /**
-     * Create the <code>Ext</code> object for a <code>Name</code> AST node.
-     * @return the <code>Ext</code> object for a <code>Name</code> AST node.
+     * Create the <code>Ext</code> object for a <code>FlagsNode</code> AST node.
+     * @return the <code>Ext</code> object for a <code>FlagsNode</code> AST node.
+     */
+    protected Ext extFlagsNodeImpl() {
+	    return extNodeImpl();
+    }
+    
+    /**
+     * Create the <code>Ext</code> object for a <code>Id</code> AST node.
+     * @return the <code>Ext</code> object for a <code>Id</code> AST node.
      */
     protected Ext extIdImpl() {
         return extNodeImpl();
@@ -1504,6 +1521,10 @@ public abstract class AbstractExtFactory_c implements ExtFactory
     // ********************************************
     // Post methods
     // ********************************************
+    
+    protected Ext postExtFlagsNode(Ext ext) {
+	    return postExtNode(ext);
+    }
     
     protected Ext postExtId(Ext ext) {
         return postExtNode(ext);

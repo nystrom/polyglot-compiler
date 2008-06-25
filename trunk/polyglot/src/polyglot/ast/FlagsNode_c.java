@@ -8,51 +8,51 @@
 
 package polyglot.ast;
 
+
+import polyglot.types.Flags;
 import polyglot.util.*;
 import polyglot.visit.PrettyPrinter;
 
-/** A node that represents a simple identifier in the AST. */
-public class Id_c extends Node_c implements Id
+public class FlagsNode_c extends Node_c implements FlagsNode
 {
-  protected String id;
+  protected Flags flags;
 
-  public Id_c(Position pos, String id) {
+  public FlagsNode_c(Position pos, Flags flags) {
     super(pos);
-    assert(id != null);
-    assert(StringUtil.isNameShort(id));
-    this.id = id;
+    assert(flags != null);
+    this.flags = flags;
   }
 
-  // Override to make Id.equals(String) a compile-time error
-  public final void equals(String s) { }
+  // Override to make Name.equals(Flags) a compile-time error
+  public final void equals(Flags s) { }
 
   /** Get the name of the expression. */
-  public String id() {
-    return this.id;
+  public Flags flags() {
+    return this.flags;
   }
 
   /** Set the name of the expression. */
-  public Id id(String id) {
-    Id_c n = (Id_c) copy();
-    n.id = id;
+  public FlagsNode flags(Flags flags) {
+    FlagsNode_c n = (FlagsNode_c) copy();
+    n.flags = flags;
     return n;
   }
 
   /** Write the name to an output file. */
   public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-    w.write(id);
+    w.write(flags.translate());
   }
 
   public String toString() {
-    return id;
+    return flags.toString();
   }
 
   public void dump(CodeWriter w) {
-    w.write("(Id \"" + id + "\")");
+    w.write("(Flags \"" + flags + "\")");
   }
   
   public Node copy(NodeFactory nf) {
-      return nf.Id(this.position, this.id);
+      return nf.FlagsNode(this.position, this.flags);
   }
 
 }

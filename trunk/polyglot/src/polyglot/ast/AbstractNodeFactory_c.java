@@ -269,7 +269,7 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
 	return ConstructorCall(pos, kind, null, args);
     }
 
-    public final FieldDecl FieldDecl(Position pos, Flags flags, TypeNode type, Id name) {
+    public final FieldDecl FieldDecl(Position pos, FlagsNode flags, TypeNode type, Id name) {
         return FieldDecl(pos, flags, type, name, null);
     }
 
@@ -281,7 +281,7 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
 	return If(pos, cond, consequent, null);
     }
 
-    public final LocalDecl LocalDecl(Position pos, Flags flags, TypeNode type, Id name) {
+    public final LocalDecl LocalDecl(Position pos, FlagsNode flags, TypeNode type, Id name) {
         return LocalDecl(pos, flags, type, name, null);
     }
 

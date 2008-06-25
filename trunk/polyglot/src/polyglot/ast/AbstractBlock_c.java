@@ -58,7 +58,7 @@ public abstract class AbstractBlock_c extends Stmt_c implements Block
 
     /** Reconstruct the block. */
     protected AbstractBlock_c reconstruct(List<Stmt> statements) {
-	if (! CollectionUtil.equals(statements, this.statements)) {
+	if (! CollectionUtil.allEqual(statements, this.statements)) {
 	    AbstractBlock_c n = (AbstractBlock_c) copy();
 	    n.statements = TypedList.copyAndCheck(statements, Stmt.class, true);
 	    return n;

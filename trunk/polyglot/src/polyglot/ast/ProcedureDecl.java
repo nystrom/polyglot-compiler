@@ -9,7 +9,6 @@ package polyglot.ast;
 
 import java.util.List;
 
-import polyglot.types.Flags;
 import polyglot.types.ProcedureDef;
 
 /**
@@ -19,10 +18,10 @@ import polyglot.types.ProcedureDef;
 public interface ProcedureDecl extends CodeDecl 
 {
     /** The procedure's flags. */
-    Flags flags();
+    FlagsNode flags();
 
     /** The procedure's name. */
-    String name();
+    String nameString();
 
     /** The procedure's formal parameters.
      * @return A list of {@link polyglot.ast.Formal Formal}.

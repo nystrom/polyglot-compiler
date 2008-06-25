@@ -21,6 +21,6 @@ public interface AmbQualifierNode extends Ambiguous, QualifierNode
     /**
      * Ambiguous name.
      */
-    String name();
-    Id id();
+    String nameString();
+    Id name();
 }

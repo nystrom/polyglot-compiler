@@ -46,7 +46,7 @@ public class SourceCollection_c extends Node_c implements SourceCollection
 
     /** Reconstruct the collection. */
     protected SourceCollection_c reconstruct(List sources) {
-	if (! CollectionUtil.equals(sources, this.sources)) {
+	if (! CollectionUtil.allEqual(sources, this.sources)) {
 	    SourceCollection_c n = (SourceCollection_c) copy();
 	    n.sources = TypedList.copyAndCheck(sources, SourceFile.class, true);
 	    return n;

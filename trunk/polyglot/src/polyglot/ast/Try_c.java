@@ -71,7 +71,7 @@ public class Try_c extends Stmt_c implements Try
 
     /** Reconstruct the statement. */
     protected Try_c reconstruct(Block tryBlock, List catchBlocks, Block finallyBlock) {
-	if (tryBlock != this.tryBlock || ! CollectionUtil.equals(catchBlocks, this.catchBlocks) || finallyBlock != this.finallyBlock) {
+	if (tryBlock != this.tryBlock || ! CollectionUtil.allEqual(catchBlocks, this.catchBlocks) || finallyBlock != this.finallyBlock) {
 	    Try_c n = (Try_c) copy();
 	    n.tryBlock = tryBlock;
 	    n.catchBlocks = TypedList.copyAndCheck(catchBlocks, Catch.class, true);

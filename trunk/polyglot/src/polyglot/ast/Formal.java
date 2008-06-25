@@ -18,10 +18,10 @@ import polyglot.types.LocalDef;
 public interface Formal extends VarDecl
 {
     /** Get the flags of the formal. */
-    public Flags flags();
+    public FlagsNode flags();
 
     /** Set the flags of the formal. */
-    public Formal flags(Flags flags);
+    public Formal flags(FlagsNode flags);
     
     /** Get the type node of the formal. */
     public TypeNode type();
@@ -30,13 +30,13 @@ public interface Formal extends VarDecl
     public Formal type(TypeNode type);
     
     /** Get the name of the formal. */
-    public Id id();
+    public Id name();
     
     /** Set the name of the formal. */
-    public Formal id(Id name);
+    public Formal name(Id name);
     
     /** Set the name of the formal. */
-    public Formal name(String name);
+    public Formal nameString(String name);
 
     /** Get the local instance of the formal. */
     public LocalDef localDef();

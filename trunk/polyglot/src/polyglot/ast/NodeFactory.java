@@ -31,6 +31,8 @@ public interface NodeFactory
     // Factory Methods
     //////////////////////////////////////////////////////////////////
 
+    FlagsNode FlagsNode(Position pos, Flags flags);
+
     Id Id(Position pos, String id);
     
     AmbExpr AmbExpr(Position pos, Id name);
@@ -119,7 +121,7 @@ public interface NodeFactory
 
     ClassBody ClassBody(Position pos, List<ClassMember> members);
 
-    ClassDecl ClassDecl(Position pos, Flags flags, Id name,
+    ClassDecl ClassDecl(Position pos, FlagsNode flags, Id name,
             TypeNode superClass, List<TypeNode> interfaces, ClassBody body);
 
     ClassLit ClassLit(Position pos, TypeNode typeNode);
@@ -134,12 +136,12 @@ public interface NodeFactory
     ConstructorCall ConstructorCall(Position pos, ConstructorCall.Kind kind,
 	                            Expr outer, List<Expr> args);
 
-    ConstructorDecl ConstructorDecl(Position pos, Flags flags, Id name,
+    ConstructorDecl ConstructorDecl(Position pos, FlagsNode flags, Id name,
             List<Formal> formals, List<TypeNode> throwTypes,
             Block body);
 
-    FieldDecl FieldDecl(Position pos, Flags flags, TypeNode type, Id name);
-    FieldDecl FieldDecl(Position pos, Flags flags, TypeNode type, Id name, Expr init);
+    FieldDecl FieldDecl(Position pos, FlagsNode flags, TypeNode type, Id name);
+    FieldDecl FieldDecl(Position pos, FlagsNode flags, TypeNode type, Id name, Expr init);
 
     Do Do(Position pos, Stmt body, Expr cond);
 
@@ -154,14 +156,14 @@ public interface NodeFactory
 
     For For(Position pos, List<ForInit> inits, Expr cond, List<ForUpdate> iters, Stmt body);
 
-    Formal Formal(Position pos, Flags flags, TypeNode type, Id name);
+    Formal Formal(Position pos, FlagsNode flags, TypeNode type, Id name);
 
     If If(Position pos, Expr cond, Stmt consequent);
     If If(Position pos, Expr cond, Stmt consequent, Stmt alternative);
 
     Import Import(Position pos, Import.Kind kind, String name);
 
-    Initializer Initializer(Position pos, Flags flags, Block body);
+    Initializer Initializer(Position pos, FlagsNode flags, Block body);
 
     Instanceof Instanceof(Position pos, Expr expr, TypeNode type);
 
@@ -173,10 +175,10 @@ public interface NodeFactory
 
     LocalClassDecl LocalClassDecl(Position pos, ClassDecl decl);
 
-    LocalDecl LocalDecl(Position pos, Flags flags, TypeNode type, Id name);
-    LocalDecl LocalDecl(Position pos, Flags flags, TypeNode type, Id name, Expr init);
+    LocalDecl LocalDecl(Position pos, FlagsNode flags, TypeNode type, Id name);
+    LocalDecl LocalDecl(Position pos, FlagsNode flags, TypeNode type, Id name, Expr init);
 
-    MethodDecl MethodDecl(Position pos, Flags flags, TypeNode returnType, Id name,
+    MethodDecl MethodDecl(Position pos, FlagsNode flags, TypeNode returnType, Id name,
             List<Formal> formals, List<TypeNode> throwTypes, Block body);
 
     New New(Position pos, TypeNode type, List<Expr> args);

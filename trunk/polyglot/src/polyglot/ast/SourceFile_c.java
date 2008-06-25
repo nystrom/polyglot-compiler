@@ -98,7 +98,7 @@ public class SourceFile_c extends Node_c implements SourceFile
 
     /** Reconstruct the source file. */
     protected SourceFile_c reconstruct(PackageNode package_, List<Import> imports, List<TopLevelDecl> decls) {
-	if (package_ != this.package_ || ! CollectionUtil.equals(imports, this.imports) || ! CollectionUtil.equals(decls, this.decls)) {
+	if (package_ != this.package_ || ! CollectionUtil.allEqual(imports, this.imports) || ! CollectionUtil.allEqual(decls, this.decls)) {
 	    SourceFile_c n = (SourceFile_c) copy();
 	    n.package_ = package_;
 	    n.imports = TypedList.copyAndCheck(imports, Import.class, true);
@@ -174,7 +174,7 @@ public class SourceFile_c extends Node_c implements SourceFile
 
 	for (Iterator i = decls.iterator(); i.hasNext();) {
 	    TopLevelDecl d = (TopLevelDecl) i.next();
-	    String s = d.name();
+	    String s = d.nameString();
 
 	    if (names.contains(s)) {
 		throw new SemanticException("Duplicate declaration: \"" + s + 
@@ -183,7 +183,7 @@ public class SourceFile_c extends Node_c implements SourceFile
 
 	    names.add(s);
 
-	    if (d.flags().isPublic()) {
+	    if (d.flags().flags().isPublic()) {
 		if (hasPublic) {
 		    throw new SemanticException(
 			"The source contains more than one public declaration.",

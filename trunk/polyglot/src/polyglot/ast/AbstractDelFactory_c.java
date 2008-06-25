@@ -75,6 +75,16 @@ public abstract class AbstractDelFactory_c implements DelFactory
     // also has an extension. Finally, call an appropriate post method,
     // to allow subclasses to perform operations on the construction Exts
     // ******************************************
+    public final JL delFlagsNode() {
+	    JL e = delFlagsNodeImpl();
+	    
+	    if (nextDelFactory != null) {
+		    JL e2 = nextDelFactory.delFlagsNode();
+		    e = composeDels(e, e2);
+	    }
+	    return postDelFlagsNode(e);
+    }
+    
     public final JL delId() {
         JL e = delIdImpl();
         
@@ -870,8 +880,16 @@ public abstract class AbstractDelFactory_c implements DelFactory
     // ********************************************
     
     /**
-     * Create the delegate for a <code>Name</code> AST node.
-     * @return the delegate for a <code>Name</code> AST node.
+     * Create the delegate for a <code>FlagsNode</code> AST node.
+     * @return the delegate for a <code>FlagsNode</code> AST node.
+     */
+    protected JL delFlagsNodeImpl() {
+	    return delNodeImpl();
+    }
+    
+    /**
+     * Create the delegate for a <code>Id</code> AST node.
+     * @return the delegate for a <code>Id</code> AST node.
      */
     protected JL delIdImpl() {
         return delNodeImpl();
@@ -1500,6 +1518,10 @@ public abstract class AbstractDelFactory_c implements DelFactory
     // Post methods
     // ********************************************
 
+    protected JL postDelFlagsNode(JL del) {
+	    return postDelNode(del);
+    }
+    
     protected JL postDelId(JL del) {
         return postDelNode(del);
     }
