@@ -16,12 +16,14 @@ public class TypeCheckFragmentGoal extends AbstractGoal_c {
 	Node n;
 	TypeChecker v;
 	LazyRef r;
+	boolean mightFail;
 
-	public TypeCheckFragmentGoal(Node parent, Node n, TypeChecker v, LazyRef r) {
+	public TypeCheckFragmentGoal(Node parent, Node n, TypeChecker v, LazyRef r, boolean mightFail) {
 		this.parent = parent;
 		this.n = n;
 		this.v = v;
 		this.r = r;
+		this.mightFail = mightFail;
 	}
 	
 	public List<Goal> prereqs() {
@@ -38,13 +40,13 @@ public class TypeCheckFragmentGoal extends AbstractGoal_c {
 		assert g.hasBeenReached();
 		if (state() == Goal.Status.RUNNING_RECURSIVE) {
 			r.update(r.getCached()); // marks r known
-			return false;
+			return mightFail;
 		}
 
 		try {
 			Node m = parent.visitChild(n, v);
 			v.job().nodeMemo().put(n, m);
-			return r.known();
+			return mightFail || r.known();
 		}
 		catch (SchedulerException e) {
 			return false;

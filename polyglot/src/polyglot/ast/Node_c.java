@@ -241,7 +241,6 @@ public abstract class Node_c implements Node
 	for (Iterator i = l.iterator(); i.hasNext(); ) {
 	    Node n = (Node) i.next();
 	    Node m = visitChild(n, v);
-	    m.toString();
 	    if (n != m) {
 	        result = vl;
 	    }
