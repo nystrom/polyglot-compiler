@@ -117,7 +117,7 @@ public interface ClassDef extends MemberDef
     /**
      * Set the class's package.
      */
-    void package_(Ref<? extends Package> p);
+    void setPackage(Ref<? extends Package> p);
 
     /**
      * Set the class's super type.
