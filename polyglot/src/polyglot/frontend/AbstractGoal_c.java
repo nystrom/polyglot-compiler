@@ -31,7 +31,9 @@ public abstract class AbstractGoal_c extends LazyRef_c<Goal.Status> implements G
 		if (Report.should_report(Report.frontend, 2))
 			Report.report(2, "Running to goal " + goal);
 
-		for (Goal g : prereqs()) {
+		for (int i = 0; i < prereqs().size(); i++) {
+			Goal g = prereqs().get(i);
+			
 			if (Report.should_report(Report.frontend, 4))
 				Report.report(4, "running prereq: " + g + "->" + goal);
 
