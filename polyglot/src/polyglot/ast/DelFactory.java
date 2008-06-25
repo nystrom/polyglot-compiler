@@ -18,6 +18,8 @@ public interface DelFactory
     // Factory Methods
     //////////////////////////////////////////////////////////////////
     
+    JL delFlagsNode();
+    
     JL delId();
     
     JL delAmbAssign();

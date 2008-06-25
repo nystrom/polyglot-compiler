@@ -35,25 +35,25 @@ public class Local_c extends Expr_c implements Local
   }
 
   /** Get the name of the local. */
-  public Id id() {
+  public Id name() {
     return this.name;
   }
   
   /** Set the name of the local. */
-  public Local id(Id name) {
+  public Local name(Id name) {
       Local_c n = (Local_c) copy();
       n.name = name;
       return n;
   }
   
   /** Get the name of the local. */
-  public String name() {
+  public String nameString() {
       return this.name.id();
   }
   
   /** Set the name of the local. */
-  public Local name(String name) {
-      return id(this.name.id(name));
+  public Local nameString(String name) {
+      return name(this.name.id(name));
   }
 
   /** Return the access flags of the variable. */

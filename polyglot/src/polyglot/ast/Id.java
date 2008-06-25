@@ -7,7 +7,7 @@
  */
 package polyglot.ast;
 
-/** A name represents a simple identifier in the AST. */
+/** A node that represents a simple identifier in the AST. */
 public interface Id extends Node {
     String id();
     Id id(String id);

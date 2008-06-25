@@ -7,7 +7,8 @@
 
 package polyglot.ast;
 
-import polyglot.types.*;
+import polyglot.types.LocalDef;
+import polyglot.types.Type;
 
 /**
  * A <code>VarDecl</code> represents a local variable declaration, of either a formal
@@ -19,13 +20,13 @@ public interface VarDecl extends Term
     Type declType();
 
     /** Get the declaration's flags. */
-    Flags flags();
+    FlagsNode flags();
 
     /** Get the declaration's type. */
     TypeNode type();
 
     /** Get the declaration's name. */
-    Id id();
+    Id name();
 
     /**
      * Get the type object for the local we are declaring.  This field may

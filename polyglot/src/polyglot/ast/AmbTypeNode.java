@@ -26,10 +26,10 @@ public interface AmbTypeNode extends TypeNode, Ambiguous
     /**
      * Ambiguous name.
      */
-    Id id();
+    Id name();
     
     /**
      * Set the ambiguous name.
      */
-    AmbTypeNode id(Id name);
+    AmbTypeNode name(Id name);
 }

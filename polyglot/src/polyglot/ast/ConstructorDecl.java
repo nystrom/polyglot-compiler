@@ -19,28 +19,28 @@ import polyglot.types.Flags;
 public interface ConstructorDecl extends ProcedureDecl 
 {
     /** The constructor's flags. */
-    Flags flags();
+    FlagsNode flags();
 
     /** Set the constructor's flags. */
-    ConstructorDecl flags(Flags flags);
+    ConstructorDecl flags(FlagsNode flags);
     
     /**
      * The constructor's name.  This should be the short name of the
      * containing class.
      */
-    Id id();
+    Id name();
     
     /** Set the constructor's name. */
-    ConstructorDecl id(Id name);
+    ConstructorDecl name(Id name);
 
     /**
      * The constructor's name.  This should be the short name of the
      * containing class.
      */
-    String name();
+    String nameString();
 
     /** Set the constructor's name. */
-    ConstructorDecl name(String name);
+    ConstructorDecl nameString(String name);
 
     /** The constructor's formal parameters.
      * @return A list of {@link polyglot.ast.Formal Formal}.

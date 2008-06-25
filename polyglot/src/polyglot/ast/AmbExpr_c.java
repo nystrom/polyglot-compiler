@@ -34,25 +34,25 @@ public class AmbExpr_c extends Expr_c implements AmbExpr
   }
   
   /** Get the name of the expression. */
-  public Id id() {
+  public Id name() {
       return this.name;
   }
   
   /** Set the name of the expression. */
-  public AmbExpr id(Id id) {
+  public AmbExpr name(Id id) {
       AmbExpr_c n = (AmbExpr_c) copy();
       n.name = id;
       return n;
   }
 
   /** Get the name of the expression. */
-  public String name() {
+  public String nameString() {
     return this.name.id();
   }
 
   /** Set the name of the expression. */
-  public AmbExpr name(String name) {
-      return id(this.name.id(name));
+  public AmbExpr nameString(String name) {
+      return name(this.name.id(name));
   }
   
   /** Reconstruct the expression. */
