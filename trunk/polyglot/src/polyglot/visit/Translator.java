@@ -192,7 +192,7 @@ public class Translator extends PrettyPrinter implements Copy
     	    }
     	    else {
     	        first = (TopLevelDecl) exports.get(0);
-    	        of = tf.outputFile(pkg, first.name(), sfn.source());
+    	        of = tf.outputFile(pkg, first.nameString(), sfn.source());
     	    }
     	    
     	    String opfPath = of.getPath();
@@ -204,13 +204,13 @@ public class Translator extends PrettyPrinter implements Copy
     	    for (Iterator<TopLevelDecl> i = sfn.decls().iterator(); i.hasNext(); ) {
     	        TopLevelDecl decl = i.next();
 
-    	        if (decl.flags().isPublic() && decl != first) {
+    	        if (decl.flags().flags().isPublic() && decl != first) {
     	            // We hit a new exported declaration, open a new file.
     	            // But, first close the old file.
     	            w.flush();
     	            w.close();
     	            
-    	            of = tf.outputFile(pkg, decl.name(), sfn.source());
+    	            of = tf.outputFile(pkg, decl.nameString(), sfn.source());
     	            outputFiles.add(of.getPath());
     	            w = tf.outputCodeWriter(of, outputWidth);
     	            
@@ -277,7 +277,7 @@ public class Translator extends PrettyPrinter implements Copy
 	for (Iterator<TopLevelDecl> i = sfn.decls().iterator(); i.hasNext(); ) {
 	    TopLevelDecl decl = i.next();
 
-	    if (decl.flags().isPublic()) {
+	    if (decl.flags().flags().isPublic()) {
 		exports.add(decl);
 	    }
 	}

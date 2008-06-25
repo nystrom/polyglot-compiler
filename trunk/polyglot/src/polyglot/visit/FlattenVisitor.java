@@ -199,7 +199,7 @@ public class FlattenVisitor extends NodeVisitor
 	    // expression
 
 	    String name = newID();
-	    LocalDecl def = nf.LocalDecl(e.position(), Flags.FINAL,
+	    LocalDecl def = nf.LocalDecl(e.position(), nf.FlagsNode(e.position(), Flags.FINAL),
 					 nf.CanonicalTypeNode(e.position(),
 					                      Types.<Type>ref(e.type())),
 					 nf.Id(e.position(), name), e);

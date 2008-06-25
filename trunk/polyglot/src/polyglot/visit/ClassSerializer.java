@@ -129,7 +129,7 @@ public class ClassSerializer extends NodeVisitor
                                   "jlc$CompilerVersion$" + suffix);
             fi.setConstantValue(version);
             ii = ts.initializerDef(pos, Types.ref(new ParsedClassType_c(cd)), Flags.STATIC);
-	    f = nf.FieldDecl(fi.position(), fi.flags(),
+	    f = nf.FieldDecl(fi.position(), nf.FlagsNode(fi.position(), fi.flags()),
 		             nf.CanonicalTypeNode(fi.position(), fi.type()),
                              nf.Id(fi.position(), fi.name()),
 			     nf.StringLit(pos, version).type(ts.String()));
@@ -146,7 +146,7 @@ public class ClassSerializer extends NodeVisitor
                                   "jlc$SourceLastModified$" + suffix);
             fi.setConstantValue(new Long(time));
             ii = ts.initializerDef(pos, Types.ref(new ParsedClassType_c(cd)), Flags.STATIC);
-	    f = nf.FieldDecl(fi.position(), fi.flags(),
+	    f = nf.FieldDecl(fi.position(), nf.FlagsNode(fi.position(), fi.flags()),
 		             nf.CanonicalTypeNode(fi.position(), fi.type()),
                              nf.Id(fi.position(), fi.name()),
 			     nf.IntLit(pos, IntLit.LONG, time).type(ts.Long()));
@@ -174,7 +174,7 @@ public class ClassSerializer extends NodeVisitor
                 fi.setConstantValue(encoded);
                 ii = ts.initializerDef(pos, Types.ref(new ParsedClassType_c(cd)), Flags.STATIC);
 
-                f = nf.FieldDecl(fi.position(), fi.flags(),
+                f = nf.FieldDecl(fi.position(), nf.FlagsNode(fi.position(), fi.flags()),
                                  nf.CanonicalTypeNode(fi.position(), fi.type()),
                                  nf.Id(fi.position(), fi.name()),
                                  nf.StringLit(pos, encoded).type(ts.String()));
