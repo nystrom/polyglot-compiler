@@ -10,7 +10,7 @@ class C implements B {
 }
 
 
-class FieldAccess2 {
+class FieldAccess3 {
     int m(C c) {
       return C.x;
     }
