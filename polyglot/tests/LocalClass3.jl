@@ -4,8 +4,8 @@ class LocalClass3 {
         new Object() {
             {
                 Object o = i;
-                int i;
-                i = 1;
+                //int i;
+                //i = 1;
             }
         };
     }
