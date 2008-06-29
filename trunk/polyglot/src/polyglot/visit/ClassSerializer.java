@@ -89,7 +89,7 @@ public class ClassSerializer extends NodeVisitor
             ct.methods();
             ct.fields();
             ct.interfaces();
-            ct.superType();
+            ct.superClass();
 
             // Only serialize top-level and member classes.
 	    if (! ct.isTopLevel() && ! ct.isMember()) {

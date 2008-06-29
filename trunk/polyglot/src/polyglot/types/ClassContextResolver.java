@@ -131,8 +131,8 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
         // Use a Set to eliminate duplicates.
         Set<Named> acceptable = new HashSet<Named>();
         
-        if (type.superType() != null) {
-            Type sup = type.superType();
+        if (type.superClass() != null) {
+            Type sup = type.superClass();
             if (sup instanceof ClassType) {
                 Resolver r = ts.classContextResolver((ClassType) sup, accessor);
                 try {

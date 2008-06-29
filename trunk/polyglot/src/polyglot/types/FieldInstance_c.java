@@ -8,16 +8,16 @@ public class FieldInstance_c extends VarInstance_c<FieldDef> implements FieldIns
         super(ts, pos, def);
     }
 
-    ReferenceType container;
+    StructType container;
 
-    public ReferenceType container() {
+    public StructType container() {
         if (container == null) {
             container = Types.get(def().container());
         }
         return container;
     }
 
-    public FieldInstance container(ReferenceType container) {
+    public FieldInstance container(StructType container) {
         FieldInstance_c v = (FieldInstance_c) copy();
         v.container = container;
         return v;
@@ -44,7 +44,7 @@ public class FieldInstance_c extends VarInstance_c<FieldDef> implements FieldIns
     }
     
     public String toString() {
-	    FieldDef r = def.getCached();
+	FieldDef r = def.getCached();
 	ConstantValue cv = r.constantValueRef().getCached();
 	String cvStr = "";
 	
@@ -63,7 +63,7 @@ public class FieldInstance_c extends VarInstance_c<FieldDef> implements FieldIns
 		cvStr = " = " + v;
 	}
 	
-	return "field " + flags.translate() + type + " " + container + "." + name + cvStr;
+	return "field " + (flags != null ? flags.translate() : r.flags().translate()) + (type != null ? type : r.type()) + " " + (container != null ? container : r.container()) + "." + (name != null ? name : r.name()) + cvStr;
     }
 
 }

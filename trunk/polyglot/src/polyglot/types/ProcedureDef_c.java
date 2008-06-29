@@ -19,7 +19,7 @@ import polyglot.util.TypedList;
 public abstract class ProcedureDef_c extends Def_c
                                        implements ProcedureDef
 {
-    protected Ref<? extends ReferenceType> container;
+    protected Ref<? extends StructType> container;
     protected Flags flags;
     protected List<Ref<? extends Type>> formalTypes;
     protected List<Ref<? extends Type>> throwTypes;
@@ -28,7 +28,7 @@ public abstract class ProcedureDef_c extends Def_c
     protected ProcedureDef_c() { }
 
     public ProcedureDef_c(TypeSystem ts, Position pos,
-            Ref<? extends ReferenceType> container,
+            Ref<? extends StructType> container,
 			       Flags flags, List<Ref<? extends Type>> formalTypes, List<Ref<? extends Type>> throwTypes) {
         super(ts, pos);
 	this.container = container;
@@ -37,7 +37,7 @@ public abstract class ProcedureDef_c extends Def_c
 	this.throwTypes = TypedList.copyAndCheck(throwTypes, Ref.class, true);
     }
     
-    public Ref<? extends ReferenceType> container() {
+    public Ref<? extends StructType> container() {
         return container;
     }
 
@@ -56,7 +56,7 @@ public abstract class ProcedureDef_c extends Def_c
     /**
      * @param container The container to set.
      */
-    public void setContainer(Ref<? extends ReferenceType> container) {
+    public void setContainer(Ref<? extends StructType> container) {
         this.container = container;
     }
     

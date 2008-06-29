@@ -475,16 +475,16 @@ public class ClassDecl_c extends Term_c implements ClassDecl
                     + "member classes.", position());
         }
 
-        if (type.superType() != null) {
-            if (! type.superType().isClass() || type.superType().toClass().flags().isInterface()) {
+        if (type.superClass() != null) {
+            if (! type.superClass().isClass() || type.superClass().toClass().flags().isInterface()) {
                 throw new SemanticException("Cannot extend non-class \"" +
-                        type.superType() + "\".",
+                        type.superClass() + "\".",
                         position());
             }
 
-            if (type.superType().toClass().flags().isFinal()) {
+            if (type.superClass().toClass().flags().isFinal()) {
                 throw new SemanticException("Cannot extend final class \"" +
-                        type.superType() + "\".",
+                        type.superClass() + "\".",
                         position());
             }
 

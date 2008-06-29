@@ -24,8 +24,8 @@ import polyglot.util.*;
 public class ImportTable implements Resolver
 {
     protected TypeSystem ts;
-    /** A list of all package imports. */
-    protected List<String> packageImports;
+    /** A list of all on-demand imports. */
+    protected List<String> onDemandImports;
     /** Map from names to classes found, or to the NOT_FOUND object. */
     protected Map<String,Option<Named>> map;
     /** List of class imports which will be lazily added to the table at the
@@ -33,9 +33,9 @@ public class ImportTable implements Resolver
     protected List<String> lazyImports;
     /** Parallel list of positions for lazyImports. */
     protected List<Position> lazyImportPositions;
-    /** List of explicitly imported classes added to the table or pending in
+    /** List of explicitly imported names added to the table or pending in
      * the lazyImports list. */
-    protected List<String> classImports;
+    protected List<String> explicitImports;
     /** Source name to use for debugging and error reporting */
     protected String sourceName;
     /** Position to use for error reporting */
@@ -67,10 +67,10 @@ public class ImportTable implements Resolver
         this.pkg = pkg;
 
 	this.map = new HashMap<String, Option<Named>>();
-	this.packageImports = new ArrayList<String>();
+	this.onDemandImports = new ArrayList<String>();
 	this.lazyImports = new ArrayList<String>();
 	this.lazyImportPositions = new ArrayList<Position>();
-	this.classImports = new ArrayList<String>();
+	this.explicitImports = new ArrayList<String>();
     }
 
     /**
@@ -83,57 +83,57 @@ public class ImportTable implements Resolver
     /**
      * Add a class import.
      */
-    public void addClassImport(String className) {
-        addClassImport(className, null);
+    public void addExplicitImport(String name) {
+        addExplicitImport(name, null);
     }
 
     /**
      * Add a class import.
      */
-    public void addClassImport(String className, Position pos) {
+    public void addExplicitImport(String name, Position pos) {
         if (Report.should_report(TOPICS, 2))
-            Report.report(2, this + ": lazy import " + className);
+            Report.report(2, this + ": lazy import " + name);
 
-	lazyImports.add(className);
+	lazyImports.add(name);
 	lazyImportPositions.add(pos);
-        classImports.add(className);
+        explicitImports.add(name);
     }
 
     /**
      * Add a package import.
      */
-    public void addPackageImport(String pkgName, Position pos) {
+    public void addOnDemandImport(String containerName, Position pos) {
         // pos ignored since it's never used
-        addPackageImport(pkgName);
+        addOnDemandImport(containerName);
     }
 
     /**
      * Add a package import.
      */
-    public void addPackageImport(String pkgName) {
+    public void addOnDemandImport(String containerName) {
         // don't add the import if it is the same as the current package,
         // the same as a default import, or has already been imported
-        if ((pkg != null && pkg.get().fullName().equals(pkgName)) ||
-                ts.defaultPackageImports().contains(pkgName) ||
-                packageImports.contains(pkgName)) {
+        if ((pkg != null && pkg.get().fullName().equals(containerName)) ||
+                ts.defaultOnDemandImports().contains(containerName) ||
+                onDemandImports.contains(containerName)) {
             return;
         }
         
-        packageImports.add(pkgName);
+        onDemandImports.add(containerName);
     }
 
     /**
-     * List the packages we import from.
+     * List the names we import from.
      */
-    public List<String> packageImports() {
-        return packageImports;
+    public List<String> onDemandImports() {
+        return onDemandImports;
     }
 
     /**
      * List the classes explicitly imported.
      */
-    public List<String> classImports() {
-        return classImports;
+    public List<String> explicitImports() {
+        return explicitImports;
     }
 
     /**
@@ -192,7 +192,7 @@ public class ImportTable implements Resolver
                 // "type-import-on-demand" declarations as they are called in
                 // the JLS), so even if another package defines the same name,
                 // there is no conflict. See Section 6.5.2 of JLS, 2nd Ed.
-                Named n = findInPkg(name, pkg.get().fullName());
+                Named n = findInContainer(name, pkg.get().fullName());
                 if (n != null) {
                     if (Report.should_report(TOPICS, 3))
                        Report.report(3, this + ".find(" + name + "): found in current package");
@@ -203,16 +203,15 @@ public class ImportTable implements Resolver
                 }
             }
             
-            List<String> imports = new ArrayList<String>(packageImports.size() + 5);
+            List<String> imports = new ArrayList<String>(onDemandImports.size() + 5);
+            imports.addAll(ts.defaultOnDemandImports());
+            imports.addAll(onDemandImports);
             
-            imports.addAll(ts.defaultPackageImports());
-            imports.addAll(packageImports);
-            
-            // It wasn't a ClassImport.  Maybe it was a PackageImport?
+            // It wasn't an explicit import.  Maybe it was on-demand?
             Named resolved = null;
             for (Iterator<String> iter = imports.iterator(); iter.hasNext(); ) {
-                String pkgName = iter.next();
-                Named n = findInPkg(name, pkgName);
+                String containerName = iter.next();
+                Named n = findInContainer(name, containerName);
                 if (n != null) {
                     if (resolved == null) {
                         // This is the first occurrence of name we've found
@@ -259,34 +258,20 @@ public class ImportTable implements Resolver
         }
     }
     
-    protected Named findInPkg(String name, String pkgName) throws SemanticException {
-        String fullName = pkgName + "." + name;
+    protected Named findInContainer(String name, String containerName) throws SemanticException {
+        String fullName = containerName + "." + name;
 
         try {
             Named n = ts.systemResolver().find(fullName);
 
             // Check if the type is visible in this package.
-            if (isVisibleFrom(n, pkgName)) {
+            if (isVisibleFrom(n, containerName)) {
                 return n;
             }
         }
         catch (NoClassException ex) {
             // Do nothing.
         }
-/*
-        try {
-            Named n = ts.systemResolver().find(pkgName);
-
-            if (n instanceof ClassType) {
-                n = ((ClassType) n).resolver().find(name);
-                return n;
-            }
-        }
-        catch (NoClassException ex) {
-            // Do nothing.
-        }
-  */
-        
         return null;
     }
 
@@ -295,12 +280,12 @@ public class ImportTable implements Resolver
      * package <code>pkg</code>.  The empty string may
      * be passed in to represent the default package.
      */
-    protected boolean isVisibleFrom(Named n, String pkgName) {
+    protected boolean isVisibleFrom(Named n, String containerName) {
         boolean isVisible = false;
         boolean inSamePackage = this.pkg != null 
-                && this.pkg.get().fullName().equals(pkgName)
+                && this.pkg.get().fullName().equals(containerName)
             || this.pkg == null 
-                && pkgName.equals("");
+                && containerName.equals("");
         if (n instanceof Type) {
             Type t = (Type) n;
             //FIXME: Assume non-class types are always visible.

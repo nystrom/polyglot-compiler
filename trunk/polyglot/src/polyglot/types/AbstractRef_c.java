@@ -28,7 +28,7 @@ public abstract class AbstractRef_c<T> implements Ref<T>, Serializable {
 
         public void updateCache(T v) {
         	this.value = v;
-        	assert ! known();
+//        	assert ! known();
         }
         
         public void update(T v, Goal goal) {

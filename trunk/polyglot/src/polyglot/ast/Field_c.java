@@ -141,8 +141,8 @@ public class Field_c extends Expr_c implements Field
       Context c = tc.context();
       TypeSystem ts = tc.typeSystem();
       
-      if (target.type().isReference()) {
-	  FieldInstance fi = ts.findField(target.type().toReference(), name.id(), c.currentClassDef());
+      if (target.type() instanceof StructType) {
+	  FieldInstance fi = ts.findField((StructType) target.type(), name.id(), c.currentClassDef());
 	  
 	  if (fi == null) {
 	      throw new InternalCompilerError("Cannot access field on node of type " +

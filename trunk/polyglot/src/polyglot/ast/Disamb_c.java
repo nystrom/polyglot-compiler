@@ -122,9 +122,9 @@ public class Disamb_c implements Disamb
         // Try static fields.
         Type t = tn.type();
 
-        if (t.isReference() && exprOK()) {
+        if (t instanceof StructType && exprOK()) {
             try {
-                FieldInstance fi = ts.findField(t.toReference(), name.id(), c.currentClassDef());
+                FieldInstance fi = ts.findField((StructType) t, name.id(), c.currentClassDef());
                 return nf.Field(pos, tn, name).fieldInstance(fi);
             } catch (NoMemberException e) {
                 if (e.getKind() != NoMemberException.FIELD) {

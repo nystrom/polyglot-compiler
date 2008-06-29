@@ -70,8 +70,8 @@ public class FwdReferenceChecker extends ContextVisitor
                 // In addition, if a field is not accessed as a simple name, 
                 // then all is ok
                 
-                ReferenceType currentClass = context().currentClass();
-                ReferenceType fContainer = f.fieldInstance().container();
+                ClassType currentClass = context().currentClass();
+                StructType fContainer = f.fieldInstance().container();
 
                 if (inStaticInit == f.fieldInstance().flags().isStatic() &&
                     currentClass.typeEquals(fContainer) &&

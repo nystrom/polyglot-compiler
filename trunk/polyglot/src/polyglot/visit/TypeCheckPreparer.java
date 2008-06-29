@@ -36,7 +36,7 @@ public class TypeCheckPreparer extends ContextVisitor
    }
 
     protected Node leaveCall(Node parent, Node old, final Node n, NodeVisitor v) throws SemanticException {
-        n.del().setResolver(parent, this);
+        n.del().setResolver(parent, v instanceof TypeCheckPreparer ? (TypeCheckPreparer) v : this);
         return n;
     }
 

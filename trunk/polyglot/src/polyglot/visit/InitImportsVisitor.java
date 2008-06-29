@@ -55,10 +55,10 @@ public class InitImportsVisitor extends ErrorHandlingVisitor
             Import im = (Import) n;
             
             if (im.kind() == Import.CLASS) {
-                this.importTable.addClassImport(im.name(), im.position());
+                this.importTable.addExplicitImport(im.name(), im.position());
             }
             else if (im.kind() == Import.PACKAGE) {
-                this.importTable.addPackageImport(im.name(), im.position());
+                this.importTable.addOnDemandImport(im.name(), im.position());
             }
         }
 

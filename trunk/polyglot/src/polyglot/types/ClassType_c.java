@@ -70,7 +70,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     public abstract String name();
 
     /** Get the container class if a member class. */
-    public ReferenceType container() {
+    public StructType container() {
         if (! isMember())
             throw new InternalCompilerError("Non-member class " + this + " cannot have container classes.");
         if (outer() == null)
@@ -141,7 +141,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     public abstract List<Type> interfaces();
 
     /** Get the class's super type. */
-    public abstract Type superType();
+    public abstract Type superClass();
     
     /** Get a list of all the class's MemberInstances. */
     public List<MemberInstance<?>> members() {

@@ -149,7 +149,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
     }
 
     /** Get the super type of the array type. */
-    public Type superType() {
+    public Type superClass() {
 	return ts.Object();
     }
 

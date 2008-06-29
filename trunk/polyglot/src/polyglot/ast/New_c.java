@@ -255,42 +255,46 @@ public class New_c extends Expr_c implements New
             return this;
         }
 
-        TypeSystem ts = tc.typeSystem();
-        NodeFactory nf = tc.nodeFactory();
-        Context c = childtc.context();
-
-        New_c old = this;
-        New_c n = this;
-
-        n = n.typeCheckObjectType(childtc);
-
-        Expr qualifier = n.qualifier;
-        TypeNode tn = n.tn;
-        List<Expr> arguments = n.arguments;
-        ClassBody body = n.body;
-
-        if (body != null) {
-            Ref<? extends Type> ct = tn.typeRef();
-            ClassDef anonType = n.anonType();
-
-            assert anonType != null;
-
-            if (! ct.get().toClass().flags().isInterface()) {
-                anonType.superType(ct);
-            }
-            else {
-                anonType.superType(Types.<Type>ref(ts.Object()));
-                anonType.addInterface(ct);
-            }
-        }
-
-        arguments = visitList(arguments, childtc);
-        body = (ClassBody) n.visitChild(body, childtc);
+        New_c n = typeCheckHeader(childtc);
+        
+        ClassBody body = (ClassBody) n.visitChild(n.body, childtc);
 
         n = n.reconstruct(qualifier, tn, arguments, body);
-        n = (New_c) tc.leave(parent, old, n, childtc);
+        n = (New_c) tc.leave(parent, this, n, childtc);
 
         return n;
+    }
+
+    protected New_c typeCheckHeader(TypeChecker childtc) throws SemanticException {
+	TypeSystem ts = childtc.typeSystem();
+
+	New_c n = this;
+
+	n = n.typeCheckObjectType(childtc);
+
+	Expr qualifier = n.qualifier;
+	TypeNode tn = n.tn;
+	List<Expr> arguments = n.arguments;
+	ClassBody body = n.body;
+
+	if (body != null) {
+	    Ref<? extends Type> ct = tn.typeRef();
+	    ClassDef anonType = n.anonType();
+
+	    assert anonType != null;
+
+	    if (! ct.get().toClass().flags().isInterface()) {
+		anonType.superType(ct);
+	    }
+	    else {
+		anonType.superType(Types.<Type>ref(ts.Object()));
+		anonType.addInterface(ct);
+	    }
+	}
+
+	arguments = visitList(arguments, childtc);
+	n = n.reconstruct(qualifier, tn, arguments, body);
+	return n;
     }
 
     /**
@@ -462,7 +466,7 @@ public class New_c extends Expr_c implements New
 
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         if (child == qualifier) {
-            ReferenceType t = ci.container();
+            StructType t = ci.container();
                      
             if (t.isClass() && t.toClass().isMember()) {
                 t = t.toClass().container();
@@ -473,11 +477,11 @@ public class New_c extends Expr_c implements New
         }
 
         Iterator<Expr> i = this.arguments.iterator();
-        Iterator j = ci.formalTypes().iterator();
+        Iterator<Type> j = ci.formalTypes().iterator();
 
         while (i.hasNext() && j.hasNext()) {
 	    Expr e = i.next();
-	    Type t = (Type) j.next();
+	    Type t = j.next();
 
             if (e == child) {
                 return t;
