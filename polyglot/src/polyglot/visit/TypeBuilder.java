@@ -208,7 +208,7 @@ public class TypeBuilder extends NodeVisitor
 
 	// Make sure the import table finds this class.
         if (importTable() != null && classDef.isTopLevel()) {
-	    tb.importTable().addClassImport(classDef.fullName());
+	    tb.importTable().addExplicitImport(classDef.fullName());
 	}
         
         return tb;

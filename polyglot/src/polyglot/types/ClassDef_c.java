@@ -158,7 +158,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         return name;
     }
     
-    public void setContainer(Ref<? extends ReferenceType> container) {
+    public void setContainer(Ref<? extends StructType> container) {
         throw new InternalCompilerError("Call outer(container.def()) instead.");
     }
 
@@ -197,7 +197,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         this.outer = outer;
     }
     
-    public Ref<? extends ReferenceType> container() {
+    public Ref<? extends StructType> container() {
         return Types.<ClassType>ref(ts.createClassType(position(), this.outer));
     }
     

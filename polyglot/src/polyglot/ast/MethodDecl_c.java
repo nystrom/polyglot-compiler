@@ -251,16 +251,39 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 
     /** Type check the method. */
     public Node typeCheck(TypeChecker tc) throws SemanticException {
-	TypeSystem ts = tc.typeSystem();
-
-        // Get the mi flags, not the node flags since the mi flags
+	// Get the mi flags, not the node flags since the mi flags
         // account for being nested within an interface.
         Flags flags = mi.flags();
+        checkFlags(tc, flags);
         
-        if (tc.context().currentClass().flags().isInterface()) {
+        TypeSystem ts = tc.typeSystem();
+
+
+        for (Iterator<TypeNode> i = throwTypes().iterator(); i.hasNext(); ) {
+            TypeNode tn = (TypeNode) i.next();
+            Type t = tn.type();
+            if (! t.isThrowable()) {
+                throw new SemanticException("Type \"" + t +
+                    "\" is not a subclass of \"" + ts.Throwable() + "\".",
+                    tn.position());
+            }
+        }
+
+        overrideMethodCheck(tc);
+
+	return this;
+    }
+
+    protected void checkFlags(TypeChecker tc, Flags flags) throws SemanticException {
+	TypeSystem ts = tc.typeSystem();
+
+	if (tc.context().currentClass().flags().isInterface()) {
             if (flags.isProtected() || flags.isPrivate()) {
-                throw new SemanticException("Interface methods must be public.",
-                                            position());
+                throw new SemanticException("Interface methods must be public.", position());
+            }
+            
+            if (flags.isStatic()) {
+        	throw new SemanticException("Interface methods cannot be static.", position());
             }
         }
 
@@ -285,16 +308,6 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 		"A native method cannot have a body.", position());
 	}
 
-        for (Iterator<TypeNode> i = throwTypes().iterator(); i.hasNext(); ) {
-            TypeNode tn = (TypeNode) i.next();
-            Type t = tn.type();
-            if (! t.isThrowable()) {
-                throw new SemanticException("Type \"" + t +
-                    "\" is not a subclass of \"" + ts.Throwable() + "\".",
-                    tn.position());
-            }
-        }
-
         // check that inner classes do not declare static methods
         if (flags.isStatic() &&
               methodDef().container().get().toClass().isInnerClass()) {
@@ -302,10 +315,6 @@ public class MethodDecl_c extends Term_c implements MethodDecl
             throw new SemanticException("Inner classes cannot declare " + 
                     "static methods.", this.position());             
         }
-
-        overrideMethodCheck(tc);
-
-	return this;
     }
 
     protected void overrideMethodCheck(TypeChecker tc) throws SemanticException {

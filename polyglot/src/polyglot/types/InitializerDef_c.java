@@ -29,7 +29,7 @@ public class InitializerDef_c extends Def_c
 	this.flags = flags;
     }
 
-    public Ref<? extends ReferenceType> container() {
+    public Ref<? extends StructType> container() {
         return container;
     }
     
@@ -45,7 +45,7 @@ public class InitializerDef_c extends Def_c
     /**
      * @param container The container to set.
      */
-    public void setContainer(Ref<? extends ReferenceType> container) {
+    public void setContainer(Ref<? extends StructType> container) {
         this.container = (Ref<? extends ClassType>) container;
     }
 

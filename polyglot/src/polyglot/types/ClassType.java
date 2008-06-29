@@ -14,10 +14,10 @@ import java.util.List;
  * classpath, parsed from a source file, or obtained from other source.
  * A <code>ClassType</code> is not necessarily named.
  */
-public interface ClassType extends Importable, ReferenceType, MemberInstance<ClassDef>, Use<ClassDef>
+public interface ClassType extends Importable, ObjectType, MemberInstance<ClassDef>, Use<ClassDef>
 {
     ClassType flags(Flags flags);
-    ClassType container(ReferenceType container);
+    ClassType container(StructType container);
     
     /**
      * A resolver to access member classes of the class.
@@ -27,11 +27,6 @@ public interface ClassType extends Importable, ReferenceType, MemberInstance<Cla
     /** Get the class's kind. */
     ClassDef.Kind kind();
 
-    /**
-     * Return true if the class is global; that is top-level or a member of a global class.
-     */
-    boolean isGloballyAccessible();
-    
     /**
      * Return true if the class is top-level (i.e., not inner).
      * Equivalent to kind() == TOP_LEVEL.

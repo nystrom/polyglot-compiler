@@ -69,7 +69,7 @@ public interface TypeSystem {
      * Return a list of the packages names that will be imported by
      * default.  A list of Strings is returned, not a list of Packages.
      */
-    List<String> defaultPackageImports();
+    List<String> defaultOnDemandImports();
 
     /**
      * Returns true if the package named <code>name</code> exists.
@@ -116,7 +116,7 @@ public interface TypeSystem {
      * @param argTypes The method's formal parameter types.
      * @param excTypes The method's exception throw types.
      */
-    MethodDef methodDef(Position pos, Ref<? extends ReferenceType> container,
+    MethodDef methodDef(Position pos, Ref<? extends StructType> container,
                                   Flags flags, Ref<? extends Type> returnType, String name,
                                   List<Ref<? extends Type>> argTypes, List<Ref<? extends Type>> excTypes);
 
@@ -127,7 +127,7 @@ public interface TypeSystem {
      * @param type The field's type.
      * @param name The field's name.
      */
-    FieldDef fieldDef(Position pos, Ref<? extends ReferenceType> container,
+    FieldDef fieldDef(Position pos, Ref<? extends StructType> container,
                                 Flags flags, Ref<? extends Type> type, String name);
 
     /** Create a local variable instance.
@@ -310,7 +310,7 @@ public interface TypeSystem {
      * @exception SemanticException if the field cannot be found or is
      * inaccessible.
      */
-    FieldInstance findField(ReferenceType container, String name, ClassDef currClass)
+    FieldInstance findField(StructType container, String name, ClassDef currClass)
         throws SemanticException;
 
     /**
@@ -318,7 +318,7 @@ public interface TypeSystem {
      * @exception SemanticException if the field cannot be found or is
      * inaccessible.
      */
-    FieldInstance findField(ReferenceType container, String name)
+    FieldInstance findField(StructType container, String name)
 	throws SemanticException;
 
     /**
@@ -365,13 +365,13 @@ public interface TypeSystem {
      * Returns the immediate supertype of type, or null if type has no
      * supertype.
      **/
-    Type superType(ReferenceType type);
+    Type superClass(ObjectType type);
 
     /**
      * Returns an immutable list of all the interface types which type
      * implements.
      **/
-    List<Type> interfaces(ReferenceType type);
+    List<Type> interfaces(ObjectType type);
 
     ////
     // Functions for method testing.
@@ -386,13 +386,13 @@ public interface TypeSystem {
     /**
      * Returns true iff <code>t</code> has the method <code>mi</code>.
      */
-    boolean hasMethod(ReferenceType t, MethodInstance mi);
+    boolean hasMethod(StructType t, MethodInstance mi);
 
     /**
      * Returns true iff <code>t</code> has a method with name <code>name</code>
      * either defined in <code>t</code> or inherited into it.
      */
-    boolean hasMethodNamed(ReferenceType t, String name);
+    boolean hasMethodNamed(StructType t, String name);
 
     /**
      * Returns true iff <code>m1</code> is the same method as <code>m2</code>.
@@ -798,7 +798,7 @@ public interface TypeSystem {
      * Assert that <code>t</code> has no cycles in the super type+nested class
      * graph starting at <code>t</code>.
      */
-    void checkCycles(ReferenceType t) throws SemanticException;
+    void checkCycles(Type t) throws SemanticException;
 
     /**
      * Assert that <code>ct</code> implements all abstract methods that it 

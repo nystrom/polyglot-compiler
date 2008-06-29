@@ -16,14 +16,14 @@ import polyglot.util.Position;
  */
 public class FieldDef_c extends VarDef_c implements FieldDef
 {
-    protected Ref<? extends ReferenceType> container;
+    protected Ref<? extends StructType> container;
     protected InitializerDef initializer;
 
     /** Used for deserializing types. */
     protected FieldDef_c() { }
     
     public FieldDef_c(TypeSystem ts, Position pos,
-			   Ref<? extends ReferenceType> container,
+			   Ref<? extends StructType> container,
 	                   Flags flags, Ref<? extends Type> type, String name) {
         super(ts, pos, flags, type, name);
         this.container = container;
@@ -47,7 +47,7 @@ public class FieldDef_c extends VarDef_c implements FieldDef
         return asInstance;
     }
 
-    public Ref<? extends ReferenceType> container() {
+    public Ref<? extends StructType> container() {
         return container;
     }
 
@@ -55,7 +55,7 @@ public class FieldDef_c extends VarDef_c implements FieldDef
     /**
      * @param container The container to set.
      */
-    public void setContainer(Ref<? extends ReferenceType> container) {
+    public void setContainer(Ref<? extends StructType> container) {
         this.container = container;
     }
 

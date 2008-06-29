@@ -41,7 +41,7 @@ public interface MethodInstance extends FunctionInstance<MethodDef>, MemberInsta
      * @return List[MethodInstance]
      */
     List<MethodInstance> implemented(); 
-    List<MethodInstance> implemented(ReferenceType container); 
+    List<MethodInstance> implemented(StructType container); 
 
     /**
      * Return true if this method has the same signature as <code>mi</code>.

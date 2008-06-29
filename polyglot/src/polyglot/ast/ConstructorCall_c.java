@@ -133,7 +133,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	Context c = tc.context();
 
 	ClassType ct = c.currentClass();
-	Type superType = ct.superType();
+	Type superType = ct.superClass();
 
         // The qualifier specifies the enclosing instance of this inner class.
         // The type of the qualifier must be the outer class of this
@@ -216,7 +216,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	}
 	
 	if (kind == SUPER) {
-	    ct = ct.superType().toClass();
+	    ct = ct.superClass().toClass();
 	}
 	
 	ConstructorInstance ci = ts.findConstructor(ct, argTypes, c.currentClassDef());

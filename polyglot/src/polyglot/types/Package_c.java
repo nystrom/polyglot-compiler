@@ -40,6 +40,10 @@ public class Package_c extends TypeObject_c implements Package
         this.name = name;
     }
     
+    public boolean isGloballyAccessible() {
+        return true;
+    }
+    
     protected transient Resolver memberCache;
     
     public Resolver resolver() {

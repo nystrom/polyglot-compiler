@@ -29,4 +29,9 @@ public interface Named extends TypeObject
      * messages. 
      */
     String fullName();
+    
+    /**
+     * Return true if the class is global; that is top-level or a member of a global class.
+     */
+    boolean isGloballyAccessible();
 }

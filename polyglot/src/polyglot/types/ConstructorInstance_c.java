@@ -10,15 +10,15 @@ public class ConstructorInstance_c extends ProcedureInstance_c<ConstructorDef> i
     }
 
     protected Flags flags;
-    protected ReferenceType container;
+    protected StructType container;
     
-    public ConstructorInstance container(ReferenceType container) {
+    public ConstructorInstance container(StructType container) {
         ConstructorInstance_c p = (ConstructorInstance_c) copy();
         p.container = container;
         return p;
     }
 
-    public ReferenceType container() {
+    public StructType container() {
         if (this.container == null) {
             this.container = Types.get(def().container());
         }

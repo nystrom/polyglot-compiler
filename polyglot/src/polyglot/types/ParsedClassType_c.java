@@ -26,9 +26,9 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
     }
     
     protected Flags flags;
-    protected ReferenceType container;
+    protected StructType container;
     
-    public ReferenceType container() {
+    public StructType container() {
         if (container == null) {
             container = super.container();
         }
@@ -41,7 +41,7 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
         return t;
     }
     
-    public ClassType container(ReferenceType container) {
+    public ClassType container(StructType container) {
         ParsedClassType_c t = (ParsedClassType_c) copy();
         t.container = container;
         return t;
@@ -82,7 +82,7 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
     }
 
     /** Get the class's super type. */
-    public Type superType() {
+    public Type superClass() {
         return Types.get(def().superType());
     }
 

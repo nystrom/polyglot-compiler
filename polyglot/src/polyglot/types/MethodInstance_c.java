@@ -13,15 +13,15 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
     
     protected String name;
     protected Flags flags;
-    protected ReferenceType container;
+    protected StructType container;
     
-    public MethodInstance container(ReferenceType container) {
+    public MethodInstance container(StructType container) {
         MethodInstance_c p = (MethodInstance_c) copy();
         p.container = container;
         return p;
     }
 
-    public ReferenceType container() {
+    public StructType container() {
         if (this.container == null) {
             this.container = Types.get(def().container());
         }
@@ -77,17 +77,20 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
 
     public List<MethodInstance> overrides() {
         List<MethodInstance> l = new ArrayList<MethodInstance>();
-        ReferenceType rt = container();
+        StructType rt = container();
 
         while (rt != null) {
             // add any method with the same name and formalTypes from rt
             l.addAll(rt.methods(name(), formalTypes()));
 
-            ReferenceType sup = null;
+            StructType sup = null;
             
-            if (rt.superType() instanceof ReferenceType) {
-                sup = (ReferenceType) rt.superType();    
-            }
+            if (rt instanceof ObjectType) {
+		ObjectType ot = (ObjectType) rt;
+		if (ot.superClass() instanceof StructType) {
+		    sup = (StructType) ot.superClass();
+		}
+	    }
             
             rt = sup;
         };
@@ -206,25 +209,30 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
         return implemented(container());
     }
 
-    public List<MethodInstance> implemented(ReferenceType rt) {
-	    if (rt == null) {
+    public List<MethodInstance> implemented(StructType st) {
+	    if (st == null) {
 		    return Collections.<MethodInstance>emptyList();
 	    }
 	    
 	    List<MethodInstance> l = new LinkedList<MethodInstance>();
-	    l.addAll(rt.methods(name(), formalTypes()));
+	    l.addAll(st.methods(name(), formalTypes()));
 
-	    Type superType = rt.superType();
-	    if (superType instanceof ReferenceType) {
-		    l.addAll(implemented(superType.toReference())); 
-	    }
+	    if (st instanceof ObjectType) {
+		ObjectType rt = (ObjectType) st;
+		
+		Type superType = rt.superClass();
+		
+		if (superType instanceof StructType) {
+		    l.addAll(implemented((StructType) superType)); 
+		}
 
-	    List<Type> ints = rt.interfaces();
-	    for (Type t : ints) {
-		    if (t instanceof ReferenceType) {
-			    ReferenceType rt2 = (ReferenceType) t;
-			    l.addAll(implemented(rt2));
+		List<Type> ints = rt.interfaces();
+		for (Type t : ints) {
+		    if (t instanceof StructType) {
+			StructType rt2 = (StructType) t;
+			l.addAll(implemented(rt2));
 		    }
+		}
 	    }
 
 	    return l;

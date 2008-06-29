@@ -68,7 +68,7 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
      * Returns the supertype of this class.  For every class except Object,
      * this is non-null.
      */
-    public abstract Type superType();
+    public abstract Type superClass();
 
     /**
      * Returns a list of the types of this class's interfaces.

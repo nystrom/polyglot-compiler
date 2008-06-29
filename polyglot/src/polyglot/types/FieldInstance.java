@@ -2,7 +2,7 @@ package polyglot.types;
 
 
 public interface FieldInstance extends VarInstance<FieldDef>, MemberInstance<FieldDef> {
-    FieldInstance container(ReferenceType container);
+    FieldInstance container(StructType container);
     FieldInstance flags(Flags flags);
     FieldInstance name(String name);
     FieldInstance type(Type type);

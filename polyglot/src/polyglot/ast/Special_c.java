@@ -117,7 +117,7 @@ public class Special_c extends Expr_c implements Special
             return type(t);
         }
         else if (kind == SUPER) {
-            return type(t.superType());
+            return type(t.superClass());
         }
         
         return this;

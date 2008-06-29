@@ -67,7 +67,6 @@ public class TypeSystem_c implements TypeSystem
 		// to run.
 		Object o;
 		o = ClassDef.TOP_LEVEL;
-		o = PrimitiveType.VOID;
 	}
 
 	protected void initTypes() throws SemanticException {
@@ -166,33 +165,24 @@ public class TypeSystem_c implements TypeSystem
 	public String wrapperTypeString(PrimitiveType t) {
 		assert_(t);
 
-		if (t.kind() == PrimitiveType.BOOLEAN) {
-			return "java.lang.Boolean";
-		}
-		if (t.kind() == PrimitiveType.CHAR) {
-			return "java.lang.Character";
-		}
-		if (t.kind() == PrimitiveType.BYTE) {
-			return "java.lang.Byte";
-		}
-		if (t.kind() == PrimitiveType.SHORT) {
-			return "java.lang.Short";
-		}
-		if (t.kind() == PrimitiveType.INT) {
-			return "java.lang.Integer";
-		}
-		if (t.kind() == PrimitiveType.LONG) {
-			return "java.lang.Long";
-		}
-		if (t.kind() == PrimitiveType.FLOAT) {
-			return "java.lang.Float";
-		}
-		if (t.kind() == PrimitiveType.DOUBLE) {
-			return "java.lang.Double";
-		}
-		if (t.kind() == PrimitiveType.VOID) {
-			return "java.lang.Void";
-		}
+		if (t.name().equals("boolean"))
+		    return "java.lang.Boolean";
+		if (t.name().equals("char"))
+		    return "java.lang.Character";
+		if (t.name().equals("byte"))
+		    return "java.lang.Byte";
+		if (t.name().equals("short"))
+		    return "java.lang.Short";
+		if (t.name().equals("int"))
+		    return "java.lang.Integer";
+		if (t.name().equals("long"))
+		    return "java.lang.Long";
+		if (t.name().equals("float"))
+		    return "java.lang.Float";
+		if (t.name().equals("double"))
+		    return "java.lang.Double";
+		if (t.name().equals("void"))
+		    return "java.lang.Void";
 
 		throw new InternalCompilerError("Unrecognized primitive type.");
 	}
@@ -245,7 +235,7 @@ public class TypeSystem_c implements TypeSystem
 	}
 
 	public FieldDef fieldDef(Position pos,
-			Ref<? extends ReferenceType> container, Flags flags,
+			Ref<? extends StructType> container, Flags flags,
 			Ref<? extends Type> type, String name) {
 		assert_(container);
 		assert_(type);
@@ -299,7 +289,7 @@ public class TypeSystem_c implements TypeSystem
 	}
 
 	public MethodDef methodDef(Position pos,
-			Ref<? extends ReferenceType> container, Flags flags,
+			Ref<? extends StructType> container, Flags flags,
 			Ref<? extends Type> returnType, String name,
 			List<Ref<? extends Type>> argTypes, List<Ref<? extends Type>> excTypes) {
 
@@ -312,77 +302,44 @@ public class TypeSystem_c implements TypeSystem
 	}
 
 	/**
-	 * Returns true iff child and ancestor are distinct
-	 * reference types, and child descends from ancestor.
+	 * Returns true iff child and ancestor are object types and child descends from or equals ancestor.
 	 **/
 	public boolean descendsFrom(Type child, Type ancestor) {
 		assert_(child);
 		assert_(ancestor);
-
-		if (child instanceof PrimitiveType) {
-			return false;
+		
+		if (typeEquals(child, ancestor)) {
+		    return true;
 		}
+		
+		if (child instanceof ObjectType) {
+		    ObjectType childRT = (ObjectType) child;
+		    
+		    if (typeEquals(ancestor, Object())) {
+			return true;
+		    }
 
-		if (child instanceof NullType) {
-			return ancestor.isReference() && ! ancestor.isNull();
-		}
-
-		if (child instanceof ReferenceType) {
-			ReferenceType childRT = (ReferenceType) child;
-
-			if (ancestor.isNull()) {
-				return false;
-			}
-
-			if (typeEquals(child, ancestor)) {
-				return false;
-			}
-
-			if (! ancestor.isReference()) {
-				return false;
-			}
-
-			if (typeEquals(ancestor, Object())) {
-				return true;
-			}
-
-			// Check subtype relation for classes.
-			if (child instanceof ClassType) {
-				ClassType childCT = (ClassType) child;
-
-				if (! childCT.flags().isInterface()) {
-					if (typeEquals(childCT, Object())) {
-						return false;
-					}
-
-					if (childCT.superType() == null) {
-						return false;
-					}
-
-					if (typeEquals(childCT.superType(), ancestor)) {
-						return true;
-					}
-					
-					if (descendsFrom(childCT.superType(), ancestor)) {
-						return true;
-					}
-				}
-			}
-
-			// Next check interfaces.
-			for (Iterator<Type> i = childRT.interfaces().iterator(); i.hasNext(); ) {
-				Type parentType = (Type) i.next();
-
-				if (typeEquals(parentType, ancestor)) {
-					return true;
-				}
-				
-				if (descendsFrom(parentType, ancestor)) {
-					return true;
-				}
-			}
-
+		    if (typeEquals(childRT, Object())) {
 			return false;
+		    }
+
+		    // Check subclass relation.
+		    if (childRT.superClass() == null) {
+			return false;
+		    }
+
+		    if (descendsFrom(childRT.superClass(), ancestor)) {
+			return true;
+		    }
+
+		    // Next check interfaces.
+		    for (Type parentType : childRT.interfaces()) {
+			if (descendsFrom(parentType, ancestor)) {
+			    return true;
+			}
+		    }
+
+		    return false;
 		}
 
 		return false;
@@ -751,7 +708,7 @@ public class TypeSystem_c implements TypeSystem
 	/** True if the class targetClass accessible from the context. */
 	public boolean classAccessible(ClassType targetClass, Context context) {
 		if (context.currentClass() == null) {
-			return classAccessibleFromPackage(targetClass, Types.get(context.importTable().package_()));
+			return classAccessibleFromPackage(targetClass, context.package_());
 		}
 		else {
 			return classAccessible(targetClass, context.currentClassDef());
@@ -845,44 +802,45 @@ public class TypeSystem_c implements TypeSystem
 		return inner.hasEnclosingInstance(encl);
 	}
 
-	public void checkCycles(ReferenceType goal) throws SemanticException {
+	public void checkCycles(Type goal) throws SemanticException {
 		checkCycles(goal, goal);
 	}
 
-	protected void checkCycles(ReferenceType curr, ReferenceType goal)
-	throws SemanticException {
-
+	protected void checkCycles(Type curr, Type goal) throws SemanticException {
 		assert_(curr);
 		assert_(goal);
 
 		if (curr == null) {
-			return;
+		    return;
 		}
 
-		ReferenceType superType = null;
+		if (curr instanceof ObjectType) {
+		    ObjectType ot = (ObjectType) curr;
+		    Type superType = null;
 
-		if (curr.superType() != null) {
-			superType = curr.superType().toReference();
-		}
+		    if (ot.superClass() != null) {
+			superType = ot.superClass();
+		    }
 
-		if (goal == superType) {
+		    if (goal == superType) {
 			throw new SemanticException("Circular inheritance involving " + goal, 
-					curr.position());
-		}
+			                            curr.position());
+		    }
 
-		checkCycles(superType, goal);
+		    checkCycles(superType, goal);
 
-		for (Type si : curr.interfaces()) {
+		    for (Type si : ot.interfaces()) {
 			if (si == goal) {
-				throw new SemanticException("Circular inheritance involving " + goal, 
-						curr.position());
+			    throw new SemanticException("Circular inheritance involving " + goal, 
+			                                curr.position());
 			}
 
-			checkCycles(si.toReference(), goal);
-		}    
+			checkCycles(si, goal);
+		    }    
+		}
 
 		if (curr.isClass()) {
-			checkCycles(curr.toClass().outer(), goal);
+		    checkCycles(curr.toClass().outer(), goal);
 		}
 	}
 
@@ -916,11 +874,7 @@ public class TypeSystem_c implements TypeSystem
 	}
 
 	public boolean isVoid(Type t) {
-		if (t instanceof PrimitiveType) {
-			PrimitiveType r = ((PrimitiveType) t);
-			return r.kind() == PrimitiveType.VOID;
-		}
-		return false;
+	    return typeEquals(t, Void());
 	}
 
 	public boolean isBoolean(Type t) {
@@ -995,6 +949,15 @@ public class TypeSystem_c implements TypeSystem
 	public boolean isSubtype(Type t1, Type t2) {
 		assert_(t1);
 		assert_(t2);
+
+		if (t1.isNull()) {
+		    return t2.isNull() || t2.isReference();
+		}
+
+		if (t1.isReference() && t2.isNull()) {
+		    return false;
+		}
+
 		return typeEquals(t1, t2) || descendsFrom(t1, t2);
 	}
 
@@ -1008,7 +971,7 @@ public class TypeSystem_c implements TypeSystem
 	 * <code>currClass</code>.  If no such field is found, a SemanticException
 	 * is thrown.  <code>currClass</code> may be null.
 	 **/
-	public FieldInstance findField(ReferenceType container, String name,
+	public FieldInstance findField(StructType container, String name,
 			ClassDef currClass) throws SemanticException {
 		Collection<FieldInstance> fields = findFields(container, name);
 
@@ -1043,7 +1006,7 @@ public class TypeSystem_c implements TypeSystem
 	 * in type <code>container</code> or a supertype.  If no such field is
 	 * found, a SemanticException is thrown.
 	 */
-	public FieldInstance findField(ReferenceType container, String name)
+	public FieldInstance findField(StructType container, String name)
 	throws SemanticException {
 
 		return findField(container, name, (ClassDef) null);
@@ -1055,7 +1018,7 @@ public class TypeSystem_c implements TypeSystem
 	 * in type <code>container</code> or a supertype.  The list
 	 * returned may be empty.
 	 */
-	protected Set<FieldInstance> findFields(ReferenceType container, String name) {
+	protected Set<FieldInstance> findFields(StructType container, String name) {
 		assert_(container);
 
 		if (container == null) {
@@ -1071,20 +1034,19 @@ public class TypeSystem_c implements TypeSystem
 
 		Set<FieldInstance> fields = new HashSet<FieldInstance>();
 
-		if (container.superType() != null && container.superType().isReference()) {
-			Set<FieldInstance> superFields = findFields(container.superType().toReference(), name);
+		if (container instanceof ObjectType) {
+		    ObjectType ot = (ObjectType) container;
+		    if (ot.superClass() != null && ot.superClass() instanceof StructType) {
+			Set<FieldInstance> superFields = findFields((StructType) ot.superClass(), name);
 			fields.addAll(superFields);
-		}
+		    }
 
-		if (container.isClass()) {
-			// Need to check interfaces for static fields.
-			ClassType ct = container.toClass();
-
-			for (Iterator<Type> i = ct.interfaces().iterator(); i.hasNext(); ) {
-				Type it = i.next();
-				Set<FieldInstance> superFields = findFields(it.toReference(), name);
-				fields.addAll(superFields);
+		    for (Type it : ot.interfaces()) {
+			if (it instanceof StructType) {
+			    Set<FieldInstance> superFields = findFields((StructType) it, name);
+			    fields.addAll(superFields);
 			}
+		    }
 		}
 
 		return fields;
@@ -1131,7 +1093,7 @@ public class TypeSystem_c implements TypeSystem
 	 * into container, checking if the methods are accessible from the
 	 * body of currClass
 	 */
-	public boolean hasMethodNamed(ReferenceType container, String name) {
+	public boolean hasMethodNamed(StructType container, String name) {
 		assert_(container);
 
 		if (container == null) {
@@ -1142,21 +1104,22 @@ public class TypeSystem_c implements TypeSystem
 		if (! container.methodsNamed(name).isEmpty()) {
 			return true;
 		}
+		
+		if (container instanceof ObjectType) {
+		    ObjectType ot = (ObjectType) container;
+		    if (ot.superClass() != null && ot.superClass() instanceof StructType) {
+			if (hasMethodNamed((StructType) ot.superClass(), name)) {
+			    return true;
+			}
+		    }
 
-		if (container.superType() != null && container.superType().isReference()) {
-			if (hasMethodNamed(container.superType().toReference(), name)) {
+		    for (Type it : ot.interfaces()) {
+			if (it instanceof StructType) {
+			    if (hasMethodNamed((StructType) it, name)) {
 				return true;
+			    }
 			}
-		}
-
-		if (container.isClass()) {
-			ClassType ct = container.toClass();
-
-			for (Type it : ct.interfaces()) {
-				if (hasMethodNamed(it.toReference(), name)) {
-					return true;
-				}
-			}
+		    }
 		}
 
 		return false;
@@ -1392,11 +1355,11 @@ public class TypeSystem_c implements TypeSystem
 		while (! typeQueue.isEmpty()) {
 			Type t = typeQueue.removeFirst();
 
-			if (! (t instanceof ReferenceType)) {
+			if (! (t instanceof StructType)) {
 				continue;
 			}
 
-			ReferenceType type = (ReferenceType) t;
+			StructType type = (StructType) t;
 
 			if (visitedTypes.contains(type)) {
 				continue;
@@ -1457,11 +1420,16 @@ public class TypeSystem_c implements TypeSystem
 					                              "(" + CollectionUtil.listToString(argTypes) + ")."); 
 				}
 			}
-			if (type.superType() != null) {
-				typeQueue.addLast(type.superType());
-			}
+			
+			if (type instanceof ObjectType) {
+			    ObjectType ot = (ObjectType) type;
 
-			typeQueue.addAll(type.interfaces());
+			    if (ot.superClass() != null) {
+				typeQueue.addLast(ot.superClass());
+			    }
+
+			    typeQueue.addAll(ot.interfaces());
+			}
 		}
 
 		if (error == null) {
@@ -1573,16 +1541,16 @@ public class TypeSystem_c implements TypeSystem
 	/**
 	 * Returns the supertype of type, or null if type has no supertype.
 	 **/
-	public Type superType(ReferenceType type) {
+	public Type superClass(ObjectType type) {
 		assert_(type);
-		return type.superType();
+		return type.superClass();
 	}
 
 	/**
 	 * Returns an immutable list of all the interface types which type
 	 * implements.
 	 **/
-	public List<Type> interfaces(ReferenceType type) {
+	public List<Type> interfaces(ObjectType type) {
 		assert_(type);
 		return type.interfaces();
 	}
@@ -1626,26 +1594,26 @@ public class TypeSystem_c implements TypeSystem
 		if (type1.isReference() && type2.isNull()) return type1;
 		if (type2.isReference() && type1.isNull()) return type2;
 
-		if (type1.isReference() && type2.isReference()) {
-			// Don't consider interfaces.
-			if (type1.isClass() && type1.toClass().flags().isInterface()) {
-				return Object();
-			}
+		// Don't consider interfaces.
+		if (type1.isClass() && type1.toClass().flags().isInterface()) {
+		    return Object();
+		}
 
-			if (type2.isClass() && type2.toClass().flags().isInterface()) {
-				return Object();
-			}
+		if (type2.isClass() && type2.toClass().flags().isInterface()) {
+		    return Object();
+		}
 
-			// Check against Object to ensure superType() is not null.
-			if (typeEquals(type1, Object())) return type1;
-			if (typeEquals(type2, Object())) return type2;
+		// Check against Object to ensure superType() is not null.
+		if (typeEquals(type1, Object())) return type1;
+		if (typeEquals(type2, Object())) return type2;
+		
+		if (isSubtype(type1, type2)) return type2;
+		if (isSubtype(type2, type1)) return type1;
 
-			if (isSubtype(type1, type2)) return type2;
-			if (isSubtype(type2, type1)) return type1;
-
+		if (type1 instanceof ObjectType && type2 instanceof ObjectType) {
 			// Walk up the hierarchy
-			Type t1 = leastCommonAncestor(type1.toReference().superType(), type2);
-			Type t2 = leastCommonAncestor(type2.toReference().superType(), type1);
+			Type t1 = leastCommonAncestor(((ObjectType) type1).superClass(), type2);
+			Type t2 = leastCommonAncestor(((ObjectType) type2).superClass(), type1);
 
 			if (typeEquals(t1, t2)) return t1;
 
@@ -1678,7 +1646,7 @@ public class TypeSystem_c implements TypeSystem
 	}
 
 	/** Return true if t overrides mi */
-	public boolean hasMethod(ReferenceType t, MethodInstance mi) {
+	public boolean hasMethod(StructType t, MethodInstance mi) {
 		assert_(t);
 		assert_(mi);
 		return t.hasMethod(mi);
@@ -1802,20 +1770,20 @@ public class TypeSystem_c implements TypeSystem
 		return new NullType_c(this);
 	}
 
-	protected PrimitiveType createPrimitive(PrimitiveType.Kind kind) {
-		return new PrimitiveType_c(this, kind);
+	protected PrimitiveType createPrimitive(String name) {
+		return new PrimitiveType_c(this, name);
 	}
 
 	protected final NullType NULL_         = createNull();
-	protected final PrimitiveType VOID_    = createPrimitive(PrimitiveType.VOID);
-	protected final PrimitiveType BOOLEAN_ = createPrimitive(PrimitiveType.BOOLEAN);
-	protected final PrimitiveType CHAR_    = createPrimitive(PrimitiveType.CHAR);
-	protected final PrimitiveType BYTE_    = createPrimitive(PrimitiveType.BYTE);
-	protected final PrimitiveType SHORT_   = createPrimitive(PrimitiveType.SHORT);
-	protected final PrimitiveType INT_     = createPrimitive(PrimitiveType.INT);
-	protected final PrimitiveType LONG_    = createPrimitive(PrimitiveType.LONG);
-	protected final PrimitiveType FLOAT_   = createPrimitive(PrimitiveType.FLOAT);
-	protected final PrimitiveType DOUBLE_  = createPrimitive(PrimitiveType.DOUBLE);
+	protected final PrimitiveType VOID_    = createPrimitive("void");
+	protected final PrimitiveType BOOLEAN_ = createPrimitive("boolean");
+	protected final PrimitiveType CHAR_    = createPrimitive("char");
+	protected final PrimitiveType BYTE_    = createPrimitive("byte");
+	protected final PrimitiveType SHORT_   = createPrimitive("short");
+	protected final PrimitiveType INT_     = createPrimitive("int");
+	protected final PrimitiveType LONG_    = createPrimitive("long");
+	protected final PrimitiveType FLOAT_   = createPrimitive("float");
+	protected final PrimitiveType DOUBLE_  = createPrimitive("double");
 
 	public Object placeHolder(TypeObject o) {
 		return placeHolder(o, Collections.EMPTY_SET);
@@ -2121,7 +2089,7 @@ public class TypeSystem_c implements TypeSystem
 		 return new InitializerInstance_c(this, pos, def);
 	 }
 
-	 public List<String> defaultPackageImports() {
+	 public List<String> defaultOnDemandImports() {
 		 List<String> l = new ArrayList<String>(1);
 		 l.add("java.lang");
 		 return l;
@@ -2352,18 +2320,18 @@ public class TypeSystem_c implements TypeSystem
 	  * implemented by <code>ct</code>. The list returned also contains
 	  * <code>rt</code>.
 	  */
-	 protected List<Type> abstractSuperInterfaces(ReferenceType rt) {
+	 protected List<Type> abstractSuperInterfaces(ObjectType rt) {
 		 List<Type> superInterfaces = new LinkedList<Type>();
 		 superInterfaces.add(rt);
 
 		 for (Type interf : rt.interfaces()) {
-			 if (interf instanceof ReferenceType) {
-				 superInterfaces.addAll(abstractSuperInterfaces((ReferenceType) interf));
+			 if (interf instanceof ObjectType) {
+				 superInterfaces.addAll(abstractSuperInterfaces((ObjectType) interf));
 			 }
 		 }
 
-		 if (rt.superType() instanceof ClassType) {
-			 ClassType c = rt.superType().toClass();
+		 if (rt.superClass() instanceof ClassType) {
+			 ClassType c = (ClassType) rt.superClass();
 			 if (c.flags().isAbstract()) {
 				 // the superclass is abstract, so it may contain methods
 				 // that must be implemented.
@@ -2399,52 +2367,55 @@ public class TypeSystem_c implements TypeSystem
 		 // check each abstract method of the classes and interfaces in
 		 // superInterfaces
 		 for (Iterator<Type> i = superInterfaces.iterator(); i.hasNext(); ) {
-			 ReferenceType rt = (ReferenceType)i.next();
+		     Type it = i.next();
+		     if (it instanceof StructType) {
+			 StructType rt = (StructType) it;
 			 for (Iterator<MethodInstance> j = rt.methods().iterator(); j.hasNext(); ) {
-				 MethodInstance mi = j.next();
-				 if (!mi.flags().isAbstract()) {
-					 // the method isn't abstract, so ct doesn't have to
-					 // implement it.
-					 continue;
-				 }
+			     MethodInstance mi = j.next();
+			     if (!mi.flags().isAbstract()) {
+				 // the method isn't abstract, so ct doesn't have to
+				 // implement it.
+				 continue;
+			     }
 
-				 MethodInstance mj = findImplementingMethod(ct, mi);
-				 if (mj == null) {
-					 if (!ct.flags().isAbstract()) {
-						 throw new SemanticException(ct.fullName() + " should be " +
-								 "declared abstract; it does not define " +
-								 mi.signature() + ", which is declared in " +
-								 rt.toClass().fullName(), ct.position());
-					 }
-					 else { 
-						 // no implementation, but that's ok, the class is abstract.
-					 }
+			     MethodInstance mj = findImplementingMethod(ct, mi);
+			     if (mj == null) {
+				 if (!ct.flags().isAbstract()) {
+				     throw new SemanticException(ct.fullName() + " should be " +
+				                                 "declared abstract; it does not define " +
+				                                 mi.signature() + ", which is declared in " +
+				                                 rt.toClass().fullName(), ct.position());
 				 }
-				 else if (!typeEquals(ct, mj.container()) && !typeEquals(ct, mi.container())) {
-					 try {
-						 // check that mj can override mi, which
-						 // includes access protection checks.
-						 checkOverride(mj, mi);
-					 }
-					 catch (SemanticException e) {
-						 // change the position of the semantic
-						 // exception to be the class that we
-						 // are checking.
-						 throw new SemanticException(e.getMessage(),
-								 ct.position());
-					 }
+				 else { 
+				     // no implementation, but that's ok, the class is abstract.
 				 }
-				 else {
-					 // the method implementation mj or mi was
-					 // declared in ct. So other checks will take
-					 // care of access issues
+			     }
+			     else if (!typeEquals(ct, mj.container()) && !typeEquals(ct, mi.container())) {
+				 try {
+				     // check that mj can override mi, which
+				     // includes access protection checks.
+				     checkOverride(mj, mi);
 				 }
+				 catch (SemanticException e) {
+				     // change the position of the semantic
+				     // exception to be the class that we
+				     // are checking.
+				     throw new SemanticException(e.getMessage(),
+				                                 ct.position());
+				 }
+			     }
+			     else {
+				 // the method implementation mj or mi was
+				 // declared in ct. So other checks will take
+				 // care of access issues
+			     }
 			 }
+		     }
 		 }
 	 }
 
 	 public MethodInstance findImplementingMethod(ClassType ct, MethodInstance mi) {
-		 ReferenceType curr = ct;
+	     StructType curr = ct;
 		 while (curr != null) {
 			 List<MethodInstance> possible = curr.methods(mi.name(), mi.formalTypes());
 			 for (Iterator<MethodInstance> k = possible.iterator(); k.hasNext(); ) {
@@ -2468,9 +2439,19 @@ public class TypeSystem_c implements TypeSystem
 				 // required for correctness. 
 				 break;
 			 }
-
-			 curr = curr.superType() ==  null ?
-					 null : curr.superType().toReference();
+			 
+			 if (curr instanceof ObjectType) {
+			     ObjectType ot = (ObjectType) curr;
+			     if (ot.superClass() instanceof StructType) {
+				 curr = (StructType) ot.superClass();
+			     }
+			     else {
+				 curr = null;
+			     }
+			 }
+			 else {
+			     curr = null;
+			 }
 		 }
 		 return null;
 	 }

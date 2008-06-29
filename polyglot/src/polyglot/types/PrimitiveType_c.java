@@ -13,39 +13,39 @@ package polyglot.types;
  */
 public class PrimitiveType_c extends Type_c implements PrimitiveType
 {
-    protected Kind kind;
+    protected String name;
 
     /** Used for deserializing types. */
     protected PrimitiveType_c() { }
 
-    public PrimitiveType_c(TypeSystem ts, Kind kind) {
+    public PrimitiveType_c(TypeSystem ts, String name) {
             super(ts);
-            this.kind = kind;
+            this.name = name;
     }
 
-    public Kind kind() {
-            return kind;
+    public boolean isGloballyAccessible() {
+	    return true;
     }
 
     public String toString() {
-            return kind.toString();
+	return name;
     }
 
     public String translate(Resolver c) {
-            return kind.toString();
+	return name;
     }
 
     public boolean isPrimitive() { return true; }
     public PrimitiveType toPrimitive() { return this; }
 
     public int hashCode() {
-            return kind.hashCode();
+	return name.hashCode();
     }
 
     public boolean equalsImpl(TypeObject t) {
         if (t instanceof PrimitiveType) {
             PrimitiveType p = (PrimitiveType) t;
-            return kind() == p.kind();
+            return name.equals(p.name());
         }
         return false;
     }
@@ -55,7 +55,7 @@ public class PrimitiveType_c extends Type_c implements PrimitiveType
     }
     
     public String name() {
-            return kind.toString();	
+	return name;
     }
     
     public String fullName() {
