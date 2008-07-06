@@ -1083,7 +1083,7 @@ public class TypeSystem_c implements TypeSystem
 	/**
 	 * @deprecated
 	 */
-	public MethodInstance findMethod(ReferenceType container, String name, List<Type> argTypes, Context c)
+	public MethodInstance findMethod(StructType container, String name, List<Type> argTypes, Context c)
 	throws SemanticException {
 		return findMethod(container, name, argTypes, c.currentClassDef());
 	}
@@ -1132,7 +1132,7 @@ public class TypeSystem_c implements TypeSystem
 	 * context.  If no such field may be found, returns a fieldmatch
 	 * with an error explaining why.  Access flags are considered.
 	 **/
-	public MethodInstance findMethod(ReferenceType container, String name, List<Type> argTypes, ClassDef currClass)
+	public MethodInstance findMethod(StructType container, String name, List<Type> argTypes, ClassDef currClass)
 	throws SemanticException {
 
 		assert_(container);
@@ -1327,7 +1327,7 @@ public class TypeSystem_c implements TypeSystem
 	 * Populates the list acceptable with those MethodInstances which are
 	 * Applicable and Accessible as defined by JLS 15.11.2.1
 	 */
-	protected List<MethodInstance> findAcceptableMethods(ReferenceType container, String name,
+	protected List<MethodInstance> findAcceptableMethods(StructType container, String name,
 			List<Type> argTypes, ClassDef currClass)
 			throws SemanticException {
 

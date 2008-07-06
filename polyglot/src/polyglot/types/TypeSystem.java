@@ -330,7 +330,7 @@ public interface TypeSystem {
      * @exception SemanticException if the method cannot be found or is
      * inaccessible.
      */
-    MethodInstance findMethod(ReferenceType container, String name,
+    MethodInstance findMethod(StructType container, String name,
                               List<Type> argTypes, ClassDef currClass) throws SemanticException;
 
     /**
