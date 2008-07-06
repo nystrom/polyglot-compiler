@@ -226,7 +226,7 @@ public class Call_c extends Expr_c implements Call
             return this.typeCheckNullTarget(tc, argTypes);
         }
         
-        ReferenceType targetType = this.findTargetType();
+        StructType targetType = this.findTargetType();
         MethodInstance mi = ts.findMethod(targetType, 
                                           this.name.id(), 
                                           argTypes, c.currentClassDef());
@@ -259,11 +259,12 @@ public class Call_c extends Expr_c implements Call
         return call;
     }
 
-    protected ReferenceType findTargetType() throws SemanticException { 
+    protected StructType findTargetType() throws SemanticException { 
         Type t = target.type();
-        if (t.isReference()) {
-            return t.toReference();
-        } else {
+        if (t instanceof StructType) {
+            return (StructType) t;
+        }
+        else {
             // trying to invoke a method on a non-reference type.
             // let's pull out an appropriate error message.
             if (target instanceof Expr) {

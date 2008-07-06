@@ -16,7 +16,7 @@ public interface AmbTypeNode extends TypeNode, Ambiguous
     /**
      * Qualifier of the type.
      */
-    QualifierNode qual();
+    QualifierNode prefix();
 
     /**
      * Set the qualifier of the type.

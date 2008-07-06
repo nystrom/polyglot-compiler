@@ -13,7 +13,7 @@ import java.util.List;
 import polyglot.types.*;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
-import polyglot.visit.CFGBuilder;
+import polyglot.visit.*;
 
 /**
  * A <code>FieldAssign_c</code> represents a Java assignment expression to
@@ -24,85 +24,107 @@ import polyglot.visit.CFGBuilder;
  */
 public class FieldAssign_c extends Assign_c implements FieldAssign
 {
-  public FieldAssign_c(Position pos, Field left, Operator op, Expr right) {
-    super(pos, left, op, right);
+    Receiver target;
+    Id name;
+    FieldInstance fi;
+    
+  public FieldAssign_c(Position pos, Receiver target, Id name, Operator op, Expr right) {
+    super(pos, op, right);
+    assert name != null;
+    this.target = target;
+    this.name = name;
   }
 
-  public Assign left(Expr left) {
-      FieldAssign_c n = (FieldAssign_c)super.left(left);
-      n.assertLeftType();
+  @Override
+  public Assign visitLeft(NodeVisitor v) {
+      Id name = (Id) visitChild(this.name, v);
+      Receiver target = (Receiver) visitChild(this.target, v);
+      return reconstruct(target, name);
+  }
+
+protected Assign reconstruct(Receiver target, Id name) {
+    if (name != this.name || target != this.target) {
+	  FieldAssign_c n = (FieldAssign_c) copy();
+	  n.target = target;
+	  n.name = name;
+	  return n;
+      }
+      return this;
+}
+  
+  public Expr left(NodeFactory nf) {
+      return nf.Field(position(), target, name);
+  }
+  
+  public Type leftType() {
+      return fi.type();
+  }
+
+  public Receiver target() {
+      return target;
+  }
+
+  public FieldAssign target(Receiver target) {
+	FieldAssign_c n = (FieldAssign_c) copy();
+	n.target = target;
+	return n;
+  }
+
+  public Id name() {
+      return name;
+  }
+  
+  public FieldAssign name(Id name) {
+      FieldAssign_c n = (FieldAssign_c) copy();
+      n.name = name;
       return n;
   }
 
-  private void assertLeftType() {
-      if (!(left() instanceof Field)) {
-          throw new InternalCompilerError("left expression of an FieldAssign must be a field");
-      }
+  @Override
+  public Assign typeCheckLeft(TypeChecker tc) throws SemanticException {
+      Field left = (Field) left(tc.nodeFactory());
+      left = (Field) left.del().typeCheck(tc);
+      FieldAssign_c n = (FieldAssign_c) reconstruct(left.target(), left.name());
+      return n.fieldInstance(left.fieldInstance());
   }
-  
-  public Term firstChild() {
-      Field f = (Field)left();
-      if (f.target() instanceof Expr) {
-          return ((Expr) f.target());
-      }
-      else {
-          if (operator() != Assign.ASSIGN) {
-              return f;
-          }
-          else {
-              return right();
-          }
-      }
-  }
-  
-  protected void acceptCFGAssign(CFGBuilder v) {
-      Field f = (Field)left();
-      if (f.target() instanceof Expr) {
-          Expr o = (Expr) f.target();
 
-              //     o.f = e: visit o -> e -> (o.f = e)
-              v.visitCFG(o, right(), ENTRY);              
-              v.visitCFG(right(), this, EXIT);
-      }
-      else {
-              //       T.f = e: visit e -> (T.f OP= e)
-              v.visitCFG(right(), this, EXIT);
-      }
-      
+  public FieldInstance fieldInstance() {
+      return fi;
+  }  
+    
+  public FieldAssign fieldInstance(FieldInstance fi) {
+      FieldAssign_c n = (FieldAssign_c) copy();
+      n.fi = fi;
+      return n;
+  }
+
+  public Term firstChild() {
+      if (target instanceof Term)
+	  return (Term) target;
+      else
+	  return right;
+  }
+
+  protected void acceptCFGAssign(CFGBuilder v) {
+      //     o.f = e: visit o -> e -> (o.f = e)
+      if (target instanceof Term)
+	  v.visitCFG((Term) target, right(), ENTRY);              
+      v.visitCFG(right(), this, EXIT);
   }
   protected void acceptCFGOpAssign(CFGBuilder v) {
-      /*
-      Field f = (Field)left();
-      if (f.target() instanceof Expr) {
-          Expr o = (Expr) f.target();
-
-          // o.f OP= e: visit o -> o.f -> e -> (o.f OP= e)
-          v.visitCFG(o, f);
-          v.visitThrow(f);
-          v.edge(f, right().entry());
-          v.visitCFG(right(), this);
-      }
-      else {
-          // T.f OP= e: visit T.f -> e -> (T.f OP= e)
-          v.visitThrow(f);
-          v.edge(f, right().entry());
-          v.visitCFG(right(), this);
-      }
-      */
-      
-      v.visitCFG(left(), right(), ENTRY);
+      if (target instanceof Term)
+	  v.visitCFG((Term) target, right(), ENTRY);              
       v.visitCFG(right(), this, EXIT);
   }
 
   public List<Type> throwTypes(TypeSystem ts) {
       List<Type> l = new ArrayList<Type>(super.throwTypes(ts));
 
-      Field f = (Field)left();
-      if (f.target() instanceof Expr) {
+      if (target instanceof Expr) {
           l.add(ts.NullPointerException());
       }
 
       return l;
-  }  
-  
+  }
+
 }

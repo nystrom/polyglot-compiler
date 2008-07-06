@@ -198,11 +198,11 @@ public class Initializer_c extends Term_c implements Initializer
 
     public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
         if (initializerDef().flags().isStatic()) {
-            return ec.push(new ExceptionChecker.CodeTypeReporter("static initializer block"));
+            return ec.push(new ExceptionChecker.CodeTypeReporter("A static initializer block"));
         }
         
         if (!initializerDef().container().get().toClass().isAnonymous()) {
-            ec = ec.push(new ExceptionChecker.CodeTypeReporter("instance initializer block"));
+            ec = ec.push(new ExceptionChecker.CodeTypeReporter("An instance initializer block"));
 
             // An instance initializer of a named class may not throw
             // a checked exception unless that exception or one of its 
@@ -212,8 +212,7 @@ public class Initializer_c extends Term_c implements Initializer
             SubtypeSet allowed = null;
             Type throwable = ec.typeSystem().Throwable();
             ClassType container = initializerDef().container().get().toClass();
-            for (Iterator<ConstructorInstance> iter = container.constructors().iterator(); iter.hasNext(); ) {
-                ConstructorInstance ci = (ConstructorInstance)iter.next();
+            for (ConstructorInstance ci : container.constructors()) {
                 if (allowed == null) {
                     allowed = new SubtypeSet(throwable);
                     allowed.addAll(ci.throwTypes());
@@ -229,8 +228,7 @@ public class Initializer_c extends Term_c implements Initializer
                             inter.add(t);
                         }
                     }
-                    for (Iterator<Type> i = other.iterator(); i.hasNext(); ) {
-                        Type t = (Type)i.next();
+                    for (Type t : other) {
                         if (allowed.contains(t)) {
                             // t or a supertype is thrown by the allowed.
                             inter.add(t);

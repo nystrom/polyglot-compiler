@@ -7,6 +7,7 @@
 
 package polyglot.ast;
 
+import polyglot.types.Type;
 import polyglot.util.Enum;
 
 /**
@@ -43,15 +44,11 @@ public interface Assign extends Expr
      * Left child (target) of the assignment.
      * The target must be a Variable, but this is not enforced
      * statically to keep Polyglot backward compatible.
+     * @param nf TODO
      */
-    Expr left();
+    Expr left(NodeFactory nf);
 
-    /**
-     * Set the left child (target) of the assignment.
-     * The target must be a Variable, but this is not enforced
-     * statically to keep Polyglot backward compatible.
-     */
-    Assign left(Expr left);
+    Type leftType();	
 
     /**
      * The assignment's operator.

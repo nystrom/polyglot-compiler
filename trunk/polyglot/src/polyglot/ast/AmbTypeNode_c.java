@@ -43,7 +43,7 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
       return n;
   }
   
-  public QualifierNode qual() {
+  public QualifierNode prefix() {
     return this.qual;
   }
 

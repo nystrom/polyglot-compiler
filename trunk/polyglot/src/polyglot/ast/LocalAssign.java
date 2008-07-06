@@ -16,4 +16,6 @@ package polyglot.ast;
  */
 public interface LocalAssign extends Assign
 {
+    Expr local();
+    LocalAssign local(Expr local);
 }

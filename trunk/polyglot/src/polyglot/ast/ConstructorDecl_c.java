@@ -290,7 +290,7 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
     }
 
     public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
-        return ec.push(constructorDef().asInstance().throwTypes());
+        return ec.push(new ExceptionChecker.CodeTypeReporter("A constructor")).push(constructorDef().asInstance().throwTypes());
     }
 
     public String toString() {

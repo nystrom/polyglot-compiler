@@ -18,4 +18,11 @@ package polyglot.ast;
 public interface ArrayAccessAssign extends Assign
 {
     boolean throwsArrayStoreException();
+
+    Expr array();
+    ArrayAccessAssign array(Expr array);
+    
+    Expr index();
+    ArrayAccessAssign index(Expr index);
+
 }

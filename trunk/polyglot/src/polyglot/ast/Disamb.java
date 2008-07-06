@@ -23,14 +23,5 @@ public interface Disamb
      * @return An unambiguous AST node, or null if disambiguation fails.
      */
     Node disambiguate(Ambiguous amb, ContextVisitor v, Position pos,
-            Prefix prefix, Id name) throws SemanticException;
-    
-    /**
-     * Disambiguate the prefix and name into a unambiguous node of the
-     * appropriate type.
-     * @return An unambiguous AST node, or null if disambiguation fails.
-     * @deprecated
-     */
-    Node disambiguate(Ambiguous amb, ContextVisitor v, Position pos,
-                      Prefix prefix, String name) throws SemanticException;
+            Node prefix, Id name) throws SemanticException;
 }

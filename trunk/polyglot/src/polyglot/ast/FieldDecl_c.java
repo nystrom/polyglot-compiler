@@ -336,7 +336,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     }
 
     public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
-        return ec.push(new ExceptionChecker.CodeTypeReporter("field initializer"));
+        return ec.push(new ExceptionChecker.CodeTypeReporter("A field initializer"));
     }
 
     public Type childExpectedType(Expr child, AscriptionVisitor av) {

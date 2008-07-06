@@ -20,7 +20,7 @@ public class Disamb_c implements Disamb
 {
     protected ContextVisitor v;
     protected Position pos;
-    protected Prefix prefix;
+    protected Node prefix;
     protected Id name;
 
     protected NodeFactory nf;
@@ -44,7 +44,7 @@ public class Disamb_c implements Disamb
      *         fails.
      */
     public Node disambiguate(Ambiguous amb, ContextVisitor v, Position pos,
-            Prefix prefix, Id name) throws SemanticException {
+            Node prefix, Id name) throws SemanticException {
 
         this.v = v;
         this.pos = pos;
@@ -227,6 +227,7 @@ public class Disamb_c implements Disamb
             // from fi.container().  fi.container() returns a super
             // type of the class we want.
             ClassType scope = c.findFieldScope(name.id());
+            assert scope != null;
 
             if (! ts.typeEquals(scope, c.currentClass())) {
                 r = nf.This(pos.startOf(), nf.CanonicalTypeNode(pos, scope)).type(scope);

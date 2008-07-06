@@ -214,7 +214,7 @@ public class New_c extends Expr_c implements New
         else {
             qualifier = (Expr) n.visitChild(n.qualifier(), childtc);
             
-            if (tn instanceof AmbTypeNode && ((AmbTypeNode) tn).qual() == null) {
+            if (tn instanceof AmbTypeNode && ((AmbTypeNode) tn).prefix() == null) {
                 // We have to disambiguate the type node as if it were a member of the
                 // static type, outer, of the qualifier.  For Java this is simple: type
                 // nested type is just a name and we
@@ -259,7 +259,7 @@ public class New_c extends Expr_c implements New
         
         ClassBody body = (ClassBody) n.visitChild(n.body, childtc);
 
-        n = n.reconstruct(qualifier, tn, arguments, body);
+        n = (New_c) n.body(body);
         n = (New_c) tc.leave(parent, this, n, childtc);
 
         return n;

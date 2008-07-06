@@ -9,6 +9,7 @@
 package polyglot.ast;
 
 import polyglot.types.SemanticException;
+import polyglot.types.Type;
 import polyglot.util.Position;
 import polyglot.visit.*;
 
@@ -18,38 +19,58 @@ import polyglot.visit.*;
  */
 public class AmbAssign_c extends Assign_c implements AmbAssign
 {
+  protected Expr left;
+    
   public AmbAssign_c(Position pos, Expr left, Operator op, Expr right) {
-    super(pos, left, op, right);
+    super(pos, op, right);
+    this.left = left;
+  }
+  
+  public Type leftType() {
+      return left.type();
+  }
+  
+  @Override
+  public Expr left(NodeFactory nf) {
+      return left;
+  }
+
+  @Override
+  public Assign visitLeft(NodeVisitor v) {
+      Expr left = (Expr) visitChild(this.left, v);
+      if (left != this.left) {
+	  AmbAssign_c n = (AmbAssign_c) copy();
+	  n.left = left;
+	  return n;
+      }
+      return this;
   }
   
   public Term firstChild() {
-    if (operator() != Assign.ASSIGN) {
-      return left();
-    }
-
-    return right();
+      return left;
   }
   
   protected void acceptCFGAssign(CFGBuilder v) {
+      v.visitCFG(left, right(), ENTRY);
       v.visitCFG(right(), this, EXIT);
   }
   
   protected void acceptCFGOpAssign(CFGBuilder v) {
-      v.visitCFG(left(), right(), ENTRY);
+      v.visitCFG(left, right(), ENTRY);
       v.visitCFG(right(), this, EXIT);
   }
   
   public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
-      Assign n = (Assign) super.disambiguate(ar);
+      AmbAssign_c n = (AmbAssign_c) super.disambiguate(ar);
       
-      if (n.left() instanceof Local) {
-          return ar.nodeFactory().LocalAssign(n.position(), (Local)left(), operator(), right());
+      if (left instanceof Local) {
+          return ar.nodeFactory().LocalAssign(n.position(), (Local)left, operator(), right());
       }
-      else if (n.left() instanceof Field) {
-          return ar.nodeFactory().FieldAssign(n.position(), (Field)left(), operator(), right());
+      else if (left instanceof Field) {
+          return ar.nodeFactory().FieldAssign(n.position(), ((Field)left).target(), ((Field)left).name(), operator(), right());
       } 
-      else if (n.left() instanceof ArrayAccess) {
-          return ar.nodeFactory().ArrayAccessAssign(n.position(), (ArrayAccess)left(), operator(), right());
+      else if (left instanceof ArrayAccess) {
+          return ar.nodeFactory().ArrayAccessAssign(n.position(), ((ArrayAccess)left).array(), ((ArrayAccess)left).index(), operator(), right());
       }
 
       // LHS is still ambiguous.  The pass should get rerun later.
@@ -57,7 +78,10 @@ public class AmbAssign_c extends Assign_c implements AmbAssign
       // throw new SemanticException("Could not disambiguate left side of assignment!", n.position());
   }
   
-
+  public Assign typeCheckLeft(TypeChecker tc) throws SemanticException {
+      // Didn't finish disambiguation; just return.
+      return this;
+  }
   public Node typeCheck(TypeChecker tc) throws SemanticException {
       // Didn't finish disambiguation; just return.
       return this;
