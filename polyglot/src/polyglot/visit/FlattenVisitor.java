@@ -143,9 +143,9 @@ public class FlattenVisitor extends NodeVisitor
             neverFlatten.add(s.cond());
         }
 
-	if (n instanceof Assign) {
-	    Assign s = (Assign) n;
-	    noFlatten.add(s.left());
+	if (n instanceof LocalAssign) {
+	    LocalAssign s = (LocalAssign) n;
+	    noFlatten.add(s.local());
 	    noFlatten.add(s.right());
 	}
         

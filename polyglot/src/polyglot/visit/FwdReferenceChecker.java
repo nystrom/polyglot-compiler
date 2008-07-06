@@ -27,7 +27,6 @@ public class FwdReferenceChecker extends ContextVisitor
 
     private boolean inInitialization = false;
     private boolean inStaticInit = false;
-    private Field fieldAssignLHS = null;
     private Set<FieldDef> declaredFields = new HashSet<FieldDef>();
     
     protected NodeVisitor enterCall(Node n) throws SemanticException {
@@ -48,16 +47,10 @@ public class FwdReferenceChecker extends ContextVisitor
         }
         else if (n instanceof FieldAssign) {
             FwdReferenceChecker frc = (FwdReferenceChecker)this.copy();
-            frc.fieldAssignLHS = (Field)((FieldAssign)n).left();
             return frc;
         }
         else if (n instanceof Field) {
-            if (fieldAssignLHS == n) {
-                // the field is on  the left hand side of an assignment.
-                // we can ignore it
-                fieldAssignLHS = null;
-            }
-            else if (inInitialization) {
+            if (inInitialization) {
                 // we need to check if this is an illegal fwd reference.
                 Field f = (Field)n;
                 

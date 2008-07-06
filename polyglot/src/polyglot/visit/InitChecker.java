@@ -707,7 +707,7 @@ public class InitChecker extends DataFlow
                                   FlowGraph graph, 
                                   LocalAssign a, 
                                   Set succEdgeKeys) {
-          Local l = (Local) a.left();
+          Local l = (Local) a.local();
           Map<VarDef, MinMaxInitCount> m = new HashMap<VarDef, MinMaxInitCount>(inItem.initStatus);
           MinMaxInitCount initCount = m.get(l.localInstance().def());
 
@@ -732,10 +732,9 @@ public class InitChecker extends DataFlow
                                   FlowGraph graph, 
                                   FieldAssign a, 
                                   Set succEdgeKeys) {
-        Field f = (Field)a.left();
-        FieldDef fi = f.fieldInstance().def();
+        FieldDef fi = a.fieldInstance().def();
         
-        if (fi.flags().isFinal() && isFieldsTargetAppropriate(f)) {
+        if (fi.flags().isFinal() && isFieldsTargetAppropriate(a)) {
             // this field is final and the target for this field is 
             // appropriate for what we are interested in.
             Map<VarDef, MinMaxInitCount> m = new HashMap<VarDef, MinMaxInitCount>(inItem.initStatus);
@@ -784,7 +783,7 @@ public class InitChecker extends DataFlow
      * is static, then the target of the field must be the current class; if
      * the field is not static then the target must be "this".
      */
-    protected boolean isFieldsTargetAppropriate(Field f) {
+    protected boolean isFieldsTargetAppropriate(FieldAssign f) {
         CodeDef ci = currCBI.currCodeDecl.codeDef();
         ClassType containingClass = currCBI.currClass.asType();
 
@@ -1019,7 +1018,7 @@ public class InitChecker extends DataFlow
                                     DataFlowItem dfIn, 
                                     DataFlowItem dfOut) 
         throws SemanticException {
-        LocalDef li = ((Local)a.left()).localInstance().def();
+        LocalDef li = ((Local)a.local()).localInstance().def();
         if (!currCBI.localDeclarations.contains(li)) {
             throw new SemanticException("Final local variable \"" + li.name() +
                     "\" cannot be assigned to in an inner class.",
@@ -1044,12 +1043,11 @@ public class InitChecker extends DataFlow
                                     DataFlowItem dfOut) 
         throws SemanticException {
 
-        Field f = (Field)a.left();
-        FieldDef fi = f.fieldInstance().def();
+        FieldDef fi = a.fieldInstance().def();
         if (fi.flags().isFinal()) {
             if ((currCBI.currCodeDecl instanceof ConstructorDecl ||
                     currCBI.currCodeDecl instanceof Initializer) &&
-                    isFieldsTargetAppropriate(f)) {
+                    isFieldsTargetAppropriate(a)) {
                 // we are in a constructor or initializer block and 
                 // if the field is static then the target is the class
                 // at hand, and if it is not static then the
