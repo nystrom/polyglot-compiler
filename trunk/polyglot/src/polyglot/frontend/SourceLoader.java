@@ -54,10 +54,6 @@ public class SourceLoader
         return fileSource(fileName, false);
     }
     public FileSource fileSource(String fileName, boolean userSpecified) throws IOException {
-        // If we haven't done so already,
-        // determine if the file system is case insensitive
-        setCaseInsensitive(fileName);
-        
         File sourceFile = new File(fileName);
         
         if (! sourceFile.exists()) {
@@ -224,78 +220,11 @@ public class SourceLoader
     }
 
     public Object fileKey(File file) {
-        setCaseInsensitive(file.getAbsolutePath());
-        if (caseInsensitive()) {
-            return file.getAbsolutePath().toLowerCase();
-        }
-        return file.getAbsolutePath();
-    }
-
-    /** Is the file system case insensitive. */
-    public boolean caseInsensitive() {
-        if (caseInsensitive == 0) {
-            throw new InternalCompilerError("unknown case sensitivity");
-        }
-        return caseInsensitive == 1;
-    }
-
-    protected void setCaseInsensitive(String fileName) {
-        if (caseInsensitive != 0) {
-            return;
-        }
-
-        // File.equals doesn't work correctly on the Mac.
-        // So, get the list of files in the same directory
-        // as sourceFile.  Check if the sourceFile with two
-        // different cases exists but only appears in the list once.
-        File f1 = new File(fileName.toUpperCase());
-        File f2 = new File(fileName.toLowerCase());
-
-        if (f1.equals(f2)) {
-            caseInsensitive = 1;
-        }
-        else if (f1.exists() && f2.exists()) {
-            boolean f1Exists = false;
-            boolean f2Exists = false;
-
-            File dir;
-
-            if (f1.getParent() != null) {
-                dir = new File(f1.getParent());
-            }
-            else {
-                dir = current_dir();
-            }
-
-            File[] ls = dir.listFiles();
-            if (ls != null) {
-                for (int i = 0; i < ls.length; i++) {
-                    if (f1.equals(ls[i])) {
-                        f1Exists = true;
-                    }
-                    if (f2.equals(ls[i])) {
-                        f2Exists = true;
-                    }
-                }
-            }
-            else {
-                // dir not found
-            }
-
-            if (! f1Exists || ! f2Exists) {
-                caseInsensitive = 1;
-            }
-            else {
-                // There are two files.
-                caseInsensitive = -1;
-            }
-        }
-        else {
-            caseInsensitive = -1;
-        }
-    }
-
-    protected String canonicalize(String fileName) {
-        return fileName;
+	try {
+	    return file.getCanonicalPath();
+	}
+	catch (IOException e) {
+	    return file.getAbsolutePath();
+	}
     }
 }

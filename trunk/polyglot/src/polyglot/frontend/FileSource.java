@@ -35,7 +35,7 @@ public class FileSource extends Source
             throw new FileNotFoundException(file.getName());
         }
 
-        path = file.getPath();
+        path = file.getCanonicalPath();
         lastModified = new Date(file.lastModified());
     }
 
