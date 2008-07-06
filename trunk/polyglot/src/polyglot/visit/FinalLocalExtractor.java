@@ -94,10 +94,10 @@ public class FinalLocalExtractor extends NodeVisitor {
                 }
             }
         }
-        if (n instanceof Assign) {
-            Assign a = (Assign) n;
-            if (a.left() instanceof Local) {
-                LocalDef li = ((Local) a.left()).localInstance().def();
+        if (n instanceof LocalAssign) {
+            LocalAssign a = (LocalAssign) n;
+            if (a.local() instanceof Local) {
+                LocalDef li = ((Local) a.local()).localInstance().def();
                 if (! isFinal.contains(li)) {
                     li.setFlags(li.flags().clearFinal());
                 }

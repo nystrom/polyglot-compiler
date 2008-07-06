@@ -325,10 +325,10 @@ public class CopyPropagator extends DataFlow {
         return result;
     }
 
-	if (t instanceof Assign) {
-	    Assign n = (Assign)t;
+	if (t instanceof LocalAssign) {
+	    LocalAssign n = (LocalAssign)t;
 	    Assign.Operator op = n.operator();
-	    Expr left = n.left();
+	    Expr left = n.local();
 	    Expr right = n.right();
 
 	    if (left instanceof Local) {
@@ -442,10 +442,10 @@ public class CopyPropagator extends DataFlow {
 	    return old;
 	}
 
-	if (n instanceof Assign) {
-	    Assign oldAssign = (Assign)old;
-	    Assign newAssign = (Assign)n;
-	    return newAssign.left(oldAssign.left());
+	if (n instanceof LocalAssign) {
+	    LocalAssign oldAssign = (LocalAssign)old;
+	    LocalAssign newAssign = (LocalAssign)n;
+	    return newAssign.local(oldAssign.local());
 	}
 
 	return n;

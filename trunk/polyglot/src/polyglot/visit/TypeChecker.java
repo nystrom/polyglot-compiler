@@ -120,6 +120,8 @@ public class TypeChecker extends ContextVisitor
         		// silent error; these should be thrown only
         		// when the error has already been reported 
         	}
+        	
+        	throw e;
         }
         
         memo.put(old, m);

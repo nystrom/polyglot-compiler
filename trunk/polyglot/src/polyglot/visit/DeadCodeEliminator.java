@@ -221,13 +221,14 @@ public class DeadCodeEliminator extends DataFlow {
 	    Local local;
 	    Expr right = null;
 
-	    if (expr instanceof Assign) {
-		Assign assign = (Assign)expr;
-		Expr left = assign.left();
+	    if (expr instanceof LocalAssign) {
+		LocalAssign assign = (LocalAssign)expr;
+		Expr left = assign.local();
 		right = assign.right();
-
 		if (!(left instanceof Local)) return n;
 		local = (Local)left;
+	    } else if (expr instanceof Assign) {
+		return n;
 	    } else if (expr instanceof Unary) {
 		Unary unary = (Unary)expr;
 		expr = unary.expr();
@@ -293,7 +294,7 @@ public class DeadCodeEliminator extends DataFlow {
 	public Node override(Node parent, Node n) {
 		if (parent instanceof LocalAssign) {
 			LocalAssign a = (LocalAssign) parent;
-			if (n == a.left()) {
+			if (n == a.local()) {
 				return n;
 			}
 		}
@@ -304,8 +305,8 @@ public class DeadCodeEliminator extends DataFlow {
 	public Node leave(Node old, Node n, NodeVisitor v) {
 	    if (n instanceof Local) {
 		use.add(((Local)n).localInstance().def());
-	    } else if (n instanceof Assign) {
-		Expr left = ((Assign)n).left();
+	    } else if (n instanceof LocalAssign) {
+		Expr left = ((LocalAssign)n).local();
 		if (left instanceof Local) {
 		    def.add(((Local)left).localInstance().def());
 		}
