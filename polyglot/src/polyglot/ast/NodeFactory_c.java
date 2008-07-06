@@ -12,8 +12,7 @@ import java.util.List;
 
 import polyglot.types.*;
 import polyglot.types.Package;
-import polyglot.util.CollectionUtil;
-import polyglot.util.Position;
+import polyglot.util.*;
 
 /**
  * A <code>NodeFactory</code> constructs AST nodes.  All node construction
@@ -141,12 +140,17 @@ public class NodeFactory_c extends AbstractNodeFactory_c
             return LocalAssign(pos, (Local)left, op, right);
         }
         else if (left instanceof Field) {
-            return FieldAssign(pos, (Field)left, op, right);
-        }
+            return FieldAssign(pos, ((Field)left).target(), ((Field)left).name(), op, right);
+        } 
         else if (left instanceof ArrayAccess) {
-            return ArrayAccessAssign(pos, (ArrayAccess)left, op, right);
+            return ArrayAccessAssign(pos, ((ArrayAccess)left).array(), ((ArrayAccess)left).index(), op, right);
         }
-        return AmbAssign(pos, left, op, right);
+        else if (left instanceof Ambiguous) {
+            return AmbAssign(pos, left, op, right);
+        }
+        else {
+            throw new InternalCompilerError("Cannot create assignment to " + left);
+        }
     }
 
     public LocalAssign LocalAssign(Position pos, Local left, Assign.Operator op, Expr right) {
@@ -155,14 +159,14 @@ public class NodeFactory_c extends AbstractNodeFactory_c
         n = (LocalAssign)n.del(delFactory.delLocalAssign());
         return n;
     }
-    public FieldAssign FieldAssign(Position pos, Field left, Assign.Operator op, Expr right) {
-        FieldAssign n = new FieldAssign_c(pos, left, op, right);
+    public FieldAssign FieldAssign(Position pos, Receiver target, Id name, Assign.Operator op, Expr right) {
+        FieldAssign n = new FieldAssign_c(pos, target, name, op, right);
         n = (FieldAssign)n.ext(extFactory.extFieldAssign());
         n = (FieldAssign)n.del(delFactory.delFieldAssign());
         return n;
     }
-    public ArrayAccessAssign ArrayAccessAssign(Position pos, ArrayAccess left, Assign.Operator op, Expr right) {
-        ArrayAccessAssign n = new ArrayAccessAssign_c(pos, left, op, right);
+    public ArrayAccessAssign ArrayAccessAssign(Position pos, Expr array, Expr index, Assign.Operator op, Expr right) {
+        ArrayAccessAssign n = new ArrayAccessAssign_c(pos, array, index, op, right);
         n = (ArrayAccessAssign)n.ext(extFactory.extArrayAccessAssign());
         n = (ArrayAccessAssign)n.del(delFactory.delArrayAccessAssign());
         return n;

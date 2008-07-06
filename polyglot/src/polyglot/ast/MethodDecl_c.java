@@ -333,7 +333,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     }
 
     public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
-        return ec.push(methodDef().asInstance().throwTypes());
+        return ec.push(new ExceptionChecker.CodeTypeReporter("A method")).push(methodDef().asInstance().throwTypes());
     }
 
     public String toString() {

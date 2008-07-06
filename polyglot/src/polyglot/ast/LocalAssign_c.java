@@ -7,9 +7,11 @@
 
 package polyglot.ast;
 
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
-import polyglot.visit.CFGBuilder;
+import polyglot.visit.*;
 
 /**
  * A <code>LocalAssign_c</code> represents a Java assignment expression
@@ -20,33 +22,56 @@ import polyglot.visit.CFGBuilder;
  */
 public class LocalAssign_c extends Assign_c implements LocalAssign
 {
+    Expr local;
+    
   public LocalAssign_c(Position pos, Local left, Operator op, Expr right) {
-    super(pos, left, op, right);
+    super(pos, op, right);
+    local = left;
+  }
+  
+ @Override
+public Assign typeCheckLeft(TypeChecker tc) throws SemanticException {
+     return this;
+}
+ 
+  @Override
+  public Assign visitLeft(NodeVisitor v) {
+      Expr local = (Expr) visitChild(this.local, v);
+      if (local != this.local) {
+	  LocalAssign_c n = (LocalAssign_c) copy();
+	  n.local = local;
+	  return n;
+      }
+      return this;
+  }
+  public Expr left(NodeFactory nf) {
+      return local;
+  }
+  
+  public Type leftType() {
+      return local.type();
   }
 
-  public Assign left(Expr left) {
-      LocalAssign_c n = (LocalAssign_c)super.left(left);
-      n.assertLeftType();
+  public Expr local() {
+      return local;
+  }
+
+  public LocalAssign local(Expr local) {
+      LocalAssign_c n = (LocalAssign_c) copy();
+      n.local = local;
       return n;
   }
 
-  private void assertLeftType() {
-      if (!(left() instanceof Local)) {
-          throw new InternalCompilerError("left expression of an LocalAssign must be a local");
-      }
-  }
-
   public Term firstChild() {
-    if (operator() != Assign.ASSIGN) {
-      return left();
-    }
-
-    return right();
+      if (op == ASSIGN)
+	  return right();
+      return local;
   }
   
   protected void acceptCFGAssign(CFGBuilder v) {
 	  // do not visit left()
-      // l = e: visit e -> (l = e)      
+      // l = e: visit e -> (l = e)    
+//      v.visitCFG(local(), right(), ENTRY);
       v.visitCFG(right(), this, EXIT);
   }
   
@@ -60,7 +85,7 @@ public class LocalAssign_c extends Assign_c implements LocalAssign
       v.visitCFG(right(), this);
       */
       
-      v.visitCFG(left(), right(), ENTRY);
+      v.visitCFG(local(), right(), ENTRY);
       v.visitCFG(right(), this, EXIT);
   }
 }

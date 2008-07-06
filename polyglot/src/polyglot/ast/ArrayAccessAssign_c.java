@@ -14,7 +14,7 @@ import java.util.List;
 import polyglot.types.*;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
-import polyglot.visit.CFGBuilder;
+import polyglot.visit.*;
 
 /**
  * A <code>ArrayAccessAssign_c</code> represents a Java assignment expression
@@ -26,51 +26,88 @@ import polyglot.visit.CFGBuilder;
  */
 public class ArrayAccessAssign_c extends Assign_c implements ArrayAccessAssign
 {
-  public ArrayAccessAssign_c(Position pos, ArrayAccess left, Operator op, Expr right) {
-    super(pos, left, op, right);
+    Expr array;
+    Expr index;
+    
+  public ArrayAccessAssign_c(Position pos, Expr array, Expr index, Operator op, Expr right) {
+    super(pos, op, right);
+    this.array = array;
+    this.index = index;
   }
 
-  public Assign left(Expr left) {
-      ArrayAccessAssign_c n = (ArrayAccessAssign_c)super.left(left);
-      n.assertLeftType();
+  public Expr array() {
+      return array;
+  }
+
+  public Expr index() {
+      return index;
+  }
+
+  public ArrayAccessAssign array(Expr array) {
+      ArrayAccessAssign_c n = (ArrayAccessAssign_c) copy();
+      n.array = array;
       return n;
   }
-  
-  private void assertLeftType() {
-      if (!(left() instanceof ArrayAccess)) {
-          throw new InternalCompilerError("left expression of an ArrayAccessAssign must be an array access");
-      }
+
+  public ArrayAccessAssign index(Expr index) {
+      ArrayAccessAssign_c n = (ArrayAccessAssign_c) copy();
+      n.index = index;
+      return n;
+  }
+
+  @Override
+  public Assign typeCheckLeft(TypeChecker tc) throws SemanticException {
+      Type at = array.type();
+      if (!at.isArray())
+	  throw new SemanticException("Target of array assignment is not an array element.", array.position());
+      Type it = index.type();
+      if (!it.isInt())
+	  throw new SemanticException("Array element must be indexed by an int.", index.position());
+      return this;
+  }
+
+
+  public Type leftType() {
+      Type at = array.type();
+      if (at.isArray())
+	  return at.toArray().base();
+      return null;
   }
   
-  public Term firstChild() {
-      if (operator() == ASSIGN) {
-          return ((ArrayAccess) left()).array();
-      } else {
-          return left();
+  public Expr left(NodeFactory nf) {
+      return nf.ArrayAccess(position(), array, index);
+  }
+
+  @Override
+  public Assign visitLeft(NodeVisitor v) {
+      Expr array = (Expr) visitChild(this.array, v);
+      Expr index = (Expr) visitChild(this.index, v);
+      return reconstruct(array, index);
+  }
+
+  protected Assign reconstruct(Expr array, Expr index) {
+      if (array != this.array || index != this.index) {
+	  ArrayAccessAssign_c n = (ArrayAccessAssign_c) copy();
+	  n.array = array;
+	  n.index = index;
+	  return n;
       }
+      return this;
+  }
+
+  public Term firstChild() {
+	  return array;
   }
   
   protected void acceptCFGAssign(CFGBuilder v) {
-      ArrayAccess a = (ArrayAccess) left();
-      
       //    a[i] = e: visit a -> i -> e -> (a[i] = e)
-      v.visitCFG(a.array(), a.index(), ENTRY);
-      v.visitCFG(a.index(), right(), ENTRY);
+      v.visitCFG(array, index, ENTRY);
+      v.visitCFG(index, right(), ENTRY);
       v.visitCFG(right(), this, EXIT);
   }
   protected void acceptCFGOpAssign(CFGBuilder v) {
-      /*
-      ArrayAccess a = (ArrayAccess)left();
-      
-      // a[i] OP= e: visit a -> i -> a[i] -> e -> (a[i] OP= e)
-      v.visitCFG(a.array(), a.index().entry());
-      v.visitCFG(a.index(), a);
-      v.visitThrow(a);
-      v.edge(a, right().entry());
-      v.visitCFG(right(), this);
-      */
-      
-      v.visitCFG(left(), right(), ENTRY);
+      v.visitCFG(array, index, ENTRY);
+      v.visitCFG(index, right(), ENTRY);
       v.visitCFG(right(), this, EXIT);
   }
 
@@ -89,6 +126,6 @@ public class ArrayAccessAssign_c extends Assign_c implements ArrayAccessAssign
   
   /** Get the throwsArrayStoreException of the expression. */
   public boolean throwsArrayStoreException() {
-    return op == ASSIGN && left.type().isReference();
+    return op == ASSIGN && array.type().isReference();
   }
 }

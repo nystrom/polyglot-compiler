@@ -7,6 +7,8 @@
 
 package polyglot.ast;
 
+import polyglot.types.*;
+
 /**
  * A <code>FieldAssign</code> represents a Java assignment expression to
  * a field.  For instance, <code>this.x = e</code>.
@@ -16,4 +18,13 @@ package polyglot.ast;
  */
 public interface FieldAssign extends Assign
 {
+
+    public Receiver target();
+    public FieldAssign target(Receiver target);
+
+    public Id name();
+    public FieldAssign name(Id name);
+
+    public FieldAssign fieldInstance(FieldInstance fi);
+    public FieldInstance fieldInstance();
 }
