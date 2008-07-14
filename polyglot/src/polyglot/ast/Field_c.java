@@ -94,6 +94,7 @@ public class Field_c extends Expr_c implements Field
   public Field fieldInstance(FieldInstance fi) {
     if (fi == this.fi) return this;
     Field_c n = (Field_c) copy();
+    assert fi != null;
     n.fi = fi;
     return n;
   }

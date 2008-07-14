@@ -53,7 +53,10 @@ protected Assign reconstruct(Receiver target, Id name) {
 }
   
   public Expr left(NodeFactory nf) {
-      return nf.Field(position(), target, name);
+      Field f = nf.Field(position(), target, name);
+      if (fi != null) f = f.fieldInstance(fi);
+      if (type != null) f = (Field) f.type(fi.type());
+      return f;
   }
   
   public Type leftType() {

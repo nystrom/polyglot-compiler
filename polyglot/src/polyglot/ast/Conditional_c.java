@@ -104,7 +104,7 @@ public class Conditional_c extends Expr_c implements Conditional
         Type t1 = e1.type();
         Type t2 = e2.type();
       
-        if (! ts.typeEquals(cond.type(), ts.Boolean())) {
+        if (! cond.type().isBoolean()) {
             throw new SemanticException(
                                         "Condition of ternary expression must be of type boolean.",
                                         cond.position());

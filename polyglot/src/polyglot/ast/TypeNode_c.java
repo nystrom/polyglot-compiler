@@ -42,8 +42,9 @@ public abstract class TypeNode_c extends Term_c implements TypeNode
     }
 
     /** Set the type this node encapsulates. */
-    protected TypeNode typeRef(Ref<? extends Type> type) {
+    public TypeNode typeRef(Ref<? extends Type> type) {
 	TypeNode_c n = (TypeNode_c) copy();
+	assert(type != null);
 	n.type = type;
 	return n;
     }
