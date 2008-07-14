@@ -170,7 +170,7 @@ Type s = right.type();
               return child.type();
           }
           else {
-              return left(null).type();
+              return leftType();
           }
       }
 

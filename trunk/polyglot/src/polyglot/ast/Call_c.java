@@ -265,7 +265,7 @@ public class Call_c extends Expr_c implements Call
             return (StructType) t;
         }
         else {
-            // trying to invoke a method on a non-reference type.
+            // trying to invoke a method on a non-struct type.
             // let's pull out an appropriate error message.
             if (target instanceof Expr) {
                 throw new SemanticException("Cannot invoke method \"" + name + "\" on "
