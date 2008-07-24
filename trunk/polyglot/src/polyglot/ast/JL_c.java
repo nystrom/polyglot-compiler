@@ -133,7 +133,7 @@ public class JL_c extends Ext_c implements JL {
      *
      * @param ar The visitor which disambiguates.
      */
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
+    public Node disambiguate(TypeChecker ar) throws SemanticException {
     	return jl().disambiguate(ar);
     }
 

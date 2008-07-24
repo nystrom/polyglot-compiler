@@ -43,6 +43,7 @@ public class ParserGoal extends SourceGoal_c
 	    if (Report.should_report(Report.frontend, 2))
 		Report.report(2, "Using parser " + p);
 
+	    System.out.println(source);
 	    Node ast = p.parse();
 
 	    source.close();

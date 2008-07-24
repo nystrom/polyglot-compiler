@@ -55,7 +55,7 @@ public class ArrayTypeNode_c extends TypeNode_c implements ArrayTypeNode
     	return typeRef(Types.<Type>ref(tb.typeSystem().arrayOf(position(), base.typeRef())));
     }
 
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
+    public Node disambiguate(TypeChecker ar) throws SemanticException {
 	TypeSystem ts = ar.typeSystem();
 	NodeFactory nf = ar.nodeFactory();
         return nf.CanonicalTypeNode(position(),

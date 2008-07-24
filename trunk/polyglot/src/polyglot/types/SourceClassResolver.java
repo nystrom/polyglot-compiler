@@ -278,6 +278,6 @@ public class SourceClassResolver extends LoadedClassResolver
     }
   
     // The source has already been compiled, but the type was not created there.
-    throw new SemanticException("Could not find \"" + name + "\" in " + source + ".");
+    throw new NoClassException("Could not find \"" + name + "\" in " + source + ".");
   }
 }

@@ -50,12 +50,15 @@ public abstract class AbstractGoal_c extends LazyRef_c<Goal.Status> implements G
 				break;
 			}
 		}
+		
 
 		if (getCached() == Status.RUNNING || getCached() == Status.RUNNING_RECURSIVE)
 			updateCache(Status.RUNNING_RECURSIVE);
-		else
+		else if (getCached() == Status.NEW)
 			updateCache(Status.RUNNING);
-
+		else
+		    return;
+		
 		if (Report.should_report(Report.frontend, 4))
 			Report.report(4, "running goal " + goal);
 

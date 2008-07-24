@@ -113,7 +113,7 @@ public interface NodeOps
      *
      * @param ar The visitor which disambiguates.
      */
-    Node disambiguate(AmbiguityRemover ar) throws SemanticException;
+    Node disambiguate(TypeChecker ar) throws SemanticException;
 
     Node setResolverOverride(Node parent, TypeCheckPreparer v);
     void setResolver(Node parent, TypeCheckPreparer v);

@@ -72,16 +72,17 @@ public class AmbExpr_c extends Expr_c implements AmbExpr
   }
 
   /** Disambiguate the expression. */
-  public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
-    Node n = ar.nodeFactory().disamb().disambiguate(this, ar, position(),
-                                                    null, name);
+  public Node disambiguate(TypeChecker ar) throws SemanticException {
+    Position pos = position();
+    Disamb disamb = ar.nodeFactory().disamb();
+    Node n = disamb.disambiguate(this, ar, pos, null, name);
 
     if (n instanceof Expr) {
         return n;
     }
 
     throw new SemanticException("Could not find field or local " +
-                                "variable \"" + name + "\".", position());
+                                "variable \"" + name + "\".", pos);
   }
 
   public Node typeCheck(TypeChecker tc) throws SemanticException {

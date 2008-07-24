@@ -100,8 +100,7 @@ public class TypeChecker extends ContextVisitor
         Node m = n;
       
         try {
-        	AmbiguityRemover ar = new AmbiguityRemover(tc);
-        	m = m.del().disambiguate(ar);
+        	m = m.del().disambiguate(tc);
         	m = m.del().typeCheck(tc);
         	m = m.del().checkConstants(tc);
         }
