@@ -78,7 +78,7 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
       return reconstruct(qual, name);
   }
   
-  public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
+  public Node disambiguate(TypeChecker ar) throws SemanticException {
       SemanticException ex;
       
       try {

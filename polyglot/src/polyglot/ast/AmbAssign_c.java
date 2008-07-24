@@ -60,7 +60,7 @@ public class AmbAssign_c extends Assign_c implements AmbAssign
       v.visitCFG(right(), this, EXIT);
   }
   
-  public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
+  public Node disambiguate(TypeChecker ar) throws SemanticException {
       AmbAssign_c n = (AmbAssign_c) super.disambiguate(ar);
       
       if (left instanceof Local) {

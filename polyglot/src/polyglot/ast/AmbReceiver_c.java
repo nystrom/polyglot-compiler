@@ -41,7 +41,7 @@ public class AmbReceiver_c extends AmbPrefix_c implements AmbReceiver
     }
 
     /** Disambiguate the receiver. */
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
+    public Node disambiguate(TypeChecker ar) throws SemanticException {
 	Node n = super.disambiguate(ar);
 
 	if (n instanceof Receiver) {

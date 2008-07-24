@@ -64,7 +64,7 @@ public class ClassBody_c extends Term_c implements ClassBody
         return reconstruct(members);
     }
 
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
+    public Node disambiguate(TypeChecker ar) throws SemanticException {
         return this;
     }
 

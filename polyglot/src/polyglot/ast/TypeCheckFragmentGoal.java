@@ -9,6 +9,7 @@ import java.util.List;
 import polyglot.frontend.*;
 import polyglot.types.*;
 import polyglot.util.CollectionUtil;
+import polyglot.util.ErrorInfo;
 import polyglot.visit.TypeChecker;
 
 public class TypeCheckFragmentGoal extends AbstractGoal_c {
@@ -40,6 +41,8 @@ public class TypeCheckFragmentGoal extends AbstractGoal_c {
 		assert g.hasBeenReached();
 		if (state() == Goal.Status.RUNNING_RECURSIVE) {
 			r.update(r.getCached()); // marks r known
+//			if (! mightFail)
+//			    v.job().compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, "Recursive resolution for " + n + ".", n.position());
 			return mightFail;
 		}
 

@@ -103,7 +103,7 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 		r.setResolver(new TypeCheckFragmentGoal(parent, this, tc, r, false));
 	}
 
-	public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
+	public Node disambiguate(TypeChecker ar) throws SemanticException {
 		SemanticException ex;
 		
 		try {
