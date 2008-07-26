@@ -219,8 +219,5 @@ public class Cast_c extends Expr_c implements Cast
         // not a constant
         return null;
     }
-    public Node copy(NodeFactory nf) {
-        return nf.Cast(this.position, this.castType, this.expr);
-    }
 
 }

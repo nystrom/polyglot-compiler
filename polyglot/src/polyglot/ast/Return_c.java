@@ -174,8 +174,5 @@ public class Return_c extends Stmt_c implements Return
         return Collections.EMPTY_LIST;
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.Return(this.position, this.expr);
-    }
 
 }

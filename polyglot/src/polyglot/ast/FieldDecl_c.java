@@ -419,8 +419,5 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         w.end();
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.FieldDecl(this.position, this.flags, this.type, this.name, this.init);
-    }
 
 }

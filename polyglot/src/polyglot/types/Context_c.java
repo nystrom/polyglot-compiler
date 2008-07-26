@@ -470,7 +470,10 @@ public class Context_c implements Context
             }
             else {
                 try {
-                    return ts.findMemberClass(this.currentClass(), name, this.currentClassDef());
+                    Type result = ts.findMemberType(this.currentClass(), name, this.currentClassDef());
+                    if (result instanceof Named) {
+                	return (Named) result;
+                    }
                 }
                 catch (SemanticException e) {
                 }

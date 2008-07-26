@@ -278,6 +278,8 @@ public class ClassDecl_c extends Term_c implements ClassDecl
 
     protected void setSuperClass(TypeSystem ts, ClassDef thisType) throws SemanticException {
         TypeNode superClass = this.superClass;
+        
+        String objectName = ((ClassType) ts.Object()).fullName();
 
         if (superClass != null) {
             Ref<? extends Type> t = superClass.typeRef();
@@ -285,7 +287,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
                 Report.report(3, "setting superclass of " + this.type + " to " + t);
             thisType.superType(t);
         }
-        else if (thisType.asType().equals((Object) ts.Object()) || thisType.fullName().equals(ts.Object().fullName())) {
+        else if (thisType.asType().equals((Object) ts.Object()) || thisType.fullName().equals(objectName)) {
             // the type is the same as ts.Object(), so it has no superclass.
             if (Report.should_report(Report.types, 3))
                 Report.report(3, "setting superclass of " + thisType + " to " + null);
@@ -615,8 +617,5 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         }
     }
 
-    public Node copy(NodeFactory nf) {
-        return nf.ClassDecl(this.position, this.flags, this.name, this.superClass, this.interfaces, this.body);
-    }
 
 }

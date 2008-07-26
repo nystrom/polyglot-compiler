@@ -308,8 +308,4 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
         l.addAll(ts.uncheckedExceptions());
         return l;
     }
-    public Node copy(NodeFactory nf) {
-        return nf.ConstructorCall(this.position, this.kind, this.qualifier, this.arguments);
-    }
-
 }

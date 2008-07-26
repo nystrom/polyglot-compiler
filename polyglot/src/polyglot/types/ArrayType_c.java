@@ -41,7 +41,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
             MethodDef mi = ts.methodDef(position(),
                                           Types.<ArrayType_c>ref(this),
                                           ts.Public(),
-                                          Types.<ClassType>ref(ts.Object()),
+                                          Types.<Type>ref(ts.Object()),
                                           "clone",
                                           Collections.EMPTY_LIST,
                                           Collections.EMPTY_LIST);
@@ -63,8 +63,8 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
 
         if (interfaces == null) {
             interfaces = new ArrayList<Ref<? extends Type>>(2);
-            interfaces.add(Types.<ClassType>ref(ts.Cloneable()));
-            interfaces.add(Types.<ClassType>ref(ts.Serializable()));
+            interfaces.add(Types.<Type>ref(ts.Cloneable()));
+            interfaces.add(Types.<Type>ref(ts.Serializable()));
         }
     }
 

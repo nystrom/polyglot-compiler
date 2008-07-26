@@ -238,27 +238,27 @@ public interface TypeSystem {
     /**
      * Checks whether a class can be accessed from Context context.
      */
-    boolean classAccessible(ClassType ct, Context context);
+    boolean classAccessible(ClassDef ct, Context context);
 
     /** True if the class targetClass accessible from the body of class contextClass. */
-    boolean classAccessible(ClassType targetClass, ClassDef contextClass);
+    boolean classAccessible(ClassDef targetClass, ClassDef contextClass);
    
     /**
      * Checks whether a top-level or member class can be accessed from the
      * package pkg.  Returns false for local and anonymous classes.
      */
-    boolean classAccessibleFromPackage(ClassType ct, Package pkg);
+    boolean classAccessibleFromPackage(ClassDef ct, Package pkg);
 
     /**
      * Returns whether inner is enclosed within outer
      */
-    boolean isEnclosed(ClassType inner, ClassType outer);
+    boolean isEnclosed(ClassDef inner, ClassDef outer);
 
     /**
      * Returns whether an object of the inner class <code>inner</code> has an
      * enclosing instance of class <code>encl</code>. 
      */
-    boolean hasEnclosingInstance(ClassType inner, ClassType encl);
+    boolean hasEnclosingInstance(ClassDef inner, ClassDef encl);
     
     ////
     // Various one-type predicates.
@@ -310,7 +310,7 @@ public interface TypeSystem {
      * @exception SemanticException if the field cannot be found or is
      * inaccessible.
      */
-    FieldInstance findField(StructType container, String name, ClassDef currClass)
+    FieldInstance findField(Type container, String name, ClassDef currClass)
         throws SemanticException;
 
     /**
@@ -318,7 +318,7 @@ public interface TypeSystem {
      * @exception SemanticException if the field cannot be found or is
      * inaccessible.
      */
-    FieldInstance findField(StructType container, String name)
+    FieldInstance findField(Type container, String name)
 	throws SemanticException;
 
     /**
@@ -330,7 +330,7 @@ public interface TypeSystem {
      * @exception SemanticException if the method cannot be found or is
      * inaccessible.
      */
-    MethodInstance findMethod(StructType container, String name,
+    MethodInstance findMethod(Type container, String name,
                               List<Type> argTypes, ClassDef currClass) throws SemanticException;
 
     /**
@@ -341,7 +341,7 @@ public interface TypeSystem {
      * @exception SemanticException if the constructor cannot be found or is
      * inaccessible.
      */
-    ConstructorInstance findConstructor(ClassType container,
+    ConstructorInstance findConstructor(Type container,
                                         List<Type> argTypes, ClassDef currClass) throws SemanticException;
 
     /**
@@ -350,7 +350,7 @@ public interface TypeSystem {
      * @exception SemanticException if the class cannot be found or is
      * inaccessible.
      */
-    ClassType findMemberClass(ClassType container, String name, ClassDef currClass)
+    Type findMemberType(Type container, String name, ClassDef currClass)
     throws SemanticException;
 
     /**
@@ -358,20 +358,20 @@ public interface TypeSystem {
      * @exception SemanticException if the class cannot be found or is
      * inaccessible.
      */
-    ClassType findMemberClass(ClassType container, String name)
+    Type findMemberType(Type container, String name)
 	throws SemanticException;
 
     /**
      * Returns the immediate supertype of type, or null if type has no
      * supertype.
      **/
-    Type superClass(ObjectType type);
+    Type superClass(Type type);
 
     /**
      * Returns an immutable list of all the interface types which type
      * implements.
      **/
-    List<Type> interfaces(ObjectType type);
+    List<Type> interfaces(Type type);
 
     ////
     // Functions for method testing.
@@ -386,13 +386,13 @@ public interface TypeSystem {
     /**
      * Returns true iff <code>t</code> has the method <code>mi</code>.
      */
-    boolean hasMethod(StructType t, MethodInstance mi);
+    boolean hasMethod(Type t, MethodInstance mi);
 
     /**
      * Returns true iff <code>t</code> has a method with name <code>name</code>
      * either defined in <code>t</code> or inherited into it.
      */
-    boolean hasMethodNamed(StructType t, String name);
+    boolean hasMethodNamed(Type t, String name);
 
     /**
      * Returns true iff <code>m1</code> is the same method as <code>m2</code>.
@@ -422,141 +422,141 @@ public interface TypeSystem {
     /**
      * <code>void</code>
      */
-    PrimitiveType Void();
+    Type Void();
 
     /**
      * <code>boolean</code>
      */
-    PrimitiveType Boolean();
+    Type Boolean();
 
     /**
      * <code>char</code>
      */
-    PrimitiveType Char();
+    Type Char();
 
     /**
      * <code>byte</code>
      */
-    PrimitiveType Byte();
+    Type Byte();
 
     /**
      * <code>short</code>
      */
-    PrimitiveType Short();
+    Type Short();
 
     /**
      * <code>int</code>
      */
-    PrimitiveType Int();
+    Type Int();
 
     /**
      * <code>long</code>
      */
-    PrimitiveType Long();
+    Type Long();
 
     /**
      * <code>float</code>
      */
-    PrimitiveType Float();
+    Type Float();
 
     /**
      * <code>double</code>
      */
-    PrimitiveType Double();
+    Type Double();
 
     /**
      * <code>java.lang.Object</code>
      */
-    ClassType Object();
+    Type Object();
 
     /**
      * <code>java.lang.String</code>
      */
-    ClassType String();
+    Type String();
 
     /**
      * <code>java.lang.Class</code>
      */
-    ClassType Class();
+    Type Class();
 
     /**
      * <code>java.lang.Throwable</code>
      */
-    ClassType Throwable();
+    Type Throwable();
 
     /**
      * <code>java.lang.Error</code>
      */
-    ClassType Error();
+    Type Error();
 
     /**
      * <code>java.lang.Exception</code>
      */
-    ClassType Exception();
+    Type Exception();
 
     /**
      * <code>java.lang.RuntimeException</code>
      */
-    ClassType RuntimeException();
+    Type RuntimeException();
 
     /**
      * <code>java.lang.Cloneable</code>
      */
-    ClassType Cloneable();
+    Type Cloneable();
 
     /**
      * <code>java.io.Serializable</code>
      */
-    ClassType Serializable();
+    Type Serializable();
 
     /**
      * <code>java.lang.NullPointerException</code>
      */
-    ClassType NullPointerException();
+    Type NullPointerException();
 
     /**
      * <code>java.lang.ClassCastException</code>
      */
-    ClassType ClassCastException();
+    Type ClassCastException();
 
     /**
      * <code>java.lang.ArrayIndexOutOfBoundsException</code>
      */
-    ClassType OutOfBoundsException();
+    Type OutOfBoundsException();
 
     /**
      * <code>java.lang.ArrayStoreException</code>
      */
-    ClassType ArrayStoreException();
+    Type ArrayStoreException();
 
     /**
      * <code>java.lang.ArithmeticException</code>
      */
-    ClassType ArithmeticException();
+    Type ArithmeticException();
 
     /**
      * Return an array of <code>type</code>
      */
-    ArrayType arrayOf(Ref<? extends Type> type);
-    ArrayType arrayOf(Type type);
+    Type arrayOf(Ref<? extends Type> type);
+    Type arrayOf(Type type);
 
     /**
      * Return an array of <code>type</code>
      */
-    ArrayType arrayOf(Position pos, Ref<? extends Type> type);
-    ArrayType arrayOf(Position pos, Type type);
+    Type arrayOf(Position pos, Ref<? extends Type> type);
+    Type arrayOf(Position pos, Type type);
 
     /**
      * Return a <code>dims</code>-array of <code>type</code>
      */
-    ArrayType arrayOf(Ref<? extends Type> type, int dims);
-    ArrayType arrayOf(Type type, int dims);
+    Type arrayOf(Ref<? extends Type> type, int dims);
+    Type arrayOf(Type type, int dims);
 
     /**
      * Return a <code>dims</code>-array of <code>type</code>
      */
-    ArrayType arrayOf(Position pos, Ref<? extends Type> type, int dims);
-    ArrayType arrayOf(Position pos, Type type, int dims);
+    Type arrayOf(Position pos, Ref<? extends Type> type, int dims);
+    Type arrayOf(Position pos, Type type, int dims);
 
     /**
      * Return a package by name.
@@ -593,9 +593,9 @@ public interface TypeSystem {
     AccessControlResolver createPackageContextResolver(Package pkg);
     
     /** Get a resolver for looking up a type in a class context. */
-    Resolver classContextResolver(ClassType ct, ClassDef accessor);
-    Resolver classContextResolver(ClassType ct);
-    AccessControlResolver createClassContextResolver(ClassType ct);
+    Resolver classContextResolver(Type ct, ClassDef accessor);
+    Resolver classContextResolver(Type ct);
+    AccessControlResolver createClassContextResolver(Type ct);
 
     /**
      * Create a new empty class.
@@ -674,13 +674,6 @@ public interface TypeSystem {
     String wrapperTypeString(PrimitiveType t);
 
     /**
-     * Return true if <code>mi</code> can be called with name <code>name</code>
-     * and actual parameters of types <code>actualTypes</code>.
-     * @param thisType TODO
-     */
-    boolean methodCallValid(MethodInstance mi, String name, Type thisType, List<Type> argTypes);
-
-    /**
      * Return true if <code>pi</code> can be called with 
      * actual parameters of types <code>actualTypes</code>.
      * @param thisType TODO
@@ -714,7 +707,7 @@ public interface TypeSystem {
     /**
      * Return the primitive with the given name.
      */
-    PrimitiveType primitiveForName(String name) throws SemanticException;
+    Type primitiveForName(String name) throws SemanticException;
 
     /** All possible <i>access</i> flags. */
     public abstract Flags legalAccessFlags();

@@ -8,6 +8,8 @@
 
 package polyglot.ast;
 
+import polyglot.frontend.Globals;
+import polyglot.frontend.Goal;
 import polyglot.types.*;
 import polyglot.util.Position;
 import polyglot.visit.ContextVisitor;
@@ -109,7 +111,7 @@ public class Disamb_c implements Disamb
             return nf.PackageNode(pos, Types.ref(q.toPackage()));
         }
         else if (q.isType() && typeOK()) {
-            return nf.CanonicalTypeNode(pos, Types.ref(q.toType()));
+            return makeTypeNode(q.toType());
         }
 
         return null;
@@ -148,7 +150,7 @@ public class Disamb_c implements Disamb
             }
             if (n instanceof Type) {
                 Type type = (Type) n;
-                return nf.CanonicalTypeNode(pos, type);
+                return makeTypeNode(type);
             }
         }
 
@@ -180,7 +182,7 @@ public class Disamb_c implements Disamb
                 Named n = c.find(name.id());
                 if (n instanceof Type) {
                     Type type = (Type) n;
-                    return nf.CanonicalTypeNode(pos, type);
+                    return makeTypeNode(type);
                 }
             } catch (NoClassException e) {
                 if (!name.id().equals(e.getClassName())) {
@@ -218,7 +220,7 @@ public class Disamb_c implements Disamb
         Receiver r;
 
         if (fi.flags().isStatic()) {
-            r = nf.CanonicalTypeNode(pos, fi.container());
+            r = nf.CanonicalTypeNode(pos.startOf(), fi.container());
         } else {
             // The field is non-static, so we must prepend with
             // "this", but we need to determine if the "this"
@@ -230,7 +232,7 @@ public class Disamb_c implements Disamb
             assert scope != null;
 
             if (! ts.typeEquals(scope, c.currentClass())) {
-                r = nf.This(pos.startOf(), nf.CanonicalTypeNode(pos, scope)).type(scope);
+                r = nf.This(pos.startOf(), nf.CanonicalTypeNode(pos.startOf(), scope)).type(scope);
             }
             else {
                 r = nf.This(pos.startOf()).type(scope);
@@ -258,6 +260,25 @@ public class Disamb_c implements Disamb
                ! (amb instanceof TypeNode) &&
               (amb instanceof Expr || amb instanceof Receiver ||
                amb instanceof Prefix);
+    }
+
+    protected Node makeTypeNode(Type t) {
+	if (amb instanceof TypeNode) {
+	    TypeNode tn = (TypeNode) amb;
+	    if (tn.typeRef() instanceof LazyRef) {
+		LazyRef<Type> sym = (LazyRef<Type>) tn.typeRef();
+		sym.update(t);
+
+		// Reset the resolver goal to one that can run when the ref is deserialized.
+		Goal resolver = Globals.Scheduler().LookupGlobalType(sym);
+		resolver.update(Goal.Status.SUCCESS);
+		sym.setResolver(resolver);
+
+		return nf.CanonicalTypeNode(pos, sym);
+	    }
+	}
+
+	return nf.CanonicalTypeNode(pos, t);
     }
     
     public String toString() {

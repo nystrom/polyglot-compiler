@@ -129,7 +129,7 @@ public class NewArray_c extends Expr_c implements NewArray
             }
         }
 
-        ArrayType type = ts.arrayOf(baseType.type(), dims.size() + addDims);
+        Type type = ts.arrayOf(baseType.type(), dims.size() + addDims);
 
 	if (init != null) {
             init.typeCheckElements(tc, type);
@@ -203,8 +203,5 @@ public class NewArray_c extends Expr_c implements NewArray
         return Collections.EMPTY_LIST;
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.NewArray(this.position, this.baseType, this.dims, this.addDims, this.init);
-    }
 
 }

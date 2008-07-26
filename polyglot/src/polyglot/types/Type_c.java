@@ -105,14 +105,14 @@ public abstract class Type_c extends TypeObject_c implements Type
     /**
      * Return a <code>dims</code>-array of this type.
      */
-    public ArrayType arrayOf(int dims) {
+    public Type arrayOf(int dims) {
 	return ts.arrayOf(this, dims); 
     }  
 
     /**
      * Return an array of this type.
      */
-    public ArrayType arrayOf() {
+    public Type arrayOf() {
 	return ts.arrayOf(this);
     }  
     

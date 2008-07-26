@@ -11,7 +11,7 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
         super(ts, pos, def);
     }
     
-    public ProcedureInstance<T> instantiate(StructType receiverType, List<Type> argumentTypes) throws SemanticException {
+    public ProcedureInstance<T> instantiate(Type receiverType, List<Type> argumentTypes) throws SemanticException {
 	    return this;
     }
 

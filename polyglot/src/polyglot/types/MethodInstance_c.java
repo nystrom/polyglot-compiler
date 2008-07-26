@@ -71,10 +71,6 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
         return this.name().equals(m.name()) && hasFormals(m.formalTypes());
     }
 
-    public boolean methodCallValid(String name, Type thisType, List<Type> argTypes) {
-        return name().equals(name) && this.callValid(thisType, argTypes);
-    }
-
     public List<MethodInstance> overrides() {
         List<MethodInstance> l = new ArrayList<MethodInstance>();
         StructType rt = container();

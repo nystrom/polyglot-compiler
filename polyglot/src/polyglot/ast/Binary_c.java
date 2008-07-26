@@ -590,8 +590,5 @@ public class Binary_c extends Expr_c implements Binary
 
     return Collections.EMPTY_LIST;
   }
-  public Node copy(NodeFactory nf) {
-      return nf.Binary(this.position, this.left, this.op, this.right);
-  }
   
 }

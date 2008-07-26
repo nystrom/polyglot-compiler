@@ -444,14 +444,13 @@ public abstract class Node_c implements Node
           // Not slow anymore.
           return getClass().getName();
     }
-    public Node copy(NodeFactory nf) {
+    public final Node copy(NodeFactory nf) {
         throw new InternalCompilerError("Unimplemented operation. This class " +
                                         "(" + this.getClass().getName() + ") does " +
                                         "not implement copy(NodeFactory). This compiler extension should" +
                                         " either implement the method, or not invoke this method.");
     }
-    
-    public Node copy(ExtensionInfo extInfo) throws SemanticException {
+    public final Node copy(ExtensionInfo extInfo) throws SemanticException {
         return this.del().copy(extInfo.nodeFactory());
     }
 

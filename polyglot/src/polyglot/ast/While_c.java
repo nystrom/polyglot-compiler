@@ -133,8 +133,5 @@ public class While_c extends Loop_c implements While
         return cond;
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.While(this.position, this.cond, this.body);
-    }
 
 }

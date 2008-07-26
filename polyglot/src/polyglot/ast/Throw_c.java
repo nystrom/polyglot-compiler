@@ -108,8 +108,5 @@ public class Throw_c extends Stmt_c implements Throw
         return CollectionUtil.list(expr.type(), ts.NullPointerException());
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.Throw(this.position, this.expr);
-    }
 
 }

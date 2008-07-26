@@ -81,7 +81,7 @@ public class PackageContextResolver extends AbstractAccessControlResolver
 
     protected boolean canAccess(Named n, ClassDef accessor) {
         if (n instanceof ClassType) {
-            return accessor == null || ts.classAccessible((ClassType) n, accessor);
+            return accessor == null || ts.classAccessible(((ClassType) n).def(), accessor);
         }
         return true;
     }

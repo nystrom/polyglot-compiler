@@ -18,14 +18,14 @@ import polyglot.util.*;
  * for member class "A.B.C" (if it exists) when asked for "C".
  */
 public class ClassContextResolver extends AbstractAccessControlResolver {
-    protected ClassType type;
+    protected Type type;
     
     /**
      * Construct a resolver.
      * @param ts The type system.
      * @param type The type in whose context we search for member types.
      */
-    public ClassContextResolver(TypeSystem ts, ClassType type) {
+    public ClassContextResolver(TypeSystem ts, Type type) {
         super(ts);
         this.type = type;
     }
@@ -47,6 +47,12 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             throw new InternalCompilerError(
                 "Cannot lookup qualified name " + name);
         }
+        
+        if (! (type instanceof ClassType)) {
+            throw new NoClassException(name, type);
+        }
+        
+        ClassType type = (ClassType) this.type;
 
         Named m = null;
         
@@ -206,7 +212,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
     /**
      * The class in whose context we look.
      */
-    public ClassType classType() {
+    public Type classType() {
 	return type;
     }
 

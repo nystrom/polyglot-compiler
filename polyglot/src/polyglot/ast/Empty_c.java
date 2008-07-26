@@ -40,8 +40,5 @@ public class Empty_c extends Stmt_c implements Empty
     public String toString() {
 	return ";";
     }
-    public Node copy(NodeFactory nf) {
-        return nf.Empty(this.position);
-    }
 
 }

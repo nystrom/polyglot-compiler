@@ -279,8 +279,5 @@ public class Unary_c extends Expr_c implements Unary
         return null;
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.Unary(this.position, this.op, this.expr);
-    }
 
 }

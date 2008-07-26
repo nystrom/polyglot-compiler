@@ -64,8 +64,5 @@ public class BooleanLit_c extends Lit_c implements BooleanLit
   public Object constantValue() {
     return Boolean.valueOf(value);
   }
-  public Node copy(NodeFactory nf) {
-      return nf.BooleanLit(this.position, this.value);
-  }
 
 }

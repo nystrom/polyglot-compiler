@@ -36,7 +36,7 @@ public class CanonicalTypeNode_c extends TypeNode_c implements CanonicalTypeNode
       if (type.get().isClass()) {
           ClassType ct = type.get().toClass();
           if (ct.isTopLevel() || ct.isMember()) {
-              if (! ts.classAccessible(ct, tc.context())) {
+              if (! ts.classAccessible(ct.def(), tc.context())) {
                   throw new SemanticException("Cannot access class \"" +
                       ct + "\" from the body of \"" +
                       tc.context().currentClass() + "\".", position());
@@ -77,58 +77,5 @@ public class CanonicalTypeNode_c extends TypeNode_c implements CanonicalTypeNode
     w.begin(0);
     w.write("(type " + type + ")");
     w.end();
-  }
-  public Node copy(NodeFactory nf) {
-    CanonicalTypeNode result =
-      nf.CanonicalTypeNode(this.position, this.type);
-    return result;
-  }
-  public Node copy(ExtensionInfo extInfo) throws SemanticException {
-      CanonicalTypeNode tn = (CanonicalTypeNode)this.del().copy(extInfo.nodeFactory());
-      Type t = tn.type();
-      if (t != null) {
-          // try to copy over type information
-          // This should really use a type visitor, if
-          // they existed.
-          TypeSystem ts = extInfo.typeSystem();
-          if (t.isVoid()) {
-              t = ts.Void();
-          }
-          else if (t.isBoolean()) {
-              t = ts.Boolean();
-          }
-          else if (t.isByte()) {
-              t = ts.Byte();
-          }
-          else if (t.isChar()) {
-              t = ts.Char();
-          }
-          else if (t.isDouble()) {
-              t = ts.Double();
-          }
-          else if (t.isFloat()) {
-              t = ts.Float();
-          }
-          else if (t.isInt()) {
-              t = ts.Int();
-          }
-          else if (t.isLong()) {
-              t = ts.Long();
-          }
-          else if (t.isNull()) {
-              t = ts.Null();
-          }
-          else if (t.isShort()) {
-              t = ts.Short();
-          }
-          else {
-              // Should do something here.
-              // return an amb type node?
-          }
-
-          tn = tn.typeRef(Types.<Type>ref(t));
-      }
-
-      return tn;
   }
 }

@@ -117,8 +117,5 @@ public class Labeled_c extends Stmt_c implements Labeled
         return succs;
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.Labeled(this.position, this.label, this.statement);
-    }
 
 }

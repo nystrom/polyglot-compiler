@@ -310,8 +310,5 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         return succs;
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.LocalDecl(this.position, this.flags, this.type, this.name, this.init);
-    }
 
 }

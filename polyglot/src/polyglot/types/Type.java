@@ -27,12 +27,12 @@ public interface Type extends Qualifier
     /**
      * Return an array of this type.
      */
-    ArrayType arrayOf();
+    Type arrayOf();
 
     /**
      * Return a <code>dims</code>-array of this type.
      */
-    ArrayType arrayOf(int dims);
+    Type arrayOf(int dims);
 
     /**
      * Cast the type to a class type, or null.
