@@ -212,8 +212,5 @@ public class Switch_c extends Stmt_c implements Switch
         return succs;
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.Switch(this.position, this.expr, this.elements);
-    }
 
 }

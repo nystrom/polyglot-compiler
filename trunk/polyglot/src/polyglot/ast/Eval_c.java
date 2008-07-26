@@ -94,8 +94,5 @@ public class Eval_c extends Stmt_c implements Eval
         v.visitCFG(expr, this, EXIT);
         return succs;
     }
-    public Node copy(NodeFactory nf) {
-        return nf.Eval(this.position, this.expr);
-    }
 
 }

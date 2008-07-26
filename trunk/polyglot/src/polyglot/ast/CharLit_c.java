@@ -54,8 +54,5 @@ public class CharLit_c extends NumLit_c implements CharLit
     public Object constantValue() {
       return Character.valueOf((char) value);
     }
-    public Node copy(NodeFactory nf) {
-        return nf.CharLit(this.position, (char)this.value);
-    }
 
 }

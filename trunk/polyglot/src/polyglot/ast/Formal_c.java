@@ -214,8 +214,5 @@ public class Formal_c extends Term_c implements Formal
     public String toString() {
         return flags.flags().translate() + type + " " + name;
     }
-    public Node copy(NodeFactory nf) {
-        return nf.Formal(this.position, this.flags, this.type, this.name);
-    }
 
 }

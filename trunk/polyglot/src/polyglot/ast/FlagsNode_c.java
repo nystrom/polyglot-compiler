@@ -51,8 +51,5 @@ public class FlagsNode_c extends Node_c implements FlagsNode
     w.write("(Flags \"" + flags + "\")");
   }
   
-  public Node copy(NodeFactory nf) {
-      return nf.FlagsNode(this.position, this.flags);
-  }
 
 }

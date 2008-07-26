@@ -66,17 +66,5 @@ public class PackageNode_c extends Node_c implements PackageNode
         return package_.toString();
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.PackageNode(this.position, this.package_);
-    }
-    public Node copy(ExtensionInfo extInfo) throws SemanticException {
-        PackageNode pn = (PackageNode)this.del().copy(extInfo.nodeFactory());
-        Package p = Types.get(pn.package_());
-        if (p != null) {
-            pn = pn.package_(Types.ref(extInfo.typeSystem().packageForName(p.fullName())));
-        }
-        return pn;
-    }
-
 
 }

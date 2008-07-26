@@ -249,8 +249,5 @@ public class For_c extends Loop_c implements For
     public Term continueTarget() {
         return listChild(iters, cond != null ? (Term) cond : body);
     }
-    public Node copy(NodeFactory nf) {
-        return nf.For(this.position, this.inits, this.cond, this.iters, this.body);
-    }
 
 }

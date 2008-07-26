@@ -118,7 +118,4 @@ public class AmbPrefix_c extends Node_c implements AmbPrefix
 		? name.toString()
 		: prefix.toString() + "." + name.toString()) + "{amb}";
     }
-    public Node copy(NodeFactory nf) {
-        return nf.AmbPrefix(this.position, this.prefix, this.name);
-    }
 }

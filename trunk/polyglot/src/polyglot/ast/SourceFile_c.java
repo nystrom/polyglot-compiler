@@ -237,8 +237,5 @@ public class SourceFile_c extends Node_c implements SourceFile
         w.end();
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.SourceFile(this.position, this.package_, this.imports, this.decls).source(this.source);
-    }
 
 }

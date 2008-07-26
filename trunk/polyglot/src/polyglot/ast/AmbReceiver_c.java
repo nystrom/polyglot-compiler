@@ -60,8 +60,5 @@ public class AmbReceiver_c extends AmbPrefix_c implements AmbReceiver
         return this;
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.AmbReceiver(this.position, this.prefix, this.name);
-    }
 
 }

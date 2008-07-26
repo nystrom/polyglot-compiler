@@ -120,8 +120,5 @@ public class Synchronized_c extends Stmt_c implements Synchronized
         return succs;
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.Synchronized(this.position, this.expr, this.body);
-    }
 
 }

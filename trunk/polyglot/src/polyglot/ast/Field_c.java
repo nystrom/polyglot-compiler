@@ -291,8 +291,5 @@ public class Field_c extends Expr_c implements Field
       }      
   }
 
-  public Node copy(NodeFactory nf) {
-      return nf.Field(this.position, this.target, this.name);
-  }
 
 }

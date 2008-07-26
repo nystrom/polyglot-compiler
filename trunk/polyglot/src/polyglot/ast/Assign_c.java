@@ -238,8 +238,5 @@ Type s = right.type();
 
     return Collections.<Type>emptyList();
   }
-  public Node copy(NodeFactory nf) {
-      return nf.Assign(this.position, this.left(nf), this.op, this.right);
-  }
   
 }

@@ -375,8 +375,5 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
 
         return succs;
     }
-    public Node copy(NodeFactory nf) {
-        return nf.ConstructorDecl(this.position, this.flags, this.name, this.formals, this.throwTypes, this.body);
-    }
 
 }

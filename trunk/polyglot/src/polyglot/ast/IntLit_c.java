@@ -137,8 +137,5 @@ public class IntLit_c extends NumLit_c implements IntLit
         }
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.IntLit(this.position, this.kind, this.value);
-    }
 
 }

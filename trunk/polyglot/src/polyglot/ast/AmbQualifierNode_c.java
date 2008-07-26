@@ -151,7 +151,4 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 		? name.toString()
 		: qual.toString() + "." + name.toString()) + "{amb}";
     }
-    public Node copy(NodeFactory nf) {
-        return nf.AmbQualifierNode(this.position, this.qual, this.name);
-    }
 }

@@ -129,8 +129,5 @@ public class Instanceof_c extends Expr_c implements Instanceof
         return succs;
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.Instanceof(this.position, this.expr, this.compareType);
-    }
 
 }

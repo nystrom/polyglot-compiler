@@ -130,8 +130,5 @@ public class StringLit_c extends Lit_c implements StringLit
 	return value;
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.StringLit(this.position, this.value);
-    }
 
 }

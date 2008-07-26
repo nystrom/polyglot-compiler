@@ -95,7 +95,7 @@ public class Import_c extends Node_c implements Import
         if (nt instanceof Type) {
             Type t = (Type) nt;
             if (t.isClass()) {
-                tc.typeSystem().classAccessibleFromPackage(t.toClass(),
+                tc.typeSystem().classAccessibleFromPackage(t.toClass().def(),
                     tc.context().package_());
             }
         }
@@ -122,8 +122,5 @@ public class Import_c extends Node_c implements Import
 	}
     }
     
-    public Node copy(NodeFactory nf) {
-        return nf.Import(this.position, this.kind, this.name);
-    }
 
 }
