@@ -12,8 +12,6 @@ import java.util.*;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
 
-import com.sun.tools.javac.comp.Env;
-
 /**
  * Class to implement sets containing <code>polyglot.types.Type </code>.  
  * Set membership is based on the subtype relationships.  Thus, if 
