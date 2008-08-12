@@ -151,7 +151,7 @@ public class Call_c extends Expr_c implements Call
 
     TypeSystem ts = tb.typeSystem();
 
-    MethodInstance mi = ts.createMethodInstance(position(), new ErrorRef_c<MethodDef>(ts, position()));
+    MethodInstance mi = ts.createMethodInstance(position(), new ErrorRef_c<MethodDef>(ts, position(), "Cannot get MethodDef before type-checking method invocation."));
     return n.methodInstance(mi);
   }
   
@@ -228,8 +228,8 @@ public class Call_c extends Expr_c implements Call
         
         StructType targetType = this.findTargetType();
         MethodInstance mi = ts.findMethod(targetType, 
-                                          this.name.id(), 
-                                          argTypes, c.currentClassDef());
+                                          ts.MethodMatcher(targetType, this.name.id(), argTypes),
+                                          c.currentClassDef());
         
         /* This call is in a static context if and only if
          * the target (possibly implicit) is a type node.

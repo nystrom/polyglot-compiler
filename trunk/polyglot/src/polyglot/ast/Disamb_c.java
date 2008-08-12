@@ -124,9 +124,9 @@ public class Disamb_c implements Disamb
         // Try static fields.
         Type t = tn.type();
 
-        if (t instanceof StructType && exprOK()) {
+        if (exprOK()) {
             try {
-                FieldInstance fi = ts.findField((StructType) t, name.id(), c.currentClassDef());
+                FieldInstance fi = ts.findField(t, ts.FieldMatcher(t, name.id()), c.currentClassDef());
                 return nf.Field(pos, tn, name).fieldInstance(fi);
             } catch (NoMemberException e) {
                 if (e.getKind() != NoMemberException.FIELD) {
@@ -217,6 +217,33 @@ public class Disamb_c implements Disamb
     }
 
     protected Receiver makeMissingFieldTarget(FieldInstance fi) throws SemanticException {
+	Receiver r;
+	
+	if (fi.flags().isStatic()) {
+	    r = nf.CanonicalTypeNode(pos.startOf(), fi.container());
+	} else {
+	    // The field is non-static, so we must prepend with
+	    // "this", but we need to determine if the "this"
+	    // should be qualified.  Get the enclosing class which
+	    // brought the field into scope.  This is different
+	    // from fi.container().  fi.container() returns a super
+	    // type of the class we want.
+	    ClassType scope = c.findFieldScope(name.id());
+	    assert scope != null;
+	    
+	    if (! ts.typeEquals(scope, c.currentClass())) {
+		r = nf.This(pos.startOf(), nf.CanonicalTypeNode(pos.startOf(), scope)).type(scope);
+	    }
+	    else {
+		r = nf.This(pos.startOf()).type(scope);
+	    }
+	    
+	}
+	
+	return r;
+    }
+    
+    protected Receiver makeMissingFieldTarget(MethodInstance fi) throws SemanticException {
         Receiver r;
 
         if (fi.flags().isStatic()) {
@@ -228,7 +255,7 @@ public class Disamb_c implements Disamb
             // brought the field into scope.  This is different
             // from fi.container().  fi.container() returns a super
             // type of the class we want.
-            ClassType scope = c.findFieldScope(name.id());
+            ClassType scope = c.findMethodScope(name.id());
             assert scope != null;
 
             if (! ts.typeEquals(scope, c.currentClass())) {

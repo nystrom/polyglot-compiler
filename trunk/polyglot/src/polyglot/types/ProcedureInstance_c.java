@@ -1,7 +1,6 @@
 package polyglot.types;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import polyglot.types.TypeSystem_c.TypeEquals;
 import polyglot.util.*;
@@ -9,10 +8,6 @@ import polyglot.util.*;
 public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implements ProcedureInstance<T> {
     protected ProcedureInstance_c(TypeSystem ts, Position pos, Ref<? extends T> def) {
         super(ts, pos, def);
-    }
-    
-    public ProcedureInstance<T> instantiate(Type receiverType, List<Type> argumentTypes) throws SemanticException {
-	    return this;
     }
 
     protected List<Type> formalTypes;
@@ -135,6 +130,22 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
     }
     
     public String signature() {
-        return def().signature();
+	StringBuilder sb = new StringBuilder();
+	List<String> formals = new ArrayList<String>();
+	if (formalTypes != null) {
+	    for (int i = 0; i < formalTypes.size(); i++) {
+		String s = formalTypes.get(i).toString();
+		formals.add(s);
+	    }
+	}
+	else {
+	    for (int i = 0; i < def().formalTypes().size(); i++) {
+		formals.add(def().formalTypes().get(i).toString());
+	    }
+	}
+	sb.append("(");
+	sb.append(CollectionUtil.listToString(formals));
+	sb.append(")");
+	return sb.toString();
     }
 }

@@ -331,12 +331,10 @@ public class TypeSystem_c implements TypeSystem
 		    }
 
 		    // Check subclass relation.
-		    if (childRT.superClass() == null) {
-			return false;
-		    }
-
-		    if (descendsFrom(childRT.superClass(), ancestor)) {
-			return true;
+		    if (childRT.superClass() != null) {
+			if (descendsFrom(childRT.superClass(), ancestor)) {
+			    return true;
+			}
 		    }
 
 		    // Next check interfaces.
@@ -656,7 +654,6 @@ public class TypeSystem_c implements TypeSystem
 	public boolean isAccessible(MemberInstance<? extends MemberDef> mi, ClassDef contextClass) {
 		assert_(mi);
 
-		ClassType contextClassType = contextClass.asType();
 
 		Type target = mi.container();
 		Flags flags = mi.flags();
@@ -667,6 +664,12 @@ public class TypeSystem_c implements TypeSystem
 			return flags.isPublic();
 		}
 
+		if (contextClass == null) {
+		    return flags.isPublic();
+		}
+
+		ClassType contextClassType = contextClass.asType();
+		
 		ClassType targetClass = target.toClass();
 
 		if (! classAccessible(targetClass.def(), contextClass)) {
@@ -680,7 +683,7 @@ public class TypeSystem_c implements TypeSystem
 		// same class body, then protection doesn't matter, i.e.
 		// protected and private members may be accessed. Do this by
 		// working up through contextClass's containers.
-		if (isEnclosed(contextClassType.def(), targetClass.def()) || isEnclosed(targetClass.def(), contextClass))
+		if (isEnclosed(contextClass, targetClass.def()) || isEnclosed(targetClass.def(), contextClass))
 			return true;
 
 		ClassDef cd = contextClass;
@@ -771,8 +774,8 @@ public class TypeSystem_c implements TypeSystem
 				return false;
 			}
 		}
-
-		return accessibleFromPackage(flags, targetClass.package_().get(), pkg);
+		
+		return accessibleFromPackage(flags, Types.get(targetClass.package_()), pkg);
 	}
 
 	/**
@@ -965,7 +968,7 @@ public class TypeSystem_c implements TypeSystem
 		    return false;
 		}
 
-		return typeEquals(t1, t2) || descendsFrom(t1, t2);
+		return descendsFrom(t1, t2);
 	}
 
 	////
@@ -978,13 +981,13 @@ public class TypeSystem_c implements TypeSystem
 	 * <code>currClass</code>.  If no such field is found, a SemanticException
 	 * is thrown.  <code>currClass</code> may be null.
 	 **/
-	public FieldInstance findField(Type container, String name,
+	public FieldInstance findField(Type container, TypeSystem_c.FieldMatcher matcher,
 			ClassDef currClass) throws SemanticException {
-		Collection<FieldInstance> fields = findFields(container, name);
+		Collection<FieldInstance> fields = findFields(container, matcher);
 
 		if (fields.size() == 0) {
 			throw new NoMemberException(NoMemberException.FIELD,
-					"Field \"" + name +
+					"Field \"" + matcher.signature() +
 					"\" not found in type \"" +
 					container + "\".");
 		}
@@ -995,8 +998,8 @@ public class TypeSystem_c implements TypeSystem
 		if (i.hasNext()) {
 			FieldInstance fi2 = i.next();
 
-			throw new SemanticException("Field \"" + name +
-					"\" is ambiguous; it is defined in both " +
+			throw new SemanticException("Field " + matcher.name() +
+					" is ambiguous; it is defined in both " +
 					fi.container() + " and " +
 					fi2.container() + "."); 
 		}
@@ -1013,10 +1016,10 @@ public class TypeSystem_c implements TypeSystem
 	 * in type <code>container</code> or a supertype.  If no such field is
 	 * found, a SemanticException is thrown.
 	 */
-	public FieldInstance findField(Type container, String name)
+	public FieldInstance findField(Type container, TypeSystem_c.FieldMatcher matcher)
 	throws SemanticException {
 
-		return findField(container, name, (ClassDef) null);
+		return findField(container, matcher, (ClassDef) null);
 	}
 
 
@@ -1025,7 +1028,8 @@ public class TypeSystem_c implements TypeSystem
 	 * in type <code>container</code> or a supertype.  The list
 	 * returned may be empty.
 	 */
-	protected Set<FieldInstance> findFields(Type container, String name) {
+	protected Set<FieldInstance> findFields(Type container, TypeSystem_c.FieldMatcher matcher) {
+	    String name = matcher.name();
 		assert_(container);
 
 		if (container == null) {
@@ -1035,9 +1039,14 @@ public class TypeSystem_c implements TypeSystem
 		
 		if (container instanceof StructType) {
 		    FieldInstance fi = ((StructType) container).fieldNamed(name);
-
 		    if (fi != null) {
-			return Collections.singleton(fi);
+			try {
+			    fi = matcher.instantiate(fi);
+			    return Collections.singleton(fi);
+			}
+			catch (SemanticException e) {
+			    return Collections.EMPTY_SET;
+			}
 		    }
 		}
 		
@@ -1046,13 +1055,13 @@ public class TypeSystem_c implements TypeSystem
 		if (container instanceof ObjectType) {
 		    ObjectType ot = (ObjectType) container;
 		    if (ot.superClass() != null && ot.superClass() instanceof StructType) {
-			Set<FieldInstance> superFields = findFields((StructType) ot.superClass(), name);
+			Set<FieldInstance> superFields = findFields((StructType) ot.superClass(), matcher);
 			fields.addAll(superFields);
 		    }
 
 		    for (Type it : ot.interfaces()) {
 			if (it instanceof StructType) {
-			    Set<FieldInstance> superFields = findFields((StructType) it, name);
+			    Set<FieldInstance> superFields = findFields((StructType) it, matcher);
 			    fields.addAll(superFields);
 			}
 		    }
@@ -1087,14 +1096,6 @@ public class TypeSystem_c implements TypeSystem
 	throws SemanticException {
 
 		return findMemberType(container, name, (ClassDef) null);
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public MethodInstance findMethod(StructType container, String name, List<Type> argTypes, Context c)
-	throws SemanticException {
-		return findMethod(container, name, argTypes, c.currentClassDef());
 	}
 
 	/**
@@ -1135,81 +1136,181 @@ public class TypeSystem_c implements TypeSystem
 
 		return false;
 	}
-
-	/**
-	 * Requires: all type arguments are canonical.
-	 *
-	 * Returns the MethodInstance named 'name' defined on 'type' visible in
-	 * context.  If no such field may be found, returns a fieldmatch
-	 * with an error explaining why.  Access flags are considered.
-	 **/
-	public MethodInstance findMethod(Type container, String name, List<Type> argTypes, ClassDef currClass)
-	throws SemanticException {
-
-		assert_(container);
-		assert_(argTypes);
-
-		List<MethodInstance> acceptable = findAcceptableMethods(container, name, argTypes, currClass);
-
-		if (acceptable.size() == 0) {
-			throw new NoMemberException(NoMemberException.METHOD,
-					"No valid method call found for " + name +
-					"(" + CollectionUtil.listToString(argTypes) + ")" +
-					" in " +
-					container + ".");
+	
+	public static class ConstructorMatcher {
+	    protected Type container;
+	    protected List<Type> argTypes;
+	    
+	    protected ConstructorMatcher(Type receiverType, List<Type> argTypes) {
+		super();
+		this.container = receiverType;
+		this.argTypes = argTypes;
+	    }
+	    
+	    public String signature() {
+		return container + argumentString();
+	    }
+	    
+	    public ConstructorInstance instantiate(ConstructorInstance ci) throws SemanticException {
+		TypeSystem ts = ci.typeSystem();
+		if (ci.formalTypes().size() != argTypes.size()) {
+		    return null;
 		}
+		if (! ts.callValid(ci, container, argTypes)) {
+		    throw new SemanticException("Cannot invoke " + ci + " on " + signature() + ".");
+		}
+		return ci;
+	    }
+	    
+	    public String argumentString() {
+		return  "(" + CollectionUtil.listToString(argTypes) + ")";
+	    }
+	    
+	    public String toString() {
+		return signature();
+	    }
+	}
+	
+	public static class MethodMatcher {
+	    protected Type container;
+	    protected String name;
+	    protected List<Type> argTypes;
+	    
+	    protected MethodMatcher(Type container, String name, List<Type> argTypes) {
+		super();
+		this.container = container;
+		this.name = name;
+		this.argTypes = argTypes;
+	    }
+	    
+	    public String signature() {
+		return name + argumentString();
+	    }
+	    
+	    public String name() {
+		return name;
+	    }
+	    
+	    public MethodInstance instantiate(MethodInstance mi) throws SemanticException {
+		if (! mi.name().equals(name)) {
+		    return null;
+		}
+		if (mi.formalTypes().size() != argTypes.size()) {
+		    return null;
+		}
+		TypeSystem ts = mi.typeSystem();
+		if (! ts.callValid(mi, container, argTypes)) {
+		    throw new SemanticException("Cannot invoke " + mi + " on " + signature() + ".");
+		}
+		return mi;
+	    }
+	    
+	    public String argumentString() {
+		return  "(" + CollectionUtil.listToString(argTypes) + ")";
+	    }
+	    
+	    public String toString() {
+		return signature();
+	    }
+	}
+	
+	public static class FieldMatcher {
+	    protected Type container;
+	    protected String name;
 
-		Collection<MethodInstance> maximal =
-			findMostSpecificProcedures(acceptable);
+	    protected FieldMatcher(Type container, String name) {
+		super();
+		this.container = container;
+		this.name = name;
+	    }
 
-		if (maximal.size() > 1) {
-			StringBuffer sb = new StringBuffer();
-			for (Iterator<MethodInstance> i = maximal.iterator(); i.hasNext();) {
-				MethodInstance ma = (MethodInstance) i.next();
-				sb.append(ma.returnType());
-				sb.append(" ");
-				sb.append(ma.container());
-				sb.append(".");
-				sb.append(ma.signature());
-				if (i.hasNext()) {
-					if (maximal.size() == 2) {
-						sb.append(" and ");
-					}
-					else {
-						sb.append(", ");
-					}
-				}
+	    public String signature() {
+		return name;
+	    }
+
+	    public String name() {
+		return name;
+	    }
+
+	    public FieldInstance instantiate(FieldInstance mi) throws SemanticException {
+		if (! mi.name().equals(name)) {
+		    return null;
+		}
+		return mi;
+	    }
+	    
+	    public String toString() {
+		return signature();
+	    }
+	}
+	
+	public MethodMatcher MethodMatcher(Type container, String name, List<Type> argTypes) {
+	    return new MethodMatcher( container,  name, argTypes);
+	}
+
+	public ConstructorMatcher ConstructorMatcher(Type container, List<Type> argTypes) {
+	    return new ConstructorMatcher(container, argTypes);
+	}
+	
+	public FieldMatcher FieldMatcher(Type container, String name) {
+	    return new FieldMatcher(container, name);
+	}
+	
+	public MethodInstance findMethod(Type container, MethodMatcher matcher, ClassDef currClass) 
+		throws SemanticException {
+
+			assert_(container);
+
+			List<MethodInstance> acceptable = findAcceptableMethods(container, matcher, currClass);
+
+			if (acceptable.size() == 0) {
+				throw new NoMemberException(NoMemberException.METHOD,
+						"No valid method call found for " + matcher.signature() +
+						" in " +
+						container + ".");
 			}
 
-			throw new SemanticException("Reference to " + name +
-					" is ambiguous, multiple methods match: "
-					+ sb.toString());
+			Collection<MethodInstance> maximal =
+				findMostSpecificProcedures(acceptable);
+
+			if (maximal.size() > 1) {
+				StringBuffer sb = new StringBuffer();
+				for (Iterator<MethodInstance> i = maximal.iterator(); i.hasNext();) {
+					MethodInstance ma = (MethodInstance) i.next();
+					sb.append(ma.returnType());
+					sb.append(" ");
+					sb.append(ma.container());
+					sb.append(".");
+					sb.append(ma.signature());
+					if (i.hasNext()) {
+						if (maximal.size() == 2) {
+							sb.append(" and ");
+						}
+						else {
+							sb.append(", ");
+						}
+					}
+				}
+
+				throw new SemanticException("Reference to " + matcher.name() +
+						" is ambiguous, multiple methods match: "
+						+ sb.toString());
+			}
+
+			MethodInstance mi = maximal.iterator().next();
+			return mi;
 		}
-
-		MethodInstance mi = maximal.iterator().next();
-		return mi;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public ConstructorInstance findConstructor(Type container, List<Type> argTypes, Context c)
-	throws SemanticException {
-		return findConstructor(container, argTypes, c.currentClassDef());
-	}
-
-	public ConstructorInstance findConstructor(Type container, List<Type> argTypes, ClassDef currClass)
+		
+	public ConstructorInstance findConstructor(Type container, ConstructorMatcher matcher, ClassDef currClass)
 	throws SemanticException {
 
 		assert_(container);
-		assert_(argTypes);
 
-		List<ConstructorInstance> acceptable = findAcceptableConstructors(container, argTypes, currClass);
+		List<ConstructorInstance> acceptable = findAcceptableConstructors(container, matcher, currClass);
 
 		if (acceptable.size() == 0) {
 			throw new NoMemberException(NoMemberException.CONSTRUCTOR,
-					"No valid constructor found for " +
-					container + "(" + CollectionUtil.listToString(argTypes) + ").");
+					"No valid constructor found for " + matcher.signature() + ").");
 		}
 
 		Collection<ConstructorInstance> maximal = findMostSpecificProcedures(acceptable);
@@ -1338,12 +1439,10 @@ public class TypeSystem_c implements TypeSystem
 	 * Populates the list acceptable with those MethodInstances which are
 	 * Applicable and Accessible as defined by JLS 15.11.2.1
 	 */
-	protected List<MethodInstance> findAcceptableMethods(Type container, String name,
-			List<Type> argTypes, ClassDef currClass)
+	protected List<MethodInstance> findAcceptableMethods(Type container, MethodMatcher matcher, ClassDef currClass)
 			throws SemanticException {
 
 		assert_(container);
-		assert_(argTypes);
 
 		SemanticException error = null;
 
@@ -1379,8 +1478,7 @@ public class TypeSystem_c implements TypeSystem
 			visitedTypes.add(type);
 
 			if (Report.should_report(Report.types, 2))
-				Report.report(2, "Searching type " + type + " for method " +
-						name + "(" + CollectionUtil.listToString(argTypes) + ")");
+				Report.report(2, "Searching type " + type + " for method " + matcher.signature());
 
 			for (Iterator<MethodInstance> i = type.methods().iterator(); i.hasNext(); ) {
 				MethodInstance mi = i.next();
@@ -1388,12 +1486,12 @@ public class TypeSystem_c implements TypeSystem
 				if (Report.should_report(Report.types, 3))
 					Report.report(3, "Trying " + mi);
 
-				if (! mi.name().equals(name)) {
-					continue;
-				}
-
 				try {
-					mi = (MethodInstance) mi.instantiate(container, argTypes);
+					mi = matcher.instantiate(mi);
+					
+					if (mi == null) {
+					    continue;
+					}
 
 					if (isAccessible(mi, currClass)) {
 					    if (Report.should_report(Report.types, 3)) {
@@ -1419,6 +1517,7 @@ public class TypeSystem_c implements TypeSystem
 				}
 				catch (SemanticException e) {
 					// Treat any instantiation errors as call invalid errors.
+				    System.out.println(e);
 				}
 
 				if (error == null) {
@@ -1426,7 +1525,7 @@ public class TypeSystem_c implements TypeSystem
 					                              "Method " + mi.signature() +
 					                              " in " + container +
 					                              " cannot be called with arguments " +
-					                              "(" + CollectionUtil.listToString(argTypes) + ")."); 
+					                              matcher.argumentString() + ")."); 
 				}
 			}
 			
@@ -1443,8 +1542,7 @@ public class TypeSystem_c implements TypeSystem
 
 		if (error == null) {
 			error = new NoMemberException(NoMemberException.METHOD,
-					"No valid method call found for " + name +
-					"(" + CollectionUtil.listToString(argTypes) + ")" +
+					"No valid method call found for " + matcher.signature() +
 					" in " +
 					container + ".");
 		}
@@ -1474,11 +1572,10 @@ public class TypeSystem_c implements TypeSystem
 	 */
 	protected List<ConstructorInstance> findAcceptableConstructors(
 			Type container,
-			List<Type> argTypes, ClassDef currClass)
+			ConstructorMatcher matcher, ClassDef currClass)
 			throws SemanticException
 			{
 		assert_(container);
-		assert_(argTypes);
 
 		SemanticException error = null;
 
@@ -1486,8 +1583,7 @@ public class TypeSystem_c implements TypeSystem
 
 		if (Report.should_report(Report.types, 2))
 			Report.report(2, "Searching type " + container +
-					" for constructor " + container + "(" +
-					CollectionUtil.listToString(argTypes) + ")");
+					" for constructor " + matcher.signature());
 
 		if (!(container instanceof ClassType)) {
 		    return Collections.EMPTY_LIST;
@@ -1498,7 +1594,11 @@ public class TypeSystem_c implements TypeSystem
 				Report.report(3, "Trying " + ci);
 
 			try {
-				ci = (ConstructorInstance) ci.instantiate(container, argTypes);
+				ci = matcher.instantiate(ci);
+				
+				if (ci == null) {
+				    continue;
+				}
 
 				if (isAccessible(ci, currClass)) {
 				    if (Report.should_report(Report.types, 3))
@@ -1523,7 +1623,7 @@ public class TypeSystem_c implements TypeSystem
 				error = new NoMemberException(NoMemberException.CONSTRUCTOR,
 				                              "Constructor " + ci.signature() +
 				                              " cannot be invoked with arguments " +
-				                              "(" + CollectionUtil.listToString(argTypes) + ")."); 
+				                              matcher.argumentString() + ")."); 
 
 			}
 		}
@@ -1532,7 +1632,7 @@ public class TypeSystem_c implements TypeSystem
 			if (error == null) {
 				error = new NoMemberException(NoMemberException.CONSTRUCTOR,
 						"No valid constructor found for " + container +
-						"(" + CollectionUtil.listToString(argTypes) + ").");
+						matcher.signature() + ".");
 			}
 
 			throw error;
@@ -1603,6 +1703,8 @@ public class TypeSystem_c implements TypeSystem
 		}
 
 		if (type1.isArray() && type2.isArray()) {
+		    // XYZ
+		    assert false;
 			return arrayOf(leastCommonAncestor(type1.toArray().base(), type2.toArray().base()));
 		}
 
@@ -1751,29 +1853,29 @@ public class TypeSystem_c implements TypeSystem
 		return (Type) forName(name);
 	}
 
-	protected ClassType OBJECT_;
-	protected ClassType CLASS_;
-	protected ClassType STRING_;
-	protected ClassType THROWABLE_;
+	protected Type OBJECT_;
+	protected Type CLASS_;
+	protected Type STRING_;
+	protected Type THROWABLE_;
 
-	public ClassType Object()  { if (OBJECT_ != null) return OBJECT_;
+	public Type Object()  { if (OBJECT_ != null) return OBJECT_;
 	return OBJECT_ = load("java.lang.Object"); }
-	public ClassType Class()   { if (CLASS_ != null) return CLASS_;
+	public Type Class()   { if (CLASS_ != null) return CLASS_;
 	return CLASS_ = load("java.lang.Class"); }
-	public ClassType String()  { if (STRING_ != null) return STRING_;
+	public Type String()  { if (STRING_ != null) return STRING_;
 	return STRING_ = load("java.lang.String"); }
-	public ClassType Throwable() { if (THROWABLE_ != null) return THROWABLE_;
+	public Type Throwable() { if (THROWABLE_ != null) return THROWABLE_;
 	return THROWABLE_ = load("java.lang.Throwable"); }
-	public ClassType Error() { return load("java.lang.Error"); }
-	public ClassType Exception() { return load("java.lang.Exception"); }
-	public ClassType RuntimeException() { return load("java.lang.RuntimeException"); }
-	public ClassType Cloneable() { return load("java.lang.Cloneable"); }
-	public ClassType Serializable() { return load("java.io.Serializable"); }
-	public ClassType NullPointerException() { return load("java.lang.NullPointerException"); }
-	public ClassType ClassCastException()   { return load("java.lang.ClassCastException"); }
-	public ClassType OutOfBoundsException() { return load("java.lang.ArrayIndexOutOfBoundsException"); }
-	public ClassType ArrayStoreException()  { return load("java.lang.ArrayStoreException"); }
-	public ClassType ArithmeticException()  { return load("java.lang.ArithmeticException"); }
+	public Type Error() { return load("java.lang.Error"); }
+	public Type Exception() { return load("java.lang.Exception"); }
+	public Type RuntimeException() { return load("java.lang.RuntimeException"); }
+	public Type Cloneable() { return load("java.lang.Cloneable"); }
+	public Type Serializable() { return load("java.io.Serializable"); }
+	public Type NullPointerException() { return load("java.lang.NullPointerException"); }
+	public Type ClassCastException()   { return load("java.lang.ClassCastException"); }
+	public Type OutOfBoundsException() { return load("java.lang.ArrayIndexOutOfBoundsException"); }
+	public Type ArrayStoreException()  { return load("java.lang.ArrayStoreException"); }
+	public Type ArithmeticException()  { return load("java.lang.ArithmeticException"); }
 
 	protected NullType createNull() {
 		return new NullType_c(this);
@@ -1902,30 +2004,30 @@ public class TypeSystem_c implements TypeSystem
 	 * Returns a type identical to <type>, but with <dims> more array
 	 * dimensions.
 	 */
-	public ArrayType arrayOf(Type type) {
+	public Type arrayOf(Type type) {
 		assert_(type);
 		return arrayOf(type.position(), Types.ref(type));
 	}
 
-	public ArrayType arrayOf(Ref<? extends Type> type) {
+	public Type arrayOf(Ref<? extends Type> type) {
 		assert_(type);
 		return arrayOf(null, type);
 	}
 
-	public ArrayType arrayOf(Position pos, Ref<? extends Type> type) {
+	public Type arrayOf(Position pos, Ref<? extends Type> type) {
 		return arrayType(pos, type);
 	}
 
-	public ArrayType arrayOf(Position pos, Type type) {
-		assert_(type);
-		return arrayType(pos, Types.ref(type));
+	public Type arrayOf(Position pos, Type type) {
+	    assert_(type);
+		return arrayOf(pos, Types.ref(type));
 	}
 
-	public ArrayType arrayOf(Type type, int dims) {
+	public Type arrayOf(Type type, int dims) {
 		return arrayOf(Types.ref(type), dims);
 	}
 
-	public ArrayType arrayOf(Position pos, Type type, int dims) {
+	public Type arrayOf(Position pos, Type type, int dims) {
 		return arrayOf(pos, Types.ref(type), dims);
 	}
 
@@ -1947,11 +2049,11 @@ public class TypeSystem_c implements TypeSystem
 		 return new ArrayType_c(this, pos, type);
 	 }
 
-	 public ArrayType arrayOf(Ref<? extends Type> type, int dims) {
+	 public Type arrayOf(Ref<? extends Type> type, int dims) {
 		 return arrayOf(null, type, dims);
 	 }
 
-	 public ArrayType arrayOf(Position pos, Ref<? extends Type> type, int dims) {
+	 public Type arrayOf(Position pos, Ref<? extends Type> type, int dims) {
 		 if (dims > 1) {
 			 return arrayOf(pos, arrayOf(pos, type, dims-1));
 		 }
@@ -1963,7 +2065,6 @@ public class TypeSystem_c implements TypeSystem
 					 "Must call arrayOf(type, dims) with dims > 0");
 		 }
 	 }
-
 
 	 /**
 	  * Returns a canonical type corresponding to the Java Class object

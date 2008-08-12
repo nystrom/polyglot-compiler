@@ -7,16 +7,19 @@ import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 
 public class ErrorRef_c<T> extends TypeObject_c implements Ref<T> {
-      public ErrorRef_c(TypeSystem ts, Position pos) {
+    String errorMessage;
+    
+      public ErrorRef_c(TypeSystem ts, Position pos, String errorMessage) {
           super(ts, pos);
+          this.errorMessage = errorMessage;
       }
       
       public T get() {
-          throw new InternalCompilerError("Bad", position());
+          throw new InternalCompilerError(errorMessage, position());
       }
       
       public T getCached() {
-          throw new InternalCompilerError("Bad", position());
+          throw new InternalCompilerError(errorMessage, position());
       }
       
       public boolean known() {
@@ -24,10 +27,6 @@ public class ErrorRef_c<T> extends TypeObject_c implements Ref<T> {
       }
 
       public void update(T v) {
-    	  throw new InternalCompilerError("Bad", position());
-      }
-      
-      public void when(Handler<T> h) {
-    	  throw new InternalCompilerError("Bad", position());
+    	  throw new InternalCompilerError("Cannot update reference: " + errorMessage, position());
       }
   }

@@ -101,7 +101,7 @@ public class Local_c extends Expr_c implements Local
 
       TypeSystem ts = tb.typeSystem();
 
-      LocalInstance li = ts.createLocalInstance(position(), new ErrorRef_c<LocalDef>(ts, position()));
+      LocalInstance li = ts.createLocalInstance(position(), new ErrorRef_c<LocalDef>(ts, position(), "Cannot get LocalDef before type-checking local variable."));
       return n.localInstance(li);
   }
 

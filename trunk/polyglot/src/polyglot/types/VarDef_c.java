@@ -20,7 +20,7 @@ public abstract class VarDef_c extends Def_c implements VarDef
     protected Flags flags;
     protected Ref<? extends Type> type;
     protected String name;
-    Ref<ConstantValue> constantRef;
+    protected Ref<ConstantValue> constantRef;
 
     /** Used for deserializing types. */
     protected VarDef_c() { }

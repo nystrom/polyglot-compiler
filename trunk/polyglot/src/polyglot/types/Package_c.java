@@ -18,6 +18,7 @@ public class Package_c extends TypeObject_c implements Package
 {
     protected Ref<? extends Package> prefix;
     protected String name;
+
     /**
      * The full name is computed lazily from the prefix and name.
      */

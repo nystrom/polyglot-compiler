@@ -133,7 +133,7 @@ public class Field_c extends Expr_c implements Field
 
       TypeSystem ts = tb.typeSystem();
 
-      FieldInstance fi = ts.createFieldInstance(position(), new ErrorRef_c<FieldDef>(ts, position()));
+      FieldInstance fi = ts.createFieldInstance(position(), new ErrorRef_c<FieldDef>(ts, position(), "Cannot get FieldDef before type-checking field access."));
       return n.fieldInstance(fi);
   }
   
@@ -142,26 +142,17 @@ public class Field_c extends Expr_c implements Field
       Context c = tc.context();
       TypeSystem ts = tc.typeSystem();
       
-      if (target.type() instanceof StructType) {
-	  FieldInstance fi = ts.findField((StructType) target.type(), name.id(), c.currentClassDef());
-	  
-	  if (fi == null) {
-	      throw new InternalCompilerError("Cannot access field on node of type " +
-	                                      target.getClass().getName() + ".");
-	  }
-	  
-	  Field_c f = (Field_c) fieldInstance(fi).type(fi.type());  
-	  f.checkConsistency(c);
-	  
-	  return f; 
+      FieldInstance fi = ts.findField(target.type(), ts.FieldMatcher(target.type(), name.id()), c.currentClassDef());
+
+      if (fi == null) {
+	  throw new InternalCompilerError("Cannot access field on node of type " +
+	                                  target.getClass().getName() + ".");
       }
 
-      throw new SemanticException("Cannot access field \"" + name.id() +
-                                  "\" " + (target instanceof Expr
-                                          ? "on an expression "
-                                                  : "") +
-                                                  "of non-reference type \"" +
-                                                  target.type() + "\".", target.position());
+      Field_c f = (Field_c) fieldInstance(fi).type(fi.type());  
+      f.checkConsistency(c);
+
+      return f; 
   }
   
   public Node checkConstants(TypeChecker tc) throws SemanticException {

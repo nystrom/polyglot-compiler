@@ -155,7 +155,7 @@ public class New_c extends Expr_c implements New
 
         New_c n = this;
 
-        ConstructorInstance ci = ts.createConstructorInstance(position(), new ErrorRef_c<ConstructorDef>(ts, position()));
+        ConstructorInstance ci = ts.createConstructorInstance(position(), new ErrorRef_c<ConstructorDef>(ts, position(), "Cannot get ConstructorDef before type-checking new expression."));
         n = (New_c) n.constructorInstance(ci);
         
         Expr qual = (Expr) n.visitChild(n.qualifier(), tb);
@@ -377,7 +377,7 @@ public class New_c extends Expr_c implements New
             if (anonType != null) {
                 c = c.pushClass(anonType, anonType.asType());
             }
-            ci = ts.findConstructor(ct, argTypes, c.currentClassDef());
+            ci = ts.findConstructor(ct, ts.ConstructorMatcher(ct, argTypes), c.currentClassDef());
         }
         else {
             ConstructorDef dci = ts.defaultConstructor(this.position(), Types.<ClassType>ref(ct));

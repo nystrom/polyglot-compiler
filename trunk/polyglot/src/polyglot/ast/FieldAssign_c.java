@@ -55,11 +55,12 @@ protected Assign reconstruct(Receiver target, Id name) {
   public Expr left(NodeFactory nf) {
       Field f = nf.Field(position(), target, name);
       if (fi != null) f = f.fieldInstance(fi);
-      if (type != null) f = (Field) f.type(fi.type());
+      if (type != null && fi != null) f = (Field) f.type(fi.type());
       return f;
   }
   
   public Type leftType() {
+      if (fi == null) return null;
       return fi.type();
   }
 
