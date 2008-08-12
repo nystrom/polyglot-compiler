@@ -76,6 +76,7 @@ public class VarInstance_c<T extends VarDef> extends Use_c<T> implements VarInst
     public Type type() {
         if (type == null) {
             type = Types.get(def().type());
+            if (type instanceof UnknownType)
             assert !( type instanceof UnknownType);
         }
         return type;

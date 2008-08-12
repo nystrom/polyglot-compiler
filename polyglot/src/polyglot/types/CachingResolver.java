@@ -98,6 +98,7 @@ public class CachingResolver implements Resolver, Copy {
             }
 
             addNamed(name, q);
+            addNamed(q.fullName(), q);
 
             if (shouldReport(3))
                 Report.report(3, "CachingResolver: loaded: " + name);
@@ -132,6 +133,10 @@ public class CachingResolver implements Resolver, Copy {
         if (shouldReport(5))
             new Exception().printStackTrace();
 
+        Object old = cache.get(name);
+	if (old != null && old != q && old instanceof Type)
+	    assert false : name + "->" + old + " is already in the cache; cannot replace with " + q;
+	
         cache.put(name, q);
     }
 

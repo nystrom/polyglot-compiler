@@ -14,10 +14,6 @@ import java.util.List;
  * procedure (either a method or a constructor).
  */
 public interface ProcedureInstance<T extends ProcedureDef> extends CodeInstance<T> {
-	/** Instantiate the constructor for the given actual receiver type and argument types. 
-	 * @throws SemanticException */
-	ProcedureInstance<T> instantiate(Type receiverType, List<Type> argumentTypes) throws SemanticException;
-
     /**
      * List of formal parameter types.
      * @return A list of <code>Type</code>.

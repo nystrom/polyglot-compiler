@@ -20,7 +20,7 @@ import polyglot.util.*;
  */
 public abstract class ClassType_c extends ReferenceType_c implements ClassType
 {
-    Ref<? extends ClassDef> def;
+    protected Ref<? extends ClassDef> def;
     
     /** Used for deserializing types. */
     protected ClassType_c() { }

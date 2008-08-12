@@ -32,6 +32,7 @@ public class TypeChecker extends ContextVisitor
     
     public Node override(Node parent, Node n) {
     	Node n_ = memo.get(n);
+    	n_ = null;
 		if (n_ != null) {
 	        this.addDecls(n_);
 			return n_;
@@ -78,6 +79,7 @@ public class TypeChecker extends ContextVisitor
     protected Node leaveCall(Node old, final Node n, NodeVisitor v) throws SemanticException {
         final TypeChecker tc = (TypeChecker) v;
 
+        // Check for expressions with unknown type.  This avoids reporting too many type errors.
         class AmbChecker extends NodeVisitor {
         	boolean amb;
         	public Node override(Node n) {
@@ -123,6 +125,7 @@ public class TypeChecker extends ContextVisitor
         	throw e;
         }
         
+        // Record the new node in the memo table.
         memo.put(old, m);
         memo.put(n, m);
         memo.put(m, m);

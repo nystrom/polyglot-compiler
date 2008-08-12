@@ -123,7 +123,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 
         ConstructorCall_c n = (ConstructorCall_c) super.buildTypes(tb);
 
-        ConstructorInstance ci = ts.createConstructorInstance(position(), new ErrorRef_c<ConstructorDef>(ts, position()));
+        ConstructorInstance ci = ts.createConstructorInstance(position(), new ErrorRef_c<ConstructorDef>(ts, position(), "Cannot get ConstructorDef before type-checking constructor call."));
         return n.constructorInstance(ci);
     }
 
@@ -219,7 +219,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	    ct = ct.superClass().toClass();
 	}
 	
-	ConstructorInstance ci = ts.findConstructor(ct, argTypes, c.currentClassDef());
+	ConstructorInstance ci = ts.findConstructor(ct, ts.ConstructorMatcher(ct, argTypes), c.currentClassDef());
 
 	return constructorInstance(ci);
     }

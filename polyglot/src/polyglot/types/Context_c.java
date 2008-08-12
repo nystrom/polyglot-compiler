@@ -156,7 +156,7 @@ public class Context_c implements Context
 
             // Found a class which has a method of the right name.
             // Now need to check if the method is of the correct type.
-            return ts.findMethod(this.currentClass(), name, argTypes, this.currentClassDef());
+            return ts.findMethod(this.currentClass(), ts.MethodMatcher(this.currentClass(), name, argTypes), this.currentClassDef());
         }
 
         if (outer != null) {
@@ -503,7 +503,7 @@ public class Context_c implements Context
         
         if (vi == null && isClass()) {
             try {
-                return ts.findField(this.currentClass(), name, this.currentClassDef());
+                return ts.findField(this.currentClass(), ts.FieldMatcher(this.currentClass(), name), this.currentClassDef());
             }
             catch (SemanticException e) {
                 return null;

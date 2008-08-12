@@ -384,14 +384,13 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         name = (Id) visitChild(n.name, childtc);
         superClass = (TypeNode) n.visitChild(n.superClass, childtc);
         interfaces = n.visitList(n.interfaces, childtc);
-
+        
         n = n.reconstruct(flags, name, superClass, interfaces, body);
         n.checkSupertypeCycles(tc.typeSystem());
 
         return n;
     }
-
-
+    
     public Node typeCheckBody(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
         ClassDecl_c old = this;
 

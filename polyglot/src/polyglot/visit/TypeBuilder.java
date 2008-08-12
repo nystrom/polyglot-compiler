@@ -224,7 +224,7 @@ public class TypeBuilder extends NodeVisitor
         ct.position(pos);
         ct.flags(flags);
         ct.name(name);
-        ct.superType(new ErrorRef_c<Type>(ts, pos));
+        ct.superType(new ErrorRef_c<Type>(ts, pos, "Cannot get superclass before type-checking class declaration."));
 
 	if (inCode) {
             ct.kind(ClassDef.LOCAL);

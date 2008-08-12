@@ -11,6 +11,8 @@ import java.util.*;
 
 import polyglot.frontend.ExtensionInfo;
 import polyglot.frontend.Source;
+import polyglot.types.TypeSystem_c.ConstructorMatcher;
+import polyglot.types.TypeSystem_c.MethodMatcher;
 import polyglot.types.reflect.ClassFile;
 import polyglot.types.reflect.ClassFileLazyClassInitializer;
 import polyglot.util.Position;
@@ -310,7 +312,7 @@ public interface TypeSystem {
      * @exception SemanticException if the field cannot be found or is
      * inaccessible.
      */
-    FieldInstance findField(Type container, String name, ClassDef currClass)
+    FieldInstance findField(Type container, TypeSystem_c.FieldMatcher matcher, ClassDef currClass)
         throws SemanticException;
 
     /**
@@ -318,8 +320,12 @@ public interface TypeSystem {
      * @exception SemanticException if the field cannot be found or is
      * inaccessible.
      */
-    FieldInstance findField(Type container, String name)
+    FieldInstance findField(Type container, TypeSystem_c.FieldMatcher matcher)
 	throws SemanticException;
+
+    TypeSystem_c.FieldMatcher FieldMatcher(Type container, String name);
+    TypeSystem_c.MethodMatcher MethodMatcher(Type container, String name, List<Type> argTypes);
+    TypeSystem_c.ConstructorMatcher ConstructorMatcher(Type container, List<Type> argTypes);
 
     /**
      * Find a method.  We need to pass the class from which the method
@@ -330,8 +336,8 @@ public interface TypeSystem {
      * @exception SemanticException if the method cannot be found or is
      * inaccessible.
      */
-    MethodInstance findMethod(Type container, String name,
-                              List<Type> argTypes, ClassDef currClass) throws SemanticException;
+    MethodInstance findMethod(Type container,
+	    TypeSystem_c.MethodMatcher matcher, ClassDef currClass) throws SemanticException;
 
     /**
      * Find a constructor.  We need to pass the class from which the constructor
@@ -342,7 +348,7 @@ public interface TypeSystem {
      * inaccessible.
      */
     ConstructorInstance findConstructor(Type container,
-                                        List<Type> argTypes, ClassDef currClass) throws SemanticException;
+	    TypeSystem_c.ConstructorMatcher matcher, ClassDef currClass) throws SemanticException;
 
     /**
      * Find a member class.
