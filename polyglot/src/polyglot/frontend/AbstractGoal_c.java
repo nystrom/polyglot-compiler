@@ -34,6 +34,9 @@ public abstract class AbstractGoal_c extends LazyRef_c<Goal.Status> implements G
 		for (int i = 0; i < prereqs().size(); i++) {
 			Goal g = prereqs().get(i);
 			
+			if (g.state() == Goal.Status.RUNNING || g.state() == Goal.Status.RUNNING_RECURSIVE)
+			    Report.report(4, "running prereq: " + g + "->" + goal);
+			    
 			if (Report.should_report(Report.frontend, 4))
 				Report.report(4, "running prereq: " + g + "->" + goal);
 
@@ -45,7 +48,7 @@ public abstract class AbstractGoal_c extends LazyRef_c<Goal.Status> implements G
 			case RUNNING_RECURSIVE:
 			case UNREACHABLE:
 				update(Status.UNREACHABLE);
-				return;
+				continue;
 			case SUCCESS:
 				break;
 			}
@@ -57,7 +60,7 @@ public abstract class AbstractGoal_c extends LazyRef_c<Goal.Status> implements G
 		else if (getCached() == Status.NEW)
 			updateCache(Status.RUNNING);
 		else
-		    return;
+		        return;
 		
 		if (Report.should_report(Report.frontend, 4))
 			Report.report(4, "running goal " + goal);
