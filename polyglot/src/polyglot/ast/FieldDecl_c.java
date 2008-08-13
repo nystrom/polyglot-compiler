@@ -232,7 +232,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     		  final Node n = this;
     		  r.setResolver(new AbstractGoal_c("ConstantValue") {
     			  public boolean runTask() {
-    				  if (state() == Goal.Status.RUNNING_RECURSIVE) {
+    				  if (state() == Goal.Status.RUNNING_RECURSIVE || state() == Goal.Status.RUNNING_WILL_FAIL) {
     					  // The field is not constant if the initializer is recursive.
     					  //
     					  // But, we could be checking if the field is constant for another

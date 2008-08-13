@@ -2,6 +2,7 @@ package polyglot.frontend;
 
 import java.util.*;
 
+import polyglot.frontend.Goal.Status;
 import polyglot.main.Report;
 import polyglot.types.LazyRef_c;
 import polyglot.util.StringUtil;
@@ -30,11 +31,11 @@ public abstract class AbstractGoal_c extends LazyRef_c<Goal.Status> implements G
 		AbstractGoal_c goal = this;
 		if (Report.should_report(Report.frontend, 2))
 			Report.report(2, "Running to goal " + goal);
-
+		    
 		for (int i = 0; i < prereqs().size(); i++) {
 			Goal g = prereqs().get(i);
 			
-			if (g.state() == Goal.Status.RUNNING || g.state() == Goal.Status.RUNNING_RECURSIVE)
+			if (g.state() == Goal.Status.RUNNING || g.state() == Goal.Status.RUNNING_RECURSIVE || g.state() == Goal.Status.RUNNING_WILL_FAIL)
 			    Report.report(4, "running prereq: " + g + "->" + goal);
 			    
 			if (Report.should_report(Report.frontend, 4))
@@ -46,6 +47,7 @@ public abstract class AbstractGoal_c extends LazyRef_c<Goal.Status> implements G
 			case FAIL:
 			case RUNNING:
 			case RUNNING_RECURSIVE:
+			case RUNNING_WILL_FAIL:
 			case UNREACHABLE:
 				update(Status.UNREACHABLE);
 				continue;
@@ -54,14 +56,23 @@ public abstract class AbstractGoal_c extends LazyRef_c<Goal.Status> implements G
 			}
 		}
 		
+		Status oldStatus = getCached();
 
-		if (getCached() == Status.RUNNING || getCached() == Status.RUNNING_RECURSIVE)
-			updateCache(Status.RUNNING_RECURSIVE);
-		else if (getCached() == Status.NEW)
-			updateCache(Status.RUNNING);
-		else
-		        return;
+		switch (oldStatus) {
+		case RUNNING:
+		case RUNNING_RECURSIVE:
+		    updateCache(Status.RUNNING_RECURSIVE);
+		    break;
+		case NEW:
+		    updateCache(Status.RUNNING);
+		    break;		  
+		case RUNNING_WILL_FAIL:
+		default:
+		    return;
+		}
 		
+		boolean recursive = oldStatus == Status.RUNNING_RECURSIVE;
+
 		if (Report.should_report(Report.frontend, 4))
 			Report.report(4, "running goal " + goal);
 
@@ -75,14 +86,38 @@ public abstract class AbstractGoal_c extends LazyRef_c<Goal.Status> implements G
 		boolean result = false;
 		try {
 			result = Globals.Scheduler().runPass(this);
+			if (state() == Goal.Status.RUNNING_WILL_FAIL)
+			    result = false;
 		}
 		catch (CyclicDependencyException e) {
 		}
 
-		if (result)
+		if (result) {
+		    switch (oldStatus) {
+		    case RUNNING:
+		    case RUNNING_RECURSIVE:
+			update(oldStatus);
+			break;
+		    case NEW:
 			update(Status.SUCCESS);
-		else
+			break;		  
+		    default:
+			break;
+		    }
+		}
+		else {
+		    switch (oldStatus) {
+		    case RUNNING:
+		    case RUNNING_RECURSIVE:
+			update(Status.RUNNING_WILL_FAIL);
+			break;
+		    case NEW:
 			update(Status.FAIL);
+			break;		  
+		    default:
+			break;
+		    }
+		}
 	}
 
 	public abstract boolean runTask();
@@ -116,6 +151,7 @@ public abstract class AbstractGoal_c extends LazyRef_c<Goal.Status> implements G
 		case RUNNING_RECURSIVE:
 		case SUCCESS:
 			return true;
+		case RUNNING_WILL_FAIL:
 		case FAIL:
 		case UNREACHABLE:
 			return false;
@@ -144,6 +180,36 @@ public abstract class AbstractGoal_c extends LazyRef_c<Goal.Status> implements G
 		return false;
 	}
 
+	public boolean isRunning() {
+	    switch (state()) {
+	    case RUNNING:
+	    case RUNNING_RECURSIVE:
+	    case RUNNING_WILL_FAIL:
+		return true;
+	    default:
+		return false;
+	    }
+	}
+
+	public void fail() {
+	    switch (state()) {
+	    case SUCCESS:
+		assert false;
+		break;
+	    case RUNNING:
+	    case RUNNING_RECURSIVE:
+		update(Goal.Status.RUNNING_WILL_FAIL);
+		break;
+	    case NEW:
+		update(Goal.Status.UNREACHABLE);
+		break;
+	    case RUNNING_WILL_FAIL:
+	    case FAIL:
+	    case UNREACHABLE:
+		break;
+	    }
+	}
+
 	protected String stateString() {
 		Status state = state();
 		switch (state) {
@@ -153,6 +219,8 @@ public abstract class AbstractGoal_c extends LazyRef_c<Goal.Status> implements G
 			return "running";
 		case RUNNING_RECURSIVE:
 			return "running-recursive";
+		case RUNNING_WILL_FAIL:
+		    return "running-will-fail";
 		case SUCCESS:
 			return "success";
 		case FAIL:

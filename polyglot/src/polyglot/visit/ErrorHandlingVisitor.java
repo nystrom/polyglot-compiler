@@ -54,6 +54,7 @@ public class ErrorHandlingVisitor extends NodeVisitor
     /**
      * Returns true if some errors have been reported, even if cleared.
      */
+    @Deprecated
     public boolean hasErrors() {
         return errorQueue().hasErrors();
     }

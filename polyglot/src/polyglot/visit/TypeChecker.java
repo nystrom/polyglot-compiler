@@ -65,6 +65,11 @@ public class TypeChecker extends ContextVisitor
             else {
                 // silent error; these should be thrown only
                 // when the error has already been reported 
+        	
+        	// IMPORTANT: Mark the goal as failed, otherwise we may run dependent goals
+        	// that depend on this pass completing successfully.
+        	if (goal() != null)
+        	    goal().fail();
             }
             
             return n;

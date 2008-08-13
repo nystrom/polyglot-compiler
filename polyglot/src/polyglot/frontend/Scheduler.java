@@ -227,7 +227,8 @@ public abstract class Scheduler {
     public boolean attempt(Goal goal) throws CyclicDependencyException {
         assert currentGoal() == null
         || currentGoal().getCached() == Goal.Status.RUNNING
-        || currentGoal().getCached() == Goal.Status.RUNNING_RECURSIVE;
+        || currentGoal().getCached() == Goal.Status.RUNNING_RECURSIVE
+        || currentGoal().getCached() == Goal.Status.RUNNING_WILL_FAIL : "goal " + currentGoal() + " state " + currentGoal().state();
 
         Status state = goal.get();
         
@@ -307,6 +308,9 @@ public abstract class Scheduler {
 				    job.initialErrorCount = job.compiler().errorQueue().errorCount();
             }
             
+            Goal oldGoal = currentGoal;
+            currentGoal = goal;
+            
             long t = System.currentTimeMillis();
             String key = goal.toString();
 
@@ -337,6 +341,8 @@ public abstract class Scheduler {
                 t = System.currentTimeMillis() - t;
                 extInfo.getStats().accumulate(key, t);
 
+                currentGoal = oldGoal;
+                
                 if (job != null) {
 				    // We've stopped running a pass. 
 				    // Check if the error count changed.
