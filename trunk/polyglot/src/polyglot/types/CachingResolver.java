@@ -135,7 +135,7 @@ public class CachingResolver implements Resolver, Copy {
 
         Object old = cache.get(name);
 	if (old != null && old != q && old instanceof Type)
-	    assert false : name + "->" + old + " is already in the cache; cannot replace with " + q;
+	    assert false : name + "->" + old + " " + old.getClass().getName() + " is already in the cache; cannot replace with " + q + " " + q.getClass().getName();
 	
         cache.put(name, q);
     }
