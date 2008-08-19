@@ -11,8 +11,8 @@ package polyglot.ast;
 import polyglot.types.SemanticException;
 import polyglot.types.TypeSystem;
 import polyglot.util.*;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeChecker;
 
 /**
  * An <code>IntLit</code> represents a literal in Java of an integer
@@ -63,7 +63,7 @@ public class IntLit_c extends NumLit_c implements IntLit
     }
 
     /** Type check the expression. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
 	Kind kind = kind();

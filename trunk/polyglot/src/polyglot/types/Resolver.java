@@ -13,9 +13,8 @@ package polyglot.types;
  * packages by name.
  */
 public interface Resolver {
-
     /**
-     * Find a type object by name.
+     * Find a Named type object, usually a package or a class.
      */
-    public Named find(String name) throws SemanticException;
+    public Named find(Matcher<Named> matcher) throws SemanticException;
 }

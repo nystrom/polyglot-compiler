@@ -67,7 +67,7 @@ public class ClassLit_c extends Lit_c implements ClassLit
   }
 
   /** Type check the expression. */
-  public Node typeCheck(TypeChecker tc) throws SemanticException {
+  public Node typeCheck(ContextVisitor tc) throws SemanticException {
     return type(tc.typeSystem().Class());
   }
 

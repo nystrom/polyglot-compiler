@@ -11,8 +11,8 @@ package polyglot.ast;
 import polyglot.frontend.Globals;
 import polyglot.types.*;
 import polyglot.util.*;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeChecker;
 
 /**
  * An <code>Import</code> is an immutable representation of a Java
@@ -73,7 +73,7 @@ public class Import_c extends Node_c implements Import
      */
 
     /** Check that imported classes and packages exist. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         if (kind == PACKAGE && tc.typeSystem().packageExists(name)) {
             return this;
         }

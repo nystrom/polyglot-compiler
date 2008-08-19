@@ -351,7 +351,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         return cd;
     }
     
-    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
+    public Node typeCheckOverride(Node parent, ContextVisitor tc) throws SemanticException {
     	ClassDecl_c n = this;
     	
     	NodeVisitor v = tc.enter(parent, n);
@@ -367,7 +367,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
     	return n;
     }
     
-    public Node typeCheckSupers(TypeChecker tc, TypeChecker childtc) throws SemanticException {
+    public Node typeCheckSupers(ContextVisitor tc, TypeChecker childtc) throws SemanticException {
         ClassDecl_c n = this;
 
         // ### This should be done somewhere else, but before entering the body.
@@ -385,13 +385,16 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         superClass = (TypeNode) n.visitChild(n.superClass, childtc);
         interfaces = n.visitList(n.interfaces, childtc);
         
+        if (n.superClass() != null)
+            assert type.superType() == n.superClass.typeRef();
+        
         n = n.reconstruct(flags, name, superClass, interfaces, body);
         n.checkSupertypeCycles(tc.typeSystem());
 
         return n;
     }
     
-    public Node typeCheckBody(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
+    public Node typeCheckBody(Node parent, ContextVisitor tc, TypeChecker childtc) throws SemanticException {
         ClassDecl_c old = this;
 
         ClassDecl_c n = this;
@@ -410,7 +413,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         return n;
     }
     
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
         ClassType type = this.type.asType();
@@ -448,7 +451,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
             if (ctxt.isLocal(name)) {
                 // Something with the same name was declared locally.
                 // (but not in an enclosing class)                                    
-                Named nm = ctxt.find(name);
+                Named nm = ctxt.find(ts.TypeMatcher(name));
                 if (nm instanceof Type) {
                     Type another = (Type) nm;
                     if (another.isClass() && another.toClass().isLocal()) {

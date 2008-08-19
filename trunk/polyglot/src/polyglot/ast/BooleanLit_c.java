@@ -10,8 +10,8 @@ package polyglot.ast;
 import polyglot.types.SemanticException;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeChecker;
 
 /**
  * A <code>BooleanLit</code> represents a boolean literal expression.
@@ -38,7 +38,7 @@ public class BooleanLit_c extends Lit_c implements BooleanLit
   }
 
   /** Type check the expression. */
-  public Node typeCheck(TypeChecker tc) throws SemanticException {
+  public Node typeCheck(ContextVisitor tc) throws SemanticException {
     return type(tc.typeSystem().Boolean());
   }
 

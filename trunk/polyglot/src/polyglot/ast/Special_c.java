@@ -80,7 +80,7 @@ public class Special_c extends Expr_c implements Special
     }
 
     /** Type check the expression. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
         Context c = tc.context();
 

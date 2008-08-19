@@ -195,7 +195,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     }
     
     /** Type check the declaration. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
         try {
@@ -226,7 +226,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         return this;
     }
     
-    public Node checkConstants(TypeChecker tc) throws SemanticException {
+    public Node checkConstants(ContextVisitor tc) throws SemanticException {
         if (init == null || ! init.isConstant() || ! li.flags().isFinal()) {
             li.setNotConstant();
         }

@@ -113,7 +113,7 @@ public interface NodeOps
      *
      * @param ar The visitor which disambiguates.
      */
-    Node disambiguate(TypeChecker ar) throws SemanticException;
+    Node disambiguate(ContextVisitor ar) throws SemanticException;
 
     Node setResolverOverride(Node parent, TypeCheckPreparer v);
     void setResolver(Node parent, TypeCheckPreparer v);
@@ -150,7 +150,7 @@ public interface NodeOps
      *
      * @param tc The type checking visitor.
      */
-    Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException;
+    Node typeCheckOverride(Node parent, ContextVisitor tc) throws SemanticException;
 
     /**
      * Type check the AST.
@@ -163,7 +163,8 @@ public interface NodeOps
      *
      * @param tc The type checking visitor.
      */
-    Node typeCheck(TypeChecker tc) throws SemanticException;
+    Node typeCheck(ContextVisitor tc) throws SemanticException;
+    Node conformanceCheck(ContextVisitor tc) throws SemanticException;
 
     /**
      * Check if the node is a compile-time constant.
@@ -176,7 +177,7 @@ public interface NodeOps
      *
      * @param tc The constant checking visitor.
      */
-    Node checkConstants(TypeChecker tc) throws SemanticException;
+    Node checkConstants(ContextVisitor tc) throws SemanticException;
     
     /**
      * Check that exceptions are properly propagated throughout the AST.

@@ -77,7 +77,7 @@ public class While_c extends Loop_c implements While
     }
 
     /** Type check the statement. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
 	TypeSystem ts = tc.typeSystem();
 	
 	if (! ts.typeEquals(cond.type(), ts.Boolean())) {

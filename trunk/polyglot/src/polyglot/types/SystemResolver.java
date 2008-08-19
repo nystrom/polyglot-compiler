@@ -126,11 +126,11 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
      * exceptions are for resolving names in deserialized types and in types
      * loaded from raw class files.
      */
-    public Named find(String name) throws SemanticException {
-        Named n = super.find(name);
+    public Named find(Matcher<Named> matcher) throws SemanticException {
+        Named n = super.find(matcher);
 
         if (Report.should_report(TOPICS, 2))
-            Report.report(2, "Returning from SR.find(" + name + "): " + n);
+            Report.report(2, "Returning from SR.find(" + matcher + "): " + n);
 
         return n;
     }

@@ -112,7 +112,7 @@ public class For_c extends Loop_c implements For
     }
 
     /** Type check the statement. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
 	TypeSystem ts = tc.typeSystem();
 
         // Check that all initializers have the same type.

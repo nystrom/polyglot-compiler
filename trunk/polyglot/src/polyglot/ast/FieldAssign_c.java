@@ -85,7 +85,7 @@ protected Assign reconstruct(Receiver target, Id name) {
   }
 
   @Override
-  public Assign typeCheckLeft(TypeChecker tc) throws SemanticException {
+  public Assign typeCheckLeft(ContextVisitor tc) throws SemanticException {
       Field left = (Field) left(tc.nodeFactory());
       left = (Field) left.del().typeCheck(tc);
       FieldAssign_c n = (FieldAssign_c) reconstruct(left.target(), left.name());

@@ -7,7 +7,6 @@
 
 package polyglot.ast;
 
-import polyglot.types.Ref;
 import polyglot.types.Type;
 import polyglot.util.CodeWriter;
 import polyglot.visit.PrettyPrinter;

@@ -21,10 +21,10 @@ import polyglot.visit.*;
 public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 {
     protected LazyRef<Qualifier> qualifier;
-    protected QualifierNode qual;
+    protected Prefix qual;
     protected Id name;
 
-    public AmbQualifierNode_c(Position pos, QualifierNode qual, Id name) {
+    public AmbQualifierNode_c(Position pos, Prefix qual, Id name) {
 	super(pos);
 	assert(name != null); // qual may be null
 
@@ -54,11 +54,11 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
         return name(this.name.id(name));
     }
 
-    public QualifierNode qual() {
+    public Prefix prefix() {
 	return this.qual;
     }
 
-    public AmbQualifierNode qual(QualifierNode qual) {
+    public AmbQualifierNode qual(Prefix qual) {
 	AmbQualifierNode_c n = (AmbQualifierNode_c) copy();
 	n.qual = qual;
 	return n;
@@ -70,7 +70,7 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 	return n;
     }
 
-    protected AmbQualifierNode_c reconstruct(QualifierNode qual, Id name) {
+    protected AmbQualifierNode_c reconstruct(Prefix qual, Id name) {
 	if (qual != this.qual || name != this.name) {
 	    AmbQualifierNode_c n = (AmbQualifierNode_c) copy();
 	    n.qual = qual;
@@ -82,7 +82,7 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 
     public Node visitChildren(NodeVisitor v) {
         Id name = (Id) visitChild(this.name, v);
-	QualifierNode qual = (QualifierNode) visitChild(this.qual, v);
+        Prefix qual = (Prefix) visitChild(this.qual, v);
 	return reconstruct(qual, name);
     }
 
@@ -103,7 +103,7 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 		r.setResolver(new TypeCheckFragmentGoal(parent, this, tc, r, false));
 	}
 
-	public Node disambiguate(TypeChecker ar) throws SemanticException {
+	public Node disambiguate(ContextVisitor ar) throws SemanticException {
 		SemanticException ex;
 		
 		try {

@@ -19,12 +19,8 @@ import polyglot.util.Position;
 /** Visitor which performs type checking on the AST. */
 public class TypeChecker extends ContextVisitor
 {
-	Map<Node,Node> memo;
+    Map<Node,Node> memo;
 	
-    public Goal goal() {
-        return Globals.currentGoal();
-    }
-    
     public TypeChecker(Job job, TypeSystem ts, NodeFactory nf, Map<Node,Node> memo) {
         super(job, ts, nf);
         this.memo = memo;
@@ -65,12 +61,12 @@ public class TypeChecker extends ContextVisitor
             else {
                 // silent error; these should be thrown only
                 // when the error has already been reported 
-        	
-        	// IMPORTANT: Mark the goal as failed, otherwise we may run dependent goals
-        	// that depend on this pass completing successfully.
-        	if (goal() != null)
-        	    goal().fail();
             }
+            
+            // IMPORTANT: Mark the goal as failed, otherwise we may run dependent goals
+            // that depend on this pass completing successfully.
+            if (goal() != null)
+        	goal().fail();
             
             return n;
         }
@@ -126,7 +122,12 @@ public class TypeChecker extends ContextVisitor
         		// silent error; these should be thrown only
         		// when the error has already been reported 
         	}
-        	
+                
+                // IMPORTANT: Mark the goal as failed, otherwise we may run dependent goals
+                // that depend on this pass completing successfully.
+                if (goal() != null)
+                    goal().fail();
+
         	throw e;
         }
         

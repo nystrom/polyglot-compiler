@@ -21,6 +21,13 @@ import polyglot.visit.*;
  */
 public abstract class TypeNode_c extends Term_c implements TypeNode
 {
+    /**
+     * A reference to the computed type for the node. Is is VERY
+     * important that this reference not change as the node is transformed.
+     * Other TypeObjects have a copy of the reference. When the TypeNode is
+     * disambiguated, the reference should be updated rather than a new
+     * reference created.
+     */
     protected Ref<? extends Type> type;
 
     public TypeNode_c(Position pos) {

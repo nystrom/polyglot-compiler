@@ -60,7 +60,7 @@ public class Throw_c extends Stmt_c implements Throw
     }
 
     /** Type check the statement. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
     	if (! expr.type().isThrowable()) {
 	    throw new SemanticException(
 		"Can only throw subclasses of \"" +

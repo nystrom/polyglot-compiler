@@ -28,12 +28,12 @@ public class LocalAssign_c extends Assign_c implements LocalAssign
     super(pos, op, right);
     local = left;
   }
-  
- @Override
-public Assign typeCheckLeft(TypeChecker tc) throws SemanticException {
-     return this;
-}
- 
+
+  @Override
+  public Assign typeCheckLeft(ContextVisitor tc) throws SemanticException {
+      return this;
+  }
+
   @Override
   public Assign visitLeft(NodeVisitor v) {
       Expr local = (Expr) visitChild(this.local, v);

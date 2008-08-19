@@ -244,7 +244,7 @@ public class New_c extends Expr_c implements New
     }
     
     @Override
-    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
+    public Node typeCheckOverride(Node parent, ContextVisitor tc) throws SemanticException {
         TypeChecker childtc;
         NodeVisitor childv = tc.enter(parent, this);
         if (childv instanceof TypeChecker) {
@@ -356,7 +356,7 @@ public class New_c extends Expr_c implements New
         return qualifier(q);
     }
     
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
         
         List<Type> argTypes = new ArrayList<Type>(arguments.size());
@@ -394,7 +394,7 @@ public class New_c extends Expr_c implements New
         return n.type(ct);
     }
 
-    protected void typeCheckNested(TypeChecker tc) throws SemanticException {
+    protected void typeCheckNested(ContextVisitor tc) throws SemanticException {
         if (qualifier != null) {
             // We have not disambiguated the type node yet.
 
@@ -433,7 +433,7 @@ public class New_c extends Expr_c implements New
         }
     }
 
-    protected void typeCheckFlags(TypeChecker tc) throws SemanticException {
+    protected void typeCheckFlags(ContextVisitor tc) throws SemanticException {
         ClassType ct = tn.type().toClass();
 
 	if (this.body == null) {

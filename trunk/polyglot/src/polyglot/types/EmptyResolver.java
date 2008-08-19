@@ -25,8 +25,8 @@ public class EmptyResolver implements Resolver {
     /**
      * Find a type object by name.
      */
-    public Named find(String name) throws SemanticException {
+    public Named find(Matcher<Named> matcher) throws SemanticException {
         throw new SemanticException((kind != null ? (kind + " ") : "") +
-                                    "\"" + name + " not found.");
+                                    matcher.signature() + " not found.");
     }
 }

@@ -46,9 +46,12 @@ public class MemberClassResolver implements TopLevelResolver
   /**
    * Find a type by name.
    */
-  public Named find(String name) throws SemanticException {
+  public Named find(Matcher<Named> matcher) throws SemanticException {
+    String name = matcher.name();
+      
     if (Report.should_report(report_topics, 3))
       Report.report(3, "MemberCR.find(" + name + ")");
+
 
     if (nocache.contains(name)) {
         throw new NoClassException(name);
@@ -66,7 +69,7 @@ public class MemberClassResolver implements TopLevelResolver
     try {
         if (Report.should_report(report_topics, 2))
             Report.report(2, "MCR: loading " + name + " from " + inner);
-        return inner.find(name);
+        return inner.find(matcher);
     }
     catch (SemanticException e) {
         if (Report.should_report(report_topics, 2))
@@ -91,7 +94,7 @@ public class MemberClassResolver implements TopLevelResolver
         if (Report.should_report(report_topics, 2))
             Report.report(2, "MCR: loading prefix " + prefix);
 
-        n = find(prefix);
+        n = find(ts.TypeMatcher(prefix));
 
         return findMember(n, suffix);
     }
@@ -114,7 +117,7 @@ public class MemberClassResolver implements TopLevelResolver
 
           // Uncomment if we should search superclasses
           // return ct.resolver().find(name);
-          Named n = ct.memberClassNamed(name);
+          Named n = ct.memberTypeNamed(name);
 
           if (n != null) {
               if (Report.should_report(report_topics, 2))

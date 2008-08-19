@@ -30,7 +30,7 @@ public class CanonicalTypeNode_c extends TypeNode_c implements CanonicalTypeNode
   }
   
   /** Type check the type node.  Check accessibility of class types. */
-  public Node typeCheck(TypeChecker tc) throws SemanticException {
+  public Node typeCheck(ContextVisitor tc) throws SemanticException {
       TypeSystem ts = tc.typeSystem();
 
       if (type.get().isClass()) {

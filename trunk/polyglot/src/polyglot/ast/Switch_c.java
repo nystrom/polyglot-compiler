@@ -82,7 +82,7 @@ public class Switch_c extends Stmt_c implements Switch
     }
 
     /** Type check the statement. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
         if (! ts.isImplicitCastValid(expr.type(), ts.Int())) {
@@ -93,7 +93,7 @@ public class Switch_c extends Stmt_c implements Switch
         return this;
     }
 
-    public Node checkConstants(TypeChecker tc) throws SemanticException {
+    public Node checkConstants(ContextVisitor tc) throws SemanticException {
         Collection labels = new HashSet();
 
         // Check for duplicate labels.

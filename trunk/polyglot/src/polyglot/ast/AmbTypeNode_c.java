@@ -20,16 +20,16 @@ import polyglot.visit.*;
  * dot-separated list of identifiers that must resolve to a type.
  */
 public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
-	protected QualifierNode qual;
+	protected Prefix prefix;
 	protected Id name;
 
 //  protected Expr dummy;
   
-  public AmbTypeNode_c(Position pos, QualifierNode qual,
+  public AmbTypeNode_c(Position pos, Prefix qual,
                        Id name) {
     super(pos);
     assert(name != null); // qual may be null
-    this.qual = qual;
+    this.prefix = qual;
     this.name = name;
   }
 
@@ -43,20 +43,20 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
       return n;
   }
   
-  public QualifierNode prefix() {
-    return this.qual;
+  public Prefix prefix() {
+    return this.prefix;
   }
 
-  public AmbTypeNode qual(QualifierNode qual) {
+  public AmbTypeNode prefix(Prefix prefix) {
     AmbTypeNode_c n = (AmbTypeNode_c) copy();
-    n.qual = qual;
+    n.prefix = prefix;
     return n;
   }
 
-  protected AmbTypeNode_c reconstruct(QualifierNode qual, Id name) {
-    if (qual != this.qual || name != this.name) {
+  protected AmbTypeNode_c reconstruct(Prefix qual, Id name) {
+    if (qual != this.prefix || name != this.name) {
       AmbTypeNode_c n = (AmbTypeNode_c) copy();
-      n.qual = qual;
+      n.prefix = qual;
       n.name = name;
       return n;
     }
@@ -65,24 +65,16 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
   }
 
   public Node visitChildren(NodeVisitor v) {
-      QualifierNode qual = (QualifierNode) visitChild(this.qual, v);
+      Prefix prefix = (Prefix) visitChild(this.prefix, v);
       Id name = (Id) visitChild(this.name, v);
-
-//      Expr dummy = (Expr) visitChild(this.dummy, v);
-//      if (dummy != this.dummy) {
-//          AmbTypeNode_c tn = (AmbTypeNode_c) reconstruct(qual, name).copy();
-//          tn.dummy = dummy;
-//          return tn;
-//      }
-
-      return reconstruct(qual, name);
+      return reconstruct(prefix, name);
   }
   
-  public Node disambiguate(TypeChecker ar) throws SemanticException {
+  public Node disambiguate(ContextVisitor ar) throws SemanticException {
       SemanticException ex;
       
       try {
-          Node n = ar.nodeFactory().disamb().disambiguate(this, ar, position(), qual, name);
+          Node n = ar.nodeFactory().disamb().disambiguate(this, ar, position(), prefix, name);
 
           if (n instanceof TypeNode) {
               TypeNode tn = (TypeNode) n;
@@ -97,7 +89,7 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
           }
 
           ex = new SemanticException("Could not find type \"" +
-                                     (qual == null ? name.toString() : qual.toString() + "." + name.toString()) +
+                                     (prefix == null ? name.id() : prefix.toString() + "." + name.id()) +
                                      "\".", position());
       }
       catch (SemanticException e) {
@@ -112,8 +104,8 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
   }
 
   public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-    if (qual != null) {
-        print(qual, w, tr);
+    if (prefix != null) {
+        print(prefix, w, tr);
         w.write(".");
 	w.allowBreak(2, 3, "", 0);
     }
@@ -122,9 +114,9 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
   }
 
   public String toString() {
-    return (qual == null
+    return (prefix == null
             ? name.toString()
-            : qual.toString() + "." + name.toString()) + "{amb}";
+            : prefix.toString() + "." + name.toString()) + "{amb}";
   }
   
   public String nameString() {

@@ -60,7 +60,7 @@ public class Return_c extends Stmt_c implements Return
     }
 
     /** Type check the statement. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
 	TypeSystem ts = tc.typeSystem();
 	Context c = tc.context();
 

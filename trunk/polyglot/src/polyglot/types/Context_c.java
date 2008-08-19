@@ -122,7 +122,7 @@ public class Context_c implements Context
         }
         
         if ((isBlock() || isCode()) &&
-            (findVariableInThisScope(name) != null || findInThisScope(name) != null)) {
+            (findVariableInThisScope(name) != null || findInThisScope(ts.TypeMatcher(name)) != null)) {
             return true;
         }
 
@@ -141,29 +141,29 @@ public class Context_c implements Context
      * Looks up a method with name "name" and arguments compatible with
      * "argTypes".
      */
-    public MethodInstance findMethod(String name, List<Type> argTypes) throws SemanticException {
+    public MethodInstance findMethod(TypeSystem_c.MethodMatcher matcher) throws SemanticException {
         if (Report.should_report(TOPICS, 3))
-          Report.report(3, "find-method " + name + argTypes + " in " + this);
+          Report.report(3, "find-method " + matcher.signature() + " in " + this);
 
         // Check for any method with the appropriate name.
         // If found, stop the search since it shadows any enclosing
         // classes method of the same name.
         if (this.currentClass() != null &&
-            ts.hasMethodNamed(this.currentClass(), name)) {
+            ts.hasMethodNamed(this.currentClass(), matcher.name())) {
             if (Report.should_report(TOPICS, 3))
-              Report.report(3, "find-method " + name + argTypes + " -> " +
+              Report.report(3, "find-method " + matcher.signature() + " -> " +
                                 this.currentClass());
 
-            // Found a class which has a method of the right name.
+            // Found a class that has a method of the right name.
             // Now need to check if the method is of the correct type.
-            return ts.findMethod(this.currentClass(), ts.MethodMatcher(this.currentClass(), name, argTypes), this.currentClassDef());
+            return ts.findMethod(this.currentClass(), matcher.container(this.currentClass()), this.currentClassDef());
         }
 
         if (outer != null) {
-            return outer.findMethod(name, argTypes);
+            return outer.findMethod(matcher);
         }
 
-        throw new SemanticException("Method " + name + " not found.");
+        throw new SemanticException("Method " + matcher.signature() + " not found.");
     }
 
     /**
@@ -295,28 +295,28 @@ public class Context_c implements Context
     /**
      * Finds the definition of a particular type.
      */
-    public Named find(String name) throws SemanticException {
-        if (Report.should_report(TOPICS, 3))
-            Report.report(3, "find-type " + name + " in " + this);
+    public Named find(Matcher<Named> matcher) throws SemanticException {
+	if (Report.should_report(TOPICS, 3))
+            Report.report(3, "find-type " + matcher.signature() + " in " + this);
 
         if (isOuter())
-            return ts.systemResolver().find(name);
+            return ts.systemResolver().find(matcher);
         if (isSource())
-            return it.find(name);
+            return it.find(matcher);
 
-        Named type = findInThisScope(name);
+        Named type = findInThisScope(matcher);
 
         if (type != null) {
             if (Report.should_report(TOPICS, 3))
-              Report.report(3, "find " + name + " -> " + type);
+              Report.report(3, "find " + matcher.signature() + " -> " + type);
             return type;
         }
 
         if (outer != null) {
-            return outer.find(name);
+            return outer.find(matcher);
         }
 
-        throw new SemanticException("Type " + name + " not found.");
+        throw new SemanticException("Type " + matcher.signature() + " not found.");
     }
 
     /**
@@ -458,7 +458,9 @@ public class Context_c implements Context
         addNamedToThisScope(t);
     }
 
-    public Named findInThisScope(String name) {
+    public Named findInThisScope(Matcher<Named> matcher) {
+	String name = matcher.name();
+	
         Named t = null;
         if (types != null) {
             t = (Named) types.get(name);

@@ -10,8 +10,8 @@ package polyglot.ast;
 
 import polyglot.types.SemanticException;
 import polyglot.util.*;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeChecker;
 
 /** 
  * A <code>FloatLit</code> represents a literal in java of type
@@ -54,7 +54,7 @@ public class FloatLit_c extends Lit_c implements FloatLit
     }
 
     /** Type check the expression. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
 	if (kind == FLOAT) {
 	    return type(tc.typeSystem().Float());
 	}

@@ -133,7 +133,7 @@ public class JL_c extends Ext_c implements JL {
      *
      * @param ar The visitor which disambiguates.
      */
-    public Node disambiguate(TypeChecker ar) throws SemanticException {
+    public Node disambiguate(ContextVisitor ar) throws SemanticException {
     	return jl().disambiguate(ar);
     }
 
@@ -157,7 +157,7 @@ public class JL_c extends Ext_c implements JL {
      *
      * @param tc The type checking visitor.
      */
-    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
+    public Node typeCheckOverride(Node parent, ContextVisitor tc) throws SemanticException {
 	return jl().typeCheckOverride(parent, tc);
     }
     
@@ -176,12 +176,16 @@ public class JL_c extends Ext_c implements JL {
      *
      * @param tc The type checking visitor.
      */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
 	return jl().typeCheck(tc);
     }
 
-    public Node checkConstants(TypeChecker tc) throws SemanticException {
+    public Node checkConstants(ContextVisitor tc) throws SemanticException {
         return jl().checkConstants(tc);
+    }
+    
+    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
+	return jl().conformanceCheck(tc);
     }
     
     /**

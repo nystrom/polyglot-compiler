@@ -9,8 +9,8 @@ package polyglot.ast;
 
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeChecker;
 
 /**
  * The Java literal <code>null</code>.
@@ -22,7 +22,7 @@ public class NullLit_c extends Lit_c implements NullLit
     }
 
     /** Type check the expression. */
-    public Node typeCheck(TypeChecker tc) {
+    public Node typeCheck(ContextVisitor tc) {
 	return type(tc.typeSystem().Null());
     }
 

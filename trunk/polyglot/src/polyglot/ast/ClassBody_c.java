@@ -64,7 +64,7 @@ public class ClassBody_c extends Term_c implements ClassBody
         return reconstruct(members);
     }
 
-    public Node disambiguate(TypeChecker ar) throws SemanticException {
+    public Node disambiguate(ContextVisitor ar) throws SemanticException {
         return this;
     }
 
@@ -72,7 +72,7 @@ public class ClassBody_c extends Term_c implements ClassBody
         return "{ ... }";
     }
 
-    protected void duplicateFieldCheck(TypeChecker tc) throws SemanticException {
+    protected void duplicateFieldCheck(ContextVisitor tc) throws SemanticException {
         ClassDef type = tc.context().currentClassDef();
 
         ArrayList<FieldDef> l = new ArrayList<FieldDef>(type.fields());
@@ -90,7 +90,7 @@ public class ClassBody_c extends Term_c implements ClassBody
         }
     }
 
-    protected void duplicateConstructorCheck(TypeChecker tc) throws SemanticException {
+    protected void duplicateConstructorCheck(ContextVisitor tc) throws SemanticException {
         ClassDef type = tc.context().currentClassDef();
         TypeSystem ts = tc.typeSystem();
 
@@ -111,7 +111,7 @@ public class ClassBody_c extends Term_c implements ClassBody
         }
     }
 
-    protected void duplicateMethodCheck(TypeChecker tc) throws SemanticException {
+    protected void duplicateMethodCheck(ContextVisitor tc) throws SemanticException {
         ClassDef type = tc.context().currentClassDef();
 
         TypeSystem ts = tc.typeSystem();
@@ -133,7 +133,7 @@ public class ClassBody_c extends Term_c implements ClassBody
         }
     }
 
-    protected void duplicateMemberClassCheck(TypeChecker tc) throws SemanticException {
+    protected void duplicateMemberClassCheck(ContextVisitor tc) throws SemanticException {
         ClassDef type = tc.context().currentClassDef();
 
         ArrayList<Ref<? extends Type>> l = new ArrayList<Ref<? extends Type>>(type.memberClasses());
@@ -158,7 +158,7 @@ public class ClassBody_c extends Term_c implements ClassBody
         return mi.isSameMethod(mj);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         duplicateFieldCheck(tc);
         duplicateConstructorCheck(tc);
         duplicateMethodCheck(tc);

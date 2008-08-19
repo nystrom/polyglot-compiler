@@ -118,7 +118,7 @@ public class NewArray_c extends Expr_c implements NewArray
     }
 
     /** Type check the expression. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
         for (Iterator<Expr> i = dims.iterator(); i.hasNext(); ) {

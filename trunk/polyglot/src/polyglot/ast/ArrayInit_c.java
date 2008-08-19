@@ -61,7 +61,7 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
     }
 
     /** Type check the initializer. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
 	Type type = null;
@@ -115,7 +115,7 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
         return child.type();
     }
 
-    public void typeCheckElements(TypeChecker tc, Type lhsType) throws SemanticException {
+    public void typeCheckElements(ContextVisitor tc, Type lhsType) throws SemanticException {
     	TypeSystem ts = tc.typeSystem();
 
         if (! lhsType.isArray()) {

@@ -76,7 +76,7 @@ public class Synchronized_c extends Stmt_c implements Synchronized
     }
 
     /** Type check the statement. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
 	TypeSystem ts = tc.typeSystem();
 
 	if (! ts.isSubtype(expr.type(), ts.Object()) ) {

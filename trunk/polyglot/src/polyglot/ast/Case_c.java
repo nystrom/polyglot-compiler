@@ -83,7 +83,7 @@ public class Case_c extends Stmt_c implements Case
     }
 
     /** Type check the statement. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         if (expr == null) {
 	    return this;
 	}
@@ -99,7 +99,7 @@ public class Case_c extends Stmt_c implements Case
 	return this;
     }
     
-    public Node checkConstants(TypeChecker tc) throws SemanticException {
+    public Node checkConstants(ContextVisitor tc) throws SemanticException {
         if (expr == null) {
             return this;
         }

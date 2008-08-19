@@ -251,7 +251,7 @@ public class Binary_c extends Expr_c implements Binary
     }
     
     /** Type check the expression. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         Type l = left.type();
 	Type r = right.type();
 

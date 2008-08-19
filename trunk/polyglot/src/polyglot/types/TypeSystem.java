@@ -11,8 +11,6 @@ import java.util.*;
 
 import polyglot.frontend.ExtensionInfo;
 import polyglot.frontend.Source;
-import polyglot.types.TypeSystem_c.ConstructorMatcher;
-import polyglot.types.TypeSystem_c.MethodMatcher;
 import polyglot.types.reflect.ClassFile;
 import polyglot.types.reflect.ClassFileLazyClassInitializer;
 import polyglot.util.Position;
@@ -322,7 +320,9 @@ public interface TypeSystem {
      */
     FieldInstance findField(Type container, TypeSystem_c.FieldMatcher matcher)
 	throws SemanticException;
-
+    
+    Matcher<Named> TypeMatcher(String name);
+    Matcher<Named> MemberTypeMatcher(Type container, String name);
     TypeSystem_c.FieldMatcher FieldMatcher(Type container, String name);
     TypeSystem_c.MethodMatcher MethodMatcher(Type container, String name, List<Type> argTypes);
     TypeSystem_c.ConstructorMatcher ConstructorMatcher(Type container, List<Type> argTypes);
@@ -677,7 +677,7 @@ public interface TypeSystem {
     /**
      * Return the boxed version of <code>t</code>.
      */
-    String wrapperTypeString(PrimitiveType t);
+    String wrapperTypeString(Type t);
 
     /**
      * Return true if <code>pi</code> can be called with 

@@ -50,7 +50,9 @@ public class PackageContextResolver extends AbstractAccessControlResolver
      *                are performed.
      * 
      */
-    public Named find(String name, ClassDef accessor) throws SemanticException {
+    public Named find(Matcher<Named> matcher, ClassDef accessor) throws SemanticException {
+	String name = matcher.name();
+	
 	if (! StringUtil.isNameShort(name)) {
 	    throw new InternalCompilerError(
 		"Cannot lookup qualified name " + name);
@@ -59,7 +61,7 @@ public class PackageContextResolver extends AbstractAccessControlResolver
         Named n = null;
 
 	try {
-	    n = ts.systemResolver().find(p.fullName() + "." + name);
+	    n = ts.systemResolver().find(ts.TypeMatcher(p.fullName() + "." + name));
 	}
 	catch (NoClassException e) {
             // Rethrow if some _other_ class or package was not found.

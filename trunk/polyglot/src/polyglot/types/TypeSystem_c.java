@@ -162,26 +162,26 @@ public class TypeSystem_c implements TypeSystem
 		}
 	}
 
-	public String wrapperTypeString(PrimitiveType t) {
+	public String wrapperTypeString(Type t) {
 		assert_(t);
 
-		if (t.name().equals("boolean"))
+		if (t.isBoolean())
 		    return "java.lang.Boolean";
-		if (t.name().equals("char"))
+		if (t.isChar())
 		    return "java.lang.Character";
-		if (t.name().equals("byte"))
+		if (t.isByte())
 		    return "java.lang.Byte";
-		if (t.name().equals("short"))
+		if (t.isShort())
 		    return "java.lang.Short";
-		if (t.name().equals("int"))
+		if (t.isInt())
 		    return "java.lang.Integer";
-		if (t.name().equals("long"))
+		if (t.isLong())
 		    return "java.lang.Long";
-		if (t.name().equals("float"))
+		if (t.isFloat())
 		    return "java.lang.Float";
-		if (t.name().equals("double"))
+		if (t.isDouble())
 		    return "java.lang.Double";
-		if (t.name().equals("void"))
+		if (t.isVoid())
 		    return "java.lang.Void";
 
 		throw new InternalCompilerError("Unrecognized primitive type.");
@@ -222,8 +222,8 @@ public class TypeSystem_c implements TypeSystem
 		            return ((ClassType) type).resolver();
 		        }
 		        return new Resolver() {
-			    public Named find(java.lang.String name) throws SemanticException {
-				throw new NoClassException(name, type);
+			    public Named find(Matcher<Named> matcher) throws SemanticException {
+				throw new NoClassException(matcher.name(), type);
 			    }
 		        };
 		}
@@ -364,7 +364,7 @@ public class TypeSystem_c implements TypeSystem
 			return toType.isNull() || toType.isReference();
 		}
 		
-		if (fromType instanceof PrimitiveType && toType instanceof PrimitiveType) {
+		if (fromType.isPrimitive() && toType.isPrimitive()) {
 			if (fromType.isVoid() || toType.isVoid()) return false;
 			if (typeEquals(fromType, toType)) return true;
 			if (fromType.isNumeric() && toType.isNumeric()) return true;
@@ -468,40 +468,37 @@ public class TypeSystem_c implements TypeSystem
 		assert_(fromType);
 		assert_(toType);
 		
-		if (fromType instanceof PrimitiveType && toType instanceof PrimitiveType) {
-			PrimitiveType fromPt = (PrimitiveType) fromType;
-			PrimitiveType toPt = (PrimitiveType) toType;
+		if (fromType.isPrimitive() && toType.isPrimitive()) {
+			if (toType.isVoid()) return false;
+			if (fromType.isVoid()) return false;
 			
-			if (toPt.isVoid()) return false;
-			if (fromPt.isVoid()) return false;
+			if (typeEquals(toType, fromType)) return true;
 			
-			if (typeEquals(toPt, fromPt)) return true;
+			if (toType.isBoolean()) return fromType.isBoolean();
+			if (fromType.isBoolean()) return false;
 			
-			if (toPt.isBoolean()) return fromPt.isBoolean();
-			if (fromPt.isBoolean()) return false;
+			if (! fromType.isNumeric() || ! toType.isNumeric()) return false;
 			
-			if (! fromPt.isNumeric() || ! toPt.isNumeric()) return false;
+			if (toType.isDouble()) return true;
+			if (fromType.isDouble()) return false;
 			
-			if (toPt.isDouble()) return true;
-			if (fromPt.isDouble()) return false;
+			if (toType.isFloat()) return true;
+			if (fromType.isFloat()) return false;
 			
-			if (toPt.isFloat()) return true;
-			if (fromPt.isFloat()) return false;
+			if (toType.isLong()) return true;
+			if (fromType.isLong()) return false;
 			
-			if (toPt.isLong()) return true;
-			if (fromPt.isLong()) return false;
+			if (toType.isInt()) return true;
+			if (fromType.isInt()) return false;
 			
-			if (toPt.isInt()) return true;
-			if (fromPt.isInt()) return false;
+			if (toType.isShort()) return fromType.isShort() || fromType.isByte();
+			if (fromType.isShort()) return false;
 			
-			if (toPt.isShort()) return fromPt.isShort() || fromPt.isByte();
-			if (fromPt.isShort()) return false;
+			if (toType.isChar()) return fromType.isChar();
+			if (fromType.isChar()) return false;
 			
-			if (toPt.isChar()) return fromPt.isChar();
-			if (fromPt.isChar()) return false;
-			
-			if (toPt.isByte()) return fromPt.isByte();
-			if (fromPt.isByte()) return false;
+			if (toType.isByte()) return fromType.isByte();
+			if (fromType.isByte()) return false;
 			
 			return false;
 		}
@@ -593,35 +590,31 @@ public class TypeSystem_c implements TypeSystem
 	public boolean numericConversionValid(Type t, Object value) {
 		assert_(t);
 		
-		if (t instanceof PrimitiveType) {
-			PrimitiveType pt = (PrimitiveType) t;
-			
-			if (value instanceof Float || value instanceof Double)
-				return false;
-			
-			long v;
+		if (value instanceof Float || value instanceof Double)
+		    return false;
 
-			if (value instanceof Number) {
-			    v = ((Number) value).longValue();
-			}
-			else if (value instanceof Character) {
-			    v = ((Character) value).charValue();
-			}
-			else {
-			    return false;
-			}
-			
-			if (pt.isLong())
-			    return true;
-			if (pt.isInt())
-			    return Integer.MIN_VALUE <= v && v <= Integer.MAX_VALUE;
-			if (pt.isChar())
-			    return Character.MIN_VALUE <= v && v <= Character.MAX_VALUE;
-			if (pt.isShort())
-			    return Short.MIN_VALUE <= v && v <= Short.MAX_VALUE;
-			if (pt.isByte())
-			    return Byte.MIN_VALUE <= v && v <= Byte.MAX_VALUE;
+		long v;
+
+		if (value instanceof Number) {
+		    v = ((Number) value).longValue();
 		}
+		else if (value instanceof Character) {
+		    v = ((Character) value).charValue();
+		}
+		else {
+		    return false;
+		}
+
+		if (t.isLong())
+		    return true;
+		if (t.isInt())
+		    return Integer.MIN_VALUE <= v && v <= Integer.MAX_VALUE;
+		if (t.isChar())
+		    return Character.MIN_VALUE <= v && v <= Character.MAX_VALUE;
+		if (t.isShort())
+		    return Short.MIN_VALUE <= v && v <= Short.MAX_VALUE;
+		if (t.isByte())
+		    return Byte.MIN_VALUE <= v && v <= Byte.MAX_VALUE;
 		
 		return false;
 	}
@@ -987,8 +980,8 @@ public class TypeSystem_c implements TypeSystem
 
 		if (fields.size() == 0) {
 			throw new NoMemberException(NoMemberException.FIELD,
-					"Field \"" + matcher.signature() +
-					"\" not found in type \"" +
+					"Field " + matcher.signature() +
+					" not found in type \"" +
 					container + "\".");
 		}
 
@@ -998,7 +991,7 @@ public class TypeSystem_c implements TypeSystem
 		if (i.hasNext()) {
 			FieldInstance fi2 = i.next();
 
-			throw new SemanticException("Field " + matcher.name() +
+			throw new SemanticException("Field " + matcher.signature() +
 					" is ambiguous; it is defined in both " +
 					fi.container() + " and " +
 					fi2.container() + "."); 
@@ -1029,7 +1022,8 @@ public class TypeSystem_c implements TypeSystem
 	 * returned may be empty.
 	 */
 	protected Set<FieldInstance> findFields(Type container, TypeSystem_c.FieldMatcher matcher) {
-	    String name = matcher.name();
+	        String name = matcher.name();
+	        
 		assert_(container);
 
 		if (container == null) {
@@ -1042,11 +1036,12 @@ public class TypeSystem_c implements TypeSystem
 		    if (fi != null) {
 			try {
 			    fi = matcher.instantiate(fi);
-			    return Collections.singleton(fi);
+			    if (fi != null)
+				return Collections.singleton(fi);
 			}
 			catch (SemanticException e) {
-			    return Collections.EMPTY_SET;
 			}
+			return Collections.EMPTY_SET;
 		    }
 		}
 		
@@ -1083,7 +1078,7 @@ public class TypeSystem_c implements TypeSystem
 			{
 		assert_(container);
 
-		Named n = classContextResolver(container, currClass).find(name);
+		Named n = classContextResolver(container, currClass).find(MemberTypeMatcher(container, name));
 
 		if (n instanceof ClassType) {
 			return (ClassType) n;
@@ -1110,7 +1105,7 @@ public class TypeSystem_c implements TypeSystem
 			throw new InternalCompilerError("Cannot access method \"" + name +
 			"\" within a null container type.");
 		}
-
+		
 		if (container instanceof StructType) {
 		    if (! ((StructType) container).methodsNamed(name).isEmpty()) {
 			return true;
@@ -1137,7 +1132,7 @@ public class TypeSystem_c implements TypeSystem
 		return false;
 	}
 	
-	public static class ConstructorMatcher {
+	public static class ConstructorMatcher implements Matcher<ConstructorInstance> {
 	    protected Type container;
 	    protected List<Type> argTypes;
 	    
@@ -1145,6 +1140,10 @@ public class TypeSystem_c implements TypeSystem
 		super();
 		this.container = receiverType;
 		this.argTypes = argTypes;
+	    }
+	    
+	    public String name() {
+		return "this";
 	    }
 	    
 	    public String signature() {
@@ -1169,9 +1168,13 @@ public class TypeSystem_c implements TypeSystem
 	    public String toString() {
 		return signature();
 	    }
+	    
+	    public Object key() {
+		return null;
+	    }
 	}
 	
-	public static class MethodMatcher {
+	public static class MethodMatcher implements Copy {
 	    protected Type container;
 	    protected String name;
 	    protected List<Type> argTypes;
@@ -1181,6 +1184,21 @@ public class TypeSystem_c implements TypeSystem
 		this.container = container;
 		this.name = name;
 		this.argTypes = argTypes;
+	    }
+	    
+	    public MethodMatcher container(Type container) {
+		MethodMatcher n = copy();
+		n.container = container;
+		return n;
+	    }
+	    
+	    public MethodMatcher copy() {
+		try {
+		    return (MethodMatcher) super.clone();
+		}
+		catch (CloneNotSupportedException e) {
+		    throw new InternalCompilerError(e);
+		}
 	    }
 	    
 	    public String signature() {
@@ -1212,9 +1230,13 @@ public class TypeSystem_c implements TypeSystem
 	    public String toString() {
 		return signature();
 	    }
+	    
+	    public Object key() {
+		return null;
+	    }
 	}
 	
-	public static class FieldMatcher {
+	public static class FieldMatcher implements Copy, Matcher<FieldInstance> {
 	    protected Type container;
 	    protected String name;
 
@@ -1222,6 +1244,21 @@ public class TypeSystem_c implements TypeSystem
 		super();
 		this.container = container;
 		this.name = name;
+	    }
+
+	    public FieldMatcher container(Type container) {
+		FieldMatcher n = copy();
+		n.container = container;
+		return n;
+	    }
+
+	    public FieldMatcher copy() {
+		try {
+		    return (FieldMatcher) super.clone();
+		}
+		catch (CloneNotSupportedException e) {
+		    throw new InternalCompilerError(e);
+		}
 	    }
 
 	    public String signature() {
@@ -1241,6 +1278,84 @@ public class TypeSystem_c implements TypeSystem
 	    
 	    public String toString() {
 		return signature();
+	    }
+	    
+	    public Object key() {
+		return null;
+	    }
+	}
+	
+	public static class MemberTypeMatcher implements Matcher<Named> {
+	    protected Type container;
+	    protected String name;
+	    
+	    protected MemberTypeMatcher(Type container, String name) {
+		super();
+		this.container = container;
+		this.name = name;
+	    }
+	    
+	    public String signature() {
+		return name;
+	    }
+	    
+	    public String name() {
+		return name;
+	    }
+	    
+	    public Named instantiate(Named t) throws SemanticException {
+		if (! t.name().equals(name)) {
+		    return null;
+		}
+		return t;
+	    }
+	    
+	    public String toString() {
+		return signature();
+	    }
+	    
+	    public Object key() {
+		return name;
+	    }
+	}
+
+	public Matcher<Named> MemberTypeMatcher(Type container, String name) {
+	    return new MemberTypeMatcher(container, name);
+	}
+	
+	public Matcher<Named> TypeMatcher(String name) {
+	    return new TypeMatcher(name);
+	}
+
+	public static class TypeMatcher implements Matcher<Named> {
+	    protected String name;
+	    
+	    protected TypeMatcher(String name) {
+		super();
+		this.name = name;
+	    }
+	    
+	    public String signature() {
+		return name;
+	    }
+	    
+	    public String name() {
+		return name;
+	    }
+	    
+	    public Named instantiate(Named t) throws SemanticException {
+		if (! t.name().equals(name)) {
+		    return null;
+		}
+		return t;
+	    }
+	    
+	    public String toString() {
+		return signature();
+	    }
+	    
+	    public Object key() {
+		return name;
 	    }
 	}
 	
@@ -1277,8 +1392,6 @@ public class TypeSystem_c implements TypeSystem
 				StringBuffer sb = new StringBuffer();
 				for (Iterator<MethodInstance> i = maximal.iterator(); i.hasNext();) {
 					MethodInstance ma = (MethodInstance) i.next();
-					sb.append(ma.returnType());
-					sb.append(" ");
 					sb.append(ma.container());
 					sb.append(".");
 					sb.append(ma.signature());
@@ -1809,10 +1922,10 @@ public class TypeSystem_c implements TypeSystem
 	public Type Char()    { return CHAR_; }
 	public Type Byte()    { return BYTE_; }
 	public Type Short()   { return SHORT_; }
-	public PrimitiveType Int()     { return INT_; }
-	public PrimitiveType Long()    { return LONG_; }
-	public PrimitiveType Float()   { return FLOAT_; }
-	public PrimitiveType Double()  { return DOUBLE_; }
+	public Type Int()     { return INT_; }
+	public Type Long()    { return LONG_; }
+	public Type Float()   { return FLOAT_; }
+	public Type Double()  { return DOUBLE_; }
 
 	protected ClassType load(String name) {
 		try {
@@ -1827,7 +1940,7 @@ public class TypeSystem_c implements TypeSystem
 
 	public Named forName(String name) throws SemanticException {
 		try {
-			return systemResolver.find(name);
+			return systemResolver.find(TypeMatcher(name));
 		}
 		catch (SemanticException e) {
 			if (! StringUtil.isNameShort(name)) {
@@ -1837,7 +1950,7 @@ public class TypeSystem_c implements TypeSystem
 				try {
 					Named container = forName(containerName);
 					if (container instanceof ClassType) {
-						return classContextResolver((ClassType) container).find(shortName);
+						return classContextResolver((ClassType) container).find(MemberTypeMatcher((ClassType) container, shortName));
 					}
 				}
 				catch (SemanticException e2) {
@@ -2088,7 +2201,7 @@ public class TypeSystem_c implements TypeSystem
 			 return arrayOf(typeForClass(clazz.getComponentType()));
 		 }
 
-		 return (Type) systemResolver.find(clazz.getName());
+		 return (Type) systemResolver.find(TypeMatcher(clazz.getName()));
 	 }
 
 	 /**
