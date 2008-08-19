@@ -74,10 +74,10 @@ public abstract class Assign_c extends Expr_c implements Assign, Ambiguous
   }
   
   public abstract Type leftType();
-  public abstract Assign typeCheckLeft(TypeChecker tc) throws SemanticException;
+  public abstract Assign typeCheckLeft(ContextVisitor tc) throws SemanticException;
 
   /** Type check the expression. */
-  public Node typeCheck(TypeChecker tc) throws SemanticException {
+  public Node typeCheck(ContextVisitor tc) throws SemanticException {
       Assign_c n = (Assign_c) typeCheckLeft(tc);
       
       TypeSystem ts = tc.typeSystem();
@@ -86,10 +86,10 @@ public abstract class Assign_c extends Expr_c implements Assign, Ambiguous
     if (t == null)
 	t = ts.unknownType(position());
 
-Expr right = n.right();
-Assign.Operator op = n.operator();
+    Expr right = n.right();
+    Assign.Operator op = n.operator();
 
-Type s = right.type();
+    Type s = right.type();
 
     if (op == ASSIGN) {
       if (! ts.isImplicitCastValid(s, t) &&

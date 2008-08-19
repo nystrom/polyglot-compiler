@@ -92,7 +92,7 @@ public class Disamb_c implements Disamb
         Named n;
         
         try {
-            n = pc.find(name.id());
+            n = pc.find(ts.TypeMatcher(name.id()));
         }
         catch (SemanticException e) {
             return null;
@@ -143,7 +143,7 @@ public class Disamb_c implements Disamb
             Resolver tc = t.toClass().resolver();
             Named n;
             try {
-                n = tc.find(name.id());
+                n = tc.find(ts.MemberTypeMatcher(t, name.id()));
             }
             catch (NoClassException e) {
                 return null;
@@ -179,7 +179,7 @@ public class Disamb_c implements Disamb
         // no variable found. try types.
         if (typeOK()) {
             try {
-                Named n = c.find(name.id());
+                Named n = c.find(ts.TypeMatcher(name.id()));
                 if (n instanceof Type) {
                     Type type = (Type) n;
                     return makeTypeNode(type);

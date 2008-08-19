@@ -45,7 +45,7 @@ public interface NodeFactory
     
     // package or type
     AmbQualifierNode AmbQualifierNode(Position pos, Id name);
-    AmbQualifierNode AmbQualifierNode(Position pos, QualifierNode qual, Id name);
+    AmbQualifierNode AmbQualifierNode(Position pos, Prefix qual, Id name);
     QualifierNode QualifierNodeFromQualifiedName(Position pos, String qualifiedName);
     
     // package or type or expr
@@ -54,7 +54,7 @@ public interface NodeFactory
     Prefix PrefixFromQualifiedName(Position pos, String qualifiedName);
     
     AmbTypeNode AmbTypeNode(Position pos, Id name);
-    AmbTypeNode AmbTypeNode(Position pos, QualifierNode qualifier, Id name);
+    AmbTypeNode AmbTypeNode(Position pos, Prefix qualifier, Id name);
     TypeNode TypeNodeFromQualifiedName(Position pos, String qualifiedName);
     
     ArrayTypeNode ArrayTypeNode(Position pos, TypeNode base);

@@ -102,7 +102,9 @@ public class LoadedClassResolver implements TopLevelResolver
   /**
    * Find a type by name.
    */
-  public Named find(String name) throws SemanticException {
+  public Named find(Matcher<Named> matcher) throws SemanticException {
+      String name = matcher.name();
+      
     if (Report.should_report(report_topics, 3))
       Report.report(3, "LoadedCR.find(" + name + ")");
  

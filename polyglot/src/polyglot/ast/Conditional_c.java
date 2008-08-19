@@ -96,7 +96,7 @@ public class Conditional_c extends Expr_c implements Conditional
     }
 
     /** Type check the expression. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
         
         Expr e1 = consequent;

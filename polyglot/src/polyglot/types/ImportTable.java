@@ -154,7 +154,7 @@ public class ImportTable implements Resolver
             return res.get();
         }
 
-        Named t = ts.systemResolver().find(name);
+        Named t = ts.systemResolver().find(ts.TypeMatcher(name));
         map.put(name, Option.<Named>Some(t));
         return t;
     }
@@ -162,7 +162,9 @@ public class ImportTable implements Resolver
     /**
      * Find a type by name, searching the import table.
      */
-    public Named find(String name) throws SemanticException {
+    public Named find(Matcher<Named> matcher) throws SemanticException {
+	String name = matcher.name();
+	
         if (Report.should_report(TOPICS, 2))
            Report.report(2, this + ".find(" + name + ")");
 
@@ -171,7 +173,7 @@ public class ImportTable implements Resolver
 
         if (!StringUtil.isNameShort(name)) {
             // The name was long.
-            return ts.systemResolver().find(name);
+            return ts.systemResolver().find(matcher);
         }
         
         // The class name is short.
@@ -235,7 +237,7 @@ public class ImportTable implements Resolver
             if (resolved == null) {
                 // The name was short, but not in any imported class or package.
                 // Check the null package.
-                resolved = ts.systemResolver().find(name); // may throw exception
+                resolved = ts.systemResolver().find(matcher); // may throw exception
 
                 if (!isVisibleFrom(resolved, "")) {
                     // Not visible.
@@ -262,7 +264,7 @@ public class ImportTable implements Resolver
         String fullName = containerName + "." + name;
 
         try {
-            Named n = ts.systemResolver().find(fullName);
+            Named n = ts.systemResolver().find(ts.TypeMatcher(fullName));
 
             // Check if the type is visible in this package.
             if (isVisibleFrom(n, containerName)) {
@@ -314,7 +316,7 @@ public class ImportTable implements Resolver
 		Report.report(2, this + ": import " + longName);
 
 	    try {
-                Named t = ts.systemResolver().find(longName);
+                Named t = ts.systemResolver().find(ts.TypeMatcher(longName));
 
                 String shortName = StringUtil.getShortNameComponent(longName);
 

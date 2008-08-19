@@ -161,7 +161,7 @@ public class Call_c extends Expr_c implements Call
      * 
      * @param argTypes list of <code>Type</code>s of the arguments
      */
-    protected Node typeCheckNullTarget(TypeChecker tc, List<Type> argTypes) throws SemanticException {
+    protected Node typeCheckNullTarget(ContextVisitor tc, List<Type> argTypes) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
         NodeFactory nf = tc.nodeFactory();
         Context c = tc.context();
@@ -170,7 +170,7 @@ public class Call_c extends Expr_c implements Call
         // let's find the target, using the context, and
         // set the target appropriately, and then type check
         // the result
-        MethodInstance mi = c.findMethod(this.name.id(), argTypes);
+        MethodInstance mi = c.findMethod(ts.MethodMatcher(null, name.id(), argTypes));
         
         Receiver r;
         if (mi.flags().isStatic()) {
@@ -210,7 +210,7 @@ public class Call_c extends Expr_c implements Call
     }
 
     /** Type check the call. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
         Context c = tc.context();
@@ -448,7 +448,7 @@ public class Call_c extends Expr_c implements Call
           
           // as exception will be thrown if no appropriate method
           // exists. 
-          MethodInstance ctxtMI = c.findMethod(name.id(), mi.formalTypes());
+          MethodInstance ctxtMI = c.findMethod(c.typeSystem().MethodMatcher(null, name.id(), mi.formalTypes()));
           
           // cannot perform this check due to the context's findMethod returning a 
           // different method instance than the typeSystem in some situations

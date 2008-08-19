@@ -1223,7 +1223,7 @@ public abstract class AbstractDelFactory_c implements DelFactory
      * @return the delegate for a <code>Formal</code> AST node.
      */
     protected JL delFormalImpl() {
-        return delNodeImpl();
+        return delTermImpl();
     }
 
     /**

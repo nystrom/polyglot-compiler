@@ -255,7 +255,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     	}
     }
 
-    public Node checkConstants(TypeChecker tc) throws SemanticException {
+    public Node checkConstants(ContextVisitor tc) throws SemanticException {
         if (init == null || ! init.isConstant() || ! fi.flags().isFinal()) {
             fi.setNotConstant();
         }
@@ -279,8 +279,33 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         n = (FieldDecl_c) n.init(init);
         return n.checkConstants(tc);
     }
+    
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
+	TypeSystem ts = tc.typeSystem();
+	
+	if (init != null && ! (init.type() instanceof UnknownType)) {
+	    if (init instanceof ArrayInit) {
+		((ArrayInit) init).typeCheckElements(tc, type.type());
+	    }
+	    else {
+		if (! ts.isImplicitCastValid(init.type(), type.type()) &&
+			! ts.typeEquals(init.type(), type.type()) &&
+			! ts.numericConversionValid(type.type(), init.constantValue())) {
+		    
+		    throw new SemanticException("The type of the variable " +
+		                                "initializer \"" + init.type() +
+		                                "\" does not match that of " +
+		                                "the declaration \"" +
+		                                type.type() + "\".",
+		                                init.position());
+		}
+	    }
+	}
+	
+	return this;
+    }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
         // Get the fi flags, not the node flags since the fi flags
@@ -294,41 +319,28 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
             throw new SemanticException(e.getMessage(), position());
         }
 
-        if (tc.context().currentClass().flags().isInterface()) {
-            if (flags.isProtected() || flags.isPrivate()) {
-                throw new SemanticException("Interface members must be public.",
-                                            position());
-            }
-        }
+        Type fcontainer = Types.get(fieldDef().container());
+        
+        if (fcontainer.isClass()) {
+            ClassType container = fcontainer.toClass();
 
-        if (init != null && ! (init.type() instanceof UnknownType)) {
-            if (init instanceof ArrayInit) {
-                ((ArrayInit) init).typeCheckElements(tc, type.type());
+            if (container.flags().isInterface()) {
+        	if (flags.isProtected() || flags.isPrivate()) {
+        	    throw new SemanticException("Interface members must be public.",
+        	                                position());
+        	}
             }
-            else {
-                if (! ts.isImplicitCastValid(init.type(), type.type()) &&
-                        ! ts.typeEquals(init.type(), type.type()) &&
-                        ! ts.numericConversionValid(type.type(), init.constantValue())) {
 
-                    throw new SemanticException("The type of the variable " +
-                                                "initializer \"" + init.type() +
-                                                "\" does not match that of " +
-                                                "the declaration \"" +
-                                                type.type() + "\".",
-                                                init.position());
-                }
-            }
-        }
-
-        // check that inner classes do not declare static fields, unless they
-        // are compile-time constants
-        if (flags.isStatic() &&
-                fieldDef().container().get().toClass().isInnerClass()) {
-            // it's a static field in an inner class.
-            if (!flags.isFinal() || init == null || !init.isConstant()) {
-                throw new SemanticException("Inner classes cannot declare " +
-                                            "static fields, unless they are compile-time " +
-                                            "constant fields.", this.position());
+            // check that inner classes do not declare static fields, unless they
+            // are compile-time constants
+            if (flags.isStatic() &&
+        	    container.isInnerClass()) {
+        	// it's a static field in an inner class.
+        	if (!flags.isFinal() || init == null || !init.isConstant()) {
+        	    throw new SemanticException("Inner classes cannot declare " +
+        	                                "static fields, unless they are compile-time " +
+        	                                "constant fields.", this.position());
+        	}
             }
         }
 

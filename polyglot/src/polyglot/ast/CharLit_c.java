@@ -10,8 +10,8 @@ package polyglot.ast;
 
 import polyglot.types.SemanticException;
 import polyglot.util.*;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeChecker;
 
 /** 
  * An <code>CharLit</code> represents a literal in java of
@@ -36,7 +36,7 @@ public class CharLit_c extends NumLit_c implements CharLit
     }
 
     /** Type check the expression. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
 	return type(tc.typeSystem().Char());
     }  
 

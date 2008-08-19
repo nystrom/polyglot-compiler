@@ -154,7 +154,7 @@ public class Formal_c extends Term_c implements Formal
     }
 
     /** Type check the formal. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         // Check if the variable is multiply defined.
         Context c = tc.context();
 

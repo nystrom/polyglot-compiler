@@ -75,7 +75,7 @@ public class Unary_c extends Expr_c implements Unary
     }
 
     /** Type check the expression. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
 	if (op == POST_INC || op == POST_DEC ||

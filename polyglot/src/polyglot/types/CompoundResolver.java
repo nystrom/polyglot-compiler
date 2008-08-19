@@ -40,12 +40,12 @@ public class CompoundResolver implements TopLevelResolver {
     /**
      * Find a type object by name.
      */
-    public Named find(String name) throws SemanticException {
+    public Named find(Matcher<Named> matcher) throws SemanticException {
 	try {
-	    return head.find(name);
+	    return head.find(matcher);
 	}
 	catch (NoClassException e) {
-	    return tail.find(name);
+	    return tail.find(matcher);
 	}
     }
 }

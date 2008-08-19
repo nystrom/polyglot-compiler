@@ -34,7 +34,9 @@ public class Field_c extends Expr_c implements Field
     this.target = target;
     this.name = name;
     this.targetImplicit = false;
+e = new Exception();
   }
+  Exception e;
 
   /** Get the precedence of the field. */
   public Precedence precedence() { 
@@ -133,12 +135,13 @@ public class Field_c extends Expr_c implements Field
 
       TypeSystem ts = tb.typeSystem();
 
-      FieldInstance fi = ts.createFieldInstance(position(), new ErrorRef_c<FieldDef>(ts, position(), "Cannot get FieldDef before type-checking field access."));
+      FieldInstance fi = ts.createFieldInstance(position(), new ErrorRef_c<FieldDef>(ts, position(), "Cannot get FieldDef before type-checking field access.") {
+	  public String toString() { e.printStackTrace(); return super.toString(); } });
       return n.fieldInstance(fi);
   }
   
   /** Type check the field. */
-  public Node typeCheck(TypeChecker tc) throws SemanticException {
+  public Node typeCheck(ContextVisitor tc) throws SemanticException {
       Context c = tc.context();
       TypeSystem ts = tc.typeSystem();
       
@@ -155,7 +158,7 @@ public class Field_c extends Expr_c implements Field
       return f; 
   }
   
-  public Node checkConstants(TypeChecker tc) throws SemanticException {
+  public Node checkConstants(ContextVisitor tc) throws SemanticException {
       // Just check if the field is constant to force a dependency to be
       // created.
       isConstant();

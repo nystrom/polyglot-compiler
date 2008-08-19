@@ -38,7 +38,7 @@ public interface Context extends Resolver, Copy
      * @param formalTypes A list of <code>Type</code>.
      * @see polyglot.types.Type
      */
-    MethodInstance findMethod(String name, List<Type> argTypes) throws SemanticException;
+    MethodInstance findMethod(TypeSystem_c.MethodMatcher matcher) throws SemanticException;
 
     /** Looks up a local variable or field in the current scope. */
     VarInstance<?> findVariable(String name) throws SemanticException;

@@ -84,7 +84,7 @@ public class ArrayAccess_c extends Expr_c implements ArrayAccess
     }
 
     /** Type check the expression. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
 	if (! array.type().isArray()) {

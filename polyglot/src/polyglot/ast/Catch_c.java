@@ -84,7 +84,7 @@ public class Catch_c extends Stmt_c implements Catch
     }
 
     /** Type check the catch block. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
 	if (! catchType().isThrowable()) {

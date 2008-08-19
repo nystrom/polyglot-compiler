@@ -232,50 +232,8 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
     }
 
     /** Type check the constructor. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
-        Context c = tc.context();
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
-
-        ClassType ct = c.currentClass();
-
-        if (ct.flags().isInterface()) {
-            throw new SemanticException(
-                                        "Cannot declare a constructor inside an interface.",
-                                        position());
-        }
-
-        if (ct.isAnonymous()) {
-            throw new SemanticException(
-                                        "Cannot declare a constructor inside an anonymous class.",
-                                        position());
-        }
-
-        String ctName = ct.name();
-
-        if (! ctName.equals(name.id())) {
-            throw new SemanticException("Constructor name \"" + name +
-                                        "\" does not match name of containing class \"" +
-                                        ctName + "\".", position());
-        }
-
-        Flags flags = flags().flags();
-
-        try {
-            ts.checkConstructorFlags(flags);
-        }
-        catch (SemanticException e) {
-            throw new SemanticException(e.getMessage(), position());
-        }
-
-        if (body == null && ! flags.isNative()) {
-            throw new SemanticException("Missing constructor body.",
-                                        position());
-        }
-
-        if (body != null && flags.isNative()) {
-            throw new SemanticException(
-                                        "A native constructor cannot have a body.", position());
-        }
 
         for (TypeNode tn : throwTypes()) {
             Type t = tn.type();
@@ -287,6 +245,51 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
         }
 
         return this;
+    }
+    
+    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
+	Context c = tc.context();
+	TypeSystem ts = tc.typeSystem();
+	
+	ClassType ct = c.currentClass();
+	
+	if (ct.flags().isInterface()) {
+	    throw new SemanticException("Cannot declare a constructor inside an interface.",
+	                                position());
+	}
+	
+	if (ct.isAnonymous()) {
+	    throw new SemanticException("Cannot declare a constructor inside an anonymous class.",
+	                                position());
+	}
+	
+	String ctName = ct.name();
+	
+	if (! ctName.equals(name.id())) {
+	    throw new SemanticException("Constructor name \"" + name +
+	                                "\" does not match name of containing class \"" +
+	                                ctName + "\".", position());
+	}
+	
+	Flags flags = flags().flags();
+	
+	try {
+	    ts.checkConstructorFlags(flags);
+	}
+	catch (SemanticException e) {
+	    throw new SemanticException(e.getMessage(), position());
+	}
+	
+	if (body == null && ! flags.isNative()) {
+	    throw new SemanticException("Missing constructor body.",
+	                                position());
+	}
+	
+	if (body != null && flags.isNative()) {
+	    throw new SemanticException("A native constructor cannot have a body.", position());
+	}
+	
+	return this;
     }
 
     public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {

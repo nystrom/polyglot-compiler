@@ -12,8 +12,8 @@ import java.util.*;
 
 import polyglot.types.SemanticException;
 import polyglot.util.*;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeChecker;
 
 /** 
  * A <code>StringLit</code> represents an immutable instance of a 
@@ -42,7 +42,7 @@ public class StringLit_c extends Lit_c implements StringLit
     }
 
     /** Type check the expression. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         return type(tc.typeSystem().String());
     }
 

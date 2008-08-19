@@ -45,10 +45,6 @@ public abstract class Node_c implements Node
         this.error = false;
     }
 
-    public void computeTypes(ContextVisitor v) throws SemanticException {
-    }
-
-
     public Node setResolverOverride(Node parent, TypeCheckPreparer v) {
     	return null;
     }
@@ -301,12 +297,12 @@ public abstract class Node_c implements Node
 	return this;
     }
 
-    public Node disambiguate(TypeChecker ar) throws SemanticException {
+    public Node disambiguate(ContextVisitor ar) throws SemanticException {
 	return this;
     }
 
     /** Type check the AST. */
-    public Node typeCheckOverride(Node parent, TypeChecker tc) throws SemanticException {
+    public Node typeCheckOverride(Node parent, ContextVisitor tc) throws SemanticException {
         return null;
     }
     
@@ -314,12 +310,16 @@ public abstract class Node_c implements Node
 	return tc;
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
 	return this;
     }
     
-    public Node checkConstants(TypeChecker tc) throws SemanticException {
+    public Node checkConstants(ContextVisitor tc) throws SemanticException {
         return this;
+    }
+
+    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
+	return this;
     }
 
     public Type childExpectedType(Expr child, AscriptionVisitor av) {

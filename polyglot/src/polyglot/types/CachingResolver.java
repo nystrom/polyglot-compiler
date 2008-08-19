@@ -27,7 +27,7 @@ public class CachingResolver implements Resolver, Copy {
     public CachingResolver(Resolver inner, boolean cacheNotFound) {
 	this.inner = inner;
         this.cacheNotFound = cacheNotFound;
-	this.cache = new HashMap();
+	this.cache = new HashMap<String, Object>();
     }
 
     public CachingResolver(Resolver inner) {
@@ -42,7 +42,7 @@ public class CachingResolver implements Resolver, Copy {
     public Object copy() {
         try {
             CachingResolver r = (CachingResolver) super.clone();
-            r.cache = new HashMap(this.cache);
+            r.cache = new HashMap<String, Object>(this.cache);
             return r;
         }
         catch (CloneNotSupportedException e) {
@@ -61,51 +61,56 @@ public class CachingResolver implements Resolver, Copy {
         return "(cache " + inner.toString() + ")";
     }
 
-    protected Collection cachedObjects() {
-        return cache.values();
+    protected Collection<Named> cachedObjects() {
+	ArrayList<Named> l = new ArrayList<Named>();
+	for (Object o : cache.values()) {
+	    if (o instanceof Named)
+		l.add((Named) o);
+	}
+	return l;
     }
     
     /**
      * Find a type object by name.
      * @param name The name to search for.
      */
-    public Named find(String name) throws SemanticException {
+    public Named find(Matcher<Named> matcher) throws SemanticException {
         if (shouldReport(2))
-            Report.report(2, "CachingResolver: find: " + name);
+            Report.report(2, "CachingResolver: find: " + matcher.signature());
 
-        Object o = cache.get(name);
+        Object o = cache.get(matcher.key());
 
-        if (o instanceof SemanticException) throw ((SemanticException)o);
+        if (o instanceof SemanticException) throw ((SemanticException) o);
 
         Named q = (Named) o;
 
         if (q == null) {
             if (shouldReport(3))
-                Report.report(3, "CachingResolver: not cached: " + name);
+                Report.report(3, "CachingResolver: not cached: " + matcher.signature());
 
             try {
-                q = inner.find(name);
+                q = inner.find(matcher);
             }
             catch (NoClassException e) {
                 if (shouldReport(3)) {
                     Report.report(3, "CachingResolver: " + e.getMessage());
-                    Report.report(3, "CachingResolver: installing " + name + "-> (not found) in resolver cache");
+                    Report.report(3, "CachingResolver: installing " + matcher.signature() + "-> (not found) in resolver cache");
                 }
                 if (cacheNotFound) {
-                    cache.put(name, e);
+                    cache.put(matcher.name(), e);
                 }
                 throw e;
             }
 
-            addNamed(name, q);
+            addNamed(matcher.name(), q);
             addNamed(q.fullName(), q);
 
             if (shouldReport(3))
-                Report.report(3, "CachingResolver: loaded: " + name);
+                Report.report(3, "CachingResolver: loaded: " + matcher.name());
 	}
         else {
             if (shouldReport(3))
-                Report.report(3, "CachingResolver: cached: " + name);
+                Report.report(3, "CachingResolver: cached: " + matcher.name());
         }
 
 	return q;

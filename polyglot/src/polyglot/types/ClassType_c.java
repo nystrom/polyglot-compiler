@@ -178,7 +178,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
             // Use the short name if it is unique.
             if (c != null && !Globals.Options().fully_qualified_names) {
                 try {
-                    Named x = c.find(name());
+                    Named x = c.find(ts.TypeMatcher(name()));
                     
                     if (x instanceof ClassType && def().equals(((ClassType) x).def())) {
                         return name();
@@ -199,7 +199,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
             // Use the short name if it is unique.
             if (c != null && !Globals.Options().fully_qualified_names) {
                 try {
-                    Named x = c.find(name());
+                    Named x = c.find(ts.TypeMatcher(name()));
 
                     if (x instanceof ClassType && def().equals(((ClassType) x).def())) {
                         return name();

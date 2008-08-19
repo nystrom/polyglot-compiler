@@ -128,7 +128,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
     }
 
     /** Type check the call. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
 	TypeSystem ts = tc.typeSystem();
 	Context c = tc.context();
 

@@ -382,7 +382,7 @@ public class InitChecker extends DataFlow
                     MinMaxInitCount initCount;
                     if (fd.init() != null) {
                         // the field has an initializer
-                        initCount = new MinMaxInitCount(InitCount.ONE,InitCount.ONE);
+                        initCount = new MinMaxInitCount(InitCount.ONE, InitCount.ONE);
                             
                         // do dataflow over the initialization expression
                         // to pick up any uses of outer local variables.
@@ -391,7 +391,7 @@ public class InitChecker extends DataFlow
                     }
                     else {
                         // the field does not have an initializer
-                        initCount = new MinMaxInitCount(InitCount.ZERO,InitCount.ZERO);
+                        initCount = new MinMaxInitCount(InitCount.ZERO, InitCount.ZERO);
                     }
                     newCDI.currClassFinalFieldInitCounts.put(fd.fieldDef(),
                                                          initCount);
@@ -456,9 +456,15 @@ public class InitChecker extends DataFlow
                     ConstructorDecl cd = (ConstructorDecl)iter2.next();
                     ConstructorDef ciStart = cd.constructorDef();
                     ConstructorDef ci = ciStart;
-                        
+                    
                     boolean isInitialized = fieldInitializedBeforeConstructors;
-                        
+                    
+                    // A constructor with no body (a native constructor) is assumed to
+                    // initialize all fields.
+                    if (cd.body() == null) {
+                	isInitialized = true;
+                    }
+                    
                     while (ci != null) {
                         Set<FieldDef> s = currCBI.fieldsConstructorInitializes.get(ci);
                         if (s != null && s.contains(fi)) {

@@ -11,6 +11,7 @@ import java.util.List;
 
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.TypeChecker;
 
 /**
@@ -41,5 +42,5 @@ public interface ArrayInit extends Expr
      * @param lhsType Type to compare against.
      * @exception SemanticException if there is a type error.
      */
-    void typeCheckElements(TypeChecker tc, Type lhsType) throws SemanticException;
+    void typeCheckElements(ContextVisitor tc, Type lhsType) throws SemanticException;
 }

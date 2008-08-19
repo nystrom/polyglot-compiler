@@ -23,7 +23,7 @@ public class AccessControlWrapperResolver implements Resolver {
         this.accessor = accessor;
     }
     
-    public Named find(String name) throws SemanticException {
-        return inner.find(name, accessor);
+    public Named find(Matcher<Named> matcher) throws SemanticException {
+        return inner.find(matcher, accessor);
     }
 }

@@ -80,7 +80,7 @@ public class Instanceof_c extends Expr_c implements Instanceof
     }
 
     /** Type check the expression. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
         if (! compareType.type().isReference()) {

@@ -66,7 +66,7 @@ public class Assert_c extends Stmt_c implements Assert
 	return this;
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
         if (! Globals.Options().assertions) {

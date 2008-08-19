@@ -56,7 +56,7 @@ public class ArrayAccessAssign_c extends Assign_c implements ArrayAccessAssign
   }
 
   @Override
-  public Assign typeCheckLeft(TypeChecker tc) throws SemanticException {
+  public Assign typeCheckLeft(ContextVisitor tc) throws SemanticException {
       Type at = array.type();
       if (!at.isArray())
 	  throw new SemanticException("Target of array assignment is not an array element.", array.position());

@@ -250,14 +250,8 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     }
 
     /** Type check the method. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
-	// Get the mi flags, not the node flags since the mi flags
-        // account for being nested within an interface.
-        Flags flags = mi.flags();
-        checkFlags(tc, flags);
-        
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
-
 
         for (Iterator<TypeNode> i = throwTypes().iterator(); i.hasNext(); ) {
             TypeNode tn = (TypeNode) i.next();
@@ -269,12 +263,23 @@ public class MethodDecl_c extends Term_c implements MethodDecl
             }
         }
 
-        overrideMethodCheck(tc);
 
 	return this;
     }
+    
+    @Override
+    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
+	// Get the mi flags, not the node flags since the mi flags
+	// account for being nested within an interface.
+	Flags flags = mi.flags();
+	checkFlags(tc, flags);
+	
+	overrideMethodCheck(tc);
+	
+	return this;
+    }
 
-    protected void checkFlags(TypeChecker tc, Flags flags) throws SemanticException {
+    protected void checkFlags(ContextVisitor tc, Flags flags) throws SemanticException {
 	TypeSystem ts = tc.typeSystem();
 
 	if (tc.context().currentClass().flags().isInterface()) {
@@ -298,7 +303,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	    throw new SemanticException("Missing method body.", position());
 	}
 
-	if (body != null && (flags.isAbstract() || flags.isNative())) {
+	if (body != null && flags.isAbstract()) {
 	    throw new SemanticException(
 		"An abstract method cannot have a body.", position());
 	}
@@ -317,7 +322,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
         }
     }
 
-    protected void overrideMethodCheck(TypeChecker tc) throws SemanticException {
+    protected void overrideMethodCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
         MethodInstance mi = this.mi.asInstance();

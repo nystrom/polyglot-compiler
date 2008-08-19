@@ -8,7 +8,7 @@
 package polyglot.visit;
 
 import polyglot.ast.*;
-import polyglot.frontend.Job;
+import polyglot.frontend.*;
 import polyglot.main.Report;
 import polyglot.types.SemanticException;
 import polyglot.types.TypeSystem;
@@ -54,9 +54,11 @@ public class ErrorHandlingVisitor extends NodeVisitor
     /**
      * Returns true if some errors have been reported, even if cleared.
      */
-    @Deprecated
     public boolean hasErrors() {
-        return errorQueue().hasErrors();
+	if (goal() != null && ! goal().isReachable())
+	    return true;
+	return false;
+//        return errorQueue().hasErrors();
     }
 
     /** Returns the <code>NodeFactory</code> that this Visitor is using.
@@ -203,6 +205,11 @@ public class ErrorHandlingVisitor extends NodeVisitor
                 // silent error; these should be thrown only
                 // when the error has already been reported 
             }
+            
+            // IMPORTANT: Mark the goal as failed, otherwise we may run dependent goals
+            // that depend on this pass completing successfully.
+            if (goal() != null)
+        	goal().fail();
 
             if (! catchErrors(n)) {
                 this.error = true;
@@ -212,7 +219,10 @@ public class ErrorHandlingVisitor extends NodeVisitor
         }
     }
 
-
+    public Goal goal() {
+        return Globals.currentGoal();
+    }
+    
     /**
      * This method is called after all of the children of <code>n</code>
      * have been visited. In this case, these children were visited by the
@@ -283,6 +293,11 @@ public class ErrorHandlingVisitor extends NodeVisitor
                 // silent error; these should be thrown only
                 // when the error has already been reported 
             }
+
+            // IMPORTANT: Mark the goal as failed, otherwise we may run dependent goals
+            // that depend on this pass completing successfully.
+            if (goal() != null)
+        	goal().fail();
 
             if (catchErrors(n)) {
                 this.error = false;

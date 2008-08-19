@@ -15,13 +15,13 @@ import polyglot.util.InternalCompilerError;
 
 /** A class resolver implemented as a map from names to types. */
 public class TableResolver implements TopLevelResolver {
-    protected Map table;
+    protected Map<String,Named> table;
 
     /**
      * Create a resolver.
      */
     public TableResolver() {
-	this.table = new HashMap();
+	this.table = new HashMap<String, Named>();
     }
 
     /**
@@ -45,9 +45,8 @@ public class TableResolver implements TopLevelResolver {
 
     public boolean packageExists(String name) {
         /* Check if a package exists in the table. */
-        for (Iterator i = table.entrySet().iterator(); i.hasNext(); ) {
-            Map.Entry e = (Map.Entry) i.next();
-            Named type = (Named) e.getValue();
+        for (Map.Entry<String, Named> e : table.entrySet()) {
+            Named type = e.getValue();
             if (type instanceof Importable) {
                 Importable im = (Importable) type;
                 if (im.package_() != null &&
@@ -64,7 +63,9 @@ public class TableResolver implements TopLevelResolver {
     /**
      * Find a type by name.
      */
-    public Named find(String name) throws SemanticException {
+    public Named find(Matcher<Named> matcher) throws SemanticException {
+	String name = matcher.name();
+	
         if (Report.should_report(TOPICS, 3))
 	    Report.report(3, "TableCR.find(" + name + ")");
 

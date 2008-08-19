@@ -60,7 +60,7 @@ public class AmbAssign_c extends Assign_c implements AmbAssign
       v.visitCFG(right(), this, EXIT);
   }
   
-  public Node disambiguate(TypeChecker ar) throws SemanticException {
+  public Node disambiguate(ContextVisitor ar) throws SemanticException {
       AmbAssign_c n = (AmbAssign_c) super.disambiguate(ar);
       
       if (left instanceof Local) {
@@ -78,11 +78,11 @@ public class AmbAssign_c extends Assign_c implements AmbAssign
       // throw new SemanticException("Could not disambiguate left side of assignment!", n.position());
   }
   
-  public Assign typeCheckLeft(TypeChecker tc) throws SemanticException {
+  public Assign typeCheckLeft(ContextVisitor tc) throws SemanticException {
       // Didn't finish disambiguation; just return.
       return this;
   }
-  public Node typeCheck(TypeChecker tc) throws SemanticException {
+  public Node typeCheck(ContextVisitor tc) throws SemanticException {
       // Didn't finish disambiguation; just return.
       return this;
   }

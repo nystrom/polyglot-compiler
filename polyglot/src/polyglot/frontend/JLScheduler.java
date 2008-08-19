@@ -42,13 +42,14 @@ public class JLScheduler extends Scheduler {
 
         goals.add(Parsed(job));
         goals.add(TypesInitialized(job));
-        goals.add(TypesInitializedForCommandLine());
         goals.add(ImportTableInitialized(job));
         
         goals.add(PreTypeCheck(job));
+        goals.add(TypesInitializedForCommandLine());
         goals.add(TypeChecked(job));
         goals.add(ReassembleAST(job));
         
+        goals.add(ConformanceChecked(job));
         goals.add(ReachabilityChecked(job));
         goals.add(ExceptionsChecked(job));
         goals.add(ExitPathsChecked(job));
@@ -71,9 +72,9 @@ public class JLScheduler extends Scheduler {
         NodeFactory nf = job.extensionInfo().nodeFactory();
         Goal g = new VisitorGoal("ImportTableInitialized", job, new InitImportsVisitor(job, ts, nf));
         Goal g2 = g.intern(this);
-        if (g == g2) {
-            g.addPrereq(TypesInitializedForCommandLine());
-        }
+//        if (g == g2) {
+//            g.addPrereq(TypesInitializedForCommandLine());
+//        }
         return g2;
     }
 
@@ -87,7 +88,7 @@ public class JLScheduler extends Scheduler {
         NodeFactory nf = extInfo.nodeFactory();
         return new BarrierGoal("TypesInitializedForCommandLine", commandLineJobs()) {
             public Goal prereqForJob(Job job) {
-                return TypesInitialized(job);
+                return PreTypeCheck(job);
             }
         }.intern(this);
     }
@@ -121,6 +122,12 @@ public class JLScheduler extends Scheduler {
     	TypeSystem ts = job.extensionInfo().typeSystem();
     	NodeFactory nf = job.extensionInfo().nodeFactory();
     	return new VisitorGoal("TypeChecked", job, new TypeChecker(job, ts, nf, job.nodeMemo())).intern(this);
+    }
+    
+    public Goal ConformanceChecked(Job job) {
+	TypeSystem ts = job.extensionInfo().typeSystem();
+	NodeFactory nf = job.extensionInfo().nodeFactory();
+	return new VisitorGoal("ConformanceChecked", job, new ConformanceChecker(job, ts, nf)).intern(this);
     }
     
     public Goal ReachabilityChecked(Job job) {
@@ -240,7 +247,8 @@ public class JLScheduler extends Scheduler {
         public boolean runTask() {
         	LazyRef<ClassDef> ref = (LazyRef<ClassDef>) typeRef();
         	try {
-        		Named n = Globals.TS().systemResolver().find(className);
+        		TypeSystem ts = Globals.TS();
+			Named n = ts.systemResolver().find(ts.TypeMatcher(className));
         		if (n instanceof ClassType) {
         			ClassType ct = (ClassType) n;
         			ClassDef def = ct.def();

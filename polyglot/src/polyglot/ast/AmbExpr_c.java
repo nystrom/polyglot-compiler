@@ -72,7 +72,7 @@ public class AmbExpr_c extends Expr_c implements AmbExpr
   }
 
   /** Disambiguate the expression. */
-  public Node disambiguate(TypeChecker ar) throws SemanticException {
+  public Node disambiguate(ContextVisitor ar) throws SemanticException {
     Position pos = position();
     Disamb disamb = ar.nodeFactory().disamb();
     Node n = disamb.disambiguate(this, ar, pos, null, name);
@@ -85,7 +85,7 @@ public class AmbExpr_c extends Expr_c implements AmbExpr
                                 "variable \"" + name + "\".", pos);
   }
 
-  public Node typeCheck(TypeChecker tc) throws SemanticException {
+  public Node typeCheck(ContextVisitor tc) throws SemanticException {
       assert false;
       // Didn't finish disambiguation; just return.
       return this;

@@ -8,10 +8,9 @@
 
 package polyglot.ast;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
-import polyglot.frontend.Globals;
-import polyglot.frontend.Goal;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -173,7 +172,7 @@ public class Initializer_c extends Term_c implements Initializer
     }
 
     /** Type check the initializer. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
 	TypeSystem ts = tc.typeSystem();
 
 	Flags flags = this.flags.flags();

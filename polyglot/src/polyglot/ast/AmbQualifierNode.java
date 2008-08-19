@@ -16,7 +16,7 @@ public interface AmbQualifierNode extends Ambiguous, QualifierNode
     /**
      * Qualifier of the qualifier.
      */
-    QualifierNode qual();
+    Prefix prefix();
 
     /**
      * Ambiguous name.

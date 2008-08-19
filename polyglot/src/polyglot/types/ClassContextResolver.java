@@ -39,7 +39,9 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
      * @param name The name to search for.
      * @param accessor Class the name is accesses from.  If null, no access checks are performed.
      */
-    public Named find(String name, ClassDef accessor) throws SemanticException {
+    public Named find(Matcher<Named> matcher, ClassDef accessor) throws SemanticException {
+	String name = matcher.name();
+	
         if (Report.should_report(TOPICS, 2))
 	    Report.report(2, "Looking for " + name + " in " + this);
 
@@ -89,7 +91,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
 
             if (useLoadedResolver) {
                 try {
-                    m = ts.systemResolver().find(rawName);
+                    m = ts.systemResolver().find(ts.TypeMatcher(rawName));
                 }
                 catch (SemanticException e) {
                     // Not found; will fall through to error handling code
@@ -142,7 +144,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             if (sup instanceof ClassType) {
                 Resolver r = ts.classContextResolver((ClassType) sup, accessor);
                 try {
-                    Named n = r.find(name);
+                    Named n = r.find(ts.MemberTypeMatcher(type, name));
                     acceptable.add(n);
                 }
                 catch (SemanticException e) {
@@ -155,7 +157,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             if (sup instanceof ClassType) {
                 Resolver r = ts.classContextResolver((ClassType) sup, accessor);
                 try {
-                    Named n = r.find(name);
+                    Named n = r.find(ts.MemberTypeMatcher(type, name));
                     acceptable.add(n);
                 }
                 catch (SemanticException e) {

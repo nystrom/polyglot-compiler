@@ -93,7 +93,7 @@ public class NodeFactory_c extends AbstractNodeFactory_c
         return n;
     }
 
-    public AmbQualifierNode AmbQualifierNode(Position pos, QualifierNode qualifier, Id name) {
+    public AmbQualifierNode AmbQualifierNode(Position pos, Prefix qualifier, Id name) {
         AmbQualifierNode n = new AmbQualifierNode_c(pos, qualifier, name);
         n = (AmbQualifierNode)n.ext(extFactory.extAmbQualifierNode());
         n = (AmbQualifierNode)n.del(delFactory.delAmbQualifierNode());
@@ -107,7 +107,7 @@ public class NodeFactory_c extends AbstractNodeFactory_c
         return n;
     }
     
-    public AmbTypeNode AmbTypeNode(Position pos, QualifierNode qualifier, Id name) {
+    public AmbTypeNode AmbTypeNode(Position pos, Prefix qualifier, Id name) {
         AmbTypeNode n = new AmbTypeNode_c(pos, qualifier, name);
         n = (AmbTypeNode)n.ext(extFactory.extAmbTypeNode());
         n = (AmbTypeNode)n.del(delFactory.delAmbTypeNode());
