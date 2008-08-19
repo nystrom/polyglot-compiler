@@ -1630,7 +1630,12 @@ public class TypeSystem_c implements TypeSystem
 				}
 				catch (SemanticException e) {
 					// Treat any instantiation errors as call invalid errors.
-				    System.out.println(e);
+				    if (error == null)
+					error = new NoMemberException(NoMemberException.METHOD,
+					                              "Method " + mi.signature() +
+					                              " in " + container +
+					                              " cannot be called with arguments " +
+					                              matcher.argumentString() + "); " + e.getMessage()); 
 				}
 
 				if (error == null) {
