@@ -1,0 +1,9 @@
+To run the test cases:
+
+pth pthScript
+
+Known failures:
+
+LocalClass2.jl
+Switch7.jl
+BadInterfaceMethod.jl
