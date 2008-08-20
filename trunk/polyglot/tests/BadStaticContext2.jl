@@ -4,9 +4,9 @@ class BadStaticContext {
   }
   class Y extends Z {
     Y() {
-	super(m());
+	super(x);
     }
 
-    BadStaticContext m() { return BadStaticContext.this; }
+    Object x;
   }
 }
