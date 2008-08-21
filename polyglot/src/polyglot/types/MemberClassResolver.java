@@ -11,7 +11,6 @@ import java.util.*;
 
 import polyglot.main.Report;
 import polyglot.util.CollectionUtil;
-import polyglot.util.StringUtil;
 
 /**
  * Loads member classes using a TopLevelResolver that can only handle
@@ -22,7 +21,7 @@ public class MemberClassResolver implements TopLevelResolver
     protected TypeSystem ts;
     protected TopLevelResolver inner;
     protected boolean allowRawClasses;
-    protected Set nocache;
+    protected Set<QName> nocache;
 
   protected final static Collection report_topics = CollectionUtil.list(
     Report.types, Report.resolver, Report.loader, "mcr");
@@ -36,25 +35,23 @@ public class MemberClassResolver implements TopLevelResolver
     this.ts = ts;
     this.inner = inner;
     this.allowRawClasses = allowRawClasses;
-    this.nocache = new HashSet();
+    this.nocache = new HashSet<QName>();
   }
 
-  public boolean packageExists(String name) {
+  public boolean packageExists(QName name) {
     return inner.packageExists(name);
   }
 
   /**
    * Find a type by name.
    */
-  public Named find(Matcher<Named> matcher) throws SemanticException {
-    String name = matcher.name();
-      
+  public Named find(QName name) throws SemanticException {
     if (Report.should_report(report_topics, 3))
       Report.report(3, "MemberCR.find(" + name + ")");
 
 
     if (nocache.contains(name)) {
-        throw new NoClassException(name);
+        throw new NoClassException(name.toString());
     }
 
     Named n = ts.systemResolver().check(name);
@@ -69,12 +66,12 @@ public class MemberClassResolver implements TopLevelResolver
     try {
         if (Report.should_report(report_topics, 2))
             Report.report(2, "MCR: loading " + name + " from " + inner);
-        return inner.find(matcher);
+        return inner.find(name);
     }
     catch (SemanticException e) {
         if (Report.should_report(report_topics, 2))
             Report.report(2, "MCR: " + e.getMessage());
-        if (StringUtil.isNameShort(name)) {
+        if (name.qualifier() == null) {
             throw e;
         }
         error = e;
@@ -84,8 +81,11 @@ public class MemberClassResolver implements TopLevelResolver
 
     // Now try the prefix of the name and look for a member class
     // within it named with the suffix.
-    String prefix = StringUtil.getPackageComponent(name);
-    String suffix = StringUtil.getShortNameComponent(name);
+    QName prefix = name.qualifier();
+    Name suffix = name.name();
+
+    // We should have thrown an exception above if prefix is null.
+    assert prefix != null;
 
     // Try the full name of the prefix first, then the raw class name,
     // so that encoded type information and source files are preferred
@@ -94,7 +94,7 @@ public class MemberClassResolver implements TopLevelResolver
         if (Report.should_report(report_topics, 2))
             Report.report(2, "MCR: loading prefix " + prefix);
 
-        n = find(ts.TypeMatcher(prefix));
+        n = find(prefix);
 
         return findMember(n, suffix);
     }
@@ -108,7 +108,7 @@ public class MemberClassResolver implements TopLevelResolver
     throw error;
   }
 
-  protected Named findMember(Named container, String name) throws SemanticException {
+  protected Named findMember(Named container, Name name) throws SemanticException {
       if (container instanceof ClassType) {
           ClassType ct = (ClassType) container;
 
@@ -117,7 +117,7 @@ public class MemberClassResolver implements TopLevelResolver
 
           // Uncomment if we should search superclasses
           // return ct.resolver().find(name);
-          Named n = ct.memberTypeNamed(name);
+          Named n = ct.memberTypeMatching(ts.MemberTypeMatcher(ct, name));
 
           if (n != null) {
               if (Report.should_report(report_topics, 2))

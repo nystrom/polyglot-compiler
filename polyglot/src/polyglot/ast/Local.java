@@ -20,12 +20,6 @@ public interface Local extends NamedVariable
     /** Set the name of the local variable. */
     Local name(Id name);
 
-    /** Get the name of the local variable. */
-    String nameString();
-
-    /** Set the name of the local variable. */
-    Local nameString(String name);
-
     /**
      * Get the type object for the local.  This field may not be valid until
      * after type checking.

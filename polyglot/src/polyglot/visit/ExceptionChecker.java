@@ -226,7 +226,7 @@ public class ExceptionChecker extends ErrorHandlingVisitor
             this.codeType = codeType;
         }
         void uncaughtType(Type t, Position pos) throws SemanticException {
-            throw new SemanticException(codeType + " cannot throw a \"" + t + "\".", pos);
+            throw new SemanticException(codeType + " cannot throw a \"" + t + "\"; the exception must either be caught or declared to be thrown.", pos);
         }
     }
     

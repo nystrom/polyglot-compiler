@@ -7,9 +7,12 @@
 
 package polyglot.types;
 
-public interface TopLevelResolver extends Resolver {
+public interface TopLevelResolver {
+    /** Find a Named thing by a qualified name. */
+    public Named find(QName name) throws SemanticException;
+    
     /**
      * Check if a package exists.
      */
-    public boolean packageExists(String name);
+    public boolean packageExists(QName name);
 }

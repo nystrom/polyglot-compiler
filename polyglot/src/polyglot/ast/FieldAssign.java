@@ -18,7 +18,6 @@ import polyglot.types.*;
  */
 public interface FieldAssign extends Assign
 {
-
     public Receiver target();
     public FieldAssign target(Receiver target);
 
@@ -27,4 +26,7 @@ public interface FieldAssign extends Assign
 
     public FieldAssign fieldInstance(FieldInstance fi);
     public FieldInstance fieldInstance();
+    
+    public boolean targetImplicit();
+    FieldAssign targetImplicit(boolean f);
 }

@@ -135,6 +135,6 @@ public class ExtensionCleaner extends NodeVisitor {
             }
         }
                   
-        return nf.PackageNode(n.position(), Types.ref(ts.createPackage(n.toString())));
+        return nf.PackageNode(n.position(), Types.ref(ts.createPackage(QName.make(n.toString()))));
     }
 }

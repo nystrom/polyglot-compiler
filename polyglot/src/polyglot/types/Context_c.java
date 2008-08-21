@@ -88,19 +88,14 @@ public class Context_c implements Context
     protected ClassType type;
     protected ClassDef scope;
     protected CodeDef code;
-    protected Map<String,Named> types;
-    protected Map<String,VarInstance<?>> vars;
+    protected Map<Name,Named> types;
+    protected Map<Name,VarInstance<?>> vars;
     protected boolean inCode;
 
     /**
      * Is the context static?
      */
     protected boolean staticContext;
-
-    /** @deprecated */
-    public Resolver outerResolver() {
-        return ts.systemResolver();
-    }
 
     public ImportTable importTable() {
         return it;
@@ -116,7 +111,7 @@ public class Context_c implements Context
      * in this scope, we ask the parent scope, but don't traverse to enclosing
      * classes.
      */
-    public boolean isLocal(String name) {
+    public boolean isLocal(Name name) {
         if (isClass()) {
             return false;
         }
@@ -169,7 +164,7 @@ public class Context_c implements Context
     /**
      * Gets a local of a particular name.
      */
-    public LocalInstance findLocal(String name) throws SemanticException {
+    public LocalInstance findLocal(Name name) throws SemanticException {
 	VarInstance vi = findVariableSilent(name);
 
 	if (vi instanceof LocalInstance) {
@@ -182,7 +177,7 @@ public class Context_c implements Context
     /**
      * Finds the class which added a field to the scope.
      */
-    public ClassType findFieldScope(String name) throws SemanticException {
+    public ClassType findFieldScope(Name name) throws SemanticException {
         if (Report.should_report(TOPICS, 3))
           Report.report(3, "find-field-scope " + name + " in " + this);
 
@@ -203,7 +198,7 @@ public class Context_c implements Context
 
     /** Finds the class which added a method to the scope.
      */
-    public ClassType findMethodScope(String name) throws SemanticException {
+    public ClassType findMethodScope(Name name) throws SemanticException {
         if (Report.should_report(TOPICS, 3))
           Report.report(3, "find-method-scope " + name + " in " + this);
 
@@ -225,7 +220,7 @@ public class Context_c implements Context
     /**
      * Gets a field of a particular name.
      */
-    public FieldInstance findField(String name) throws SemanticException {
+    public FieldInstance findField(Name name) throws SemanticException {
 	VarInstance vi = findVariableSilent(name);
 
 	if (vi instanceof FieldInstance) {
@@ -246,7 +241,7 @@ public class Context_c implements Context
     /**
      * Gets a local or field of a particular name.
      */
-    public VarInstance<?> findVariable(String name) throws SemanticException {
+    public VarInstance<?> findVariable(Name name) throws SemanticException {
         VarInstance<?> vi = findVariableSilent(name);
 
 	if (vi != null) {
@@ -261,7 +256,7 @@ public class Context_c implements Context
     /**
      * Gets a local or field of a particular name.
      */
-    public VarInstance<?> findVariableSilent(String name) {
+    public VarInstance<?> findVariableSilent(Name name) {
         if (Report.should_report(TOPICS, 3))
           Report.report(3, "find-var " + name + " in " + this);
 
@@ -300,7 +295,7 @@ public class Context_c implements Context
             Report.report(3, "find-type " + matcher.signature() + " in " + this);
 
         if (isOuter())
-            return ts.systemResolver().find(matcher);
+            return ts.systemResolver().find(QName.make(null, matcher.name())); // NOTE: looking up a short name
         if (isSource())
             return it.find(matcher);
 
@@ -459,7 +454,7 @@ public class Context_c implements Context
     }
 
     public Named findInThisScope(Matcher<Named> matcher) {
-	String name = matcher.name();
+	Name name = matcher.name();
 	
         Named t = null;
         if (types != null) {
@@ -485,18 +480,18 @@ public class Context_c implements Context
     }
 
     public void addNamedToThisScope(Named type) {
-        if (types == null) types = new HashMap();
+        if (types == null) types = new HashMap<Name, Named>();
         types.put(type.name(), type);
     }
 
-    public ClassType findMethodContainerInThisScope(String name) {
+    public ClassType findMethodContainerInThisScope(Name name) {
         if (isClass() && ts.hasMethodNamed(this.currentClass(), name)) {
             return this.type;
         }
         return null;
     }
 
-    public VarInstance<?> findVariableInThisScope(String name) {
+    public VarInstance<?> findVariableInThisScope(Name name) {
         VarInstance<?> vi = null;
         
         if (vars != null) {
@@ -515,7 +510,7 @@ public class Context_c implements Context
     }
 
     public void addVariableToThisScope(VarInstance<?> var) {
-        if (vars == null) vars = new HashMap<String,VarInstance<?>>();
+        if (vars == null) vars = new HashMap<Name,VarInstance<?>>();
         vars.put(var.name(), var);
     }
 

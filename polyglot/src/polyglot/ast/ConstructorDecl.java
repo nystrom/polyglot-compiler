@@ -33,15 +33,6 @@ public interface ConstructorDecl extends ProcedureDecl
     /** Set the constructor's name. */
     ConstructorDecl name(Id name);
 
-    /**
-     * The constructor's name.  This should be the short name of the
-     * containing class.
-     */
-    String nameString();
-
-    /** Set the constructor's name. */
-    ConstructorDecl nameString(String name);
-
     /** The constructor's formal parameters.
      * @return A list of {@link polyglot.ast.Formal Formal}.
      */

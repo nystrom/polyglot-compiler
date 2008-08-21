@@ -85,8 +85,8 @@ public interface ClassType extends Importable, ObjectType, MemberInstance<ClassD
     List<ClassType> memberClasses();
 
     /** Returns the member class with the given name, or null. */
-    ClassType memberClassNamed(String name);
-    Named memberTypeNamed(String name);
+    ClassType memberClassMatching(Matcher<Named> name);
+    Named memberTypeMatching(Matcher<Named> matcher);
     
     /** Return true if the class is strictly contained in <code>outer</code>. */
     boolean isEnclosed(ClassType outer);

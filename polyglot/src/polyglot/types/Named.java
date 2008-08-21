@@ -15,7 +15,7 @@ public interface Named extends TypeObject
     /**
      * Simple name of the type object. Anonymous classes do not have names.
      */
-    String name();
+    Name name();
 
     /**
      * Full dotted-name of the type object. For a package, top level class, 
@@ -28,7 +28,7 @@ public interface Named extends TypeObject
      * qualified names), but that may be suitable for debugging or error 
      * messages. 
      */
-    String fullName();
+    QName fullName();
     
     /**
      * Return true if the class is global; that is top-level or a member of a global class.

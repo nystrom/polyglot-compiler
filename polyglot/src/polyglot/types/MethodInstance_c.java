@@ -11,7 +11,7 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
         super(ts, pos, def);
     }
     
-    protected String name;
+    protected Name name;
     protected Flags flags;
     protected StructType container;
     
@@ -41,13 +41,13 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
         return this.flags;
     }
     
-    public MethodInstance name(String name) {
+    public MethodInstance name(Name name) {
         MethodInstance_c p = (MethodInstance_c) copy();
         p.name = name;
         return p;
     }
 
-    public String name() {
+    public Name name() {
         if (this.name == null) { 
             this.name = def().name();
         }
@@ -92,6 +92,11 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
         };
 
         return l;
+    }
+    
+    @Override
+    public String signature() {
+	return name + super.signature();
     }
 
     /**

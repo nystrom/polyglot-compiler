@@ -77,7 +77,7 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
         return outer.asType();
     }
 
-    public String name() {
+    public Name name() {
         return def().name();
     }
 
@@ -127,7 +127,7 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
     }
     
     /** Return a list of all methods with the given name. */
-    public List<MethodInstance> methodsNamed(String name) {
+    public List<MethodInstance> methodsNamed(Name name) {
         List<MethodInstance> l = new ArrayList<MethodInstance>();
         for (MethodInstance mi : methods()) {
             if (mi.name().equals(name)) {
@@ -145,7 +145,7 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
     }
     
     /** Get a field of the class by name. */
-    public FieldInstance fieldNamed(String name) {
+    public FieldInstance fieldNamed(Name name) {
         for (Iterator<FieldInstance> i = fields().iterator(); i.hasNext(); ) {
             FieldInstance fi = (FieldInstance) i.next();
             if (fi.name().equals(name)) {

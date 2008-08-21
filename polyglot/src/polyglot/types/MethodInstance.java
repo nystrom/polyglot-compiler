@@ -6,9 +6,9 @@ public interface MethodInstance extends FunctionInstance<MethodDef>, MemberInsta
     /**
      * The method's name.
      */
-    String name();
+    Name name();
 
-    MethodInstance name(String name);
+    MethodInstance name(Name name);
     MethodInstance returnType(Type returnType);
     MethodInstance formalTypes(List<Type> formalTypes);
     MethodInstance throwTypes(List<Type> throwTypes);

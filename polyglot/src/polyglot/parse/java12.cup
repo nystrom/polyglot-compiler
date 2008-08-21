@@ -30,6 +30,7 @@ import polyglot.lex.*;
 import polyglot.util.*;
 import polyglot.types.TypeSystem;
 import polyglot.types.Flags;
+import polyglot.types.QName;
 import polyglot.ast.Assert;
 
 /** Java Parser for CUP */
@@ -60,13 +61,13 @@ parser Grm extends BaseParser {:
   }
 
   protected Position posForObject(Object o) {
-      if (o instanceof Name) {
-          return pos ((Name) o);
+      if (o instanceof ParsedName) {
+          return pos ((ParsedName) o);
       }
       return super.posForObject(o);
   }      
 
-  public Position pos (Name n) {
+  public Position pos (ParsedName n) {
     if (n == null) return null;
     else return n.pos;
   }
@@ -168,7 +169,7 @@ non terminal TypeNode class_or_interface_type;
 non terminal TypeNode class_type, interface_type;
 non terminal TypeNode array_type;
 // 19.5) Names
-non terminal Name name, simple_name, qualified_name;
+non terminal ParsedName name, simple_name, qualified_name;
 // 19.6) Packages
 non terminal SourceFile compilation_unit;
 non terminal PackageNode package_declaration_opt, package_declaration;
@@ -401,21 +402,21 @@ array_type ::=
     ;
 // 19.5) Names
 name    ::=
-                    // Name
+                    // ParsedName
         simple_name:a
             {: RESULT = a; :}
     |   qualified_name:a
             {: RESULT = a; :}
     ;
 simple_name ::=
-                    // Name
+                    // ParsedName
         identifier:a
-            {: RESULT = new Name(parser.nf, parser.ts, parser.pos(a), a); :}
+            {: RESULT = new ParsedName(parser.nf, parser.ts, parser.pos(a), a); :}
     ;
 qualified_name ::=
-                    // Name
+                    // ParsedName
         name:a DOT identifier:b
-            {: RESULT = new Name(parser.nf, parser.ts, parser.pos(a, b), a, b); :}
+            {: RESULT = new ParsedName(parser.nf, parser.ts, parser.pos(a, b), a, b); :}
     ;
 // 19.6) Packages
 compilation_unit ::=
@@ -490,12 +491,12 @@ import_declaration ::=
 single_type_import_declaration ::=
                     // Import
         IMPORT:a qualified_name:b SEMICOLON:c
-            {: RESULT = parser.nf.Import(parser.pos(a, c), Import.CLASS, b.toString()); :}
+            {: RESULT = parser.nf.Import(parser.pos(a, c), Import.CLASS, QName.parse(b.toString())); :}
     ;
 type_import_on_demand_declaration ::=
                     // Import
         IMPORT:a name:b DOT MULT SEMICOLON:c
-            {: RESULT = parser.nf.Import(parser.pos(a, c), Import.PACKAGE, b.toString()); :}
+            {: RESULT = parser.nf.Import(parser.pos(a, c), Import.PACKAGE, QName.parse(b.toString())); :}
     ;
 type_declaration ::=
                     // ClassDecl
@@ -1203,7 +1204,7 @@ statement_expression_list ::=
     ;
 
 identifier_opt ::=
-                    // Name
+                    // ParsedName
             {: RESULT = null; :}
     |   identifier:a
             {: RESULT = a; :}

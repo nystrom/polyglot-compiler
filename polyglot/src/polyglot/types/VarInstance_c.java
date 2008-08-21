@@ -56,16 +56,16 @@ public class VarInstance_c<T extends VarDef> extends Use_c<T> implements VarInst
         return v;
     }
 
-    String name;
+    Name name;
 
-    public String name() {
+    public Name name() {
         if (name == null) {
             name = def().name();
         }
         return name;
     }
 
-    public VarInstance<T> name(String name) {
+    public VarInstance<T> name(Name name) {
         VarInstance_c<T> v = (VarInstance_c<T>) copy();
         v.name = name;
         return v;

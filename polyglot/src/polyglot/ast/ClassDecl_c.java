@@ -83,14 +83,6 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         return n;
     }
 
-    public String nameString() {
-        return this.name.id();
-    }
-
-    public ClassDecl nameString(String name) {
-        return name(this.name.id(name));
-    }
-
     public TypeNode superClass() {
         return this.superClass;
     }
@@ -279,7 +271,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
     protected void setSuperClass(TypeSystem ts, ClassDef thisType) throws SemanticException {
         TypeNode superClass = this.superClass;
         
-        String objectName = ((ClassType) ts.Object()).fullName();
+        QName objectName = ((ClassType) ts.Object()).fullName();
 
         if (superClass != null) {
             Ref<? extends Type> t = superClass.typeRef();
@@ -417,7 +409,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         TypeSystem ts = tc.typeSystem();
 
         ClassType type = this.type.asType();
-        String name = this.name.id();
+        Name name = this.name.id();
 
         // The class cannot have the same simple name as any enclosing class.
         if (type.isNested()) {
@@ -425,7 +417,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
 
             while (container != null) {
                 if (!container.isAnonymous()) {
-                    String cname = container.name();
+                    Name cname = container.name();
 
                     if (cname.equals(name)) {
                         throw new SemanticException("Cannot declare member " +

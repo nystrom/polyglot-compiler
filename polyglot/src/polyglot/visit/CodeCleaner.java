@@ -10,6 +10,7 @@ package polyglot.visit;
 import java.util.*;
 
 import polyglot.ast.*;
+import polyglot.types.Name;
 
 /**
  * The <code>CodeCleaner</code> runs over the AST and performs some trivial
@@ -114,8 +115,8 @@ public class CodeCleaner extends NodeVisitor {
   /**
    * Traverses a Block and determines the set of label references.
    **/
-  protected Set<String> labelRefs( Block b ) {
-    final Set<String> result = new HashSet();
+  protected Set<Name> labelRefs( Block b ) {
+    final Set<Name> result = new HashSet();
     b.visit( new NodeVisitor() {
 	public Node leave( Node old, Node n, NodeVisitor v ) {
 	  if ( n instanceof Branch ) {

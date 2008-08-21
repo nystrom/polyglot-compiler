@@ -169,12 +169,12 @@ public class SourceFile_c extends Node_c implements SourceFile
 
     /** Type check the source file. */
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-	Set names = new HashSet();
+	Set<Name> names = new HashSet<Name>();
 	boolean hasPublic = false;
 
 	for (Iterator i = decls.iterator(); i.hasNext();) {
 	    TopLevelDecl d = (TopLevelDecl) i.next();
-	    String s = d.nameString();
+	    Name s = d.name().id();
 
 	    if (names.contains(s)) {
 		throw new SemanticException("Duplicate declaration: \"" + s + 

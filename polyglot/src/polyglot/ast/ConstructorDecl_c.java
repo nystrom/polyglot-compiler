@@ -69,16 +69,6 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
         return n;
     }
 
-    /** Get the name of the constructor. */
-    public String nameString() {
-        return this.name.id();
-    }
-
-    /** Set the name of the constructor. */
-    public ConstructorDecl nameString(String name) {
-        return name(this.name.id(name));
-    }
-
     /** Get the formals of the constructor. */
     public List<Formal> formals() {
         return Collections.unmodifiableList(this.formals);
@@ -263,7 +253,7 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
 	                                position());
 	}
 	
-	String ctName = ct.name();
+	Name ctName = ct.name();
 	
 	if (! ctName.equals(name.id())) {
 	    throw new SemanticException("Constructor name \"" + name +
@@ -293,7 +283,7 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
     }
 
     public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
-        return ec.push(new ExceptionChecker.CodeTypeReporter("A constructor")).push(constructorDef().asInstance().throwTypes());
+        return ec.push(new ExceptionChecker.CodeTypeReporter("Constructor " + ci.signature())).push(constructorDef().asInstance().throwTypes());
     }
 
     public String toString() {

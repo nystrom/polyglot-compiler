@@ -43,16 +43,6 @@ public class Labeled_c extends Stmt_c implements Labeled
         return n;
     }
 
-    /** Get the label of the statement. */
-    public String label() {
-	return this.label.id();
-    }
-
-    /** Set the label of the statement. */
-    public Labeled label(String label) {
-	return labelNode(this.label.id(label));
-    }
-
     /** Get the sub-statement of the statement. */
     public Stmt statement() {
 	return this.statement;

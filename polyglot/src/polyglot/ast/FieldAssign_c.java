@@ -11,8 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import polyglot.types.*;
-import polyglot.util.InternalCompilerError;
-import polyglot.util.Position;
+import polyglot.util.*;
 import polyglot.visit.*;
 
 /**
@@ -24,6 +23,7 @@ import polyglot.visit.*;
  */
 public class FieldAssign_c extends Assign_c implements FieldAssign
 {
+    boolean targetImplicit;
     Receiver target;
     Id name;
     FieldInstance fi;
@@ -51,10 +51,21 @@ protected Assign reconstruct(Receiver target, Id name) {
       }
       return this;
 }
+
+public boolean targetImplicit() {
+    return targetImplicit;
+}
+
+    public FieldAssign targetImplicit(boolean f) {
+	FieldAssign_c n = (FieldAssign_c) copy();
+	n.targetImplicit = f;
+	return n;
+    }
   
   public Expr left(NodeFactory nf) {
       Field f = nf.Field(position(), target, name);
       if (fi != null) f = f.fieldInstance(fi);
+      f = f.targetImplicit(targetImplicit);
       if (type != null && fi != null) f = (Field) f.type(fi.type());
       return f;
   }

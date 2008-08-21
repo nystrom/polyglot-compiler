@@ -30,7 +30,7 @@ public class LoadedClassResolver implements TopLevelResolver
   protected TypeEncoder te;
   protected ClassPathLoader loader;
   protected Version version;
-  protected Set<String> nocache;
+  protected Set<QName> nocache;
   protected boolean allowRawClasses;
 
   protected final static Collection<String> report_topics = CollectionUtil.list(
@@ -52,7 +52,7 @@ public class LoadedClassResolver implements TopLevelResolver
     this.te = new TypeEncoder(ts);
     this.loader = new ClassPathLoader(classpath, loader);
     this.version = version;
-    this.nocache = new HashSet<String>();
+    this.nocache = new HashSet<QName>();
     this.allowRawClasses = allowRawClasses;
   }
 
@@ -60,20 +60,20 @@ public class LoadedClassResolver implements TopLevelResolver
     return allowRawClasses;
   }
 
-  public boolean packageExists(String name) {
-    return loader.packageExists(name);
+  public boolean packageExists(QName name) {
+    return loader.packageExists(name.toString());
   }
 
   /**
    * Load a class file for class <code>name</code>.
    */
-  protected ClassFile loadFile(String name) {
+  protected ClassFile loadFile(QName name) {
     if (nocache.contains(name)) {
         return null;
     }
     
     try {
-        ClassFile clazz = loader.loadClass(name);
+        ClassFile clazz = loader.loadClass(name.toString());
 
         if (clazz == null) {
             if (Report.should_report(report_topics, 4)) {
@@ -102,9 +102,7 @@ public class LoadedClassResolver implements TopLevelResolver
   /**
    * Find a type by name.
    */
-  public Named find(Matcher<Named> matcher) throws SemanticException {
-      String name = matcher.name();
-      
+  public Named find(QName name) throws SemanticException {
     if (Report.should_report(report_topics, 3))
       Report.report(3, "LoadedCR.find(" + name + ")");
  
@@ -113,7 +111,7 @@ public class LoadedClassResolver implements TopLevelResolver
     // First try the class file.
     ClassFile clazz = loadFile(name);
     if (clazz == null) {
-        throw new NoClassException(name);
+        throw new NoClassException(name.toString());
     }
 
     // Check for encoded type information.
@@ -132,7 +130,7 @@ public class LoadedClassResolver implements TopLevelResolver
     // Verify that the type we loaded has the right name.  This prevents,
     // for example, requesting a type through its mangled (class file) name.
     if (result != null) {
-        if (name.equals(result.fullName())) {
+        if (name.toString().equals(result.fullName())) {
             return result;
         }
         if (result instanceof ClassType && name.equals(ts.getTransformedClassName(((ClassType) result).def()))) {
@@ -155,7 +153,7 @@ public class LoadedClassResolver implements TopLevelResolver
   /**
    * Extract an encoded type from a class file.
    */
-  protected ClassType getEncodedType(ClassFile clazz, String name)
+  protected ClassType getEncodedType(ClassFile clazz, QName name)
     throws SemanticException
   {
     // At this point we've decided to go with the Class. So if something

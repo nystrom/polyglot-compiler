@@ -83,7 +83,7 @@ public class ClassFileLazyClassInitializer {
 
         // Set the ClassType's package.
         if (!packageName.equals("")) {
-            ct.setPackage(Types.ref(ts.packageForName(packageName)));
+            ct.setPackage(Types.ref(ts.packageForName(QName.make(packageName))));
         }
 
         // This is the "C$I$J" part.
@@ -139,10 +139,10 @@ public class ClassFileLazyClassInitializer {
         ct.kind(kind);
 
         if (ct.isTopLevel()) {
-            ct.name(className);
+            ct.name(Name.make(className));
         }
         else if (ct.isMember() || ct.isLocal()) {
-            ct.name(innerName);
+            ct.name(Name.make(innerName));
         }
         
         initSuperclass();
@@ -290,10 +290,10 @@ public class ClassFileLazyClassInitializer {
         LazyRef<ClassDef> sym = Types.lazyRef(ts.unknownClassDef(), null);
         
         if (flags == null) {
-            sym.setResolver(Globals.Scheduler().LookupGlobalTypeDef(sym, name));
+            sym.setResolver(Globals.Scheduler().LookupGlobalTypeDef(sym, QName.make(name)));
         }
         else {
-            sym.setResolver(Globals.Scheduler().LookupGlobalTypeDefAndSetFlags(sym, name, flags));
+            sym.setResolver(Globals.Scheduler().LookupGlobalTypeDefAndSetFlags(sym, QName.make(name), flags));
         }
         return sym;
     }
@@ -524,7 +524,7 @@ public class ClassFileLazyClassInitializer {
     
         return ts.methodDef(ct.position(), Types.ref(ct.asType()),
                                  ts.flagsForBits(method.getModifiers()),
-                                 returnType, name, argTypes, excTypes);
+                                 returnType, Name.make(name), argTypes, excTypes);
       }
 
     /**
@@ -576,7 +576,7 @@ public class ClassFileLazyClassInitializer {
     
       FieldDef fi = ts.fieldDef(ct.position(), Types.ref(ct.asType()),
                                           ts.flagsForBits(field.getModifiers()),
-                                          typeForString(type), name);
+                                          typeForString(type), Name.make(name));
     
       if (field.isConstant()) {
         Constant c = field.constantValue();

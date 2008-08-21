@@ -18,5 +18,5 @@ public interface TopLevelDecl extends Node
     FlagsNode flags();
 
     /** The declaration's name. */
-    String nameString();
+    Id name();
 }

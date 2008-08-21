@@ -100,9 +100,9 @@ public class ClassSerializer extends NodeVisitor
             String suffix = ver.name();
 
 	    // Check if we've already serialized.
-	    if (ct.fieldNamed("jlc$CompilerVersion$" + suffix) != null ||
-		ct.fieldNamed("jlc$SourceLastModified$" + suffix) != null ||
-		ct.fieldNamed("jlc$ClassType$" + suffix) != null) {
+	    if (ct.fieldNamed(Name.make("jlc$CompilerVersion$" + suffix)) != null ||
+		ct.fieldNamed(Name.make("jlc$SourceLastModified$" + suffix)) != null ||
+		ct.fieldNamed(Name.make("jlc$ClassType$" + suffix)) != null) {
 
 		eq.enqueue(ErrorInfo.SEMANTIC_ERROR,
 			   "Cannot serialize class information " +
@@ -126,7 +126,7 @@ public class ClassSerializer extends NodeVisitor
 
 	    fi = ts.fieldDef(pos, Types.ref(new ParsedClassType_c(cd)),
                                   flags, Types.ref(ts.String()),
-                                  "jlc$CompilerVersion$" + suffix);
+                                  Name.make("jlc$CompilerVersion$" + suffix));
             fi.setConstantValue(version);
             ii = ts.initializerDef(pos, Types.ref(new ParsedClassType_c(cd)), Flags.STATIC);
 	    f = nf.FieldDecl(fi.position(), nf.FlagsNode(fi.position(), fi.flags()),
@@ -143,7 +143,7 @@ public class ClassSerializer extends NodeVisitor
 
 	    fi = ts.fieldDef(pos, Types.ref(new ParsedClassType_c(cd)),
                                   flags, Types.ref(ts.Long()),
-                                  "jlc$SourceLastModified$" + suffix);
+                                  Name.make("jlc$SourceLastModified$" + suffix));
             fi.setConstantValue(new Long(time));
             ii = ts.initializerDef(pos, Types.ref(new ParsedClassType_c(cd)), Flags.STATIC);
 	    f = nf.FieldDecl(fi.position(), nf.FlagsNode(fi.position(), fi.flags()),
@@ -170,7 +170,7 @@ public class ClassSerializer extends NodeVisitor
                 String encoded = encodedTypeInfo.substring(etiStart, etiEnd);
                 fi = ts.fieldDef(pos, Types.ref(new ParsedClassType_c(cd)),
                                       flags, Types.ref(ts.String()),
-                                      "jlc$ClassType$" + suffix + additionalFieldSuffix);
+                                      Name.make("jlc$ClassType$" + suffix + additionalFieldSuffix));
                 fi.setConstantValue(encoded);
                 ii = ts.initializerDef(pos, Types.ref(new ParsedClassType_c(cd)), Flags.STATIC);
 

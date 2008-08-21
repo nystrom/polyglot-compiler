@@ -67,16 +67,6 @@ e = new Exception();
       return n;
   }
 
-  /** Get the name of the field. */
-  public String nameString() {
-    return this.name.id();
-  }
-
-  /** Set the name of the field. */
-  public Field nameString(String name) {
-      return name(this.name.id(name));
-  }
-
   /** Return the access flags of the variable. */
   public Flags flags() {
     return fi.flags();

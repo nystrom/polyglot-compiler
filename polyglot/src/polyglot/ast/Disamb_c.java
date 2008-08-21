@@ -185,7 +185,7 @@ public class Disamb_c implements Disamb
                     return makeTypeNode(type);
                 }
             } catch (NoClassException e) {
-                if (!name.id().equals(e.getClassName())) {
+                if (!name.id().toString().equals(e.getClassName())) {
                     // hmm, something else must have gone wrong
                     // rethrow the exception
                     throw e;
@@ -198,7 +198,7 @@ public class Disamb_c implements Disamb
 
         // Must be a package then...
         if (packageOK()) {
-            return nf.PackageNode(pos, Types.ref(ts.packageForName(name.id())));
+            return nf.PackageNode(pos, Types.ref(ts.packageForName(QName.make(null, name.id()))));
         }
 
         return null;
@@ -232,10 +232,10 @@ public class Disamb_c implements Disamb
 	    assert scope != null;
 	    
 	    if (! ts.typeEquals(scope, c.currentClass())) {
-		r = nf.This(pos.startOf(), nf.CanonicalTypeNode(pos.startOf(), scope)).type(scope);
+		r = (Special) nf.This(pos.startOf(), nf.CanonicalTypeNode(pos.startOf(), scope)).del().typeCheck(v);
 	    }
 	    else {
-		r = nf.This(pos.startOf()).type(scope);
+		r = (Special) nf.This(pos.startOf()).del().typeCheck(v);
 	    }
 	    
 	}
@@ -243,11 +243,11 @@ public class Disamb_c implements Disamb
 	return r;
     }
     
-    protected Receiver makeMissingFieldTarget(MethodInstance fi) throws SemanticException {
+    protected Receiver makeMissingMethodTarget(MethodInstance mi) throws SemanticException {
         Receiver r;
 
-        if (fi.flags().isStatic()) {
-            r = nf.CanonicalTypeNode(pos.startOf(), fi.container());
+        if (mi.flags().isStatic()) {
+            r = nf.CanonicalTypeNode(pos.startOf(), mi.container());
         } else {
             // The field is non-static, so we must prepend with
             // "this", but we need to determine if the "this"
@@ -258,12 +258,12 @@ public class Disamb_c implements Disamb
             ClassType scope = c.findMethodScope(name.id());
             assert scope != null;
 
-            if (! ts.typeEquals(scope, c.currentClass())) {
-                r = nf.This(pos.startOf(), nf.CanonicalTypeNode(pos.startOf(), scope)).type(scope);
-            }
-            else {
-                r = nf.This(pos.startOf()).type(scope);
-            }
+	    if (! ts.typeEquals(scope, c.currentClass())) {
+		r = (Special) nf.This(pos.startOf(), nf.CanonicalTypeNode(pos.startOf(), scope)).del().typeCheck(v);
+	    }
+	    else {
+		r = (Special) nf.This(pos.startOf()).del().typeCheck(v);
+	    }
             
         }
 

@@ -64,13 +64,18 @@ public class AmbAssign_c extends Assign_c implements AmbAssign
       AmbAssign_c n = (AmbAssign_c) super.disambiguate(ar);
       
       if (left instanceof Local) {
-          return ar.nodeFactory().LocalAssign(n.position(), (Local)left, operator(), right());
+          LocalAssign a = ar.nodeFactory().LocalAssign(n.position(), (Local)left, operator(), right());
+          return a;
       }
       else if (left instanceof Field) {
-          return ar.nodeFactory().FieldAssign(n.position(), ((Field)left).target(), ((Field)left).name(), operator(), right());
+          FieldAssign a = ar.nodeFactory().FieldAssign(n.position(), ((Field)left).target(), ((Field)left).name(), operator(), right());
+          a = a.targetImplicit(((Field) left).isTargetImplicit());
+          a = a.fieldInstance(((Field) left).fieldInstance());
+          return a;
       } 
       else if (left instanceof ArrayAccess) {
-          return ar.nodeFactory().ArrayAccessAssign(n.position(), ((ArrayAccess)left).array(), ((ArrayAccess)left).index(), operator(), right());
+          ArrayAccessAssign a = ar.nodeFactory().ArrayAccessAssign(n.position(), ((ArrayAccess)left).array(), ((ArrayAccess)left).index(), operator(), right());
+          return a;
       }
 
       // LHS is still ambiguous.  The pass should get rerun later.

@@ -83,16 +83,6 @@ public class MethodDecl_c extends Term_c implements MethodDecl
         return n;
     }
     
-    /** Get the name of the method. */
-    public String nameString() {
-        return this.name.id();
-    }
-
-    /** Set the name of the method. */
-    public MethodDecl nameString(String name) {
-        return name(this.name.id(name));
-    }
-
     /** Get the formals of the method. */
     public List<Formal> formals() {
 	return Collections.<Formal>unmodifiableList(this.formals);
@@ -338,7 +328,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
     }
 
     public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
-        return ec.push(new ExceptionChecker.CodeTypeReporter("A method")).push(methodDef().asInstance().throwTypes());
+        return ec.push(new ExceptionChecker.CodeTypeReporter("Method " + mi.signature())).push(methodDef().asInstance().throwTypes());
     }
 
     public String toString() {

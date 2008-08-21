@@ -18,6 +18,4 @@ public interface AmbExpr extends Expr, Ambiguous
      */
     Id name();
     AmbExpr name(Id name);
-    String nameString();
-    AmbExpr nameString(String name);
 }

@@ -200,13 +200,13 @@ public class JLScheduler extends Scheduler {
     }
 
     @Override
-    public Goal LookupGlobalTypeDef(LazyRef<ClassDef> sym, String className) {
+    public Goal LookupGlobalTypeDef(LazyRef<ClassDef> sym, QName className) {
         return LookupGlobalTypeDefAndSetFlags(sym, className, null);
     }
 
     @Override
     public Goal LookupGlobalTypeDefAndSetFlags(LazyRef<ClassDef> sym,
-            String className, Flags flags) {
+	    QName className, Flags flags) {
         return new LookupGlobalTypeDefAndSetFlags(sym, className, flags).intern(this);
     }
     
@@ -214,7 +214,7 @@ public class JLScheduler extends Scheduler {
         public LookupGlobalType(String name, Ref<Type> v) {
             super(name, v);
             ref = Types.lazyRef(null);
-			Goal g = Globals.Scheduler().LookupGlobalTypeDef(ref, name);
+			Goal g = Globals.Scheduler().LookupGlobalTypeDef(ref, null);
 			ref.setResolver(g);
         }
         
@@ -228,10 +228,10 @@ public class JLScheduler extends Scheduler {
     }
 
     protected static class LookupGlobalTypeDefAndSetFlags extends TypeObjectGoal_c<ClassDef> {
-        protected String className;
+        protected QName className;
         protected Flags flags;
 
-        private LookupGlobalTypeDefAndSetFlags(Ref<ClassDef> v, String className, Flags flags) {
+        private LookupGlobalTypeDefAndSetFlags(Ref<ClassDef> v, QName className, Flags flags) {
             super(v);
             this.className = className;
             this.flags = flags;
@@ -248,7 +248,7 @@ public class JLScheduler extends Scheduler {
         	LazyRef<ClassDef> ref = (LazyRef<ClassDef>) typeRef();
         	try {
         		TypeSystem ts = Globals.TS();
-			Named n = ts.systemResolver().find(ts.TypeMatcher(className));
+			Named n = ts.systemResolver().find(QName.make(className));
         		if (n instanceof ClassType) {
         			ClassType ct = (ClassType) n;
         			ClassDef def = ct.def();

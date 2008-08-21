@@ -10,8 +10,7 @@ package polyglot.util.typedump;
 
 import polyglot.util.*;
 import polyglot.util.*;
-import polyglot.types.Type;
-import polyglot.types.TypeSystem;
+import polyglot.types.*;
 import polyglot.frontend.ExtensionInfo;
 
 public class Main {
@@ -61,7 +60,7 @@ public class Main {
 
 	try {
 	    TypeSystem ts = extInfo.typeSystem();
-	    TypeDumper t = TypeDumper.load(className, ts);
+	    TypeDumper t = TypeDumper.load(QName.make(className), ts);
 
 	    CodeWriter cw = new OptimalCodeWriter(System.out, 72);
 	    

@@ -96,8 +96,8 @@ public class FlattenVisitor extends NodeVisitor
 
     protected static int count = 0;
 
-    protected static String newID() {
-	return "flat$$$" + count++;
+    protected static Name newID() {
+	return Name.make("flat$$$" + count++);
     }
 
     protected Set noFlatten = new HashSet();
@@ -198,7 +198,7 @@ public class FlattenVisitor extends NodeVisitor
 	    // create a local temp, initialized to the value of the complex
 	    // expression
 
-	    String name = newID();
+	    Name name = newID();
 	    LocalDecl def = nf.LocalDecl(e.position(), nf.FlagsNode(e.position(), Flags.FINAL),
 					 nf.CanonicalTypeNode(e.position(),
 					                      Types.<Type>ref(e.type())),

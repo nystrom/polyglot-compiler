@@ -435,7 +435,7 @@ public class CopyPropagator extends DataFlow {
 
 	    LocalDef root = in.getRoot(l.localInstance().def());
 	    if (root == null) return n;
-	    return l.nameString(root.name()).localInstance(root.asInstance());
+	    return l.name(l.name().id(root.name())).localInstance(root.asInstance());
 	}
 
 	if (n instanceof Unary) {

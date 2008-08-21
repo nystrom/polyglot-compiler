@@ -40,16 +40,6 @@ public class AmbPrefix_c extends Node_c implements AmbPrefix
         return n;
     }
 
-    /** Get the name of the prefix. */
-    public String nameString() {
-	return this.name.id();
-    }
-
-    /** Set the name of the prefix. */
-    public AmbPrefix nameString(String name) {
-        return name(this.name.id(name));
-    }
-
     /** Get the prefix of the prefix. */
     public Prefix prefix() {
 	return this.prefix;

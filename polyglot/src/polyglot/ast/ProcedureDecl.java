@@ -20,9 +20,6 @@ public interface ProcedureDecl extends CodeDecl
     /** The procedure's flags. */
     FlagsNode flags();
 
-    /** The procedure's name. */
-    String nameString();
-
     /** The procedure's formal parameters.
      * @return A list of {@link polyglot.ast.Formal Formal}.
      */

@@ -94,7 +94,7 @@ public class Field {
     public boolean isString(Type t) {
       return t.isClass()
           && t.toClass().isTopLevel()
-          && t.toClass().fullName().equals("java.lang.String");
+          && t.toClass().fullName().equals(QName.make("java.lang.String"));
     }
 
     public boolean isSynthetic() {

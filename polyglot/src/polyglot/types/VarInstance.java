@@ -10,8 +10,8 @@ public interface VarInstance<T extends VarDef> extends Use<T> {
     /**
      * The name of the variable.
      */
-    String name();
-    VarInstance<T> name(String name);
+    Name name();
+    VarInstance<T> name(Name name);
 
     /**
      * The type of the variable.

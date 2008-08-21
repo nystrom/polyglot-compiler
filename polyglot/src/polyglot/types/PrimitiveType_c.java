@@ -13,12 +13,12 @@ package polyglot.types;
  */
 public class PrimitiveType_c extends Type_c implements PrimitiveType
 {
-    protected String name;
+    protected Name name;
 
     /** Used for deserializing types. */
     protected PrimitiveType_c() { }
 
-    public PrimitiveType_c(TypeSystem ts, String name) {
+    public PrimitiveType_c(TypeSystem ts, Name name) {
             super(ts);
             this.name = name;
     }
@@ -28,11 +28,11 @@ public class PrimitiveType_c extends Type_c implements PrimitiveType
     }
 
     public String toString() {
-	return name;
+	return name.toString();
     }
 
     public String translate(Resolver c) {
-	return name;
+	return name.toString();
     }
 
     public boolean isPrimitive() { return true; }
@@ -54,11 +54,11 @@ public class PrimitiveType_c extends Type_c implements PrimitiveType
             return ts.wrapperTypeString(this);
     }
     
-    public String name() {
+    public Name name() {
 	return name;
     }
     
-    public String fullName() {
-            return name();
+    public QName fullName() {
+            return QName.make(null, name());
     }
 }

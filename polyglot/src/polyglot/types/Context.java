@@ -41,28 +41,28 @@ public interface Context extends Resolver, Copy
     MethodInstance findMethod(TypeSystem_c.MethodMatcher matcher) throws SemanticException;
 
     /** Looks up a local variable or field in the current scope. */
-    VarInstance<?> findVariable(String name) throws SemanticException;
+    VarInstance<?> findVariable(Name name) throws SemanticException;
 
     /** Looks up a local variable or field in the current scope. */
-    VarInstance<?> findVariableSilent(String name);
+    VarInstance<?> findVariableSilent(Name name);
 
     /** Looks up a local variable in the current scope. */
-    LocalInstance findLocal(String name) throws SemanticException;
+    LocalInstance findLocal(Name name) throws SemanticException;
 
     /** Looks up a field in the current scope. */
-    FieldInstance findField(String name) throws SemanticException;
+    FieldInstance findField(Name name) throws SemanticException;
 
     /**
      * Finds the class which added a field to the scope.
      * This is usually a subclass of <code>findField(name).container()</code>.
      */
-    ClassType findFieldScope(String name) throws SemanticException;
+    ClassType findFieldScope(Name name) throws SemanticException;
 
     /**
      * Finds the class which added a method to the scope.
      * This is usually a subclass of <code>findMethod(name).container()</code>.
      */
-    ClassType findMethodScope(String name) throws SemanticException;
+    ClassType findMethodScope(Name name) throws SemanticException;
 
     /** Get import table currently in scope. */
     ImportTable importTable();
@@ -92,7 +92,7 @@ public interface Context extends Resolver, Copy
     boolean inCode();
 
     /** Returns whether the symbol is defined within the current method. */
-    boolean isLocal(String name);
+    boolean isLocal(Name name);
 
     /** 
      * Returns whether the current context is a static context.

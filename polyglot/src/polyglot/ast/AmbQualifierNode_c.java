@@ -46,14 +46,6 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
         return n;
     }
 
-    public String nameString() {
-	return this.name.id();
-    }
-
-    public AmbQualifierNode nameString(String name) {
-        return name(this.name.id(name));
-    }
-
     public Prefix prefix() {
 	return this.qual;
     }
