@@ -34,9 +34,6 @@ public interface Formal extends VarDecl
     
     /** Set the name of the formal. */
     public Formal name(Id name);
-    
-    /** Set the name of the formal. */
-    public Formal nameString(String name);
 
     /** Get the local instance of the formal. */
     public LocalDef localDef();

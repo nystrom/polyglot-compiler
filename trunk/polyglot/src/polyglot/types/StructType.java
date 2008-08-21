@@ -21,7 +21,7 @@ public interface StructType extends Type {
     /**
      * Return the field named <code>name</code>, or null.
      */
-    FieldInstance fieldNamed(String name);
+    FieldInstance fieldNamed(Name name);
 
     /**
      * Return the type's methods.
@@ -36,7 +36,7 @@ public interface StructType extends Type {
      * @return A list of <code>MethodInstance</code>.
      * @see polyglot.types.MethodDef
      */
-    List<MethodInstance> methodsNamed(String name);
+    List<MethodInstance> methodsNamed(Name name);
 
     /**
      * Return the methods named <code>name</code> with the given formal
@@ -47,7 +47,7 @@ public interface StructType extends Type {
      * @see polyglot.types.Type
      * @see polyglot.types.MethodDef
      */
-    List<MethodInstance> methods(String name, List<Type> argTypes);
+    List<MethodInstance> methods(Name name, List<Type> argTypes);
 
     /**
      * Return the true if the type has the given method.

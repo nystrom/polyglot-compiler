@@ -23,8 +23,8 @@ public interface VarDef extends TypeObject, Def
     /**
      * The name of the variable.
      */
-    String name();
-    void setName(String name);
+    Name name();
+    void setName(Name name);
 
     /**
      * The type of the variable.

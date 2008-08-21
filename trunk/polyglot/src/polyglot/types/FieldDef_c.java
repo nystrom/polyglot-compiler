@@ -24,7 +24,7 @@ public class FieldDef_c extends VarDef_c implements FieldDef
     
     public FieldDef_c(TypeSystem ts, Position pos,
 			   Ref<? extends StructType> container,
-	                   Flags flags, Ref<? extends Type> type, String name) {
+	                   Flags flags, Ref<? extends Type> type, Name name) {
         super(ts, pos, flags, type, name);
         this.container = container;
     }

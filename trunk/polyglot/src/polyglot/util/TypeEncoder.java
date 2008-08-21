@@ -100,7 +100,7 @@ public class TypeEncoder
         if (test) {
             // Test it.
             try {
-                String name = null;
+                QName name = null;
                 if (t instanceof Named) {
                     name = ((Named) t).fullName();
                 }
@@ -124,7 +124,7 @@ public class TypeEncoder
      * @return The decoded TypeObject, or null if deserialization fails.
      * @throws InvalidClassException If the string is malformed.
      */
-    public TypeObject decode(String s, String name) throws InvalidClassException {
+    public TypeObject decode(String s, QName name) throws InvalidClassException {
         TypeInputStream ois;
         byte[] b;
         

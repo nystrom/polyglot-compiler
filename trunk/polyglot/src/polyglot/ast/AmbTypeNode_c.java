@@ -118,8 +118,4 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
             ? name.toString()
             : prefix.toString() + "." + name.toString()) + "{amb}";
   }
-  
-  public String nameString() {
-      return name.id();
-  }
 }

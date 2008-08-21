@@ -20,11 +20,11 @@ public interface MethodDef extends FunctionDef, MemberDef, Def
     /**
      * The method's name.
      */
-    String name();
+    Name name();
     
     /**
      * Destructively set the method's name.
      * @param name
      */
-    void setName(String name);
+    void setName(Name name);
 }    

@@ -67,16 +67,6 @@ public class Call_c extends Expr_c implements Call
       return n;
   }
 
-  /** Get the name of the call. */
-  public String nameString() {
-    return this.name.id();
-  }
-
-  /** Set the name of the call. */
-  public Call nameString(String name) {
-      return name(this.name.id(name));
-  }
-
   public ProcedureInstance procedureInstance() {
       return methodInstance();
   }
@@ -185,11 +175,11 @@ public class Call_c extends Expr_c implements Call
             ClassType scope = c.findMethodScope(name.id());
 
             if (! ts.typeEquals(scope, c.currentClass())) {
-                r = nf.This(position().startOf(),
-                            nf.CanonicalTypeNode(position().startOf(), scope)).type(scope);
+                r = (Special) nf.This(position().startOf(),
+                            nf.CanonicalTypeNode(position().startOf(), scope)).del().typeCheck(tc);
             }
             else {
-                r = nf.This(position().startOf()).type(scope);
+                r = (Special) nf.This(position().startOf()).del().typeCheck(tc);
             }
         }
 

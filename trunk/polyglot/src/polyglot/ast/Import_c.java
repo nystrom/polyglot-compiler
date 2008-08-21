@@ -23,9 +23,9 @@ import polyglot.visit.PrettyPrinter;
 public class Import_c extends Node_c implements Import
 {
     protected Kind kind;
-    protected String name;
+    protected QName name;
 
-    public Import_c(Position pos, Kind kind, String name) {
+    public Import_c(Position pos, Kind kind, QName name) {
 	super(pos);
 	assert(kind != null && name != null);
 	this.name = name;
@@ -33,12 +33,12 @@ public class Import_c extends Node_c implements Import
     }
 
     /** Get the name of the import. */
-    public String name() {
+    public QName name() {
 	return this.name;
     }
 
     /** Set the name of the import. */
-    public Import name(String name) {
+    public Import name(QName name) {
 	Import_c n = (Import_c) copy();
 	n.name = name;
 	return n;
@@ -74,29 +74,27 @@ public class Import_c extends Node_c implements Import
 
     /** Check that imported classes and packages exist. */
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        if (kind == PACKAGE && tc.typeSystem().packageExists(name)) {
+        TypeSystem ts = tc.typeSystem();
+
+        // Make sure the imported name exists.
+        if (kind == PACKAGE && ts.systemResolver().packageExists(name))
             return this;
+        
+        Named n;
+        try {
+            n = ts.systemResolver().find(name);
+        }
+        catch (SemanticException e) {
+            throw new SemanticException("Package or class " + name + " not found.");
         }
 
-        // Must be importing a class, either as p.C, or as p.C.*
-
-        // The first component of the type name must be a package.
-        String pkgName = StringUtil.getFirstComponent(name);
-
-        if (! tc.typeSystem().packageExists(pkgName)) {
-            throw new SemanticException("Package \"" + pkgName +
-                "\" not found.", position());
-        }
-
-        // The type must exist.
-        Named nt = tc.typeSystem().forName(name);
-
-        // And the type must be accessible.
-        if (nt instanceof Type) {
-            Type t = (Type) nt;
+        if (n instanceof Type) {
+            Type t = (Type) n;
             if (t.isClass()) {
-                tc.typeSystem().classAccessibleFromPackage(t.toClass().def(),
-                    tc.context().package_());
+        	ClassType ct = t.toClass();
+        	if (! ts.classAccessibleFromPackage(ct.def(), tc.context().package_())) {
+        	    throw new SemanticException("Class " + ct + " is not accessible.");
+        	}
             }
         }
 
@@ -111,7 +109,7 @@ public class Import_c extends Node_c implements Import
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
 	if (! Globals.Options().fully_qualified_names) {
 	    w.write("import ");
-	    w.write(name);
+	    w.write(name.toString());
 
 	    if (kind == PACKAGE) {
 	        w.write(".*");

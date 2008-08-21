@@ -7,8 +7,10 @@
  */
 package polyglot.ast;
 
+import polyglot.types.Name;
+
 /** A node that represents a simple identifier in the AST. */
 public interface Id extends Node {
-    String id();
-    Id id(String id);
+    Name id();
+    Id id(Name id);
 }

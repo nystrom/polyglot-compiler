@@ -42,7 +42,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
                                           Types.<ArrayType_c>ref(this),
                                           ts.Public(),
                                           Types.<Type>ref(ts.Object()),
-                                          "clone",
+                                          Name.make("clone"),
                                           Collections.EMPTY_LIST,
                                           Collections.EMPTY_LIST);
             methods.add(mi);
@@ -56,7 +56,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
                                         Types.<ArrayType_c>ref(this),
                                         ts.Public().Final(),
                                         Types.ref(ts.Int()),
-                                        "length");
+                                        Name.make("length"));
             fi.setNotConstant();
             fields.add(fi);
         }
@@ -138,7 +138,7 @@ public class ArrayType_c extends ReferenceType_c implements ArrayType
     }
 
     /** Get a field of the type by name. */
-    public FieldInstance fieldNamed(String name) {
+    public FieldInstance fieldNamed(Name name) {
         FieldInstance fi = lengthField();
         return name.equals(fi.name()) ? fi : null;
     }

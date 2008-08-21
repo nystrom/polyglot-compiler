@@ -11,6 +11,7 @@ import java.util.*;
 
 import polyglot.frontend.ExtensionInfo;
 import polyglot.frontend.Source;
+import polyglot.types.TypeSystem_c.MethodMatcher;
 import polyglot.types.reflect.ClassFile;
 import polyglot.types.reflect.ClassFileLazyClassInitializer;
 import polyglot.util.Position;
@@ -69,24 +70,24 @@ public interface TypeSystem {
      * Return a list of the packages names that will be imported by
      * default.  A list of Strings is returned, not a list of Packages.
      */
-    List<String> defaultOnDemandImports();
+    List<QName> defaultOnDemandImports();
 
     /**
      * Returns true if the package named <code>name</code> exists.
      */
-    boolean packageExists(String name);
+    boolean packageExists(QName name);
 
     /** Get the named type object with the following name.
      * @param name The name of the type object to look for.
      * @exception SemanticException when object is not found.    
      */
-    Named forName(String name) throws SemanticException;
+    Named forName(QName name) throws SemanticException;
     
     /** Get the  type with the following name.
      * @param name The name to create the type for.
      * @exception SemanticException when type is not found.    
      */
-    Type typeForName(String name) throws SemanticException;
+    Type typeForName(QName name) throws SemanticException;
 
     /** Create an initailizer instance.
      * @param pos Position of the initializer.
@@ -117,7 +118,7 @@ public interface TypeSystem {
      * @param excTypes The method's exception throw types.
      */
     MethodDef methodDef(Position pos, Ref<? extends StructType> container,
-                                  Flags flags, Ref<? extends Type> returnType, String name,
+                                  Flags flags, Ref<? extends Type> returnType, Name name,
                                   List<Ref<? extends Type>> argTypes, List<Ref<? extends Type>> excTypes);
 
     /** Create a field instance.
@@ -128,7 +129,7 @@ public interface TypeSystem {
      * @param name The field's name.
      */
     FieldDef fieldDef(Position pos, Ref<? extends StructType> container,
-                                Flags flags, Ref<? extends Type> type, String name);
+                                Flags flags, Ref<? extends Type> type, Name name);
 
     /** Create a local variable instance.
      * @param pos Position of the local variable.
@@ -137,7 +138,7 @@ public interface TypeSystem {
      * @param name The local variable's name.
      */
     LocalDef localDef(Position pos, Flags flags, Ref<? extends Type> type,
-                                String name);
+	    Name name);
 
     /** Create a default constructor instance.
      * @param pos Position of the constructor.
@@ -321,10 +322,10 @@ public interface TypeSystem {
     FieldInstance findField(Type container, TypeSystem_c.FieldMatcher matcher)
 	throws SemanticException;
     
-    Matcher<Named> TypeMatcher(String name);
-    Matcher<Named> MemberTypeMatcher(Type container, String name);
-    TypeSystem_c.FieldMatcher FieldMatcher(Type container, String name);
-    TypeSystem_c.MethodMatcher MethodMatcher(Type container, String name, List<Type> argTypes);
+    Matcher<Named> TypeMatcher(Name name);
+    Matcher<Named> MemberTypeMatcher(Type container, Name name);
+    TypeSystem_c.FieldMatcher FieldMatcher(Type container, Name name);
+    TypeSystem_c.MethodMatcher MethodMatcher(Type container, Name name, List<Type> argTypes);
     TypeSystem_c.ConstructorMatcher ConstructorMatcher(Type container, List<Type> argTypes);
 
     /**
@@ -337,7 +338,7 @@ public interface TypeSystem {
      * inaccessible.
      */
     MethodInstance findMethod(Type container,
-	    TypeSystem_c.MethodMatcher matcher, ClassDef currClass) throws SemanticException;
+	    MethodMatcher matcher, ClassDef currClass) throws SemanticException;
 
     /**
      * Find a constructor.  We need to pass the class from which the constructor
@@ -356,7 +357,7 @@ public interface TypeSystem {
      * @exception SemanticException if the class cannot be found or is
      * inaccessible.
      */
-    Type findMemberType(Type container, String name, ClassDef currClass)
+    Type findMemberType(Type container, Name name, ClassDef currClass)
     throws SemanticException;
 
     /**
@@ -364,7 +365,7 @@ public interface TypeSystem {
      * @exception SemanticException if the class cannot be found or is
      * inaccessible.
      */
-    Type findMemberType(Type container, String name)
+    Type findMemberType(Type container, Name name)
 	throws SemanticException;
 
     /**
@@ -398,7 +399,7 @@ public interface TypeSystem {
      * Returns true iff <code>t</code> has a method with name <code>name</code>
      * either defined in <code>t</code> or inherited into it.
      */
-    boolean hasMethodNamed(Type t, String name);
+    boolean hasMethodNamed(Type t, Name name);
 
     /**
      * Returns true iff <code>m1</code> is the same method as <code>m2</code>.
@@ -568,25 +569,25 @@ public interface TypeSystem {
      * Return a package by name.
      * Fail if the package does not exists.
      */
-    Package packageForName(String name) throws SemanticException;
+    Package packageForName(QName name) throws SemanticException;
 
     /**
      * Return a package by name with the given outer package.
      * Fail if the package does not exists.
      */
-    Package packageForName(Ref<? extends Package> prefix, String name) throws SemanticException;
-    Package packageForName(Package prefix, String name) throws SemanticException;
+    Package packageForName(Ref<? extends Package> prefix, Name name) throws SemanticException;
+    Package packageForName(Package prefix, Name name) throws SemanticException;
 
     /**
      * Return a package by name.
      */
-    Package createPackage(String name);
+    Package createPackage(QName name);
 
     /**
      * Return a package by name with the given outer package.
      */
-    Package createPackage(Ref<? extends Package> prefix, String name);
-    Package createPackage(Package prefix, String name);
+    Package createPackage(Ref<? extends Package> prefix, Name name);
+    Package createPackage(Package prefix, Name name);
 
     /**
      * Create a new context object for looking up variables, types, etc.
@@ -640,7 +641,7 @@ public interface TypeSystem {
      * classes is not a member class or a top level class, then null is
      * returned.
      */
-    public String getTransformedClassName(ClassDef ct);
+    public QName getTransformedClassName(ClassDef ct);
 
     /** Get a place-holder for serializing a type object.
      * @param o The object to get the place-holder for.
@@ -713,7 +714,7 @@ public interface TypeSystem {
     /**
      * Return the primitive with the given name.
      */
-    Type primitiveForName(String name) throws SemanticException;
+    Type primitiveForName(Name name) throws SemanticException;
 
     /** All possible <i>access</i> flags. */
     public abstract Flags legalAccessFlags();

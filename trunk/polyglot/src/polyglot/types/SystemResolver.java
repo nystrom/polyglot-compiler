@@ -18,7 +18,7 @@ import polyglot.util.*;
  * fully-qualified names.
  */
 public class SystemResolver extends CachingResolver implements TopLevelResolver {
-    protected Map<String,Boolean> packageCache;
+    protected Map<QName,Boolean> packageCache;
     protected ExtensionInfo extInfo;
     
     /**
@@ -28,20 +28,20 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
     public SystemResolver(TopLevelResolver inner, ExtensionInfo extInfo) {
         super(inner);
         this.extInfo = extInfo;
-        this.packageCache = new HashMap<String, Boolean>();
+        this.packageCache = new HashMap<QName, Boolean>();
     }
 
     public Object copy() {
         SystemResolver r = (SystemResolver) super.copy();
-        r.packageCache = new HashMap<String, Boolean>(this.packageCache);
+        r.packageCache = new HashMap<QName, Boolean>(this.packageCache);
         return r;
     }
     
-    public void installInAll(String name, Named n) {
+    public void installInAll(QName name, Named n) {
         this.install(name, n);
     }
 
-    public boolean installedInAll(String name, Named q) {
+    public boolean installedInAll(QName name, Named q) {
         if (check(name) != q) {
             return false;
         }
@@ -49,7 +49,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
     }
 
     /** Check if a package exists in the resolver cache. */
-    protected boolean packageExistsInCache(String name) {
+    protected boolean packageExistsInCache(QName name) {
         for (Iterator i = cachedObjects().iterator(); i.hasNext(); ) {
             Object o = i.next();
             if (o instanceof Importable) {
@@ -57,7 +57,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
                 if (im.package_() != null &&
                     im.package_().fullName() != null &&
                     (im.package_().fullName().equals(name) ||
-                     im.package_().fullName().startsWith(name + "."))) {
+                     im.package_().fullName().startsWith(name))) {
                     return true;
                 }
             }
@@ -69,15 +69,15 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
     /**
      * Check if a package exists.
      */
-    public boolean packageExists(String name) {
+    public boolean packageExists(QName name) {
 	Boolean b = packageCache.get(name);
 	if (b != null) {
 	    return b.booleanValue();
 	}
 	else {
-            String prefix = StringUtil.getPackageComponent(name);
-
-            if (packageCache.get(prefix) == Boolean.FALSE) {
+	    QName prefix = name.qualifier();
+	    
+            if (prefix != null && packageCache.get(prefix) == Boolean.FALSE) {
                 packageCache.put(name, Boolean.FALSE);
                 return false;
             }
@@ -91,10 +91,10 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
             if (exists) {
                 packageCache.put(name, Boolean.TRUE);
 
-                do {
+                while (prefix != null) {
                     packageCache.put(prefix, Boolean.TRUE);
-                    prefix = StringUtil.getPackageComponent(prefix);
-                } while (! prefix.equals(""));
+                    prefix = prefix.qualifier();
+                }
             }
             else {
                 packageCache.put(name, Boolean.FALSE);
@@ -106,7 +106,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
 
     protected void cachePackage(Package p) {
         if (p != null) {
-            packageCache.put(p.fullName(), Boolean.TRUE);
+            packageCache.put(QName.make(p.fullName()), Boolean.TRUE);
             Package prefix = Types.get(p.prefix());
             cachePackage(prefix);
         }
@@ -116,7 +116,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
      * Check if a type is in the cache, returning null if not.
      * @param name The name to search for.
      */
-    public Type checkType(String name) {
+    public Type checkType(QName name) {
         return (Type) check(name);
     }
 
@@ -126,16 +126,16 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
      * exceptions are for resolving names in deserialized types and in types
      * loaded from raw class files.
      */
-    public Named find(Matcher<Named> matcher) throws SemanticException {
-        Named n = super.find(matcher);
+    public Named find(QName name) throws SemanticException {
+        Named n = super.find(name);
 
         if (Report.should_report(TOPICS, 2))
-            Report.report(2, "Returning from SR.find(" + matcher + "): " + n);
+            Report.report(2, "Returning from SR.find(" + name + "): " + n);
 
         return n;
     }
 
-    public void install(String name, Named q) {
+    public void install(QName name, Named q) {
         if (Report.should_report(TOPICS, 2) && check(name) == null)
             Report.report(2, "SR installing " + name + "->" + q);
         
@@ -147,34 +147,36 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
      * @param name The name of the qualifier to insert.
      * @param q The qualifier to insert.
      */
-    public void addNamed(String name, Named q) throws SemanticException {
+    public void addNamed(QName name, Named q) throws SemanticException {
         super.addNamed(name, q);
 
         if (q instanceof ClassType) {
             ClassType ct = (ClassType) q;
-            String containerName = StringUtil.getPackageComponent(name);
+            QName containerName = name.qualifier();
+            if (containerName != null) {
             if (ct.isTopLevel()) {
                 Package p = ((ClassType) q).package_();
                 cachePackage(p);
-                if (p != null && containerName.equals(p.fullName())) {
+                if (p != null && containerName.toString().equals(p.fullName())) {
                     addNamed(containerName, p);
                 }
             }
             else if (ct.isMember()) {
-                if (name.equals(ct.fullName())) {
+                if (name.toString().equals(ct.fullName())) {
                     // Check that the names match; we could be installing
                     // a member class under its class file name, not its Java
                     // source full name.
                     addNamed(containerName, ct.outer());
                 }
             }
+            }
         }
         else if (q instanceof Package) {
             Package p = (Package) q;
             cachePackage(p);
-            String containerName = StringUtil.getPackageComponent(name);
+            QName containerName = name.qualifier();
             Package prefix = Types.get(p.prefix());
-            if (prefix != null && containerName.equals(prefix.fullName())) {
+            if (prefix != null && containerName.toString().equals(prefix.fullName())) {
                 addNamed(containerName, prefix);
             }
         }

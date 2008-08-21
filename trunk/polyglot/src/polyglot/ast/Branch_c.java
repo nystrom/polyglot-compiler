@@ -55,16 +55,6 @@ public class Branch_c extends Stmt_c implements Branch
         return n;
     }
 
-    /** Get the target label of the branch. */
-    public String label() {
-        return this.label != null ? this.label.id() : null;
-    }
-
-    /** Set the target label of the branch. */
-    public Branch label(String label) {
-        return labelNode(this.label.id(label));
-    }
-
     /** Reconstruct the expression. */
     protected Branch_c reconstruct(Id label) {
         if (label != this.label) {

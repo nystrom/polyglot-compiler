@@ -36,14 +36,15 @@ public class ParserGoal extends SourceGoal_c
 	FileSource source = (FileSource) job().source();
 
 	try {
+	    if (Report.should_report("parser", 1))
+		Report.report(1, "" + source);
+	    
 	    Reader reader = source.open();
             
             Parser p = job().extensionInfo().parser(reader, source, eq);
 
 	    if (Report.should_report(Report.frontend, 2))
 		Report.report(2, "Using parser " + p);
-
-	    System.out.println(source);
 	    Node ast = p.parse();
 
 	    source.close();

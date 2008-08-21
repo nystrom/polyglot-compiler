@@ -17,7 +17,7 @@ import polyglot.util.CodeWriter;
 public class Package_c extends TypeObject_c implements Package
 {
     protected Ref<? extends Package> prefix;
-    protected String name;
+    protected Name name;
 
     /**
      * The full name is computed lazily from the prefix and name.
@@ -31,11 +31,11 @@ public class Package_c extends TypeObject_c implements Package
         this(ts, null, null);
     }
 
-    public Package_c(TypeSystem ts, String name) {
+    public Package_c(TypeSystem ts, Name name) {
         this(ts, null, name);
     }
 
-    public Package_c(TypeSystem ts, Ref<? extends Package> prefix, String name) {
+    public Package_c(TypeSystem ts, Ref<? extends Package> prefix, Name name) {
         super(ts);
         this.prefix = prefix;
         this.name = name;
@@ -49,7 +49,7 @@ public class Package_c extends TypeObject_c implements Package
     
     public Resolver resolver() {
         if (memberCache == null) {
-            memberCache = new CachingResolver(ts.createPackageContextResolver(this));
+            memberCache = new AnotherCachingResolver(ts.createPackageContextResolver(this));
         }
         return memberCache;
     }
@@ -94,35 +94,34 @@ public class Package_c extends TypeObject_c implements Package
 	return prefix;
     }
 
-    public String name() {
+    public Name name() {
 	return name;
     }
 
     public String translate(Resolver c) {
         if (prefix() == null) {
-          return name();
+          return name().toString();
         }
 
         return prefix().get().translate(c) + "." + name();
     }
 
-    public String fullName() {
-        if (fullname == null) {
-            fullname = prefix() == null ? name : prefix().get().fullName() + "." + name;
-        }
-        return fullname;
+    public QName fullName() {
+	return QName.make(prefix() != null ? prefix().get().fullName() : null, name);
     }
 
     public String toString() {
-	return prefix() == null ? name : prefix().toString() + "." + name;
+	String s = (prefix() != null ? prefix().toString() + "." : "") + name;
+	return s;
     }
+    
     public void print(CodeWriter w) {
 	if (prefix() != null) {
 	    prefix().get().print(w);
 	    w.write(".");
 	    w.allowBreak(2, 3, "", 0);
 	}
-	w.write(name);
+	w.write(name.toString());
     }
 
     public int hashCode() {

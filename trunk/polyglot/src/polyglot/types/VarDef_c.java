@@ -19,14 +19,14 @@ public abstract class VarDef_c extends Def_c implements VarDef
 {
     protected Flags flags;
     protected Ref<? extends Type> type;
-    protected String name;
+    protected Name name;
     protected Ref<ConstantValue> constantRef;
 
     /** Used for deserializing types. */
     protected VarDef_c() { }
 
     public VarDef_c(TypeSystem ts, Position pos,
-	                 Flags flags, Ref<? extends Type> type, String name) {
+	                 Flags flags, Ref<? extends Type> type, Name name) {
     	super(ts, pos);
     	this.flags = flags;
     	this.type = type;
@@ -83,7 +83,7 @@ public abstract class VarDef_c extends Def_c implements VarDef
         return type;
     }
 
-    public String name() {
+    public Name name() {
         return name;
     }
 
@@ -117,7 +117,7 @@ public abstract class VarDef_c extends Def_c implements VarDef
     /**
      * @param name The name to set.
      */
-    public void setName(String name) {
+    public void setName(Name name) {
         this.name = name;
     }
 }

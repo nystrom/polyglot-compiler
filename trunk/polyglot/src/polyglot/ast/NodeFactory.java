@@ -33,29 +33,30 @@ public interface NodeFactory
 
     FlagsNode FlagsNode(Position pos, Flags flags);
 
-    Id Id(Position pos, String id);
+    Id Id(Position pos, Name id);
+    Id Id(Position pos, String id); // for backward compat
     
     AmbExpr AmbExpr(Position pos, Id name);
-    Expr ExprFromQualifiedName(Position pos, String qualifiedName);
+    Expr ExprFromQualifiedName(Position pos, QName qualifiedName);
     
     // type or expr
     AmbReceiver AmbReceiver(Position pos, Id name);
     AmbReceiver AmbReceiver(Position pos, Prefix prefix, Id name);
-    Receiver ReceiverFromQualifiedName(Position pos, String qualifiedName);
+    Receiver ReceiverFromQualifiedName(Position pos, QName qualifiedName);
     
     // package or type
     AmbQualifierNode AmbQualifierNode(Position pos, Id name);
     AmbQualifierNode AmbQualifierNode(Position pos, Prefix qual, Id name);
-    QualifierNode QualifierNodeFromQualifiedName(Position pos, String qualifiedName);
+    QualifierNode QualifierNodeFromQualifiedName(Position pos, QName qualifiedName);
     
     // package or type or expr
     AmbPrefix AmbPrefix(Position pos, Id name);
     AmbPrefix AmbPrefix(Position pos, Prefix prefix, Id name);
-    Prefix PrefixFromQualifiedName(Position pos, String qualifiedName);
+    Prefix PrefixFromQualifiedName(Position pos, QName qualifiedName);
     
     AmbTypeNode AmbTypeNode(Position pos, Id name);
     AmbTypeNode AmbTypeNode(Position pos, Prefix qualifier, Id name);
-    TypeNode TypeNodeFromQualifiedName(Position pos, String qualifiedName);
+    TypeNode TypeNodeFromQualifiedName(Position pos, QName qualifiedName);
     
     ArrayTypeNode ArrayTypeNode(Position pos, TypeNode base);
     CanonicalTypeNode CanonicalTypeNode(Position pos, Type type);
@@ -161,7 +162,7 @@ public interface NodeFactory
     If If(Position pos, Expr cond, Stmt consequent);
     If If(Position pos, Expr cond, Stmt consequent, Stmt alternative);
 
-    Import Import(Position pos, Import.Kind kind, String name);
+    Import Import(Position pos, Import.Kind kind, QName name);
 
     Initializer Initializer(Position pos, FlagsNode flags, Block body);
 

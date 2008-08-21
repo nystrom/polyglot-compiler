@@ -7,6 +7,7 @@
 
 package polyglot.ast;
 
+import polyglot.types.QName;
 import polyglot.util.Enum;
 
 /**
@@ -31,9 +32,9 @@ public interface Import extends Node
     public static final Kind PACKAGE = new Kind("package");
 
     /** Get the name of the class or package to import. */
-    String name();
+    QName name();
     /** Set the name of the class or package to import. */
-    Import name(String name);
+    Import name(QName name);
 
     /** Get the kind of import. */
     Kind kind();

@@ -51,9 +51,4 @@ public interface Field extends NamedVariable
     Id name();
     /** Set the field's name. */
     Field name(Id name);
-    
-    /** Get the field's name. */
-    String nameString();
-    /** Set the field's name. */
-    Field nameString(String name);
 }

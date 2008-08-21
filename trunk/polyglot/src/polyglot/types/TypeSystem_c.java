@@ -26,7 +26,7 @@ public class TypeSystem_c implements TypeSystem
 {
 	protected SystemResolver systemResolver;
 	protected TopLevelResolver loadedResolver;
-	protected Map<String,Flags>flagsForName;
+	protected Map<String, Flags> flagsForName;
 	protected ExtensionInfo extInfo;
 
 	public TypeSystem_c() {}
@@ -137,7 +137,7 @@ public class TypeSystem_c implements TypeSystem
 	/**
 	 * Returns true if the package named <code>name</code> exists.
 	 */
-	public boolean packageExists(String name) {
+	public boolean packageExists(QName name) {
 		return systemResolver.packageExists(name);
 	}
 
@@ -184,7 +184,7 @@ public class TypeSystem_c implements TypeSystem
 		if (t.isVoid())
 		    return "java.lang.Void";
 
-		throw new InternalCompilerError("Unrecognized primitive type.");
+		throw new InternalCompilerError("Unrecognized primitive type " + t);
 	}
 
 	public Context createContext() {
@@ -223,7 +223,7 @@ public class TypeSystem_c implements TypeSystem
 		        }
 		        return new Resolver() {
 			    public Named find(Matcher<Named> matcher) throws SemanticException {
-				throw new NoClassException(matcher.name(), type);
+				throw new NoClassException(matcher.name().toString(), type);
 			    }
 		        };
 		}
@@ -243,14 +243,14 @@ public class TypeSystem_c implements TypeSystem
 
 	public FieldDef fieldDef(Position pos,
 			Ref<? extends StructType> container, Flags flags,
-			Ref<? extends Type> type, String name) {
+			Ref<? extends Type> type, Name name) {
 		assert_(container);
 		assert_(type);
 		return new FieldDef_c(this, pos, container, flags, type, name);
 	}
 
 	public LocalDef localDef(Position pos,
-			Flags flags, Ref<? extends Type> type, String name) {
+			Flags flags, Ref<? extends Type> type, Name name) {
 		assert_(type);
 		return new LocalDef_c(this, pos, flags, type, name);
 	}
@@ -297,7 +297,7 @@ public class TypeSystem_c implements TypeSystem
 
 	public MethodDef methodDef(Position pos,
 			Ref<? extends StructType> container, Flags flags,
-			Ref<? extends Type> returnType, String name,
+			Ref<? extends Type> returnType, Name name,
 			List<Ref<? extends Type>> argTypes, List<Ref<? extends Type>> excTypes) {
 
 		assert_(container);
@@ -1022,7 +1022,7 @@ public class TypeSystem_c implements TypeSystem
 	 * returned may be empty.
 	 */
 	protected Set<FieldInstance> findFields(Type container, TypeSystem_c.FieldMatcher matcher) {
-	        String name = matcher.name();
+	    Name name = matcher.name();
 	        
 		assert_(container);
 
@@ -1068,12 +1068,12 @@ public class TypeSystem_c implements TypeSystem
 	/**
 	 * @deprecated
 	 */
-	public Type findMemberClass(Type container, String name,
+	public Type findMemberClass(Type container, Name name,
 			Context c) throws SemanticException {
 		return findMemberType(container, name, c.currentClassDef());
 	}
 
-	public Type findMemberType(Type container, String name,
+	public Type findMemberType(Type container, Name name,
 			ClassDef currClass) throws SemanticException
 			{
 		assert_(container);
@@ -1084,10 +1084,10 @@ public class TypeSystem_c implements TypeSystem
 			return (ClassType) n;
 		}
 
-		throw new NoClassException(name, container);
+		throw new NoClassException(name.toString(), container);
 			}
 
-	public Type findMemberType(Type container, String name)
+	public Type findMemberType(Type container, Name name)
 	throws SemanticException {
 
 		return findMemberType(container, name, (ClassDef) null);
@@ -1098,7 +1098,7 @@ public class TypeSystem_c implements TypeSystem
 	 * into container, checking if the methods are accessible from the
 	 * body of currClass
 	 */
-	public boolean hasMethodNamed(Type container, String name) {
+	public boolean hasMethodNamed(Type container, Name name) {
 		assert_(container);
 
 		if (container == null) {
@@ -1142,8 +1142,8 @@ public class TypeSystem_c implements TypeSystem
 		this.argTypes = argTypes;
 	    }
 	    
-	    public String name() {
-		return "this";
+	    public Name name() {
+		return Name.make("this");
 	    }
 	    
 	    public String signature() {
@@ -1176,10 +1176,10 @@ public class TypeSystem_c implements TypeSystem
 	
 	public static class MethodMatcher implements Copy {
 	    protected Type container;
-	    protected String name;
+	    protected Name name;
 	    protected List<Type> argTypes;
 	    
-	    protected MethodMatcher(Type container, String name, List<Type> argTypes) {
+	    protected MethodMatcher(Type container, Name name, List<Type> argTypes) {
 		super();
 		this.container = container;
 		this.name = name;
@@ -1205,7 +1205,7 @@ public class TypeSystem_c implements TypeSystem
 		return name + argumentString();
 	    }
 	    
-	    public String name() {
+	    public Name name() {
 		return name;
 	    }
 	    
@@ -1238,9 +1238,9 @@ public class TypeSystem_c implements TypeSystem
 	
 	public static class FieldMatcher implements Copy, Matcher<FieldInstance> {
 	    protected Type container;
-	    protected String name;
+	    protected Name name;
 
-	    protected FieldMatcher(Type container, String name) {
+	    protected FieldMatcher(Type container, Name name) {
 		super();
 		this.container = container;
 		this.name = name;
@@ -1262,10 +1262,10 @@ public class TypeSystem_c implements TypeSystem
 	    }
 
 	    public String signature() {
-		return name;
+		return name.toString();
 	    }
 
-	    public String name() {
+	    public Name name() {
 		return name;
 	    }
 
@@ -1287,19 +1287,19 @@ public class TypeSystem_c implements TypeSystem
 	
 	public static class MemberTypeMatcher implements Matcher<Named> {
 	    protected Type container;
-	    protected String name;
+	    protected Name name;
 	    
-	    protected MemberTypeMatcher(Type container, String name) {
+	    protected MemberTypeMatcher(Type container, Name name) {
 		super();
 		this.container = container;
 		this.name = name;
 	    }
 	    
 	    public String signature() {
-		return name;
+		return name.toString();
 	    }
 	    
-	    public String name() {
+	    public Name name() {
 		return name;
 	    }
 	    
@@ -1319,27 +1319,27 @@ public class TypeSystem_c implements TypeSystem
 	    }
 	}
 
-	public Matcher<Named> MemberTypeMatcher(Type container, String name) {
+	public Matcher<Named> MemberTypeMatcher(Type container, Name name) {
 	    return new MemberTypeMatcher(container, name);
 	}
 	
-	public Matcher<Named> TypeMatcher(String name) {
+	public Matcher<Named> TypeMatcher(Name name) {
 	    return new TypeMatcher(name);
 	}
 
 	public static class TypeMatcher implements Matcher<Named> {
-	    protected String name;
+	    protected Name name;
 	    
-	    protected TypeMatcher(String name) {
+	    protected TypeMatcher(Name name) {
 		super();
 		this.name = name;
 	    }
 	    
 	    public String signature() {
-		return name;
+		return name.toString();
 	    }
 	    
-	    public String name() {
+	    public Name name() {
 		return name;
 	    }
 	    
@@ -1359,15 +1359,15 @@ public class TypeSystem_c implements TypeSystem
 	    }
 	}
 	
-	public MethodMatcher MethodMatcher(Type container, String name, List<Type> argTypes) {
-	    return new MethodMatcher( container,  name, argTypes);
+	public MethodMatcher MethodMatcher(Type container, Name name, List<Type> argTypes) {
+	    return new MethodMatcher(container, name, argTypes);
 	}
 
 	public ConstructorMatcher ConstructorMatcher(Type container, List<Type> argTypes) {
 	    return new ConstructorMatcher(container, argTypes);
 	}
 	
-	public FieldMatcher FieldMatcher(Type container, String name) {
+	public FieldMatcher FieldMatcher(Type container, Name name) {
 	    return new FieldMatcher(container, name);
 	}
 	
@@ -1934,7 +1934,7 @@ public class TypeSystem_c implements TypeSystem
 
 	protected ClassType load(String name) {
 		try {
-			return (ClassType) typeForName(name);
+			return (ClassType) typeForName(QName.make(name));
 		}
 		catch (SemanticException e) {
 			throw new InternalCompilerError("Cannot find class \"" +
@@ -1943,19 +1943,16 @@ public class TypeSystem_c implements TypeSystem
 		}
 	}
 
-	public Named forName(String name) throws SemanticException {
+	public Named forName(QName name) throws SemanticException {
 		try {
-			return systemResolver.find(TypeMatcher(name));
+			return systemResolver.find(name);
 		}
 		catch (SemanticException e) {
-			if (! StringUtil.isNameShort(name)) {
-				String containerName = StringUtil.getPackageComponent(name);
-				String shortName = StringUtil.getShortNameComponent(name);
-
+		    if (name.qualifier() != null) {
 				try {
-					Named container = forName(containerName);
+					Named container = forName(name.qualifier());
 					if (container instanceof ClassType) {
-						return classContextResolver((ClassType) container).find(MemberTypeMatcher((ClassType) container, shortName));
+						return classContextResolver((ClassType) container).find(MemberTypeMatcher((ClassType) container, name.name()));
 					}
 				}
 				catch (SemanticException e2) {
@@ -1967,7 +1964,7 @@ public class TypeSystem_c implements TypeSystem
 		}
 	}
 
-	public Type typeForName(String name) throws SemanticException {
+	public Type typeForName(QName name) throws SemanticException {
 		return (Type) forName(name);
 	}
 
@@ -1999,20 +1996,20 @@ public class TypeSystem_c implements TypeSystem
 		return new NullType_c(this);
 	}
 
-	protected PrimitiveType createPrimitive(String name) {
+	protected PrimitiveType createPrimitive(Name name) {
 		return new PrimitiveType_c(this, name);
 	}
 
 	protected final NullType NULL_         = createNull();
-	protected final PrimitiveType VOID_    = createPrimitive("void");
-	protected final PrimitiveType BOOLEAN_ = createPrimitive("boolean");
-	protected final PrimitiveType CHAR_    = createPrimitive("char");
-	protected final PrimitiveType BYTE_    = createPrimitive("byte");
-	protected final PrimitiveType SHORT_   = createPrimitive("short");
-	protected final PrimitiveType INT_     = createPrimitive("int");
-	protected final PrimitiveType LONG_    = createPrimitive("long");
-	protected final PrimitiveType FLOAT_   = createPrimitive("float");
-	protected final PrimitiveType DOUBLE_  = createPrimitive("double");
+	protected final PrimitiveType VOID_    = createPrimitive(Name.make("void"));
+	protected final PrimitiveType BOOLEAN_ = createPrimitive(Name.make("boolean"));
+	protected final PrimitiveType CHAR_    = createPrimitive(Name.make("char"));
+	protected final PrimitiveType BYTE_    = createPrimitive(Name.make("byte"));
+	protected final PrimitiveType SHORT_   = createPrimitive(Name.make("short"));
+	protected final PrimitiveType INT_     = createPrimitive(Name.make("int"));
+	protected final PrimitiveType LONG_    = createPrimitive(Name.make("long"));
+	protected final PrimitiveType FLOAT_   = createPrimitive(Name.make("float"));
+	protected final PrimitiveType DOUBLE_  = createPrimitive(Name.make("double"));
 
 	public Object placeHolder(TypeObject o) {
 		return placeHolder(o, Collections.EMPTY_SET);
@@ -2035,7 +2032,7 @@ public class TypeSystem_c implements TypeSystem
 
 				// Use the transformed name so that member classes will
 				// be sought in the correct class file.
-				String name = getTransformedClassName(ct);
+				QName name = getTransformedClassName(ct);
 
 				TypeSystem_c ts = this;
 				LazyRef<ClassDef> sym = Types.lazyRef(unknownClassDef(), null);
@@ -2052,7 +2049,7 @@ public class TypeSystem_c implements TypeSystem
 	public ClassDef unknownClassDef() {
 		if (unknownClassDef == null) {
 			unknownClassDef = new ClassDef_c(this, null);
-			unknownClassDef.name("<unknown class>");
+			unknownClassDef.name(Name.make("<unknown class>"));
 			unknownClassDef.kind(ClassDef.TOP_LEVEL);
 		}
 		return unknownClassDef;
@@ -2076,46 +2073,40 @@ public class TypeSystem_c implements TypeSystem
 		return unknownQualifier;
 	}
 
-	public Package packageForName(Package prefix, String name) throws SemanticException {
+	public Package packageForName(Package prefix, Name name) throws SemanticException {
 		return createPackage(prefix, name);
 	}
 
-	public Package packageForName(Ref<? extends Package> prefix, String name) throws SemanticException {
+	public Package packageForName(Ref<? extends Package> prefix, Name name) throws SemanticException {
 		return createPackage(prefix, name);
 	}
 
-	public Package packageForName(String name) throws SemanticException {
-		if (name == null || name.equals("")) {
+	public Package packageForName(QName name) throws SemanticException {
+		if (name == null) {
 			return null;
 		}
 
-		String s = StringUtil.getShortNameComponent(name);
-		String p = StringUtil.getPackageComponent(name);
-
-		return packageForName(packageForName(p), s);
+		return packageForName(packageForName(name.qualifier()), name.name());
 	}
 
 	/** @deprecated */
-	public Package createPackage(Package prefix, String name) {
+	public Package createPackage(Package prefix, Name name) {
 		return createPackage(prefix != null ? Types.ref(prefix) : null, name);
 	}
 
 	/** @deprecated */
-	public Package createPackage(Ref<? extends Package> prefix, String name) {
+	public Package createPackage(Ref<? extends Package> prefix, Name name) {
 		assert_(prefix);
 		return new Package_c(this, prefix, name);
 	}
 
 	/** @deprecated */
-	public Package createPackage(String name) {
-		if (name == null || name.equals("")) {
+	public Package createPackage(QName name) {
+		if (name == null) {
 			return null;
 		}
 
-		String s = StringUtil.getShortNameComponent(name);
-		String p = StringUtil.getPackageComponent(name);
-
-		return createPackage(createPackage(p), s);
+		return createPackage(createPackage(name.qualifier()), name.name());
 	}
 
 	/**
@@ -2206,7 +2197,7 @@ public class TypeSystem_c implements TypeSystem
 			 return arrayOf(typeForClass(clazz.getComponentType()));
 		 }
 
-		 return (Type) systemResolver.find(TypeMatcher(clazz.getName()));
+		 return (Type) systemResolver.find(QName.make(clazz.getName()));
 	 }
 
 	 /**
@@ -2230,26 +2221,36 @@ public class TypeSystem_c implements TypeSystem
 	  * are replaced with dollar signs ('$'). If any of the containing
 	  * classes is not a member class or a top level class, then null is
 	  * returned.
+	  * 
+	  * Return null if the class is not globally accessible.
 	  */
-	 public String getTransformedClassName(ClassDef ct) {
+	 public QName getTransformedClassName(ClassDef ct) {
 		 assert ct != null;
 		 assert ct.fullName() != null;
 
-		 StringBuffer sb = new StringBuffer(ct.fullName().length());
 		 if (!ct.isMember() && !ct.isTopLevel()) {
+		     assert ! ct.asType().isGloballyAccessible();
 			 return null;
 		 }
+
+		 StringBuilder sb = new StringBuilder();
+		 
 		 while (ct.isMember()) {
 			 sb.insert(0, ct.name());
 			 sb.insert(0, '$');
 			 ct = ct.outer().get();
 			 if (!ct.isMember() && !ct.isTopLevel()) {
+			     assert ! ct.asType().isGloballyAccessible();
 				 return null;
 			 }
 		 }
-
-		 sb.insert(0, ct.fullName());
-		 return sb.toString();
+		 
+		 assert ct.asType().isGloballyAccessible();
+		 
+		 if (sb.length() > 0)
+		     return QName.make(ct.fullName(), Name.make(sb.toString()));
+		 else
+		     return QName.make(ct.fullName());
 	 }
 
 	 public String translatePackage(Resolver c, Package p) {
@@ -2268,9 +2269,9 @@ public class TypeSystem_c implements TypeSystem
 		 return t.translate(c);
 	 }
 
-	 public Type primitiveForName(String name)
+	 public Type primitiveForName(Name sname)
 	 throws SemanticException {
-
+	     String name = sname.toString();
 		 if (name.equals("void")) return Void();
 		 if (name.equals("boolean")) return Boolean();
 		 if (name.equals("char")) return Char();
@@ -2317,9 +2318,9 @@ public class TypeSystem_c implements TypeSystem
 		 return new InitializerInstance_c(this, pos, def);
 	 }
 
-	 public List<String> defaultOnDemandImports() {
-		 List<String> l = new ArrayList<String>(1);
-		 l.add("java.lang");
+	 public List<QName> defaultOnDemandImports() {
+		 List<QName> l = new ArrayList<QName>(1);
+		 l.add(QName.make("java.lang"));
 		 return l;
 	 }
 
@@ -2385,7 +2386,7 @@ public class TypeSystem_c implements TypeSystem
 
 	 /** All flags allowed for a constructor. */
 	 public Flags legalConstructorFlags() {
-		 return legalAccessFlags().Synchronized().Native();
+		 return legalAccessFlags().Synchronized();
 	 }
 
 	 protected final Flags CONSTRUCTOR_FLAGS = legalConstructorFlags();

@@ -36,10 +36,10 @@ class TypeDumper {
     }
 
     TypeObject theType;
-    String rawName;
+    QName rawName;
     String compilerVersion;
     Date timestamp;
-    TypeDumper(String rawName, TypeObject t, String compilerVersion,
+    TypeDumper(QName rawName, TypeObject t, String compilerVersion,
 	       Long timestamp) {
 	theType = t;
 	this.rawName = rawName;
@@ -47,11 +47,11 @@ class TypeDumper {
 	this.timestamp = new Date(timestamp.longValue());
     }
     
-    public static TypeDumper load(String name, TypeSystem ts)
+    public static TypeDumper load(QName name, TypeSystem ts)
 	throws ClassNotFoundException, NoSuchFieldException, 
 	       java.io.IOException, SecurityException
     {
-	Class c = Class.forName(name);
+	Class c = Class.forName(name.toString());
 	try {
 	    Field jlcVersion = c.getDeclaredField("jlc$CompilerVersion");
 	    Field jlcTimestamp = c.getDeclaredField("jlc$SourceLastModified");

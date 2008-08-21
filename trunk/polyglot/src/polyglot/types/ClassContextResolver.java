@@ -40,27 +40,28 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
      * @param accessor Class the name is accesses from.  If null, no access checks are performed.
      */
     public Named find(Matcher<Named> matcher, ClassDef accessor) throws SemanticException {
-	String name = matcher.name();
+	Name name = matcher.name();
 	
         if (Report.should_report(TOPICS, 2))
 	    Report.report(2, "Looking for " + name + " in " + this);
-
-        if (! StringUtil.isNameShort(name)) {
-            throw new InternalCompilerError(
-                "Cannot lookup qualified name " + name);
-        }
         
         if (! (type instanceof ClassType)) {
-            throw new NoClassException(name, type);
+            throw new NoClassException(name.toString(), type);
         }
         
         ClassType type = (ClassType) this.type;
 
         Named m = null;
-        
-        String fullName = type.isGloballyAccessible() ? type.fullName() + "." + name : null;
-        String rawName = type.isGloballyAccessible() ? ts.getTransformedClassName(type.def()) + "$" + name : null;
 
+        QName fullName = null;
+        QName rawName = null;
+        
+        if (type.isGloballyAccessible()) {
+            fullName = QName.make(type.fullName(), name);
+            QName q = ts.getTransformedClassName(type.def());
+            rawName = QName.make(q.qualifier(), Name.make(q.name() + "$" + name));
+        }
+        
         if (fullName != null) {
             // First check the system resolver.
             m = ts.systemResolver().check(fullName);
@@ -69,34 +70,47 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             if (m == null) {
                 m = ts.systemResolver().check(rawName);
             }
+            
+            if (m == null) {
+        	// Go to disk, but only if there is no job for the type.
+        	// If there is a job, all members should be in the resolver
+        	// already.
+        	boolean useLoadedResolver = true;
+        	
+        	if (type instanceof ParsedTypeObject) {
+        	    ParsedTypeObject pto = (ParsedTypeObject) type;
+        	    if (pto.job() != null) {
+        		useLoadedResolver = false;
+        	    }
+        	}
+        	
+        	if (useLoadedResolver) {
+        	    try {
+        		m = ts.systemResolver().find(rawName);
+        	    }
+        	    catch (SemanticException e) {
+        		// Not found; will fall through to error handling code
+        	    }
+        	}
+            }
+            
+            // If we found something, verify that it matches.
+            if (m != null) {
+        	try {
+        	    m = matcher.instantiate(m);
+        	}
+        	catch (SemanticException e) {
+        	    // Doesn't match; try again.
+        	    m = null;
+        	}
+            }
         }
-
+        
+        SemanticException ex = null;
+        
         // Check if the member was explicitly declared.
         if (m == null) {
-            m = type.memberTypeNamed(name);
-        }
-
-        if (m == null && fullName != null) {
-            // Go to disk, but only if there is no job for the type.
-            // If there is a job, all members should be in the resolver
-            // already.
-            boolean useLoadedResolver = true;
-
-            if (type instanceof ParsedTypeObject) {
-                ParsedTypeObject pto = (ParsedTypeObject) type;
-                if (pto.job() != null) {
-                    useLoadedResolver = false;
-                }
-            }
-
-            if (useLoadedResolver) {
-                try {
-                    m = ts.systemResolver().find(ts.TypeMatcher(rawName));
-                }
-                catch (SemanticException e) {
-                    // Not found; will fall through to error handling code
-                }
-            }
+            m = type.memberTypeMatching(matcher);
         }
         
         // If we found something, make sure it's accessible.
@@ -104,36 +118,38 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             ClassType mt = (ClassType) m;
 
             if (! mt.isMember()) {
-                throw new SemanticException("Class " + mt +
-                                            " is not a member class, " +
-                                            " but was found in " + type + ".");
+        	throw new SemanticException("Class " + mt +
+        	                            " is not a member class, " +
+        	                            " but was found in " + type + ".");
             }
-            
+
             if (! mt.outer().equals((Object) type)) {
-                throw new SemanticException("Class " + mt +
-                                            " is not a member class " +
-                                            " of " + type + ".");
+        	throw new SemanticException("Class " + mt +
+        	                            " is not a member class " +
+        	                            " of " + type + ".");
             }
 
             return mt;
         }
-        
+
         if (m instanceof MemberInstance) {
-        	MemberInstance<?> mi = (MemberInstance<?>) m;
-        	
-        	if (! mi.container().equals((Object) type)) {
-        		throw new SemanticException("Type " + mi +
-        		                            " is not a member " +
-        		                            " of " + type + ".");
-        	}
+            MemberInstance<?> mi = (MemberInstance<?>) m;
+
+            if (! mi.container().equals((Object) type)) {
+        	throw new SemanticException("Type " + mi +
+        	                            " is not a member " +
+        	                            " of " + type + ".");
+            }
+        }
+
+        if (m != null) {
+            if (! canAccess(m, accessor)) {
+        	throw new SemanticException("Cannot access member type \"" + m + "\".");
+            }
+            return m;
         }
         
-        if (m != null) {
-        	if (! canAccess(m, accessor)) {
-        		throw new SemanticException("Cannot access member type \"" + m + "\".");
-        	}
-        	return m;
-        }
+        // If we struck out, try the super types.
         
         // Collect all members of the super types.
         // Use a Set to eliminate duplicates.
@@ -144,7 +160,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             if (sup instanceof ClassType) {
                 Resolver r = ts.classContextResolver((ClassType) sup, accessor);
                 try {
-                    Named n = r.find(ts.MemberTypeMatcher(type, name));
+                    Named n = r.find(matcher);
                     acceptable.add(n);
                 }
                 catch (SemanticException e) {
@@ -157,7 +173,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             if (sup instanceof ClassType) {
                 Resolver r = ts.classContextResolver((ClassType) sup, accessor);
                 try {
-                    Named n = r.find(ts.MemberTypeMatcher(type, name));
+                    Named n = r.find(matcher);
                     acceptable.add(n);
                 }
                 catch (SemanticException e) {
@@ -166,7 +182,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
         }
         
         if (acceptable.size() == 0) {
-            throw new NoClassException(name, type);
+            throw new NoClassException(name.toString(), type);
         }
         else if (acceptable.size() > 1) {
             Set<Type> containers = new HashSet<Type>(acceptable.size());
@@ -196,10 +212,12 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             }
         }
         
+        assert acceptable.size() == 1;
+        
         Named t = acceptable.iterator().next();
         
         if (Report.should_report(TOPICS, 2))
-            Report.report(2, "Found member class " + t);
+            Report.report(2, "Found member type " + t);
         
         return t;
     }

@@ -223,7 +223,7 @@ public class New_c extends Expr_c implements New
                 // just a name.  We'll just punt here and let the extensions handle
                 // this complexity.
 
-                String name = ((AmbTypeNode) tn).name().id();
+        	Name name = ((AmbTypeNode) tn).name().id();
                 assert name != null;
 
                 if (! qualifier.type().isClass()) {
@@ -312,7 +312,7 @@ public class New_c extends Expr_c implements New
         // not just ct.outer(); it may be a subclass of ct.outer().
         Type outer = null;
         
-        String name = ct.name();
+        Name name = ct.name();
         ClassType t = c.currentClass();
         
         // We're in one scope too many.

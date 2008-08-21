@@ -995,7 +995,7 @@ public class InitChecker extends DataFlow
                 // the local variable may not have been initialized. 
                 // However, we only want to complain if the local is reachable
                 if (l.reachable()) {
-                    throw new SemanticException("Local variable \"" + l.nameString() +
+                    throw new SemanticException("Local variable \"" + l.name().id() +
                             "\" may not have been initialized",
                             l.position());
             	}

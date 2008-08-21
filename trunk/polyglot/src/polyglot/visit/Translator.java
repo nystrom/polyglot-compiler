@@ -177,7 +177,7 @@ public class Translator extends PrettyPrinter implements Copy
     	    File of;
     	    CodeWriter w;
     	    
-    	    String pkg = "";
+    	    QName pkg = null;
     	    
     	    if (sfn.package_() != null) {
     	        Package p = sfn.package_().package_().get();
@@ -192,7 +192,7 @@ public class Translator extends PrettyPrinter implements Copy
     	    }
     	    else {
     	        first = (TopLevelDecl) exports.get(0);
-    	        of = tf.outputFile(pkg, first.nameString(), sfn.source());
+    	        of = tf.outputFile(pkg, first.name().id(), sfn.source());
     	    }
     	    
     	    String opfPath = of.getPath();
@@ -210,7 +210,7 @@ public class Translator extends PrettyPrinter implements Copy
     	            w.flush();
     	            w.close();
     	            
-    	            of = tf.outputFile(pkg, decl.nameString(), sfn.source());
+    	            of = tf.outputFile(pkg, decl.name().id(), sfn.source());
     	            outputFiles.add(of.getPath());
     	            w = tf.outputCodeWriter(of, outputWidth);
     	            

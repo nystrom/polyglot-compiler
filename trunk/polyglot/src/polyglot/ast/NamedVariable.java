@@ -19,9 +19,6 @@ public interface NamedVariable extends Variable
     /** Return the access flags of the variable, or Flags.NONE */
     public Flags flags();
 
-    /** Return the name of the variable. */
-    public String nameString();
-
     /** Return the type object for the variable. */
     public VarInstance varInstance();
 }

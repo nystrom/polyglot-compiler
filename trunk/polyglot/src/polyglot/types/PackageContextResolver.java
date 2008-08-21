@@ -36,13 +36,6 @@ public class PackageContextResolver extends AbstractAccessControlResolver
     }
 
     /**
-     * The system resolver.
-     */
-    public Resolver outer() {
-        return ts.systemResolver();
-    }
-
-    /**
      * Find a type object by name.
      * @param name Name of the class or package to find.
      * @param accessor
@@ -51,17 +44,12 @@ public class PackageContextResolver extends AbstractAccessControlResolver
      * 
      */
     public Named find(Matcher<Named> matcher, ClassDef accessor) throws SemanticException {
-	String name = matcher.name();
+	Name name = matcher.name();
 	
-	if (! StringUtil.isNameShort(name)) {
-	    throw new InternalCompilerError(
-		"Cannot lookup qualified name " + name);
-	}
-        
         Named n = null;
 
 	try {
-	    n = ts.systemResolver().find(ts.TypeMatcher(p.fullName() + "." + name));
+	    n = ts.systemResolver().find(QName.make(p.fullName(), name));
 	}
 	catch (NoClassException e) {
             // Rethrow if some _other_ class or package was not found.

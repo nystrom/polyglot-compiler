@@ -27,7 +27,7 @@ public class FieldInstance_c extends VarInstance_c<FieldDef> implements FieldIns
         return (FieldInstance) super.flags(flags);
     }
 
-    public FieldInstance name(String name) {
+    public FieldInstance name(Name name) {
         return (FieldInstance) super.name(name);
     }
 

@@ -25,70 +25,54 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
         return new Disamb_c();
     }
 
-    public Prefix PrefixFromQualifiedName(Position pos, String qualifiedName) {
-        if (StringUtil.isNameShort(qualifiedName)) {
-            return AmbPrefix(pos, null, Id(pos, qualifiedName));
-        }
-        
-        String container = StringUtil.getPackageComponent(qualifiedName);
-        String name = StringUtil.getShortNameComponent(qualifiedName);
-        
-        Position pos2 = pos.truncateEnd(name.length()+1);
-        
-        return AmbPrefix(pos, PrefixFromQualifiedName(pos2, container), Id(pos, name));
+    public Id Id(Position pos, String name) {
+	return Id(pos, Name.make(name));
     }
     
-    public TypeNode TypeNodeFromQualifiedName(Position pos, String qualifiedName) {
-        if (StringUtil.isNameShort(qualifiedName)) {
-            return AmbTypeNode(pos, null, Id(pos, qualifiedName));
-        }
+    public Prefix PrefixFromQualifiedName(Position pos, QName qualifiedName) {
+	if (qualifiedName.qualifier() == null)
+            return AmbPrefix(pos, null, Id(pos, qualifiedName.name()));
         
-        String container = StringUtil.getPackageComponent(qualifiedName);
-        String name = StringUtil.getShortNameComponent(qualifiedName);
+        Position pos2 = pos.truncateEnd(qualifiedName.name().toString().length()+1);
         
-        Position pos2 = pos.truncateEnd(name.length()+1);
-        
-        return AmbTypeNode(pos, QualifierNodeFromQualifiedName(pos2, container), Id(pos, name));
+        return AmbPrefix(pos, PrefixFromQualifiedName(pos2, qualifiedName.qualifier()), Id(pos, qualifiedName.name()));
     }
     
-    public Receiver ReceiverFromQualifiedName(Position pos, String qualifiedName) {
-        if (StringUtil.isNameShort(qualifiedName)) {
-            return AmbReceiver(pos, null, Id(pos, qualifiedName));
-        }
+    public TypeNode TypeNodeFromQualifiedName(Position pos, QName qualifiedName) {
+	if (qualifiedName.qualifier() == null)
+            return AmbTypeNode(pos, null, Id(pos, qualifiedName.name()));
         
-        String container = StringUtil.getPackageComponent(qualifiedName);
-        String name = StringUtil.getShortNameComponent(qualifiedName);
+        Position pos2 = pos.truncateEnd(qualifiedName.name().toString().length()+1);
         
-        Position pos2 = pos.truncateEnd(name.length()+1);
+        return AmbTypeNode(pos, QualifierNodeFromQualifiedName(pos2, qualifiedName.qualifier()), Id(pos, qualifiedName.name()));
+    }
+    
+    public Receiver ReceiverFromQualifiedName(Position pos, QName qualifiedName) {
+	if (qualifiedName.qualifier() == null)
+	    return AmbReceiver(pos, null, Id(pos, qualifiedName.name()));
         
-        return AmbReceiver(pos, PrefixFromQualifiedName(pos2, container), Id(pos, name));
+        Position pos2 = pos.truncateEnd(qualifiedName.name().toString().length()+1);
+        
+        return AmbReceiver(pos, PrefixFromQualifiedName(pos2, qualifiedName.qualifier()), Id(pos, qualifiedName.name()));
   
     }
     
-    public Expr ExprFromQualifiedName(Position pos, String qualifiedName) {
-        if (StringUtil.isNameShort(qualifiedName)) {
-            return AmbExpr(pos, Id(pos, qualifiedName));
-        }
+    public Expr ExprFromQualifiedName(Position pos, QName qualifiedName) {
+	if (qualifiedName.qualifier() == null)
+	    return AmbExpr(pos, Id(pos, qualifiedName.name()));
         
-        String container = StringUtil.getPackageComponent(qualifiedName);
-        String name = StringUtil.getShortNameComponent(qualifiedName);
+	Position pos2 = pos.truncateEnd(qualifiedName.name().toString().length()+1);
         
-        Position pos2 = pos.truncateEnd(name.length()+1);
-        
-        return Field(pos, ReceiverFromQualifiedName(pos2, container), Id(pos, name));
+        return Field(pos, ReceiverFromQualifiedName(pos2, qualifiedName.qualifier()), Id(pos, qualifiedName.name()));
     }
     
-    public QualifierNode QualifierNodeFromQualifiedName(Position pos, String qualifiedName) {
-        if (StringUtil.isNameShort(qualifiedName)) {
-            return AmbQualifierNode(pos, null, Id(pos, qualifiedName));
-        }
+    public QualifierNode QualifierNodeFromQualifiedName(Position pos, QName qualifiedName) {
+	if (qualifiedName.qualifier() == null)
+	    return AmbQualifierNode(pos, null, Id(pos, qualifiedName.name()));
         
-        String container = StringUtil.getPackageComponent(qualifiedName);
-        String name = StringUtil.getShortNameComponent(qualifiedName);
+	Position pos2 = pos.truncateEnd(qualifiedName.name().toString().length()+1);
         
-        Position pos2 = pos.truncateEnd(name.length()+1);
-        
-        return AmbQualifierNode(pos, QualifierNodeFromQualifiedName(pos2, container), Id(pos, name));
+        return AmbQualifierNode(pos, QualifierNodeFromQualifiedName(pos2, qualifiedName.qualifier()), Id(pos, qualifiedName.name()));
     }
     
     public CanonicalTypeNode CanonicalTypeNode(Position pos, Type type) {

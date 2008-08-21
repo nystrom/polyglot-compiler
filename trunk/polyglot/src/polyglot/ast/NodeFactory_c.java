@@ -72,7 +72,7 @@ public class NodeFactory_c extends AbstractNodeFactory_c
 	    n = (FlagsNode) n.del(delFactory.delFlagsNode());
 	    return n;
     }
-    public Id Id(Position pos, String name) {
+    public Id Id(Position pos, Name name) {
         Id n = new Id_c(pos, name);
         n = (Id) n.ext(extFactory.extId());
         n = (Id) n.del(delFactory.delId());
@@ -353,7 +353,7 @@ public class NodeFactory_c extends AbstractNodeFactory_c
         return n;
     }
     
-    public Import Import(Position pos, Import.Kind kind, String name) {
+    public Import Import(Position pos, Import.Kind kind, QName name) {
         Import n = new Import_c(pos, kind, name);
         n = (Import)n.ext(extFactory.extImport());
         n = (Import)n.del(delFactory.delImport());

@@ -14,6 +14,8 @@ import java.io.PrintWriter;
 import java.io.Writer;
 
 import polyglot.main.Report;
+import polyglot.types.Name;
+import polyglot.types.QName;
 import polyglot.util.CodeWriter;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.UnicodeWriter;
@@ -32,7 +34,7 @@ public class TargetFactory
     }
 
     /** Open a writer to the output file for the class in the given package. */
-    public Writer outputWriter(String packageName, String className,
+    public Writer outputWriter(QName packageName, Name className,
 	    Source source) throws IOException 
     {
 	return outputWriter(outputFile(packageName, className, source));
@@ -61,26 +63,29 @@ public class TargetFactory
     }
 
     /** Return a file object for the output of the source file in the given package. */
-    public File outputFile(String packageName, Source source) {
+    public File outputFile(QName packageName, Source source) {
 	String name;
 	name = new File(source.name()).getName();
 	name = name.substring(0, name.lastIndexOf('.'));
-	return outputFile(packageName, name, source);
+	return outputFile(packageName, Name.make(name), source);
     }
 
     /** Return a file object for the output of the class in the given package. */
-    public File outputFile(String packageName, String className, Source source)
+    public File outputFile(QName packageName, Name className, Source source)
     {
 	if (outputDirectory == null) {
 	      throw new InternalCompilerError("Output directory not set.");
 	}
 
-	if (packageName == null) {
-	    packageName = "";
-	}
+	String pkgString;
+	
+	if (packageName == null)
+	    pkgString = "";
+	else
+	    pkgString = packageName.toString();
 
 	File outputFile = new File(outputDirectory,
-				   packageName.replace('.', File.separatorChar)
+				   pkgString.replace('.', File.separatorChar)
 				   + File.separatorChar
 				   + className
 				   + "." + outputExtension);

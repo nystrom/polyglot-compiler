@@ -83,16 +83,6 @@ public class Formal_c extends Term_c implements Formal
         return n;
     }
 
-    /** Get the name of the formal. */
-    public String nameString() {
-	return name.id();
-    }
-
-    /** Set the name of the formal. */
-    public Formal nameString(String name) {
-        return name(this.name.id(name));
-    }
-
     /** Get the local instance of the formal. */
     public LocalDef localDef() {
         return li;

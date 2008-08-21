@@ -102,35 +102,10 @@ public class TypeChecker extends ContextVisitor
         
         Node m = n;
       
-        try {
-        	m = m.del().disambiguate(tc);
-        	m = m.del().typeCheck(tc);
-        	m = m.del().checkConstants(tc);
-        }
-        catch (SemanticException e) {
-        	if (e.getMessage() != null) {
-        		Position position = e.position();
+        m = m.del().disambiguate(tc);
+        m = m.del().typeCheck(tc);
+        m = m.del().checkConstants(tc);
 
-        		if (position == null) {
-        			position = n.position();
-        		}
-
-        		tc.errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR,
-        				e.getMessage(), position);
-        	}
-        	else {
-        		// silent error; these should be thrown only
-        		// when the error has already been reported 
-        	}
-                
-                // IMPORTANT: Mark the goal as failed, otherwise we may run dependent goals
-                // that depend on this pass completing successfully.
-                if (goal() != null)
-                    goal().fail();
-
-        	throw e;
-        }
-        
         // Record the new node in the memo table.
         memo.put(old, m);
         memo.put(n, m);

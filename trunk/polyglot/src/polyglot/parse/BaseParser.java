@@ -207,10 +207,10 @@ public abstract class BaseParser extends java_cup.runtime.lr_parser {
             if (a.prefix() != null) {
                 return nf.AmbQualifierNode(pos(p),
                                            prefixToQualifier(a.prefix()),
-                                           nf.Id(pos(p), a.nameString()));
+                                           a.nameNode());
             }
             else {
-                return nf.AmbQualifierNode(pos(p), nf.Id(pos(p), a.nameString()));
+                return nf.AmbQualifierNode(pos(p), a.nameNode());
             }
         }
 
@@ -220,10 +220,10 @@ public abstract class BaseParser extends java_cup.runtime.lr_parser {
             if (a.prefix() != null) {
                 return nf.AmbQualifierNode(pos(p),
                                            prefixToQualifier(a.prefix()),
-                                           nf.Id(pos(p), a.nameString()));
+                                           a.nameNode());
             }
             else {
-                return nf.AmbQualifierNode(pos(p), nf.Id(pos(p), a.nameString()));
+                return nf.AmbQualifierNode(pos(p), a.nameNode());
             }
         }
 
@@ -256,14 +256,14 @@ public abstract class BaseParser extends java_cup.runtime.lr_parser {
     protected QualifierNode exprToQualifier(Expr e) throws Exception {
         if (e instanceof AmbExpr) {
             AmbExpr a = (AmbExpr) e;
-            return nf.AmbQualifierNode(pos(e), nf.Id(pos(a), a.nameString()));
+            return nf.AmbQualifierNode(pos(e), a.name());
         }
 
         if (e instanceof Field) {
             Field f = (Field) e;
             Receiver r = f.target();
             return nf.AmbQualifierNode(pos(e), prefixToQualifier(r),
-                                       nf.Id(pos(f), f.nameString()));
+                                       f.name());
         }
 
         die(pos(e));
@@ -277,14 +277,13 @@ public abstract class BaseParser extends java_cup.runtime.lr_parser {
     public TypeNode exprToType(Expr e) throws Exception {
         if (e instanceof AmbExpr) {
             AmbExpr a = (AmbExpr) e;
-            return nf.AmbTypeNode(pos(e), nf.Id(pos(a), a.nameString()));
+            return nf.AmbTypeNode(pos(e), a.name());
         }
 
         if (e instanceof Field) {
             Field f = (Field) e;
             Receiver r = f.target();
-            return nf.AmbTypeNode(pos(e), prefixToQualifier(r), nf.Id(pos(f),
-                                                                      f.nameString()));
+            return nf.AmbTypeNode(pos(e), prefixToQualifier(r), f.name());
         }
 
         die(pos(e));

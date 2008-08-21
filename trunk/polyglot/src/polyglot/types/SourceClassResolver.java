@@ -112,7 +112,7 @@ public class SourceClassResolver extends LoadedClassResolver
     this.ignoreModTimes = ignoreModTimes;
   }
 
-  public boolean packageExists(String name) {
+  public boolean packageExists(QName name) {
     if (super.packageExists(name)) {
         return true;
     }
@@ -125,8 +125,9 @@ public class SourceClassResolver extends LoadedClassResolver
   /**
    * Find a type by name.
    */
-  public Named find(String name) throws SemanticException {
-    if (Report.should_report(report_topics, 3))
+  public Named find(QName name) throws SemanticException {
+
+      if (Report.should_report(report_topics, 3))
 	Report.report(3, "SourceCR.find(" + name + ")");
 
     ClassFile clazz = null;
@@ -237,13 +238,13 @@ public class SourceClassResolver extends LoadedClassResolver
             + " to recompile the source code.");
     }
     
-    throw new NoClassException(name);
+    throw new NoClassException(name.toString());
   }
 
   /**
    * Get a type from a source file.
    */
-  protected Named getTypeFromSource(FileSource source, String name)
+  protected Named getTypeFromSource(FileSource source, QName name)
     throws SemanticException
   {
     Scheduler scheduler = ext.scheduler();

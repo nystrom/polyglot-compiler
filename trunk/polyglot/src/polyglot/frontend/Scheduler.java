@@ -520,9 +520,9 @@ public abstract class Scheduler {
     public abstract Goal Serialized(Job job);
     public abstract Goal CodeGenerated(Job job);
 
-    public abstract Goal LookupGlobalType(LazyRef< Type> sym);
-    public abstract Goal LookupGlobalTypeDef(LazyRef<ClassDef> sym, String name);
-    public abstract Goal LookupGlobalTypeDefAndSetFlags(LazyRef<ClassDef> sym, String name, Flags flags);
+    public abstract Goal LookupGlobalType(LazyRef<Type> sym);
+    public abstract Goal LookupGlobalTypeDef(LazyRef<ClassDef> sym, QName name);
+    public abstract Goal LookupGlobalTypeDefAndSetFlags(LazyRef<ClassDef> sym, QName name, Flags flags);
 }
 
 

@@ -22,8 +22,8 @@ public interface ClassDef extends MemberDef
 {
     ClassType asType();
     
-    String name();
-    String fullName();
+    Name name();
+    QName fullName();
 
     Ref<? extends Package> package_();
     
@@ -188,7 +188,7 @@ public interface ClassDef extends MemberDef
      * Set the name of the class.  Throws <code>InternalCompilerError</code>
      * if called on an anonymous class.
      */
-    void name(String name);
+    void name(Name name);
 
     /**
      * Set the class's kind.

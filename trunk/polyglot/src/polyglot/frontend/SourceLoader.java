@@ -7,17 +7,14 @@
 
 package polyglot.frontend;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import polyglot.main.Report;
+import polyglot.types.QName;
 import polyglot.util.FileUtil;
 import polyglot.util.InternalCompilerError;
 
@@ -134,8 +131,8 @@ public class SourceLoader
     }
 
     /** Check if a directory for a package exists. */
-    public boolean packageExists(String name) {
-        String fileName = name.replace('.', File.separatorChar);
+    public boolean packageExists(QName name) {
+        String fileName = name.toString().replace('.', File.separatorChar);
 
 	/* Search the source path. */
         for (Iterator i = sourcePath.iterator(); i.hasNext(); ) {
@@ -151,19 +148,82 @@ public class SourceLoader
         return false;
     }
     
+    public static class ZipSource extends FileSource {
+	String entryName;
+	
+	public ZipSource(File file, String entryName) throws IOException {
+	    super(file);
+	    this.entryName = entryName;
+	}
+
+	@Override
+	protected Reader createReader(InputStream str) {
+	    // TODO Auto-generated method stub
+	    return super.createReader(str);
+	}
+	
+	/** Open the source file. */
+	public Reader open() throws IOException {
+	    if (reader == null) {
+		ZipFile zip = file.getName().endsWith(".jar") ? new JarFile(file) : new ZipFile(file);
+		ZipEntry ze = zip.getEntry(entryName);
+		if (ze == null)
+		    throw new FileNotFoundException("Could not find " + entryName + " in " + file);
+		InputStream str = zip.getInputStream(ze);
+		reader = createReader(str);
+	    }
+	    return reader;
+	}
+
+	public boolean equals(Object o) {
+	    if (o instanceof ZipSource) {
+		ZipSource s = (ZipSource) o;
+		return file.equals(s.file) && entryName.equals(s.entryName);
+	    }
+
+	    return false;
+	}
+
+	public int hashCode() {
+	    return file.getPath().hashCode() + entryName.hashCode();
+	}
+    }
+    
     /** Load the source file for the given class name using the source path. */
-    public FileSource classSource(String className) {
+    public FileSource classSource(QName className) {
 	/* Search the source path. */
         String[] exts = sourceExt.fileExtensions();
 
         for (int k = 0; k < exts.length; k++) {
-            String fileName = className.replace('.', File.separatorChar) +
+            String fileName = className.toString().replace('.', File.separatorChar) +
                                       "." + exts[k];
 
             for (Iterator i = sourcePath.iterator(); i.hasNext(); ) {
                 File directory = (File) i.next();
+                
+                if (directory.isFile() && (directory.getName().endsWith(".jar") || directory.getName().endsWith(".zip"))) {
+                    ZipFile zip;
+                    
+                    try {
+                	File dir = directory;
+                	if (dir.getName().endsWith(".jar")) {
+                	    zip = new JarFile(dir);
+                	}
+                	else {
+                	    zip = new ZipFile(dir);
+                	}
+
+                	ZipEntry ze = zip.getEntry(fileName);
+                	if (ze != null)
+                	    return new ZipSource(directory, fileName);
+                    }
+                    catch (IOException ex) {
+		    }
+                }
+                
                 if (! directory.isDirectory())
                     continue;
+                
                 Set dirContents = (Set)directoryContentsCache.get(directory);
                 if (dirContents == null) {
                     dirContents = new HashSet();

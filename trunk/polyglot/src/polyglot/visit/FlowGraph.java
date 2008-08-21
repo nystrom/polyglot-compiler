@@ -223,7 +223,7 @@ public class FlowGraph {
       }
 
       public String toString() {
-          return (type().isClass() ? type().toClass().name() : type().toString() );
+          return (type().isClass() ? type().toClass().name().toString() : type().toString() );
       }
   }
   

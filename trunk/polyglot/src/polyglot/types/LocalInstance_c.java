@@ -11,7 +11,7 @@ public class LocalInstance_c extends VarInstance_c<LocalDef> implements LocalIns
         return (LocalInstance) super.flags(flags);
     }
 
-    public LocalInstance name(String name) {
+    public LocalInstance name(Name name) {
         return (LocalInstance) super.name(name);
     }
 

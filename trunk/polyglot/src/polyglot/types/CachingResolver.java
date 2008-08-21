@@ -15,22 +15,22 @@ import polyglot.util.*;
 /**
  * A <code>CachingResolver</code> memoizes another Resolver
  */
-public class CachingResolver implements Resolver, Copy {
-    protected Resolver inner;
-    private Map<String,Object> cache;
+public class CachingResolver implements TopLevelResolver, Copy {
+    protected TopLevelResolver inner;
+    private Map<QName,Object> cache;
     private boolean cacheNotFound;
 
     /**
      * Create a caching resolver.
      * @param inner The resolver whose results this resolver caches.
      */
-    public CachingResolver(Resolver inner, boolean cacheNotFound) {
+    public CachingResolver(TopLevelResolver inner, boolean cacheNotFound) {
 	this.inner = inner;
         this.cacheNotFound = cacheNotFound;
-	this.cache = new HashMap<String, Object>();
+	this.cache = new HashMap<QName, Object>();
     }
 
-    public CachingResolver(Resolver inner) {
+    public CachingResolver(TopLevelResolver inner) {
         this(inner, true);
     }
 
@@ -38,11 +38,15 @@ public class CachingResolver implements Resolver, Copy {
         return (Report.should_report("sysresolver", level) && this instanceof SystemResolver) ||
                Report.should_report(TOPICS, level);
     }
+    
+    public boolean packageExists(QName name) {
+        return inner.packageExists(name);
+    }
 
     public Object copy() {
         try {
             CachingResolver r = (CachingResolver) super.clone();
-            r.cache = new HashMap<String, Object>(this.cache);
+            r.cache = new HashMap<QName, Object>(this.cache);
             return r;
         }
         catch (CloneNotSupportedException e) {
@@ -53,7 +57,7 @@ public class CachingResolver implements Resolver, Copy {
     /**
      * The resolver whose results this resolver caches.
      */
-    public Resolver inner() {
+    public TopLevelResolver inner() {
         return this.inner;
     }
 
@@ -74,11 +78,11 @@ public class CachingResolver implements Resolver, Copy {
      * Find a type object by name.
      * @param name The name to search for.
      */
-    public Named find(Matcher<Named> matcher) throws SemanticException {
+    public Named find(QName name) throws SemanticException {
         if (shouldReport(2))
-            Report.report(2, "CachingResolver: find: " + matcher.signature());
+            Report.report(2, "CachingResolver: find: " + name);
 
-        Object o = cache.get(matcher.key());
+        Object o = cache.get(name);
 
         if (o instanceof SemanticException) throw ((SemanticException) o);
 
@@ -86,31 +90,31 @@ public class CachingResolver implements Resolver, Copy {
 
         if (q == null) {
             if (shouldReport(3))
-                Report.report(3, "CachingResolver: not cached: " + matcher.signature());
+                Report.report(3, "CachingResolver: not cached: " + name);
 
             try {
-                q = inner.find(matcher);
+                q = inner.find(name);
             }
             catch (NoClassException e) {
                 if (shouldReport(3)) {
                     Report.report(3, "CachingResolver: " + e.getMessage());
-                    Report.report(3, "CachingResolver: installing " + matcher.signature() + "-> (not found) in resolver cache");
+                    Report.report(3, "CachingResolver: installing " + name + "-> (not found) in resolver cache");
                 }
                 if (cacheNotFound) {
-                    cache.put(matcher.name(), e);
+                    cache.put(name, e);
                 }
                 throw e;
             }
 
-            addNamed(matcher.name(), q);
-            addNamed(q.fullName(), q);
+            addNamed(name, q);
+            addNamed(QName.make(q.fullName()), q);
 
             if (shouldReport(3))
-                Report.report(3, "CachingResolver: loaded: " + matcher.name());
+                Report.report(3, "CachingResolver: loaded: " + name);
 	}
         else {
             if (shouldReport(3))
-                Report.report(3, "CachingResolver: cached: " + matcher.name());
+                Report.report(3, "CachingResolver: cached: " + name);
         }
 
 	return q;
@@ -120,7 +124,7 @@ public class CachingResolver implements Resolver, Copy {
      * Check if a type object is in the cache, returning null if not.
      * @param name The name to search for.
      */
-    public Named check(String name) {
+    public Named check(QName name) {
         Object o = cache.get(name);
         if (o instanceof Throwable)
             return null;
@@ -132,7 +136,7 @@ public class CachingResolver implements Resolver, Copy {
      * @param name The name of the qualifier to insert.
      * @param q The qualifier to insert.
      */
-    public void install(String name, Named q) {
+    public void install(QName name, Named q) {
         if (shouldReport(3))
             Report.report(3, "CachingResolver: installing " + name + "->" + q + " in resolver cache");
         if (shouldReport(5))
@@ -150,7 +154,7 @@ public class CachingResolver implements Resolver, Copy {
      * @param name The name of the qualifier to insert.
      * @param q The qualifier to insert.
      */
-    public void addNamed(String name, Named q) throws SemanticException {
+    public void addNamed(QName name, Named q) throws SemanticException {
 	install(name, q);
     }
 

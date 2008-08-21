@@ -20,7 +20,7 @@ import polyglot.util.Position;
 public class MethodDef_c extends ProcedureDef_c
                                 implements MethodDef
 {
-    protected String name;
+    protected Name name;
     protected Ref<? extends Type> returnType;
 
     /** Used for deserializing types. */
@@ -28,7 +28,7 @@ public class MethodDef_c extends ProcedureDef_c
 
     public MethodDef_c(TypeSystem ts, Position pos,
 	 		    Ref<? extends StructType> container,
-	                    Flags flags, Ref<? extends Type> returnType, String name,
+	                    Flags flags, Ref<? extends Type> returnType, Name name,
 			    List<Ref<? extends Type>> formalTypes, List<Ref<? extends Type>> throwTypes) {
         super(ts, pos, container, flags, formalTypes, throwTypes);
 	this.returnType = returnType;
@@ -45,7 +45,7 @@ public class MethodDef_c extends ProcedureDef_c
         return asInstance;
     }
 
-    public String name() {
+    public Name name() {
         return name;
     }
 
@@ -56,7 +56,7 @@ public class MethodDef_c extends ProcedureDef_c
     /**
      * @param name The name to set.
      */
-    public void setName(String name) {
+    public void setName(Name name) {
         this.name = name;
     }
     

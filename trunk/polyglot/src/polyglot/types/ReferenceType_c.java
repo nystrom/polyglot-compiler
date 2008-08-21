@@ -54,7 +54,7 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
     public abstract List<FieldInstance> fields();
 
     /** Get a field of the class by name. */
-    public FieldInstance fieldNamed(String name) {
+    public FieldInstance fieldNamed(Name name) {
         for (FieldInstance fi : fields()) {
 	    if (fi.name().equals(name)) {
 	        return fi;
@@ -87,7 +87,7 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
         return false;
     }
 
-    public List<MethodInstance> methodsNamed(String name) {
+    public List<MethodInstance> methodsNamed(Name name) {
         List<MethodInstance> l = new ArrayList<MethodInstance>();
 
         for (Iterator<MethodInstance> i = methods().iterator(); i.hasNext(); ) {
@@ -100,7 +100,7 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
         return l;
     }
 
-    public List<MethodInstance> methods(String name, List<Type> argTypes) {
+    public List<MethodInstance> methods(Name name, List<Type> argTypes) {
         List<MethodInstance> l = new ArrayList<MethodInstance>();
 
         for (Iterator<MethodInstance> i = methodsNamed(name).iterator(); i.hasNext(); ) {

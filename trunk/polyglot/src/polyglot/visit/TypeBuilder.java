@@ -208,13 +208,13 @@ public class TypeBuilder extends NodeVisitor
 
 	// Make sure the import table finds this class.
         if (importTable() != null && classDef.isTopLevel()) {
-	    tb.importTable().addExplicitImport(classDef.fullName());
+	    tb.importTable().addExplicitImport(QName.make(classDef.fullName()));
 	}
         
         return tb;
     }
 
-    protected ClassDef newClass(Position pos, Flags flags, String name)
+    protected ClassDef newClass(Position pos, Flags flags, Name name)
         throws SemanticException
     {
 	TypeSystem ts = typeSystem();
@@ -260,10 +260,10 @@ public class TypeBuilder extends NodeVisitor
             }
 
             if (allMembers) {
-                typeSystem().systemResolver().addNamed(ct.fullName(), ct.asType());
+                typeSystem().systemResolver().addNamed(QName.make(currentClass().fullName(), ct.name()), ct.asType());
 
                 // Save in the cache using the name a class file would use.
-                String classFileName = typeSystem().getTransformedClassName(ct);
+                QName classFileName = typeSystem().getTransformedClassName(ct);
                 typeSystem().systemResolver().install(classFileName, ct.asType());
             }
 
@@ -273,18 +273,24 @@ public class TypeBuilder extends NodeVisitor
             ct.kind(ClassDef.TOP_LEVEL);
             ct.setJob(job());
 
-	    if (currentPackage() != null) {
-	      	ct.setPackage(Types.<Package>ref(currentPackage()));
-	    }
+            QName fullName;
 
-            Named dup = typeSystem().systemResolver().check(ct.fullName());
+            if (currentPackage() != null) {
+        	ct.setPackage(Types.<Package>ref(currentPackage()));
+        	fullName = QName.make(currentPackage().fullName(), ct.name());
+            }
+            else {
+        	fullName = QName.make(null, ct.name());
+            }
 
-            if (dup != null && dup.fullName().equals(ct.fullName())) {
+            Named dup = typeSystem().systemResolver().check(fullName);
+
+            if (dup != null && dup.fullName().equals(fullName)) {
                 throw new SemanticException("Duplicate class \"" +
                                             ct.fullName() + "\".", pos);
             }
 
-            typeSystem().systemResolver().addNamed(ct.fullName(), ct.asType());
+            typeSystem().systemResolver().addNamed(fullName, ct.asType());
 
 	    return ct;
 	}
@@ -316,7 +322,7 @@ public class TypeBuilder extends NodeVisitor
         return pushClass(ct);
     }
 
-    public TypeBuilder pushClass(Position pos, Flags flags, String name)
+    public TypeBuilder pushClass(Position pos, Flags flags, Name name)
     	throws SemanticException {
 
         ClassDef t = newClass(pos, flags, name);

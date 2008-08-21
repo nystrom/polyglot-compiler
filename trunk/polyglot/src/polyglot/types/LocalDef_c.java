@@ -20,7 +20,7 @@ public class LocalDef_c extends VarDef_c implements LocalDef
     protected LocalDef_c() { }
 
     public LocalDef_c(TypeSystem ts, Position pos,
-	  		   Flags flags, Ref<? extends Type> type, String name) {
+	  		   Flags flags, Ref<? extends Type> type, Name name) {
         super(ts, pos, flags, type, name);
     }
 

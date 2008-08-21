@@ -45,16 +45,6 @@ public class AmbExpr_c extends Expr_c implements AmbExpr
       return n;
   }
 
-  /** Get the name of the expression. */
-  public String nameString() {
-    return this.name.id();
-  }
-
-  /** Set the name of the expression. */
-  public AmbExpr nameString(String name) {
-      return name(this.name.id(name));
-  }
-  
   /** Reconstruct the expression. */
   protected AmbExpr_c reconstruct(Id name) {
       if (name != this.name) {

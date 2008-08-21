@@ -16,18 +16,18 @@ import polyglot.util.*;
 /**
  * Represents an ambiguous, possibly qualified, identifier encountered while parsing.
  */
-public class Name {
-    public final Name prefix;
+public class ParsedName {
+    public final ParsedName prefix;
     public final Id name;
     public final Position pos;
     public final NodeFactory nf;
     public final TypeSystem ts;
 
-    public Name(NodeFactory nf, TypeSystem ts, Position pos, Id name) {
+    public ParsedName(NodeFactory nf, TypeSystem ts, Position pos, Id name) {
         this(nf, ts, pos, null, name);
     }
     
-    public Name(NodeFactory nf, TypeSystem ts, Position pos, Name prefix, Id name) {
+    public ParsedName(NodeFactory nf, TypeSystem ts, Position pos, ParsedName prefix, Id name) {
         this.nf = nf;
         this.ts = ts;
         this.pos = pos != null ? pos : Position.COMPILER_GENERATED;
@@ -35,37 +35,6 @@ public class Name {
         this.name = name;
     }
 
-    /** @deprecated */
-    private Name(NodeFactory nf, TypeSystem ts, Position pos, Name prefix, String qualifiedName) {
-    	this.nf = nf;
-        this.ts = ts;
-        this.pos = pos != null ? pos : Position.COMPILER_GENERATED;
-        
-        if (! StringUtil.isNameShort(qualifiedName)) {
-            if (prefix == null) {
-                Position prefixPos = pos.truncateEnd(qualifiedName.length()+1);
-                Position namePos = new Position(pos.truncateEnd(qualifiedName.length()).endOf(), pos.endOf());
-                this.prefix = new Name(nf, ts, prefixPos, null, StringUtil.getPackageComponent(qualifiedName));
-                this.name = nf.Id(namePos, StringUtil.getShortNameComponent(qualifiedName));
-            }
-            else {
-                throw new InternalCompilerError("Can only construct a qualified Name with a short name string: " + qualifiedName + " is not short.");
-            }
-        }
-        else {
-        	Position idPos;
-        	
-            if (prefix == null) {
-              idPos = pos;
-            }
-            else {
-             idPos = new Position(pos.truncateEnd(qualifiedName.length()).endOf(), pos.endOf());
-            }
-            this.prefix = prefix;
-            this.name = nf.Id(idPos, qualifiedName);
-        }
-    }
-    
     // expr
     public Expr toExpr() {
         if (prefix == null) {

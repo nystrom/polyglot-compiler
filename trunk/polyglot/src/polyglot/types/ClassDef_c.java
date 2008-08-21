@@ -7,12 +7,13 @@
 
 package polyglot.types;
 
-import java.io.*;
 import java.util.*;
 
-import polyglot.frontend.*;
+import polyglot.frontend.Job;
+import polyglot.frontend.Source;
 import polyglot.main.Report;
-import polyglot.util.*;
+import polyglot.util.InternalCompilerError;
+import polyglot.util.Position;
 
 /**
  * ParsedClassType
@@ -33,7 +34,7 @@ public class ClassDef_c extends Def_c implements ClassDef
     protected Ref<? extends Package> package_;
     protected Flags flags;
     protected Kind kind;
-    protected String name;
+    protected Name name;
     protected Ref<ClassDef> outer;
     protected List<Ref<? extends ClassType>> memberClasses;
     protected transient ClassType asType;
@@ -154,7 +155,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         return outer;
     }
 
-    public String name() {
+    public Name name() {
         return name;
     }
     
@@ -201,7 +202,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         return Types.<ClassType>ref(ts.createClassType(position(), this.outer));
     }
     
-    public void name(String name) {
+    public void name(Name name) {
         if (kind() == ANONYMOUS)
             throw new InternalCompilerError("Anonymous classes cannot have names.");
         this.name = name;
@@ -285,21 +286,8 @@ public class ClassDef_c extends Def_c implements ClassDef
     }
     
     public String toString() {
-        return fullName();
-    }
-
-    public void needSerialization(boolean b) {
-        needSerialization = b;
-    }
-    
-    public boolean needSerialization() {
-        return needSerialization;
-    }
-
-    /** Get the full name of the class, if possible. */
-    public String fullName() {
-        String name = name();
-
+        Name name = name();
+        
         if (kind() == null) {
             return "<unknown class " + name + ">";
         }
@@ -315,14 +303,45 @@ public class ClassDef_c extends Def_c implements ClassDef
     
         if (kind() == TOP_LEVEL) {
             Package p = Types.get(package_());
-            return p != null ? p.fullName() + "." + name : name;
+            return (p != null ? p.toString() + "." : "") + name;
         }
         else if (kind() == MEMBER) {
             ClassDef outer = Types.get(outer());
-            return outer != null ? outer.fullName() + "." + name : name;
+            return (outer != null ? outer.toString() + "." : "") + name;
         }
         else {
-            return name;
+            return name.toString();
+        }
+    }
+
+    public void needSerialization(boolean b) {
+        needSerialization = b;
+    }
+    
+    public boolean needSerialization() {
+        return needSerialization;
+    }
+
+    /** Get the full name of the class, if possible. */
+    public QName fullName() {
+        Name name = name();
+        
+        if (kind() == TOP_LEVEL) {
+            Package p = Types.get(package_());
+            return QName.make(p != null ? p.fullName() : null, name);
+        }
+        else if (kind() == MEMBER) {
+            ClassDef outer = Types.get(outer());
+            return QName.make(outer != null ? outer.fullName() : null, name);
+        }
+        else if (kind() == LOCAL) {
+            return QName.make(null, name);
+        }
+        else if (kind() == ANONYMOUS) {
+            return QName.make(null, Name.make("<anonymous class>"));
+        }
+        else {
+            return QName.make(null, Name.make("<unknown class>"));
         }
     }
 }

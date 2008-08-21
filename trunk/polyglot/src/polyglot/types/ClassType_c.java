@@ -11,7 +11,6 @@ import java.util.*;
 
 import polyglot.frontend.Globals;
 import polyglot.frontend.Job;
-import polyglot.main.Options;
 import polyglot.util.*;
 
 /**
@@ -47,7 +46,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     
     public Resolver resolver() {
         if (memberCache == null) {
-            memberCache = new CachingResolver(ts.createClassContextResolver(this));
+            memberCache = new AnotherCachingResolver(ts.createClassContextResolver(this));
         }
         return memberCache;
     }
@@ -67,7 +66,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     public abstract ClassType outer();
 
     /** Get the short name of the class, if possible. */ 
-    public abstract String name();
+    public abstract Name name();
 
     /** Get the container class if a member class. */
     public StructType container() {
@@ -79,19 +78,23 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     }
 
     /** Get the full name of the class, if possible. */
-    public String fullName() {
-        if (isAnonymous()) {
-            return toString();
+    public QName fullName() {
+        if (isTopLevel()) {
+            Name name = name();
+            return QName.make(package_() != null ? package_().fullName() : null, name);
         }
-        String name = name();
-        if (isTopLevel() && package_() != null) {
-            return package_().fullName() + "." + name;
+        else if (isMember()) {
+            Name name = name();
+            return QName.make(container() instanceof Named ? ((Named) container()).fullName() : null, name);
         }
-        else if (isMember() && container() instanceof Named) {
-            return ((Named) container()).fullName() + "." + name;
+        else if (isLocal()) {
+            return QName.make(null, name());
+        }
+        else if (isAnonymous()) {
+            return QName.make(null, Name.make("<anonymous class>"));
         }
         else {
-            return name;
+            return QName.make(null, Name.make("<unknown class>"));
         }
     }
 
@@ -154,25 +157,28 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     }
 
     /** Get a member class of the class by name. */
-    public ClassType memberClassNamed(String name) {
-        for (Iterator i = memberClasses().iterator(); i.hasNext(); ) {
-	    ClassType t = (ClassType) i.next();
-	    if (t.name().equals(name)) {
-	        return t;
+    public ClassType memberClassMatching(Matcher<Named> matcher) {
+	for (ClassType t : memberClasses()) {
+	    try {
+		Named n = matcher.instantiate(t);
+		if (n instanceof ClassType)
+		    return (ClassType) n;
+	    }
+	    catch (SemanticException e) {
 	    }
 	}
 
 	return null;
     }
 
-    public Named memberTypeNamed(String name) {
-	    return memberClassNamed(name);
+    public Named memberTypeMatching(Matcher<Named> matcher) {
+	    return memberClassMatching(matcher);
     }
     
     public String translate(Resolver c) {
         if (isTopLevel()) {
             if (package_() == null) {
-                return name();
+                return name().toString();
             }
 
             // Use the short name if it is unique.
@@ -181,7 +187,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
                     Named x = c.find(ts.TypeMatcher(name()));
                     
                     if (x instanceof ClassType && def().equals(((ClassType) x).def())) {
-                        return name();
+                        return name().toString();
                     }
                 }
                 catch (SemanticException e) {
@@ -193,7 +199,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         else if (isMember()) {
             // Use only the short name if the outer class is anonymous.
             if (container().toClass().isAnonymous()) {
-                return name();
+                return name().toString();
             }
 
             // Use the short name if it is unique.
@@ -202,7 +208,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
                     Named x = c.find(ts.TypeMatcher(name()));
 
                     if (x instanceof ClassType && def().equals(((ClassType) x).def())) {
-                        return name();
+                        return name().toString();
                     }
                 }
                 catch (SemanticException e) {
@@ -212,7 +218,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
             return container().translate(c) + "." + name();
         }
         else if (isLocal()) {
-            return name();
+            return name().toString();
         }
         else {
             throw new InternalCompilerError("Cannot translate an anonymous class.");
@@ -224,13 +230,13 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
             if (package_() != null) {
                 return package_() + "." + name();
             }
-            return name();
+            return name().toString();
         }
         else if (isMember()) {
             return container().toString() + "." + name();
         }
         else if (isLocal()) {
-            return name();
+            return name().toString();
         }
         else if (isAnonymous()) {
             return "<anonymous class>";
@@ -249,14 +255,14 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
 		w.write(".");
 		w.allowBreak(2, 3, "", 0);
             }
-            w.write(name());
+            w.write(name().toString());
         } else if (isMember()) {
             container().print(w);
 	    w.write(".");
 	    w.allowBreak(2, 3, "", 0);
-	    w.write(name());
+	    w.write(name().toString());
         } else if (isLocal()) {
-	    w.write(name());
+	    w.write(name().toString());
         } else if (isAnonymous()) {
 	    w.write("<anonymous class>");
         } else {

@@ -46,16 +46,6 @@ public class Local_c extends Expr_c implements Local
       return n;
   }
   
-  /** Get the name of the local. */
-  public String nameString() {
-      return this.name.id();
-  }
-  
-  /** Set the name of the local. */
-  public Local nameString(String name) {
-      return name(this.name.id(name));
-  }
-
   /** Return the access flags of the variable. */
   public Flags flags() {
     return li.flags();
