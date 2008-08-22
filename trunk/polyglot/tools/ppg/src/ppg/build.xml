@@ -83,11 +83,11 @@
 	</target>
 
 	<target name="clean">
-		<delete quiet="true" dir="${dst.dir}"/>
+		<delete quiet="true" dir="${dst.dir}" failonerror="false"/>
 	</target>
 
 	<target name="clobber" depends="clean">
-		<delete quiet="true">
+		<delete quiet="true" failonerror="false">
 			<fileset refid="lexer.ir"/>
 			<fileset refid="parser.ir"/>
 			<fileset dir="." includes="ppg.jar"/>

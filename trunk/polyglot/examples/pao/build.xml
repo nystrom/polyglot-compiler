@@ -86,10 +86,10 @@
        ****************************************  -->
     <target name="clean" description="clean up">
         <!-- Delete the ${compiler.classes} and ${dist} directory trees -->
-        <delete dir="${compiler.classes}" />
-        <delete dir="${runtime.classes}" />
-        <delete dir="${dist}" />
-        <delete includeemptydirs="true">
+        <delete dir="${compiler.classes}" failonerror="false" />
+        <delete dir="${runtime.classes}" failonerror="false" />
+        <delete dir="${dist}" failonerror="false" />
+        <delete includeemptydirs="true" failonerror="false">
             <fileset dir="${basedir}/tests">
                 <include name="**/*.class" />
                 <include name="**/*.java" />
@@ -101,7 +101,7 @@
     </target>
 
     <target name="clobber" depends="clean" description="removes all generated files">
-        <delete includeemptydirs="true">
+        <delete includeemptydirs="true" failonerror="false">
             <fileset dir="${compiler.src}">
                 <include name="**/Grm.java" />
                 <include name="**/sym.java" />
@@ -113,9 +113,9 @@
                 <include name="${runtime.jar.name}" />
             </fileset>
         </delete>
-        <delete file="${interp.sh}" />
-        <delete file="${compiler.sh}" />
-        <delete file="${compiler.bat}" />
+        <delete file="${interp.sh}" failonerror="false" />
+        <delete file="${compiler.sh}" failonerror="false" />
+        <delete file="${compiler.bat}" failonerror="false" />
     </target>
 
     <!-- initialize the build -->
