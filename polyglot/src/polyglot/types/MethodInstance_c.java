@@ -112,8 +112,25 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
             return false;
         }
     }
-    
+
     public void checkOverride(MethodInstance mj) throws SemanticException {
+	MethodInstance mi = this;
+
+	// HACK: Java5 allows return types to be covariant.  We'll allow covariant
+	// return if we mj is defined in a class file.
+	boolean allowCovariantReturn = false;
+
+	if (mj.container() instanceof ClassType) {
+	    ClassType ct = (ClassType) mj.container();
+	    if (ct.def().fromJavaClassFile()) {
+		allowCovariantReturn = true;
+	    }
+	}
+
+	checkOverride(mj, allowCovariantReturn);
+    }
+
+    protected void checkOverride(MethodInstance mj, boolean allowCovariantReturn) throws SemanticException {
         MethodInstance mi = this;
         
         if (mi == mj)
@@ -126,17 +143,6 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
                                         "; incompatible " +
                                         "parameter types",
                                         mi.position());
-        }
-        
-        // HACK: Java5 allows return types to be covariant.  We'll allow covariant
-        // return if we mj is defined in a class file.
-        boolean allowCovariantReturn = false;
-        
-        if (mj.container() instanceof ClassType) {
-            ClassType ct = (ClassType) mj.container();
-            if (ct.def().fromJavaClassFile()) {
-                allowCovariantReturn = true;
-            }
         }
         
         if (allowCovariantReturn
