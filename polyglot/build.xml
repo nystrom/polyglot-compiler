@@ -173,16 +173,16 @@
 	<target name="clobber-all" depends="clobber,clobber-examples" description="Clobber the base compiler and the examples" />
 
 	<target name="dust" depends="clobber-all">
-		<delete file="${lib}/polyglot.jar" />
-		<delete file="${lib}/polyglot-epl.jar" />
-		<delete file="${lib}/java_cup.jar" />
-		<delete file="${lib}/ppg.jar" />
-		<delete file="${lib}/pth.jar" />
+		<delete file="${lib}/polyglot.jar" failonerror="false"/>
+		<delete file="${lib}/polyglot-epl.jar" failonerror="false"/>
+		<delete file="${lib}/java_cup.jar" failonerror="false"/>
+		<delete file="${lib}/ppg.jar" failonerror="false"/>
+		<delete file="${lib}/pth.jar" failonerror="false"/>
 	</target>
 
 	<target name="clean" description="Cleans up the directory tree: deletes the distribution directory and the classes directories">
 		<!-- Delete the ${classes} and ${dist} directory trees -->
-		<delete dir="${lib}/polyglot.jar" />
+		<delete dir="${lib}/polyglot.jar" failonerror="false"/>
 		<delete dir="${classes}" includeemptydirs="true" failonerror="false" />
 		<delete dir="${pth.classes}" includeemptydirs="true" failonerror="false" />
 		<delete dir="${ppg.classes}" includeemptydirs="true" failonerror="false" />
@@ -192,7 +192,7 @@
 	</target>
 
 	<target name="clobber" depends="clean,clobber-examples" description="Cleans up the directory tree and deletes generated files">
-		<delete>
+		<delete failonerror="false">
 			<fileset dir="${src}">
 				<include name="polyglot/parse/Grm.java" />
 				<include name="polyglot/parse/sym.java" />
@@ -203,14 +203,14 @@
 				<include name="polyglot/qq/qq_ppg.cup" />
 			</fileset>
 		</delete>
-		<delete>
+		<delete failonerror="false">
 			<fileset dir="${pth.src}">
 				<include name="polyglot/pth/Grm.java" />
 				<include name="polyglot/pth/sym.java" />
 				<include name="polyglot/pth/Lexer_c.java" />
 			</fileset>
 		</delete>
-		<delete>
+		<delete failonerror="false">
 			<fileset dir="${ppg.src}">
 				<include name="ppg/parse/Parser.java" />
 				<include name="ppg/parse/sym.java" />
@@ -786,7 +786,7 @@
 
 	<target name="gen-version-manifest" depends="configure-buildstring">
 		<filter token="version" value="${jl.version}" />
-                <delete file="META-INF/MANIFEST.MF" />
+                <delete file="META-INF/MANIFEST.MF" failonerror="false" />
 		<copy tofile="META-INF/MANIFEST.MF" filtering="true">
 			<fileset file="${basedir}/META-INF/MANIFEST.MF.in" />
 		</copy>
