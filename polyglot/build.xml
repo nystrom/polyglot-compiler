@@ -131,11 +131,13 @@
 	<target name="jar-all" depends="jar,jar-pth,jar-ppg,jar-examples" description="Build polyglot.jar ppg.jar pth.jar and examples" />
 
 	<!-- install the jars in the examples -->
-	<target name="install-jars-in-examples" depends="jar">
+	<target name="install-jars-in-examples" depends="jar-ppg,jar">
 		<copy file="${lib}/polyglot.jar" todir="${pao.dir}/lib" />
 		<copy file="${lib}/polyglot.jar" todir="${coffer.dir}/lib" />
 		<copy file="${lib}/java_cup.jar" todir="${pao.dir}/lib" />
 		<copy file="${lib}/java_cup.jar" todir="${coffer.dir}/lib" />
+		<copy file="${lib}/ppg.jar" todir="${pao.dir}/lib" />
+		<copy file="${lib}/ppg.jar" todir="${coffer.dir}/lib" />
 	</target>
 
 	<!-- build the examples -->
