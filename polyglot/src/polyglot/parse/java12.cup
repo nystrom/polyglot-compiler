@@ -491,12 +491,12 @@ import_declaration ::=
 single_type_import_declaration ::=
                     // Import
         IMPORT:a qualified_name:b SEMICOLON:c
-            {: RESULT = parser.nf.Import(parser.pos(a, c), Import.CLASS, QName.parse(b.toString())); :}
+            {: RESULT = parser.nf.Import(parser.pos(a, c), Import.CLASS, QName.make(b.toString())); :}
     ;
 type_import_on_demand_declaration ::=
                     // Import
         IMPORT:a name:b DOT MULT SEMICOLON:c
-            {: RESULT = parser.nf.Import(parser.pos(a, c), Import.PACKAGE, QName.parse(b.toString())); :}
+            {: RESULT = parser.nf.Import(parser.pos(a, c), Import.PACKAGE, QName.make(b.toString())); :}
     ;
 type_declaration ::=
                     // ClassDecl
