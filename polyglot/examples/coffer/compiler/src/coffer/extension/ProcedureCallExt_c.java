@@ -26,7 +26,7 @@ public class ProcedureCallExt_c extends CofferExt_c {
 
         for (Iterator i = vmi.throwConstraints().iterator(); i.hasNext(); ) {
             ThrowConstraint c = (ThrowConstraint) i.next();
-            if (throwType.equals(c.throwType())) {
+            if (throwType.typeEquals(c.throwType())) {
                 return held_keys.removeAll(vmi.entryKeys()).addAll(c.keys());
             }
         }

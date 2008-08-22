@@ -24,7 +24,7 @@ public class CofferMethodDecl_c extends MethodDecl_c implements CofferMethodDecl
     protected KeySetNode returnKeys;
     protected List throwConstraints;
 
-    public CofferMethodDecl_c(Position pos, Flags flags, TypeNode returnType,
+    public CofferMethodDecl_c(Position pos, FlagsNode flags, TypeNode returnType,
 	    Id name, List formals, KeySetNode entryKeys, KeySetNode returnKeys,
 	    List throwConstraints, Block body) {
 	super(pos, flags, returnType, name, formals, Collections.EMPTY_LIST, body);

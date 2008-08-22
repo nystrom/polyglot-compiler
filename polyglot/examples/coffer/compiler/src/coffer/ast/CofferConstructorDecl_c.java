@@ -24,7 +24,7 @@ public class CofferConstructorDecl_c extends ConstructorDecl_c implements Coffer
     protected KeySetNode returnKeys;
     protected List throwConstraints;
 
-    public CofferConstructorDecl_c(Position pos, Flags flags, Id name, List formals, KeySetNode entryKeys, KeySetNode returnKeys, List throwConstraints, Block body) {
+    public CofferConstructorDecl_c(Position pos, FlagsNode flags, Id name, List formals, KeySetNode entryKeys, KeySetNode returnKeys, List throwConstraints, Block body) {
 	super(pos, flags, name, formals, Collections.EMPTY_LIST, body);
 	this.entryKeys = entryKeys;
         this.returnKeys = returnKeys;

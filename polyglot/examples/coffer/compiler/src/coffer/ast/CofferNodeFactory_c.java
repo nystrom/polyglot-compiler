@@ -10,7 +10,6 @@ package coffer.ast;
 import polyglot.ast.*;
 import coffer.types.*;
 import coffer.extension.*;
-import polyglot.types.Flags;
 import polyglot.types.Package;
 import polyglot.types.Type;
 import polyglot.types.Qualifier;
@@ -63,7 +62,7 @@ public class CofferNodeFactory_c extends NodeFactory_c implements CofferNodeFact
         return n;
     }
 
-    public ClassDecl ClassDecl(Position pos, Flags flags, Id name,
+    public ClassDecl ClassDecl(Position pos, FlagsNode flags, Id name,
                                TypeNode superClass, List interfaces,
                                ClassBody body)
     {
@@ -71,7 +70,7 @@ public class CofferNodeFactory_c extends NodeFactory_c implements CofferNodeFact
                               superClass, interfaces, body);
     }
 
-    public CofferClassDecl CofferClassDecl(Position pos, Flags flags,
+    public CofferClassDecl CofferClassDecl(Position pos, FlagsNode flags,
                                          Id name, KeyNode key,
                                          TypeNode superClass, List interfaces,
                                          ClassBody body)
@@ -88,7 +87,7 @@ public class CofferNodeFactory_c extends NodeFactory_c implements CofferNodeFact
         return n;
     }
 
-    public MethodDecl MethodDecl(Position pos, Flags flags,
+    public MethodDecl MethodDecl(Position pos, FlagsNode flags,
                                  TypeNode returnType, Id name,
                                  List argTypes, List excTypes, Block body)
     {
@@ -104,7 +103,7 @@ public class CofferNodeFactory_c extends NodeFactory_c implements CofferNodeFact
 
     }
 
-    public ConstructorDecl ConstructorDecl(Position pos, Flags flags,
+    public ConstructorDecl ConstructorDecl(Position pos, FlagsNode flags,
                                            Id name, List argTypes,
                                            List excTypes, Block body)
     {
@@ -119,7 +118,7 @@ public class CofferNodeFactory_c extends NodeFactory_c implements CofferNodeFact
                                      null, null, l, body);
     }
 
-    public CofferMethodDecl CofferMethodDecl(Position pos, Flags flags,
+    public CofferMethodDecl CofferMethodDecl(Position pos, FlagsNode flags,
                                               TypeNode returnType, Id name,
                                               List argTypes,
                                               KeySetNode entryKeys,
@@ -134,7 +133,7 @@ public class CofferNodeFactory_c extends NodeFactory_c implements CofferNodeFact
     }
 
     public CofferConstructorDecl CofferConstructorDecl(Position pos,
-                                                        Flags flags,
+                                                        FlagsNode flags,
                                                         Id name,
                                                         List argTypes,
                                                         KeySetNode entryKeys,

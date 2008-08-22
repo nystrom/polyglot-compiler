@@ -23,7 +23,7 @@ public class CofferClassDecl_c extends ClassDecl_c implements CofferClassDecl
 {
     protected KeyNode key;
 
-    public CofferClassDecl_c(Position pos, Flags flags, Id name,
+    public CofferClassDecl_c(Position pos, FlagsNode flags, Id name,
 	    KeyNode key, TypeNode superClass, List interfaces,
 	    ClassBody body) {
 	super(pos, flags, name, superClass, interfaces, body);

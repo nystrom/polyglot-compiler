@@ -10,7 +10,6 @@ package coffer.ast;
 import polyglot.ast.*;
 import coffer.types.*;
 import coffer.extension.*;
-import polyglot.types.Flags;
 import polyglot.types.Package;
 import polyglot.types.Type;
 import polyglot.types.Qualifier;
