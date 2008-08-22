@@ -9,7 +9,7 @@ include "polyglot/parse/java12.cup"
 
 package polyglot.qq;
 
-import polyglot.parse.Name;
+import polyglot.parse.ParsedName;
 import polyglot.parse.VarDeclarator;
 import polyglot.lex.Lexer;
 
