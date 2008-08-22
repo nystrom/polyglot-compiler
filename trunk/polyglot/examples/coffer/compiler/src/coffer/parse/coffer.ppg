@@ -4,7 +4,7 @@ package coffer.parse;
 
 import coffer.types.*;
 import coffer.ast.*;
-import polyglot.parse.Name;
+import polyglot.parse.ParsedName;
 import polyglot.parse.VarDeclarator;
 
 parser Grm extends polyglot.parse.Grm {:
@@ -49,8 +49,8 @@ start with goal;
 // TODO: modify the default Java grammar using PPG operations
 
 key ::=
-        IDENTIFIER:a
-            {: RESULT = parser.nf.KeyNode(parser.pos(a), parser.ts.unknownKey(parser.pos(a), a.getIdentifier())); :}
+        identifier:a
+            {: RESULT = parser.nf.KeyNode(parser.pos(a), parser.ts.unknownKey(parser.pos(a), a)); :}
     ;
 
 key_set_opt ::=
@@ -110,7 +110,7 @@ extend constructor_declaration ::=
             e = new Grm.KeySpec(null, null);
           }
            RESULT = parser.nf.CofferConstructorDecl(parser.pos(a),
-                                              m, parser.nf.Id(parser.pos(a), a.toString()), b,
+                                              m, a, b,
                                               e.entryKeys, e.returnKeys,
                                               c, d); :}
     ;
@@ -129,7 +129,7 @@ key_spec_opt ::=
         
 
 extend method_header ::=
-        modifiers_opt:a type:b IDENTIFIER:c LPAREN
+        modifiers_opt:a type:b identifier:c LPAREN
             formal_parameter_list_opt:d RPAREN
             key_spec_opt:e
             throws_opt:f
@@ -137,10 +137,10 @@ extend method_header ::=
                 e = new Grm.KeySpec(null, null);
               }
                RESULT = parser.nf.CofferMethodDecl(parser.pos(c), a, b,
-                                            parser.nf.Id(parser.pos(c), c.getIdentifier()), d,
+                                            c, d,
                                             e.entryKeys, e.returnKeys,
                                             f, null); :}
-    |   modifiers_opt:a VOID:b IDENTIFIER:c LPAREN
+    |   modifiers_opt:a VOID:b identifier:c LPAREN
             formal_parameter_list_opt:d RPAREN 
             key_spec_opt:e
             throws_opt:f
@@ -149,16 +149,16 @@ extend method_header ::=
               }
                RESULT = parser.nf.CofferMethodDecl(parser.pos(c), a,
                                             parser.nf.CanonicalTypeNode(parser.pos(b), parser.ts.Void()),
-                                            parser.nf.Id(parser.pos(c), c.getIdentifier()), d,
+                                            c, d,
                                             e.entryKeys, e.returnKeys,
                                             f, null); :}
     ;
 
 drop {
     method_header ::=
-            modifiers_opt type IDENTIFIER LPAREN
+            modifiers_opt type identifier LPAREN
                         formal_parameter_list_opt RPAREN dims_opt throws_opt
-        |   modifiers_opt VOID IDENTIFIER LPAREN
+        |   modifiers_opt VOID identifier LPAREN
                         formal_parameter_list_opt RPAREN throws_opt
         ;
 }
@@ -196,170 +196,162 @@ drop {
 
 extend
 class_declaration ::=
-      modifiers_opt:a TRACKED LPAREN key:k RPAREN CLASS:n IDENTIFIER:b
+      modifiers_opt:a TRACKED LPAREN key:k RPAREN CLASS:n identifier:b
           super_opt:c interfaces_opt:d class_body:e
         {: k = parser.nf.KeyNode(k.position(),
                                  parser.ts.paramKey(k.position(), k.name()));
            RESULT = parser.nf.CofferClassDecl(parser.pos(n), a,
-                                        parser.nf.Id(parser.pos(c), b.getIdentifier()),
-                                        k, c, d, e);
+                                        b, k, c, d, e);
         :}
     ;
 
 extend
 interface_declaration ::=
-      modifiers_opt:a TRACKED LPAREN key:k RPAREN INTERFACE:n IDENTIFIER:b
+      modifiers_opt:a TRACKED LPAREN key:k RPAREN INTERFACE:n identifier:b
           extends_interfaces_opt:c interface_body:d
         {: k = parser.nf.KeyNode(k.position(),
                                  parser.ts.paramKey(k.position(), k.name()));
            RESULT = parser.nf.CofferClassDecl(parser.pos(n),
-                                        a.Interface(),
-                                        parser.nf.Id(parser.pos(c), b.getIdentifier()),
-                                        k, null, c, d); 
+                                        a.flags(a.flags().Interface()),
+                                        b, k, null, c, d); 
         :}
     ;
 
 extend
 block_statement ::=
-      TRACKED LPAREN key:k RPAREN CLASS:n IDENTIFIER:b
+      TRACKED LPAREN key:k RPAREN CLASS:n identifier:b
           super_opt:c interfaces_opt:d class_body:e
         {: k = parser.nf.KeyNode(k.position(),
                                  parser.ts.paramKey(k.position(), k.name()));
            List l = new LinkedList();
            l.add(   parser.nf.LocalClassDecl(parser.pos(n),
-                        parser.nf.CofferClassDecl(parser.pos(n), Flags.NONE,
-                                        parser.nf.Id(parser.pos(c), b.getIdentifier()),
-                                        k, c, d, e)) );
+                        parser.nf.CofferClassDecl(parser.pos(n),
+                                        parser.nf.FlagsNode(parser.pos(n), Flags.NONE),
+                                        b, k, c, d, e)) );
            RESULT = l;
         :}
     |
-      ABSTRACT TRACKED LPAREN key:k RPAREN CLASS:n IDENTIFIER:b
+      ABSTRACT TRACKED LPAREN key:k RPAREN CLASS:n identifier:b
           super_opt:c interfaces_opt:d class_body:e
         {: k = parser.nf.KeyNode(k.position(),
                                  parser.ts.paramKey(k.position(), k.name()));
            List l = new LinkedList();
            l.add(   parser.nf.LocalClassDecl(parser.pos(n),
-                        parser.nf.CofferClassDecl(parser.pos(n), Flags.ABSTRACT,
-                                        parser.nf.Id(parser.pos(c), b.getIdentifier()),
-                                        k, c, d, e)) );
+                        parser.nf.CofferClassDecl(parser.pos(n),
+                                        parser.nf.FlagsNode(parser.pos(n), Flags.ABSTRACT),
+                                        b, k, c, d, e)) );
            RESULT = l;
         :}
     |
-      ABSTRACT FINAL TRACKED LPAREN key:k RPAREN CLASS:n IDENTIFIER:b
+      ABSTRACT FINAL TRACKED LPAREN key:k RPAREN CLASS:n identifier:b
           super_opt:c interfaces_opt:d class_body:e
         {: k = parser.nf.KeyNode(k.position(),
                                  parser.ts.paramKey(k.position(), k.name()));
            List l = new LinkedList();
            l.add(   parser.nf.LocalClassDecl(parser.pos(n),
-                        parser.nf.CofferClassDecl(parser.pos(n), Flags.FINAL.Abstract(),
-                                        parser.nf.Id(parser.pos(c), b.getIdentifier()),
-                                        k, c, d, e)) );
+                        parser.nf.CofferClassDecl(parser.pos(n),
+                                        parser.nf.FlagsNode(parser.pos(n), Flags.FINAL.Abstract()),
+                                        b, k, c, d, e)) );
            RESULT = l;
         :}
     |
-      FINAL TRACKED LPAREN key:k RPAREN CLASS:n IDENTIFIER:b
+      FINAL TRACKED LPAREN key:k RPAREN CLASS:n identifier:b
           super_opt:c interfaces_opt:d class_body:e
         {: k = parser.nf.KeyNode(k.position(),
                                  parser.ts.paramKey(k.position(), k.name()));
            List l = new LinkedList();
            l.add(   parser.nf.LocalClassDecl(parser.pos(n),
-                        parser.nf.CofferClassDecl(parser.pos(n), Flags.FINAL,
-                                        parser.nf.Id(parser.pos(c), b.getIdentifier()),
-                                        k, c, d, e)) );
+                        parser.nf.CofferClassDecl(parser.pos(n),
+                                        parser.nf.FlagsNode(parser.pos(n), Flags.FINAL),
+                                        b, k, c, d, e)) );
            RESULT = l;
         :}
     |
-      FINAL ABSTRACT TRACKED LPAREN key:k RPAREN CLASS:n IDENTIFIER:b
+      FINAL ABSTRACT TRACKED LPAREN key:k RPAREN CLASS:n identifier:b
           super_opt:c interfaces_opt:d class_body:e
         {: k = parser.nf.KeyNode(k.position(),
                                  parser.ts.paramKey(k.position(), k.name()));
            List l = new LinkedList();
            l.add(   parser.nf.LocalClassDecl(parser.pos(n),
-                        parser.nf.CofferClassDecl(parser.pos(n), Flags.FINAL.Abstract(),
-                                        parser.nf.Id(parser.pos(c), b.getIdentifier()),
-                                        k, c, d, e)) );
+                        parser.nf.CofferClassDecl(parser.pos(n),
+                                        parser.nf.FlagsNode(parser.pos(n), Flags.FINAL.Abstract()),
+                                        b, k, c, d, e)) );
            RESULT = l;
         :}
     ;
 
 extend
 block_statement ::=
-      TRACKED LPAREN key:k RPAREN INTERFACE:n IDENTIFIER:b
+      TRACKED LPAREN key:k RPAREN INTERFACE:n identifier:b
           extends_interfaces_opt:c interface_body:d
         {: k = parser.nf.KeyNode(k.position(),
                                  parser.ts.paramKey(k.position(), k.name()));
            List l = new LinkedList();
            l.add(   parser.nf.LocalClassDecl(parser.pos(n),
                         parser.nf.CofferClassDecl(parser.pos(n),
-                                        Flags.INTERFACE,
-                                        parser.nf.Id(parser.pos(c), b.getIdentifier()),
-                                        k, null, c, d)) ); 
+                                        parser.nf.FlagsNode(parser.pos(n), Flags.INTERFACE),
+                                        b, k, null, c, d)) ); 
            RESULT = l;
         :}
     |
-      ABSTRACT TRACKED LPAREN key:k RPAREN INTERFACE:n IDENTIFIER:b
+      ABSTRACT TRACKED LPAREN key:k RPAREN INTERFACE:n identifier:b
           extends_interfaces_opt:c interface_body:d
         {: k = parser.nf.KeyNode(k.position(),
                                  parser.ts.paramKey(k.position(), k.name()));
            List l = new LinkedList();
            l.add( parser.nf.LocalClassDecl(parser.pos(n),
                         parser.nf.CofferClassDecl(parser.pos(n),
-                                        Flags.ABSTRACT.Interface(),
-                                        parser.nf.Id(parser.pos(c), b.getIdentifier()),
-                                        k, null, c, d)) ); 
+                                        parser.nf.FlagsNode(parser.pos(n), Flags.ABSTRACT.Interface()),
+                                        b, k, null, c, d)) ); 
            RESULT = l;
         :}
     |
-      ABSTRACT FINAL TRACKED LPAREN key:k RPAREN INTERFACE:n IDENTIFIER:b
+      ABSTRACT FINAL TRACKED LPAREN key:k RPAREN INTERFACE:n identifier:b
           extends_interfaces_opt:c interface_body:d
         {: k = parser.nf.KeyNode(k.position(),
                                  parser.ts.paramKey(k.position(), k.name()));
            List l = new LinkedList();
            l.add( parser.nf.LocalClassDecl(parser.pos(n),
                         parser.nf.CofferClassDecl(parser.pos(n),
-                                        Flags.FINAL.Abstract().Interface(),
-                                        parser.nf.Id(parser.pos(c), b.getIdentifier()),
-                                        k, null, c, d)) ); 
+                                        parser.nf.FlagsNode(parser.pos(n), Flags.FINAL.Abstract().Interface()),
+                                        b, k, null, c, d)) ); 
            RESULT = l;
         :}
     |
-      FINAL TRACKED LPAREN key:k RPAREN INTERFACE:n IDENTIFIER:b
+      FINAL TRACKED LPAREN key:k RPAREN INTERFACE:n identifier:b
           extends_interfaces_opt:c interface_body:d
         {: k = parser.nf.KeyNode(k.position(),
                                  parser.ts.paramKey(k.position(), k.name()));
            List l = new LinkedList();
            l.add( parser.nf.LocalClassDecl(parser.pos(n),
                         parser.nf.CofferClassDecl(parser.pos(n),
-                                        Flags.FINAL.Interface(),
-                                        parser.nf.Id(parser.pos(c), b.getIdentifier()),
-                                        k, null, c, d)) ); 
+                                        parser.nf.FlagsNode(parser.pos(n), Flags.FINAL.Interface()),
+                                        b, k, null, c, d)) ); 
            RESULT = l;
         :}
     |
-      FINAL ABSTRACT TRACKED LPAREN key:k RPAREN INTERFACE:n IDENTIFIER:b
+      FINAL ABSTRACT TRACKED LPAREN key:k RPAREN INTERFACE:n identifier:b
           extends_interfaces_opt:c interface_body:d
         {: k = parser.nf.KeyNode(k.position(),
                                  parser.ts.paramKey(k.position(), k.name()));
            List l = new LinkedList();
            l.add( parser.nf.LocalClassDecl(parser.pos(n),
                         parser.nf.CofferClassDecl(parser.pos(n),
-                                        Flags.FINAL.Abstract().Interface(),
-                                        parser.nf.Id(parser.pos(c), b.getIdentifier()),
-                                        k, null, c, d)) ); 
+                                        parser.nf.FlagsNode(parser.pos(n), Flags.FINAL.Abstract().Interface()),
+                                        b, k, null, c, d)) ); 
            RESULT = l;
         :}
     ;
 
 extend
 class_member_declaration ::=
-      modifiers_opt:a TRACKED LPAREN key:k RPAREN CLASS:n IDENTIFIER:b
+      modifiers_opt:a TRACKED LPAREN key:k RPAREN CLASS:n identifier:b
           super_opt:c interfaces_opt:d class_body:e
         {: k = parser.nf.KeyNode(k.position(),
                                  parser.ts.paramKey(k.position(), k.name()));
            List l = new LinkedList();
            l.add( parser.nf.CofferClassDecl(parser.pos(n), a,
-                                        parser.nf.Id(parser.pos(c), b.getIdentifier()),
-                                        k, c, d, e) );
+                                        b, k, c, d, e) );
            RESULT = l;
         :}
     ;

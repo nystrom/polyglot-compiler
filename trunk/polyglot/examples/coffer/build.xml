@@ -150,6 +150,9 @@
         <available classname="JFlex.Main"
 	           classpathref="standard.classpath"
 	           property="cp_existence.jflex"/>
+        <available classname="ppg.PPG"
+	           classpathref="standard.classpath"
+	           property="cp_existence.ppg"/>
 
         <fail unless="cp_existence.polyglot"
 	      message="The polyglot classes must be on the classpath. Try adding polyglot.jar to the classpath."/>
@@ -157,6 +160,8 @@
 	      message="The java_cup classes must be on the classpath. Try adding java_cup.jar to the classpath."/>
         <fail unless="cp_existence.jflex"
 	      message="The JFlex classes must be on the classpath. Try adding JFlex.jar to the classpath."/>
+        <fail unless="cp_existence.ppg"
+	      message="The ppg classes must be on the classpath. Try adding ppg.jar to the classpath."/>
     </target>
 
     <target name="executables">

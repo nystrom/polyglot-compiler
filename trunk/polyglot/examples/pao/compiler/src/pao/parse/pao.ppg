@@ -3,8 +3,9 @@ include "polyglot/parse/java12.cup"
 package pao.parse;
 
 import pao.types.PaoTypeSystem;
-import polyglot.parse.Name;
+import polyglot.parse.ParsedName;
 import polyglot.parse.VarDeclarator;
+
 /**
  * Parser for the PAO extension.
  */

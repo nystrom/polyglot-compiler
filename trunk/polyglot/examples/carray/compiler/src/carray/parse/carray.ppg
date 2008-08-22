@@ -4,9 +4,10 @@ package polyglot.ext.carray.parse;
 
 import polyglot.ext.carray.types.CarrayTypeSystem;
 import polyglot.ext.carray.ast.CarrayNodeFactory;
-import polyglot.ext.jl.parse.Name;
+import polyglot.parse.ParsedName;
+import polyglot.parse.VarDeclarator;
 
-parser Grm extends polyglot.ext.jl.parse.Grm {:
+parser Grm extends polyglot.parse.Grm {:
     final CarrayTypeSystem ts;
     final CarrayNodeFactory nf;
 
