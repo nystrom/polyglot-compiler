@@ -216,7 +216,7 @@ public class Call_c extends Expr_c implements Call
             return this.typeCheckNullTarget(tc, argTypes);
         }
         
-        StructType targetType = this.findTargetType();
+        Type targetType = target.type();
         MethodInstance mi = ts.findMethod(targetType, 
                                           ts.MethodMatcher(targetType, this.name.id(), argTypes),
                                           c.currentClassDef());
@@ -247,30 +247,6 @@ public class Call_c extends Expr_c implements Call
         call.checkConsistency(c);
 
         return call;
-    }
-
-    protected StructType findTargetType() throws SemanticException { 
-        Type t = target.type();
-        if (t instanceof StructType) {
-            return (StructType) t;
-        }
-        else {
-            // trying to invoke a method on a non-struct type.
-            // let's pull out an appropriate error message.
-            if (target instanceof Expr) {
-                throw new SemanticException("Cannot invoke method \"" + name + "\" on "
-                                    + "an expression of non-reference type "
-                                    + t + ".", target.position());
-            }
-            else if (target instanceof TypeNode) {
-                throw new SemanticException("Cannot invoke static method \"" + name
-                                            + "\" on non-reference type " + t + ".",
-                                            target.position());
-            }            
-            throw new SemanticException("Cannot invoke method \"" + name
-                                        + "\" on non-reference type " + t + ".",
-                                        target.position());
-        }
     }
 
   public Type childExpectedType(Expr child, AscriptionVisitor av)

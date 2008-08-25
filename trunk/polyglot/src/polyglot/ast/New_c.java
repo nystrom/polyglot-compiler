@@ -202,7 +202,7 @@ public class New_c extends Expr_c implements New
                 ClassType ct = tn.type().toClass();
 
                 if (ct.isMember() && ! ct.flags().isStatic()) {
-                    New k = ((New_c) n).findQualifier(childtc, ct);
+                    New k = n.findQualifier(childtc, ct);
                     tn = k.objectType();
                     qualifier = (Expr) k.visitChild(k.qualifier(), childtc);
                 }
@@ -230,7 +230,8 @@ public class New_c extends Expr_c implements New
                     throw new SemanticException("Cannot instantiate member class of non-class type.", n.position());
                 }
                 Type ct = ts.findMemberType(qualifier.type(), name, c.currentClassDef());
-                tn = nf.CanonicalTypeNode(n.objectType().position(), ct);
+                ((Ref<Type>) tn.typeRef()).update(ct);
+                tn = nf.CanonicalTypeNode(n.objectType().position(), tn.typeRef());
             }
             else {
                 throw new SemanticException("Only simply-named member classes may be instantiated by a qualified new expression.",
