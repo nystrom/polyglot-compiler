@@ -22,70 +22,70 @@ import polyglot.visit.*;
  */
 public class LocalAssign_c extends Assign_c implements LocalAssign
 {
-    Expr local;
-    
-  public LocalAssign_c(Position pos, Local left, Operator op, Expr right) {
-    super(pos, op, right);
-    local = left;
-  }
+    Local local;
 
-  @Override
-  public Assign typeCheckLeft(ContextVisitor tc) throws SemanticException {
-      return this;
-  }
+    public LocalAssign_c(Position pos, Local left, Operator op, Expr right) {
+	super(pos, op, right);
+	local = left;
+    }
 
-  @Override
-  public Assign visitLeft(NodeVisitor v) {
-      Expr local = (Expr) visitChild(this.local, v);
-      if (local != this.local) {
-	  LocalAssign_c n = (LocalAssign_c) copy();
-	  n.local = local;
-	  return n;
-      }
-      return this;
-  }
-  public Expr left(NodeFactory nf) {
-      return local;
-  }
-  
-  public Type leftType() {
-      return local.type();
-  }
+    @Override
+    public Assign typeCheckLeft(ContextVisitor tc) throws SemanticException {
+	return this;
+    }
 
-  public Expr local() {
-      return local;
-  }
+    @Override
+    public Assign visitLeft(NodeVisitor v) {
+	Local local = (Local) visitChild(this.local, v);
+	if (local != this.local) {
+	    LocalAssign_c n = (LocalAssign_c) copy();
+	    n.local = local;
+	    return n;
+	}
+	return this;
+    }
+    public Expr left(NodeFactory nf) {
+	return local;
+    }
 
-  public LocalAssign local(Expr local) {
-      LocalAssign_c n = (LocalAssign_c) copy();
-      n.local = local;
-      return n;
-  }
+    public Type leftType() {
+	return local.type();
+    }
 
-  public Term firstChild() {
-      if (op == ASSIGN)
-	  return right();
-      return local;
-  }
-  
-  protected void acceptCFGAssign(CFGBuilder v) {
-	  // do not visit left()
-      // l = e: visit e -> (l = e)    
-//      v.visitCFG(local(), right(), ENTRY);
-      v.visitCFG(right(), this, EXIT);
-  }
-  
-  protected void acceptCFGOpAssign(CFGBuilder v) {
-      /*
+    public Local local() {
+	return local;
+    }
+
+    public LocalAssign local(Local local) {
+	LocalAssign_c n = (LocalAssign_c) copy();
+	n.local = local;
+	return n;
+    }
+
+    public Term firstChild() {
+	if (op == ASSIGN)
+	    return right();
+	return local;
+    }
+
+    protected void acceptCFGAssign(CFGBuilder v) {
+	// do not visit left()
+	// l = e: visit e -> (l = e)    
+	//      v.visitCFG(local(), right(), ENTRY);
+	v.visitCFG(right(), this, EXIT);
+    }
+
+    protected void acceptCFGOpAssign(CFGBuilder v) {
+	/*
       Local l = (Local)left();
-      
+
       // l OP= e: visit l -> e -> (l OP= e)
       v.visitThrow(l);
       v.edge(l, right().entry());
       v.visitCFG(right(), this);
-      */
-      
-      v.visitCFG(local(), right(), ENTRY);
-      v.visitCFG(right(), this, EXIT);
-  }
+	 */
+
+	v.visitCFG(local(), right(), ENTRY);
+	v.visitCFG(right(), this, EXIT);
+    }
 }
