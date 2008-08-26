@@ -106,8 +106,6 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
             }
         }
         
-        SemanticException ex = null;
-        
         // Check if the member was explicitly declared.
         if (m == null) {
             m = type.memberTypeMatching(matcher);
