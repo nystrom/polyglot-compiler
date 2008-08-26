@@ -325,10 +325,13 @@ public class New_c extends Expr_c implements New
         while (t != null) {
             try {
                 Type mt = ts.findMemberType(t, name, c.currentClassDef());
-                
-                if (ts.typeEquals(mt, ct)) {
-                    outer = t;
-                    break;
+
+                if (mt instanceof ClassType) {
+                    ClassType cmt = (ClassType) mt;
+                    if (cmt.def() == ct.def()) {
+                	outer = t;
+                	break;
+                    }
                 }
             }
             catch (SemanticException e) {
