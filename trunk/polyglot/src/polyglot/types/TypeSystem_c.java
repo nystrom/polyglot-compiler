@@ -1578,58 +1578,55 @@ public class TypeSystem_c implements TypeSystem
 		while (! typeQueue.isEmpty()) {
 			Type t = typeQueue.removeFirst();
 
-			if (! (t instanceof StructType)) {
+			if (t instanceof StructType) {
+			    StructType type = (StructType) t;
+
+			    if (visitedTypes.contains(type)) {
 				continue;
-			}
+			    }
 
-			StructType type = (StructType) t;
+			    visitedTypes.add(type);
 
-			if (visitedTypes.contains(type)) {
-				continue;
-			}
-
-			visitedTypes.add(type);
-
-			if (Report.should_report(Report.types, 2))
+			    if (Report.should_report(Report.types, 2))
 				Report.report(2, "Searching type " + type + " for method " + matcher.signature());
 
-			for (Iterator<MethodInstance> i = type.methods().iterator(); i.hasNext(); ) {
+			    for (Iterator<MethodInstance> i = type.methods().iterator(); i.hasNext(); ) {
 				MethodInstance mi = i.next();
-				
+
 				if (Report.should_report(Report.types, 3))
-					Report.report(3, "Trying " + mi);
+				    Report.report(3, "Trying " + mi);
 
 				try {
-					mi = matcher.instantiate(mi);
-					
-					if (mi == null) {
-					    continue;
-					}
+				    mi = matcher.instantiate(mi);
 
-					if (isAccessible(mi, currClass)) {
-					    if (Report.should_report(Report.types, 3)) {
-						Report.report(3, "->acceptable: " + mi + " in "
-						              + mi.container());
-					    }
-
-					    acceptable.add(mi);
-					}
-					else {
-					    // method call is valid, but the method is
-					    // unacceptable.
-					    unacceptable.add(mi);
-					    if (error == null) {
-						error = new NoMemberException(NoMemberException.METHOD,
-						                              "Method " + mi.signature() +
-						                              " in " + container +
-						" is inaccessible."); 
-					    }
-					}
-
+				    if (mi == null) {
 					continue;
+				    }
+
+				    if (isAccessible(mi, currClass)) {
+					if (Report.should_report(Report.types, 3)) {
+					    Report.report(3, "->acceptable: " + mi + " in "
+					                  + mi.container());
+					}
+
+					acceptable.add(mi);
+				    }
+				    else {
+					// method call is valid, but the method is
+					// unacceptable.
+					unacceptable.add(mi);
+					if (error == null) {
+					    error = new NoMemberException(NoMemberException.METHOD,
+					                                  "Method " + mi.signature() +
+					                                  " in " + container +
+					    " is inaccessible."); 
+					}
+				    }
+
+				    continue;
 				}
 				catch (SemanticException e) {
-					// Treat any instantiation errors as call invalid errors.
+				    // Treat any instantiation errors as call invalid errors.
 				    if (error == null)
 					error = new NoMemberException(NoMemberException.METHOD,
 					                              "Method " + mi.signature() +
@@ -1639,16 +1636,17 @@ public class TypeSystem_c implements TypeSystem
 				}
 
 				if (error == null) {
-					error = new NoMemberException(NoMemberException.METHOD,
-					                              "Method " + mi.signature() +
-					                              " in " + container +
-					                              " cannot be called with arguments " +
-					                              matcher.argumentString() + ")."); 
+				    error = new NoMemberException(NoMemberException.METHOD,
+				                                  "Method " + mi.signature() +
+				                                  " in " + container +
+				                                  " cannot be called with arguments " +
+				                                  matcher.argumentString() + ")."); 
 				}
+			    }
 			}
-			
-			if (type instanceof ObjectType) {
-			    ObjectType ot = (ObjectType) type;
+
+			if (t instanceof ObjectType) {
+			    ObjectType ot = (ObjectType) t;
 
 			    if (ot.superClass() != null) {
 				typeQueue.addLast(ot.superClass());
@@ -1688,76 +1686,72 @@ public class TypeSystem_c implements TypeSystem
 	 * Populates the list acceptable with those MethodInstances which are
 	 * Applicable and Accessible as defined by JLS 15.11.2.1
 	 */
-	protected List<ConstructorInstance> findAcceptableConstructors(
-			Type container,
-			ConstructorMatcher matcher, ClassDef currClass)
-			throws SemanticException
-			{
-		assert_(container);
+	protected List<ConstructorInstance> findAcceptableConstructors(Type container, ConstructorMatcher matcher, ClassDef currClass) throws SemanticException {
+	    assert_(container);
 
-		SemanticException error = null;
+	    SemanticException error = null;
 
-		List<ConstructorInstance> acceptable = new ArrayList<ConstructorInstance>();
+	    List<ConstructorInstance> acceptable = new ArrayList<ConstructorInstance>();
 
-		if (Report.should_report(Report.types, 2))
-			Report.report(2, "Searching type " + container +
-					" for constructor " + matcher.signature());
+	    if (Report.should_report(Report.types, 2))
+		Report.report(2, "Searching type " + container +
+		              " for constructor " + matcher.signature());
 
-		if (!(container instanceof ClassType)) {
-		    return Collections.EMPTY_LIST;
-		}
-		
-		for (ConstructorInstance ci : ((ClassType) container).constructors()) {
+	    if (!(container instanceof ClassType)) {
+		return Collections.EMPTY_LIST;
+	    }
+
+	    for (ConstructorInstance ci : ((ClassType) container).constructors()) {
+		if (Report.should_report(Report.types, 3))
+		    Report.report(3, "Trying " + ci);
+
+		try {
+		    ci = matcher.instantiate(ci);
+
+		    if (ci == null) {
+			continue;
+		    }
+
+		    if (isAccessible(ci, currClass)) {
 			if (Report.should_report(Report.types, 3))
-				Report.report(3, "Trying " + ci);
-
-			try {
-				ci = matcher.instantiate(ci);
-				
-				if (ci == null) {
-				    continue;
-				}
-
-				if (isAccessible(ci, currClass)) {
-				    if (Report.should_report(Report.types, 3))
-					Report.report(3, "->acceptable: " + ci);
-				    acceptable.add(ci);
-				}
-				else {
-				    if (error == null) {
-					error = new NoMemberException(NoMemberException.CONSTRUCTOR,
-					                              "Constructor " + ci.signature() +
-					" is inaccessible."); 
-				    }
-				}
-
-				continue;
-			}
-			catch (SemanticException e) {
-				// Treat any instantiation errors as call invalid errors.
-			}
-
+			    Report.report(3, "->acceptable: " + ci);
+			acceptable.add(ci);
+		    }
+		    else {
 			if (error == null) {
-				error = new NoMemberException(NoMemberException.CONSTRUCTOR,
-				                              "Constructor " + ci.signature() +
-				                              " cannot be invoked with arguments " +
-				                              matcher.argumentString() + ")."); 
-
+			    error = new NoMemberException(NoMemberException.CONSTRUCTOR,
+			                                  "Constructor " + ci.signature() +
+			    " is inaccessible."); 
 			}
+		    }
+
+		    continue;
+		}
+		catch (SemanticException e) {
+		    // Treat any instantiation errors as call invalid errors.
 		}
 
-		if (acceptable.size() == 0) {
-			if (error == null) {
-				error = new NoMemberException(NoMemberException.CONSTRUCTOR,
-						"No valid constructor found for " + container +
-						matcher.signature() + ".");
-			}
+		if (error == null) {
+		    error = new NoMemberException(NoMemberException.CONSTRUCTOR,
+		                                  "Constructor " + ci.signature() +
+		                                  " cannot be invoked with arguments " +
+		                                  matcher.argumentString() + ")."); 
 
-			throw error;
+		}
+	    }
+
+	    if (acceptable.size() == 0) {
+		if (error == null) {
+		    error = new NoMemberException(NoMemberException.CONSTRUCTOR,
+		                                  "No valid constructor found for " + container +
+		                                  matcher.signature() + ".");
 		}
 
-		return acceptable;
-			}
+		throw error;
+	    }
+
+	    return acceptable;
+	}
 
 	/**
 	 * Returns whether method 1 is <i>more specific</i> than method 2,
