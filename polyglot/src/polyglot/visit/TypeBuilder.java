@@ -45,6 +45,10 @@ public class TypeBuilder extends NodeVisitor
         tb.outer = this;
         return tb;
     }
+    
+    public boolean inCode() {
+	return inCode;
+    }
 
     public TypeBuilder pop() {
         return outer;
