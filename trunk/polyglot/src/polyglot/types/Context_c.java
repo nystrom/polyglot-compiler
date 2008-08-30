@@ -457,25 +457,38 @@ public class Context_c implements Context
 	Name name = matcher.name();
 	
         Named t = null;
+        
         if (types != null) {
             t = (Named) types.get(name);
+
+            if (t != null) {
+        	try {
+        	    t = matcher.instantiate(t);
+        	}
+        	catch (SemanticException e) {
+        	    t = null;
+        	}
+            }
         }
+        
         if (t == null && isClass()) {
-            if (! this.type.isAnonymous() &&
-                this.type.name().equals(name)) {
-                return this.type;
-            }
-            else {
-                try {
-                    Type result = ts.findMemberType(this.currentClass(), name, this.currentClassDef());
-                    if (result instanceof Named) {
-                	return (Named) result;
-                    }
-                }
-                catch (SemanticException e) {
-                }
+            if (this.type != null && ! this.type.isAnonymous()) {
+        	try {
+        	    t = matcher.instantiate(this.type);
+        	}
+        	catch (SemanticException e) {
+        	}
             }
         }
+        
+        if (t == null && isClass()) {
+            try {
+        	t = ts.classContextResolver(this.currentClass(), this.currentClassDef()).find(matcher);
+            }
+            catch (SemanticException e) {
+            }
+        }
+        
         return t;
     }
 
