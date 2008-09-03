@@ -1632,7 +1632,7 @@ public class TypeSystem_c implements TypeSystem
 					                              "Method " + mi.signature() +
 					                              " in " + container +
 					                              " cannot be called with arguments " +
-					                              matcher.argumentString() + "); " + e.getMessage()); 
+					                              matcher.argumentString() + "; " + e.getMessage()); 
 				}
 
 				if (error == null) {
@@ -1640,7 +1640,7 @@ public class TypeSystem_c implements TypeSystem
 				                                  "Method " + mi.signature() +
 				                                  " in " + container +
 				                                  " cannot be called with arguments " +
-				                                  matcher.argumentString() + ")."); 
+				                                  matcher.argumentString() + "."); 
 				}
 			    }
 			}
@@ -1735,7 +1735,7 @@ public class TypeSystem_c implements TypeSystem
 		    error = new NoMemberException(NoMemberException.CONSTRUCTOR,
 		                                  "Constructor " + ci.signature() +
 		                                  " cannot be invoked with arguments " +
-		                                  matcher.argumentString() + ")."); 
+		                                  matcher.argumentString() + "."); 
 
 		}
 	    }
