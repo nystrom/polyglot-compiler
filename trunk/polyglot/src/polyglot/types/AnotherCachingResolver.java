@@ -18,7 +18,7 @@ import polyglot.util.*;
 public class AnotherCachingResolver implements Resolver, Copy {
 
     protected Resolver inner;
-    private Map<Name,Object> cache;
+    private Map<Object,Object> cache;
     private boolean cacheNotFound;
 
     /**
@@ -28,7 +28,7 @@ public class AnotherCachingResolver implements Resolver, Copy {
     public AnotherCachingResolver(Resolver inner, boolean cacheNotFound) {
 	this.inner = inner;
 	this.cacheNotFound = cacheNotFound;
-	this.cache = new HashMap<Name, Object>();
+	this.cache = new HashMap<Object, Object>();
     }
 
     public AnotherCachingResolver(Resolver inner) {
@@ -42,7 +42,7 @@ public class AnotherCachingResolver implements Resolver, Copy {
     public Object copy() {
 	try {
 	   AnotherCachingResolver r = (AnotherCachingResolver) super.clone();
-	    r.cache = new HashMap<Name, Object>(this.cache);
+	    r.cache = new HashMap<Object, Object>(this.cache);
 	    return r;
 	}
 	catch (CloneNotSupportedException e) {
@@ -75,12 +75,12 @@ public class AnotherCachingResolver implements Resolver, Copy {
       * @param name The name to search for.
       */
      public Named find(Matcher<Named> matcher) throws SemanticException {
-	 Name name = matcher.name();
-	 
 	 if (shouldReport(2))
-	     Report.report(2, "CachingResolver: find: " + name);
+	     Report.report(2, "CachingResolver: find: " + matcher.signature());
 
-	 Object o = cache.get(name);
+	 Object o = null;
+	 if (matcher.key() != null)
+	     o = cache.get(matcher.key());
 
 	 if (o instanceof SemanticException) throw ((SemanticException) o);
 
@@ -88,7 +88,7 @@ public class AnotherCachingResolver implements Resolver, Copy {
 
 	 if (q == null) {
 	     if (shouldReport(3))
-		 Report.report(3, "CachingResolver: not cached: " + name);
+		 Report.report(3, "CachingResolver: not cached: " + matcher.signature());
 
 	     try {
 		 q = inner.find(matcher);
@@ -96,22 +96,24 @@ public class AnotherCachingResolver implements Resolver, Copy {
 	     catch (NoClassException e) {
 		 if (shouldReport(3)) {
 		     Report.report(3, "CachingResolver: " + e.getMessage());
-		     Report.report(3, "CachingResolver: installing " + name + "-> (not found) in resolver cache");
+		     Report.report(3, "CachingResolver: installing " + matcher.signature() + "-> (not found) in resolver cache");
 		 }
 		 if (cacheNotFound) {
-		     cache.put(name, e);
+		     if (matcher.key() != null)
+			 cache.put(matcher.key(), e);
 		 }
 		 throw e;
 	     }
 
-	     addNamed(name, q);
+	     if (matcher.key() != null)
+		 cache.put(matcher.key(), q);
 
 	     if (shouldReport(3))
-		 Report.report(3, "CachingResolver: loaded: " + name);
+		 Report.report(3, "CachingResolver: loaded: " + matcher.signature());
 	 }
 	 else {
 	     if (shouldReport(3))
-		 Report.report(3, "CachingResolver: cached: " + name);
+		 Report.report(3, "CachingResolver: cached: " + matcher.signature());
 	 }
 
 	 return q;
@@ -121,38 +123,13 @@ public class AnotherCachingResolver implements Resolver, Copy {
       * Check if a type object is in the cache, returning null if not.
       * @param name The name to search for.
       */
-     public Named check(Name name) {
-	 Object o = cache.get(name);
+     public Named check(Matcher<Named> matcher) {
+	 if (matcher.key() == null)
+	     return null;
+	 Object o = cache.get(matcher.key());
 	 if (o instanceof Throwable)
 	     return null;
 	 return (Named) o;
-     }
-
-     /**
-      * Install a qualifier in the cache.
-      * @param name The name of the qualifier to insert.
-      * @param q The qualifier to insert.
-      */
-     public void install(Name name, Named q) {
-	 if (shouldReport(3))
-	     Report.report(3, "CachingResolver: installing " + name + "->" + q + " in resolver cache");
-	 if (shouldReport(5))
-	     new Exception().printStackTrace();
-
-	 Object old = cache.get(name);
-	 if (old != null && old != q && old instanceof Type)
-	     assert false : name + "->" + old + " " + old.getClass().getName() + " is already in the cache; cannot replace with " + q + " " + q.getClass().getName();
-
-	 cache.put(name, q);
-     }
-
-     /**
-      * Install a qualifier in the cache.
-      * @param name The name of the qualifier to insert.
-      * @param q The qualifier to insert.
-      */
-     public void addNamed(Name name, Named q) throws SemanticException {
-	 install(name, q);
      }
 
      public void dump() {
