@@ -38,7 +38,6 @@ public class MethodDef_c extends ProcedureDef_c
     protected transient MethodInstance asInstance;
     
     public MethodInstance asInstance() {
-        if (Report.should_report("asi", 1)) asInstance = null;
         if (asInstance == null) {
             asInstance = ts.createMethodInstance(position(), Types.ref(this));
         }
