@@ -40,7 +40,6 @@ public class FieldDef_c extends VarDef_c implements FieldDef
     protected transient FieldInstance asInstance;
 
     public FieldInstance asInstance() {
-        if (Report.should_report("asi", 1)) asInstance = null;
         if (asInstance == null) {
             asInstance = ts.createFieldInstance(position(), Types.ref(this));
         }

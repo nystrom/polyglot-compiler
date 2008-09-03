@@ -40,7 +40,6 @@ public class ClassDef_c extends Def_c implements ClassDef
     protected transient ClassType asType;
     
     public ClassType asType() {
-        if (Report.should_report("asi", 1)) asType = null;
         if (asType == null) {
             asType = ts.createClassType(position(), Types.ref(this));
         }

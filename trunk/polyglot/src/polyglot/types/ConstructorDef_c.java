@@ -32,7 +32,6 @@ public class ConstructorDef_c extends ProcedureDef_c
     protected transient ConstructorInstance asInstance;
 
     public ConstructorInstance asInstance() {
-        if (Report.should_report("asi", 1)) asInstance = null;
         if (asInstance == null) {
             asInstance = ts.createConstructorInstance(position(), Types.ref(this));
         }
