@@ -26,7 +26,7 @@ public class FieldAssign_c extends Assign_c implements FieldAssign
     boolean targetImplicit;
     Receiver target;
     Id name;
-    FieldInstance fi;
+    protected FieldInstance fi;
     
   public FieldAssign_c(Position pos, Receiver target, Id name, Operator op, Expr right) {
     super(pos, op, right);
