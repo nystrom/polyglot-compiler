@@ -101,11 +101,22 @@ public class AscriptionVisitor extends ContextVisitor
      *  as appropriate. Otherwise functionally the same as the <code> 
      *  leaveCall</code> method in <code>ErrorHandlingVisitor</code>.
      */
-    public Node leaveCall(Node old, Node n, NodeVisitor v)
+    public Node leaveCall(Node parent, Node old, Node n, NodeVisitor v)
         throws SemanticException {
 
         if (n instanceof Expr) {
             Expr e = (Expr) n;
+            if (parent instanceof LocalAssign && ((LocalAssign) parent).local() == e) {
+        	return e;
+            }
+            if (parent instanceof Unary) {
+        	Unary u = (Unary) parent;
+        	if (u.expr() == e) {
+        	    if (u.operator() == Unary.PRE_DEC || u.operator() == Unary.PRE_INC || u.operator() == Unary.POST_DEC || u.operator() == Unary.POST_INC) {
+        		return e;
+        	    }
+        	}
+            }
             Type type = ((AscriptionVisitor) v).type;
             return ascribe(e, type);
         }
