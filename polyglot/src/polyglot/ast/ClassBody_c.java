@@ -102,7 +102,7 @@ public class ClassBody_c extends Term_c implements ClassBody
 
             for (int j = i+1; j < l.size(); j++) {
                 ConstructorDef cj = l.get(j);
-                ConstructorInstance tj = ts.createConstructorInstance(cj.position(), Types.<ConstructorDef>ref(cj));
+                ConstructorInstance tj = cj.asInstance();
 
                 if (ti.hasFormals(tj.formalTypes())) {
                     throw new SemanticException("Duplicate constructor \"" + cj + "\".", cj.position());
@@ -124,7 +124,7 @@ public class ClassBody_c extends Term_c implements ClassBody
 
             for (int j = i+1; j < l.size(); j++) {
                 MethodDef mj = l.get(j);
-                MethodInstance tj = ts.createMethodInstance(mj.position(), Types.<MethodDef>ref(mj));
+                MethodInstance tj = mj.asInstance();
 
                 if (ti.isSameMethod(tj)) {
                     throw new SemanticException("Duplicate method \"" + mj + "\".", mj.position());
@@ -158,7 +158,7 @@ public class ClassBody_c extends Term_c implements ClassBody
         return mi.isSameMethod(mj);
     }
 
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
+    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
         duplicateFieldCheck(tc);
         duplicateConstructorCheck(tc);
         duplicateMethodCheck(tc);
