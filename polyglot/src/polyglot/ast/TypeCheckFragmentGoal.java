@@ -49,6 +49,7 @@ public class TypeCheckFragmentGoal extends AbstractGoal_c {
 		try {
 			Node m = parent.visitChild(n, v);
 			v.job().nodeMemo().put(n, m);
+			v.job().nodeMemo().put(m, m);
 			return mightFail || r.known();
 		}
 		catch (SchedulerException e) {
