@@ -20,6 +20,9 @@ public class EscapedUnicodeReader extends FilterReader {
   public EscapedUnicodeReader(Reader in) {
     super(in);
   }
+  public Reader getSource() {
+    return in;
+  }
   public int read() throws IOException {
     int r = (pushback==-1)?in.read():pushback; pushback=-1;
     
