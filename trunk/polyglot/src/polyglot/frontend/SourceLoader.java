@@ -187,6 +187,14 @@ public class SourceLoader
 	public int hashCode() {
 	    return file.getPath().hashCode() + entryName.hashCode();
 	}
+
+	public String toString() {
+	    return super.toString() + ":" + entryName;
+	}
+
+	public String name() {
+	    return entryName.substring(entryName.lastIndexOf('/')+1);
+	}
     }
     
     /** Load the source file for the given class name using the source path. */
@@ -202,6 +210,7 @@ public class SourceLoader
                 File directory = (File) i.next();
                 
                 if (directory.isFile() && (directory.getName().endsWith(".jar") || directory.getName().endsWith(".zip"))) {
+                    String zipEntry = fileName.replace(File.separatorChar, '/');
                     ZipFile zip;
                     
                     try {
@@ -213,9 +222,9 @@ public class SourceLoader
                 	    zip = new ZipFile(dir);
                 	}
 
-                	ZipEntry ze = zip.getEntry(fileName);
+                	ZipEntry ze = zip.getEntry(zipEntry);
                 	if (ze != null)
-                	    return new ZipSource(directory, fileName);
+                	    return new ZipSource(directory, zipEntry);
                     }
                     catch (IOException ex) {
 		    }
