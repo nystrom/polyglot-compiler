@@ -80,7 +80,7 @@ public class SubtypeSet implements java.util.Set<Type>
             for (Iterator<Type> i = v.iterator(); i.hasNext(); ) {
                 Type t = i.next();
 
-                if (! ts.typeEquals(t, type) && ts.descendsFrom(t, type)) {
+                if (! ts.typeEquals(t, type) && ts.isSubtype(t, type)) {
                     i.remove();
                 }
 

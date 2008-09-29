@@ -961,7 +961,36 @@ public class TypeSystem_c implements TypeSystem
 		    return false;
 		}
 
-		return descendsFrom(t1, t2);
+		Type child = t1;
+		Type ancestor = t2;
+
+		if (child instanceof ObjectType) {
+		    ObjectType childRT = (ObjectType) child;
+
+		    if (typeEquals(ancestor, Object())) {
+			return true;
+		    }
+
+		    if (typeEquals(childRT, Object())) {
+			return false;
+		    }
+
+		    // Check subclass relation.
+		    if (childRT.superClass() != null) {
+			if (isSubtype(childRT.superClass(), ancestor)) {
+			    return true;
+			}
+		    }
+
+		    // Next check interfaces.
+		    for (Type parentType : childRT.interfaces()) {
+			if (isSubtype(parentType, ancestor)) {
+			    return true;
+			}
+		    }
+		}
+		
+		return false;
 	}
 
 	////
