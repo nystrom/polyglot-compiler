@@ -17,6 +17,9 @@ import polyglot.types.ProcedureDef;
  */
 public interface ProcedureDecl extends CodeDecl 
 {
+    /** The procedure's name. */
+    Id name();
+    
     /** The procedure's flags. */
     FlagsNode flags();
 
