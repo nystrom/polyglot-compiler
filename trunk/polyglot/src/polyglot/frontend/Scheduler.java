@@ -157,6 +157,17 @@ public abstract class Scheduler {
 	    return EndCommandLine;
     }
 
+    public boolean runToCompletion() {
+        boolean okay;
+        if (Globals.Options().compile_command_line_only) {
+            okay = runToCompletion(EndCommandLine());
+        }
+        else {
+            okay = runToCompletion(EndAll());
+        }
+        return okay;
+    }
+
     /**
      * Attempt to complete all goals in the worklist (and any subgoals they
      * have). This method returns <code>true</code> if all passes were
