@@ -177,15 +177,8 @@ public class Compiler
                     scheduler.addDependenciesForJob(job, true);
                 }
 
-                // Create a goal to compile every source file.
-                if (Globals.Options().compile_command_line_only) {
-                    okay = scheduler.runToCompletion(scheduler.EndCommandLine());
-                }
-                else {
-                    okay = scheduler.runToCompletion(scheduler.EndAll());
-                }
-
                 // Compile the files to completion.
+                okay = scheduler.runToCompletion();
 	    }
 	    catch (InternalCompilerError e) {
 		// Report it like other errors, but rethrow to get the stack trace.
