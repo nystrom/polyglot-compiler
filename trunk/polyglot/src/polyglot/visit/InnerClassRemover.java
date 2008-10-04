@@ -26,7 +26,7 @@ import polyglot.util.UniqueID;
 
 public class InnerClassRemover extends ContextVisitor {
     // Name of field used to carry a pointer to the enclosing class.
-    private static final String OUTER_FIELD_NAME = "out$";
+    private static final Name OUTER_FIELD_NAME = Name.make("out$");
 
     public InnerClassRemover(Job job, TypeSystem ts, NodeFactory nf) {
         super(job, ts, nf);
@@ -35,7 +35,7 @@ public class InnerClassRemover extends ContextVisitor {
     Map<ClassDef, FieldDef> outerFieldInstance = new HashMap<ClassDef, FieldDef>();
     
     /** Get a reference to the enclosing instance of the current class that is of type containerClass */
-    Expr getContainer(Position pos, Expr this_, ClassDef currentClass, ClassType containerClass) {
+    Expr getContainer(Position pos, Expr this_, ClassDef currentClass, ClassDef containerClass) {
         if (containerClass == currentClass)
             return this_;
         FieldDef fi = boxThis(currentClass, Types.get(currentClass.outer()));
@@ -99,7 +99,25 @@ public class InnerClassRemover extends ContextVisitor {
             assert s.qualifier().type().toClass() != null;
             if (s.qualifier().type().toClass().def() == context.currentClassDef())
                 return s;
-            return getContainer(pos, nf.This(pos).type(context.currentClass()), context.currentClassDef(), s.qualifier().type().toClass());
+            return getContainer(pos, nf.This(pos).type(context.currentClass()), context.currentClassDef(), s.qualifier().type().toClass().def());
+        }
+        
+        if (n instanceof Field) {
+            Field f = (Field) n;
+            if (f.isTargetImplicit() && ! (f.target() instanceof Special))
+        	return f.targetImplicit(false);
+        }
+        
+        if (n instanceof FieldAssign) {
+            FieldAssign f = (FieldAssign) n;
+            if (f.targetImplicit() && ! (f.target() instanceof Special))
+        	return f.targetImplicit(false);
+        }
+        
+        if (n instanceof Call) {
+            Call f = (Call) n;
+            if (f.isTargetImplicit() && ! (f.target() instanceof Special))
+        	return f.targetImplicit(false);
         }
         
         // Add the qualifier as an argument to constructor calls.
@@ -113,7 +131,7 @@ public class InnerClassRemover extends ContextVisitor {
                 ConstructorInstance ci = neu.constructorInstance();
                 // Fix the ci.
                 {
-                List args = new ArrayList();
+                List<Type> args = new ArrayList<Type>();
                 args.add(ci.container());
                 args.addAll(ci.formalTypes());
                 ci = ci.formalTypes(args);
@@ -175,7 +193,7 @@ public class InnerClassRemover extends ContextVisitor {
 
             // Fix the ci if a copy; otherwise, let the ci be modified at the declaration node.
             if (fixCI) {
-                List args = new ArrayList();
+                List<Type> args = new ArrayList<Type>();
                 args.add(ci.container());
                 args.addAll(ci.formalTypes());
                 ci = ci.formalTypes(args);
@@ -229,7 +247,7 @@ public class InnerClassRemover extends ContextVisitor {
                 if (parent instanceof ConstructorDecl && n instanceof Formal) {
                     Formal f = (Formal) n;
                     LocalDef li = f.localDef();
-                    if (li.name().equals(Name.make(OUTER_FIELD_NAME))) {
+                    if (li.name().equals(OUTER_FIELD_NAME)) {
                         this.li = li;
                     }
                     return n;
@@ -274,13 +292,24 @@ public class InnerClassRemover extends ContextVisitor {
                     Field f = (Field) n;
                     if (f.target() instanceof Special) {
                         Special s = (Special) f.target();
-                        if (s.kind() == Special.THIS && f.name().equals(OUTER_FIELD_NAME)) {
-                            FieldInstance fi = f.fieldInstance();
+                        if (s.kind() == Special.THIS && f.name().id().equals(OUTER_FIELD_NAME)) {
                             Local l = nf.Local(n.position(), f.name());
                             l = l.localInstance(li.asInstance());
                             l = (Local) l.type(li.asInstance().type());
                             return l;
                         }
+                    }
+                }
+                if (n instanceof FieldAssign) {
+                    FieldAssign f = (FieldAssign) n;
+                    if (f.target() instanceof Special) {
+                	Special s = (Special) f.target();
+                	if (s.kind() == Special.THIS && f.name().id().equals(OUTER_FIELD_NAME)) {
+                	    Local l = nf.Local(n.position(), f.name());
+                	    l = l.localInstance(li.asInstance());
+                	    l = (Local) l.type(li.asInstance().type());
+                	    return l;
+                	}
                     }
                 }
                 return n;
@@ -305,8 +334,8 @@ public class InnerClassRemover extends ContextVisitor {
             newMembers.add(fd);
         }
 
-        for (Iterator i = b.members().iterator(); i.hasNext(); ) {
-            ClassMember m = (ClassMember) i.next();
+        for (Iterator<ClassMember> i = b.members().iterator(); i.hasNext(); ) {
+            ClassMember m = i.next();
             if (m instanceof ConstructorDecl) {
                 ConstructorDecl td = (ConstructorDecl) m;
 
@@ -441,13 +470,12 @@ public class InnerClassRemover extends ContextVisitor {
         
         Position pos = outerClass.position();
         
-        fi = ts.fieldDef(pos, Types.ref(currClass.asType()), Flags.FINAL.Private(), Types.ref(outerClass.asType()), Name.make(OUTER_FIELD_NAME));
+        fi = ts.fieldDef(pos, Types.ref(currClass.asType()), Flags.FINAL.Private(), Types.ref(outerClass.asType()), OUTER_FIELD_NAME);
         fi.setNotConstant();
         
-        ClassDef currDecl = currClass;
-        currDecl.addField(fi);
+        currClass.addField(fi);
         
-        outerFieldInstance.put(currDecl, fi);
+        outerFieldInstance.put(currClass, fi);
         return fi;
     }
 

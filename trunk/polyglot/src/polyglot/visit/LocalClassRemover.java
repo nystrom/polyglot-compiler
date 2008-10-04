@@ -1,44 +1,11 @@
 package polyglot.visit;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import polyglot.ast.Assign;
-import polyglot.ast.Block;
-import polyglot.ast.ClassBody;
-import polyglot.ast.ClassDecl;
-import polyglot.ast.ClassMember;
-import polyglot.ast.CodeNode;
-import polyglot.ast.ConstructorCall;
-import polyglot.ast.ConstructorDecl;
-import polyglot.ast.Eval;
-import polyglot.ast.Expr;
-import polyglot.ast.Field;
-import polyglot.ast.FieldDecl;
-import polyglot.ast.Formal;
-import polyglot.ast.Id;
-import polyglot.ast.Local;
-import polyglot.ast.LocalClassDecl;
-import polyglot.ast.New;
-import polyglot.ast.Node;
-import polyglot.ast.NodeFactory;
-import polyglot.ast.ProcedureCall;
-import polyglot.ast.Receiver;
-import polyglot.ast.SourceFile;
-import polyglot.ast.Special;
-import polyglot.ast.Stmt;
-import polyglot.ast.SwitchBlock;
-import polyglot.ast.TypeNode;
+import polyglot.ast.*;
 import polyglot.frontend.Job;
 import polyglot.types.*;
-import polyglot.util.InternalCompilerError;
-import polyglot.util.Pair;
-import polyglot.util.Position;
-import polyglot.util.UniqueID;
+import polyglot.util.*;
 
 // TODO:
 //Convert closures to anon
@@ -256,7 +223,7 @@ public class LocalClassRemover extends ContextVisitor {
 	    ClassDef type = neu.anonType();
 	    type.kind(ClassDef.MEMBER);
 	    type.name(cd.name().id());
-	    type.setContainer(Types.ref(context.currentClass()));
+	    type.outer(Types.ref(context.currentClassDef()));
 	    type.setPackage(Types.ref(context.package_()));
 	    type.flags(flags);
 
@@ -396,23 +363,23 @@ public class LocalClassRemover extends ContextVisitor {
 	    return n.arguments();
 	List<Expr> args = new ArrayList<Expr>();
 	for (Iterator<FieldDef> i = fields.iterator(); i.hasNext(); ) {
-	    FieldInstance fi = (FieldInstance) i.next();
+	    FieldDef fi = i.next();
 	    if (curr != null && theLocalClass != null && ts.isEnclosed(curr, theLocalClass)) {
 		// If in the local class being rewritten, use the boxed local (i.e., field) instead of the local.
 		// This could generate a bad constructor call since the field will refer to 'this' before the superclass
 		// is initialized, but we'll patch this up later.
 		Position pos = fi.position();
-		Field f = nf.Field(pos, makeMissingFieldTarget(fi, pos), nf.Id(pos, fi.name()));
-		f = f.fieldInstance(fi);
-		f = (Field) f.type(fi.type());
+		Field f = nf.Field(pos, makeMissingFieldTarget(fi.asInstance(), pos), nf.Id(pos, fi.name()));
+		f = f.fieldInstance(fi.asInstance());
+		f = (Field) f.type(fi.asInstance().type());
 		args.add(f);
 	    }
 	    else {
-		LocalInstance li = (LocalInstance) localOfField.get(fi);
+		LocalDef li = localOfField.get(fi);
 		if (li != null) {
 		    Local l = nf.Local(li.position(), nf.Id(li.position(), li.name()));
-		    l = l.localInstance(li);
-		    l = (Local) l.type(li.type());
+		    l = l.localInstance(li.asInstance());
+		    l = (Local) l.type(li.asInstance().type());
 		    args.add(l);
 		}
 		else {
