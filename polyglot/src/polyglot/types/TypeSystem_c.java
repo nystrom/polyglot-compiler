@@ -952,6 +952,9 @@ public class TypeSystem_c implements TypeSystem
 	public boolean isSubtype(Type t1, Type t2) {
 		assert_(t1);
 		assert_(t2);
+		
+		if (typeEquals(t1, t2))
+		    return true;
 
 		if (t1.isNull()) {
 		    return t2.isNull() || t2.isReference();
