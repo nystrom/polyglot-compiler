@@ -114,7 +114,7 @@ public class LocalClassRemover extends ContextVisitor {
 		    cd.classDef().flags(flags);
 		    cd.classDef().kind(ClassDef.MEMBER);
 
-		    cd = rewriteLocalClass(cd, (List<FieldDef>) hashGet(newFields, cd.classDef(), Collections.EMPTY_LIST));
+		    cd = rewriteLocalClass(cd, (List<FieldDef>) hashGet(newFields, cd.classDef(), Collections.<FieldDef>emptyList()));
 
 		    if (cd != lcd.decl()) {
 			ss.set(i, lcd.decl(cd));
@@ -123,7 +123,7 @@ public class LocalClassRemover extends ContextVisitor {
 			// itself.
 			for (int j = i; j < ss.size(); j++) {
 			    Stmt sj = ss.get(j);
-			    sj = (Stmt) rewriteConstructorCalls(sj, cd.classDef(), (List<FieldDef>)hashGet(newFields, cd.classDef(), Collections.EMPTY_LIST));
+			    sj = (Stmt) rewriteConstructorCalls(sj, cd.classDef(), (List<FieldDef>)hashGet(newFields, cd.classDef(), Collections.<FieldDef>emptyList()));
 			    ss.set(j, sj);
 			}
 
@@ -251,10 +251,10 @@ public class LocalClassRemover extends ContextVisitor {
 		neu = neu.qualifier(nf.This(pos).type(context.currentClass()));
 	    }
 
-	    cd = rewriteLocalClass(cd, (List<FieldDef>) hashGet(newFields, cd.classDef(), Collections.EMPTY_LIST));
+	    cd = rewriteLocalClass(cd, (List<FieldDef>) hashGet(newFields, cd.classDef(), Collections.<FieldDef>emptyList()));
 	    hashAdd(orphans, context.currentClassDef(), cd);
 	    neu = neu.objectType(nf.CanonicalTypeNode(pos, type.asType())).body(null);
-	    neu = (New) rewriteConstructorCalls(neu, cd.classDef(), (List<FieldDef>) hashGet(newFields, cd.classDef(), Collections.EMPTY_LIST));
+	    neu = (New) rewriteConstructorCalls(neu, cd.classDef(), (List<FieldDef>) hashGet(newFields, cd.classDef(), Collections.<FieldDef>emptyList()));
 	    return neu;
 	}
 
