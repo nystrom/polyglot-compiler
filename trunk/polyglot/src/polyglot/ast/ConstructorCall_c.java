@@ -129,6 +129,8 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 
     /** Type check the call. */
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
+	ConstructorCall_c n = this;
+	
 	TypeSystem ts = tc.typeSystem();
 	Context c = tc.context();
 
@@ -178,12 +180,14 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	        throw new SemanticException("Super type of " + ct +
 		    " is not a class.", position());
 	    }
+	    
+	    Expr q = qualifier;
 
             // If the super class is an inner class (i.e., has an enclosing
             // instance of its container class), then either a qualifier 
             // must be provided, or ct must have an enclosing instance of the
             // super class's container class, or a subclass thereof.
-            if (qualifier == null && superType.isClass() && superType.toClass().isInnerClass()) {
+            if (q == null && superType.isClass() && superType.toClass().isInnerClass()) {
                 ClassType superContainer = superType.toClass().outer();
                 // ct needs an enclosing instance of superContainer, 
                 // or a subclass of superContainer.
@@ -191,6 +195,9 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
                 
                 while (e != null) {
                     if (e.isSubtype(superContainer) && ct.hasEnclosingInstance(e)) {
+                        NodeFactory nf = tc.nodeFactory();
+                        q = nf.This(position(), nf.CanonicalTypeNode(position(), e)).type(e);
+
                         break; 
                     }
                     e = e.outer();
@@ -206,11 +213,14 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
                         " must be specified in the super constructor call.", position());
                 }
             }
+
+            if (qualifier != q)
+                n = (ConstructorCall_c) n.qualifier(q);
 	}
 
 	List<Type> argTypes = new ArrayList<Type>();
 	
-	for (Iterator<Expr> iter = this.arguments.iterator(); iter.hasNext();) {
+	for (Iterator<Expr> iter = n.arguments.iterator(); iter.hasNext();) {
 	    Expr e = iter.next();
 	    argTypes.add(e.type());
 	}
@@ -221,7 +231,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	
 	ConstructorInstance ci = ts.findConstructor(ct, ts.ConstructorMatcher(ct, argTypes), c.currentClassDef());
 
-	return constructorInstance(ci);
+	return n.constructorInstance(ci);
     }
 
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
