@@ -57,6 +57,7 @@ public class MethodDef_c extends ProcedureDef_c
      */
     public void setName(Name name) {
         this.name = name;
+        asInstance = null;
     }
     
     /**
@@ -64,6 +65,7 @@ public class MethodDef_c extends ProcedureDef_c
      */
     public void setReturnType(Ref<? extends Type> returnType) {
         this.returnType = returnType;
+        asInstance = null;
     }
 
     public String toString() {

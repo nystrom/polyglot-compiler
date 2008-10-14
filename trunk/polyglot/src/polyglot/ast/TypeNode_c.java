@@ -71,7 +71,7 @@ public abstract class TypeNode_c extends Term_c implements TypeNode
     		LazyRef<Type> r = (LazyRef<Type>) typeRef();
     		TypeChecker tc = new TypeChecker(v.job(), v.typeSystem(), v.nodeFactory(), v.getMemo());
     		tc = (TypeChecker) tc.context(v.context().freeze());
-    		r.setResolver(new TypeCheckFragmentGoal(parent, this, tc, r, false));
+    		r.setResolver(new TypeCheckTypeGoal(parent, this, tc, r, false));
     	}
     }
 	

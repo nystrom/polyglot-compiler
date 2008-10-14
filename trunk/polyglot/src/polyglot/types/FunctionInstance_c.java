@@ -19,7 +19,12 @@ public class FunctionInstance_c<T extends FunctionDef> extends ProcedureInstance
     
     public Type returnType() {
         if (returnType == null) {
-            returnType = def().returnType().get();
+            Type t = def().returnType().get();
+//            if (t instanceof UnknownType) {
+//        	assert false;
+//        	return t;
+//            }
+            returnType = t;
         }
         return returnType;
     }
