@@ -7,17 +7,16 @@ import java.util.Collections;
 import java.util.List;
 
 import polyglot.frontend.*;
-import polyglot.types.*;
+import polyglot.types.LazyRef;
 import polyglot.util.CollectionUtil;
-import polyglot.util.ErrorInfo;
 import polyglot.visit.TypeChecker;
 
 public class TypeCheckFragmentGoal extends AbstractGoal_c {
-	Node parent;
-	Node n;
-	TypeChecker v;
-	LazyRef r;
-	boolean mightFail;
+    protected Node parent;
+    protected Node n;
+    protected TypeChecker v;
+    protected LazyRef r;
+    protected boolean mightFail;
 
 	public TypeCheckFragmentGoal(Node parent, Node n, TypeChecker v, LazyRef r, boolean mightFail) {
 		this.parent = parent;
