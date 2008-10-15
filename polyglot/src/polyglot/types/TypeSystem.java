@@ -820,6 +820,21 @@ public interface TypeSystem {
      *         <code>ct</code> or a supertype thereof, null if none exists.
      */
     public MethodInstance findImplementingMethod(ClassType ct, MethodInstance mi);
+    
+    /**
+     * Find a potentially suitable implementation of the method <code>mi</code>
+     * in the class <code>ct</code> or a supertype thereof, or an abstract method
+     * that when overridden will implement the method.  Since we are
+     * looking for implementations, <code>ct</code> cannot be an interface.
+     * The first potentially satisfying method is returned, that is, the method
+     * that is visible from <code>ct</code>, with the correct signature, in
+     * the most precise class in the class hierarchy starting from
+     * <code>ct</code>.
+     * 
+     * @return a suitable implementation of the method mi in the class
+     *         <code>ct</code> or a supertype thereof, null if none exists.
+     */
+    public MethodInstance findImplementingMethod(ClassType ct, MethodInstance mi, boolean includeAbstract);
 
     /**
      * Given the JVM encoding of a set of flags, returns the Flags object
