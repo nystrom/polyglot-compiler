@@ -2670,12 +2670,16 @@ public class TypeSystem_c implements TypeSystem
 	 }
 
 	 public MethodInstance findImplementingMethod(ClassType ct, MethodInstance mi) {
+	     return findImplementingMethod(ct, mi, false);
+	 }
+	 
+	 public MethodInstance findImplementingMethod(ClassType ct, MethodInstance mi, boolean includeAbstract) {
 	     StructType curr = ct;
 		 while (curr != null) {
 			 List<MethodInstance> possible = curr.methods(mi.name(), mi.formalTypes());
 			 for (Iterator<MethodInstance> k = possible.iterator(); k.hasNext(); ) {
 				 MethodInstance mj = k.next();
-				 if (!mj.flags().isAbstract() && 
+				 if ((includeAbstract || !mj.flags().isAbstract()) && 
 						 ((isAccessible(mi, ct.def()) && isAccessible(mj, ct.def())) || 
 								 isAccessible(mi, mj.container().toClass().def()))) {
 					 // The method mj may be a suitable implementation of mi.
