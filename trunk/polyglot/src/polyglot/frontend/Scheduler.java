@@ -117,23 +117,19 @@ public abstract class Scheduler {
         return goal.prereqs();
     }
     
-    Goal End;
     Goal EndAll;
     Goal EndCommandLine;
     
     protected Goal End(Job job) {
-	    if (End == null)
-		    End = new SourceGoal_c("End", job) {
+	    return new SourceGoal_c("End", job) {
 		    public boolean runTask() {
 			    // The job has finished.  Let's remove it from the job map
 			    // so it can be garbage collected, and free up the AST.
 			    completeJob(job);
 			    return true;
 		    }
-	    };
-	    return End;
+	    }.intern(this);
     }
-
 
     protected Goal EndAll() {
 	    if (EndAll == null)
@@ -500,7 +496,12 @@ public abstract class Scheduler {
         assert prev == End(job);
         
         if (compile) {
-            EndAll().addPrereq(prev);
+            if (Globals.Options().compile_command_line_only) {
+        	EndCommandLine().addPrereq(prev);
+            }
+            else {
+        	EndAll().addPrereq(prev);
+            }
         }
     }
 
