@@ -230,6 +230,9 @@ public class ImportTable implements Resolver
 	    // there is no conflict. See Section 6.5.2 of JLS, 2nd Ed.
 	    imports.add(p.fullName());
 	}
+	else {
+	    imports.add(null);
+	}
 
 	// Next search the default imports (e.g., java.lang)
 	imports.addAll(ts.defaultOnDemandImports());
@@ -238,10 +241,6 @@ public class ImportTable implements Resolver
 	// Then search the explicit p.* imports.
 	imports.addAll(onDemandImports);
 	positions.addAll(onDemandImportPositions);
-
-	// Then search the null package.
-	imports.add(null);
-	positions.add(null);
 
 	assert imports.size() == positions.size();
 
@@ -257,7 +256,7 @@ public class ImportTable implements Resolver
 	    if (tried.contains(containerName))
 		continue;
 	    tried.add(containerName);
-
+	    
 	    Named n = findInContainer(matcher, containerName, pos);
 	
 	    if (n != null) {
@@ -278,7 +277,22 @@ public class ImportTable implements Resolver
 		}
 	    }
 	}
-	
+
+//	// Search the empty package only if not already found.
+//	if (resolved == null) {
+//	    QName containerName = null;
+//	    Position pos = null;
+//
+//	    if (! tried.contains(containerName)) {
+//
+//		Named n = findInContainer(matcher, containerName, pos);
+//
+//		if (n != null) {
+//		    resolved = n;
+//		}
+//	    }
+//	}
+
 	return resolved;
     }
     
