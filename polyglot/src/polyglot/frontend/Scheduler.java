@@ -88,7 +88,7 @@ public abstract class Scheduler {
     
     public Scheduler(ExtensionInfo extInfo) {
         this.extInfo = extInfo;
-        this.jobs = new HashMap<Source, Option<Job>>();
+        this.jobs = new LinkedHashMap<Source, Option<Job>>();
         this.currentGoal = null;
     }
     
