@@ -189,7 +189,23 @@ public class ImportTable implements Resolver
         catch (NoClassException e) {
             ex = e;
         }
+        
+        if (resolved == null) {
+            Package p = Types.get(pkg);
 
+            // Check if the current package defines it.
+            // If so, this takes priority over the package imports (or 
+            // "type-import-on-demand" declarations as they are called in
+            // the JLS), so even if another package defines the same name,
+            // there is no conflict. See Section 6.5.2 of JLS, 2nd Ed.
+
+            QName containerName = p != null ? p.fullName() : null;
+            Position pos = null;
+
+            resolved = findInContainer(matcher, containerName, pos);
+        }
+
+        // It wasn't an explicit import.  Maybe it was on-demand?
         if (resolved == null) {
             try {
         	resolved = lookupOnDemand(matcher);
@@ -221,19 +237,6 @@ public class ImportTable implements Resolver
 	List<QName> imports = new ArrayList<QName>(onDemandImports.size() + 5);
 	List<Position> positions = new ArrayList<Position>(onDemandImports.size() + 5);
 	
-	Package p = Types.get(pkg);
-	if (p != null) {
-	    // Check if the current package defines it.
-	    // If so, this takes priority over the package imports (or 
-	    // "type-import-on-demand" declarations as they are called in
-	    // the JLS), so even if another package defines the same name,
-	    // there is no conflict. See Section 6.5.2 of JLS, 2nd Ed.
-	    imports.add(p.fullName());
-	}
-	else {
-	    imports.add(null);
-	}
-
 	// Next search the default imports (e.g., java.lang)
 	imports.addAll(ts.defaultOnDemandImports());
 	positions.addAll(Arrays.asList(new Position[imports.size()]));
@@ -244,9 +247,8 @@ public class ImportTable implements Resolver
 
 	assert imports.size() == positions.size();
 
-	// It wasn't an explicit import.  Maybe it was on-demand?
 	Named resolved = null;
-	
+
 	Set<QName> tried = new HashSet<QName>();
 
 	for (int i = 0; i < imports.size(); i++) {
