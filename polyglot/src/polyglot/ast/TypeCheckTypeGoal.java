@@ -2,6 +2,7 @@ package polyglot.ast;
 
 import polyglot.types.LazyRef;
 import polyglot.types.UnknownType;
+import polyglot.util.ErrorInfo;
 import polyglot.visit.TypeChecker;
 
 public class TypeCheckTypeGoal extends TypeCheckFragmentGoal {
@@ -15,7 +16,9 @@ public class TypeCheckTypeGoal extends TypeCheckFragmentGoal {
 		boolean result = super.runTask();
 		if (result) {
 			if (r.getCached() instanceof UnknownType) {
-				assert false;
+//			    assert false;
+			        v.errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, "Could not compute type.", n.position());
+			        return false;
 			}
 		}
 		return result;
