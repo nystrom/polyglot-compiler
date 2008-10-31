@@ -31,10 +31,14 @@ public abstract class AbstractGoal_c extends LazyRef_c<Goal.Status> implements G
 		AbstractGoal_c goal = this;
 		if (Report.should_report(Report.frontend, 2))
 			Report.report(2, "Running to goal " + goal);
-		    
-		List<Goal> prereqs = new ArrayList<Goal>(prereqs());
-		for (int i = 0; i < prereqs.size(); i++) {
-			Goal g = prereqs.get(i);
+		
+		LinkedList<Goal> worklist = new LinkedList<Goal>(prereqs());
+
+		Set<Goal> prereqs = new LinkedHashSet<Goal>();
+		prereqs.addAll(worklist);
+		
+		while (! worklist.isEmpty()) {
+			Goal g = worklist.removeFirst();
 			
 			if (g.getCached() == Goal.Status.SUCCESS)
 			    continue;
@@ -47,8 +51,13 @@ public abstract class AbstractGoal_c extends LazyRef_c<Goal.Status> implements G
 			
 			Status s = g.get();
 
-			// HACK: make sure any new prereqs are added
-			prereqs.addAll(prereqs());
+			// Make sure any new prereqs added during the recursion are in the queue.
+			for (Goal g2 : prereqs()) {
+			    if (! prereqs.contains(g2)) {
+				prereqs.add(g2);
+				worklist.add(g2);
+			    }
+			}
 			
 			switch (s) {
 			case NEW:
