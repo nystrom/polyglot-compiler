@@ -3,6 +3,8 @@
  *
  * Copyright (c) 2000-2006 Polyglot project group, Cornell University
  * 
+ * Taken from the CUP website from the handwritten Lexer by Scott Ananian 
+ * <cananian@alumni.princeton.edu>.
  */
 
 package polyglot.lex;
