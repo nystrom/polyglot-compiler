@@ -67,8 +67,7 @@ public class FileSource extends Source
 	but it may be overridden. */
     protected Reader createReader(InputStream str) {
       try {
-	return new polyglot.lex.EscapedUnicodeReader(
-	             new InputStreamReader(str, "US-ASCII"));
+	  return new InputStreamReader(str, "US-ASCII");
       } catch (UnsupportedEncodingException e) { return null; }
     }
 
