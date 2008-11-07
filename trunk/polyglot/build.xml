@@ -229,7 +229,7 @@
 	</target>
 
 	<target name="compile-epl-base" depends="init">
-		<javac source="1.5" target="1.5" srcdir="${src}" destdir="${classes}" debug="on" includes="polyglot/**" excludes="polyglot/ext/**,polyglot/qq/**,polyglot/parse/BaseParser.java,polyglot/parse/sym.java,polyglot/parse/Grm.java,polyglot/parse/Lexer_c.java,polyglot/frontend/JLExtensionInfo.java">
+		<javac source="1.5" target="1.5" srcdir="${src}" destdir="${classes}" debug="on" includes="polyglot/**" excludes="polyglot/ext/**,polyglot/qq/**,polyglot/parse/BaseParser.java,polyglot/parse/sym.java,polyglot/parse/Grm.java,polyglot/parse/Lexer_c.java,polyglot/frontend/JLExtensionInfo.java,polyglot/lex/EscapedUnicodeReader.java">
 			<classpath refid="standard.classpath" />
 		</javac>
 	</target>
@@ -552,12 +552,12 @@
 
 	<!-- make the LGPL source distribution and install into dist -->
 	<target name="src-epl.jar" depends="compile-epl-base">
-		<jar destfile="${lib}/polyglot-epl-src.jar" basedir="${basedir}" includes="src/**/*.java" excludes="src/polyglot/qq/**,src/polyglot/ext/**,src/polyglot/parse/BaseParser.java,src/polyglot/parse/sym.java,src/polyglot/parse/Grm.java,src/polyglot/parse/Lexer_c.java,src/polyglot/frontend/JLExtensionInfo.java" />
+		<jar destfile="${lib}/polyglot-epl-src.jar" basedir="${basedir}" includes="src/**/*.java" excludes="src/polyglot/qq/**,src/polyglot/ext/**,src/polyglot/parse/BaseParser.java,src/polyglot/parse/sym.java,src/polyglot/parse/Grm.java,src/polyglot/parse/Lexer_c.java,src/polyglot/frontend/JLExtensionInfo.java,src/polyglot/lex/EscapedUnicodeReader.java" />
 	</target>
 
 	<!-- make the LGPL source distribution and install into dist -->
 	<target name="src-epl.zip" depends="compile-epl-base">
-		<zip destfile="${basedir}/src.zip" basedir="${basedir}" includes="src/**/*.java" excludes="src/polyglot/qq/**,src/polyglot/ext/**,src/polyglot/parse/BaseParser.java,src/polyglot/parse/sym.java,src/polyglot/parse/Grm.java,src/polyglot/parse/Lexer_c.java,src/polyglot/frontend/JLExtensionInfo.java" />
+		<zip destfile="${basedir}/src.zip" basedir="${basedir}" includes="src/**/*.java" excludes="src/polyglot/qq/**,src/polyglot/ext/**,src/polyglot/parse/BaseParser.java,src/polyglot/parse/sym.java,src/polyglot/parse/Grm.java,src/polyglot/parse/Lexer_c.java,src/polyglot/frontend/JLExtensionInfo.java,src/polyglot/lex/EscapedUnicodeReader.java" />
 	</target>
 
 	<!-- make the LGPL source distribution and install into dist -->
@@ -634,7 +634,7 @@
 	<!-- make the EPL source distribution in a tmp directory -->
 	<target name="src-dist-epl-tmp" depends="jar-epl-base,mkdir-tmp">
 		<copy todir="${tmp}/src" includeemptydirs="false">
-			<fileset dir="${src}" includes="polyglot/**/*.java,polyglot/**/package.html" excludes="polyglot/qq/**,polyglot/ext/**,polyglot/parse/BaseParser.java,polyglot/parse/sym.java,polyglot/parse/Grm.java,polyglot/parse/Lexer_c.java,polyglot/frontend/JLExtensionInfo.java" />
+			<fileset dir="${src}" includes="polyglot/**/*.java,polyglot/**/package.html" excludes="polyglot/qq/**,polyglot/ext/**,polyglot/parse/BaseParser.java,polyglot/parse/sym.java,polyglot/parse/Grm.java,polyglot/parse/Lexer_c.java,polyglot/frontend/JLExtensionInfo.java,polyglot/lex/EscapedUnicodeReader.java" />
 		</copy>
 
 		<copy file="${bin}/jlc" todir="${tmp}/bin" />
@@ -655,7 +655,7 @@
 	<!-- build a combined source and binary jar file -->
 	<target name="bin-epl.jar" depends="compile-epl-base,configure-buildstring,mkdir-tmp">
 		<copy todir="${tmp}">
-			<fileset dir="${basedir}/classes" includes="**/*.class" excludes="polyglot/parse/Grm.class,polyglot/parse/CUP$Grm$actions.class,polyglot/parse/sym.class,polyglot/parse/Lexer_c.class,polyglot/qq/**,polyglot/ext/**,polyglot/frontend/JLExtensionInfo.class,polyglot/parse/BaseParser.class" />
+			<fileset dir="${basedir}/classes" includes="**/*.class" excludes="polyglot/parse/Grm.class,polyglot/parse/CUP$Grm$actions.class,polyglot/parse/sym.class,polyglot/parse/Lexer_c.class,polyglot/qq/**,polyglot/ext/**,polyglot/frontend/JLExtensionInfo.class,polyglot/parse/BaseParser.class,spolyglot/lex/EscapedUnicodeReader.class" />
 		</copy>
 
 		<mkdir dir="${tmp}/META-INF" />
@@ -671,7 +671,7 @@
 		</manifest>
 
 		<copy todir="${tmp}/src">
-			<fileset dir="${basedir}/src" includes="**/*.java" excludes="polyglot/parse/BaseParser.java,polyglot/parse/sym.java,polyglot/parse/Grm.java,polyglot/parse/Lexer_c.java,polyglot/frontend/JLExtensionInfo.java,polyglot/qq/**,polyglot/ext/**" />
+			<fileset dir="${basedir}/src" includes="**/*.java" excludes="polyglot/parse/BaseParser.java,polyglot/parse/sym.java,polyglot/parse/Grm.java,polyglot/parse/Lexer_c.java,polyglot/frontend/JLExtensionInfo.java,polyglot/lex/EscapedUnicodeReader.java,polyglot/qq/**,polyglot/ext/**" />
 		</copy>
 
 		<jar destfile="${lib}/polyglot-epl.jar" basedir="${tmp}" manifest="${tmp}/META-INF/MANIFEST.MF" includes="src/**,polyglot/**" />
