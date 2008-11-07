@@ -46,6 +46,8 @@ public class JLExtensionInfo extends ParserlessJLExtensionInfo {
      * <code>reader</code>.
      */
     public Parser parser(Reader reader, FileSource source, ErrorQueue eq) {
+	reader = new polyglot.lex.EscapedUnicodeReader(reader);
+
 	polyglot.lex.Lexer lexer = new Lexer_c(reader, source, eq);
 	polyglot.parse.BaseParser parser = new Grm(lexer, ts, nf, eq);
 
