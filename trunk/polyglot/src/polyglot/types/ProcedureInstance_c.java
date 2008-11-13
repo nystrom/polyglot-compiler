@@ -78,9 +78,10 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
         }
 
         // rule 2:
+        // if the formal params of p1 can be used to call p2, p1 is more specific
         return p2.callValid(t1, p1.formalTypes());
     }
-
+    
     /** Returns true if the procedure has the given formal parameter types. */
     public boolean hasFormals(List<Type> formalTypes) {
         return CollectionUtil.allElementwise(this.formalTypes(), formalTypes, new TypeEquals());
