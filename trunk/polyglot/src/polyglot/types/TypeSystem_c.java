@@ -1206,7 +1206,7 @@ public class TypeSystem_c implements TypeSystem
 	    }
 	}
 	
-	public static class MethodMatcher implements Copy {
+	public static class MethodMatcher implements Copy, Matcher<MethodInstance> {
 	    protected Type container;
 	    protected Name name;
 	    protected List<Type> argTypes;
@@ -1418,7 +1418,7 @@ public class TypeSystem_c implements TypeSystem
 			}
 
 			Collection<MethodInstance> maximal =
-				findMostSpecificProcedures(acceptable);
+				findMostSpecificProcedures(acceptable, (Matcher<MethodInstance>) matcher);
 
 			if (maximal.size() > 1) {
 				StringBuffer sb = new StringBuffer();
@@ -1445,7 +1445,7 @@ public class TypeSystem_c implements TypeSystem
 			MethodInstance mi = maximal.iterator().next();
 			return mi;
 		}
-		
+	
 	public ConstructorInstance findConstructor(Type container, ConstructorMatcher matcher, ClassDef currClass)
 	throws SemanticException {
 
@@ -1458,7 +1458,7 @@ public class TypeSystem_c implements TypeSystem
 					"No valid constructor found for " + matcher.signature() + ").");
 		}
 
-		Collection<ConstructorInstance> maximal = findMostSpecificProcedures(acceptable);
+		Collection<ConstructorInstance> maximal = findMostSpecificProcedures(acceptable, matcher);
 
 		if (maximal.size() > 1) {
 			throw new NoMemberException(NoMemberException.CONSTRUCTOR,
@@ -1470,27 +1470,12 @@ public class TypeSystem_c implements TypeSystem
 		return ci;
 	}
 
-	protected <S extends ProcedureDef,T extends ProcedureInstance<S>> T findProcedure(
-			List<T> acceptable,
-			ReferenceType container,
-			List<Type> argTypes, ClassDef currClass)
-	throws SemanticException {
-		Collection<T> maximal = this.<S,T>findMostSpecificProcedures(acceptable);
-
-
-		if (maximal.size() == 1) {
-			return maximal.iterator().next();
-		}
-
-		return null;
-	}
-
-	protected <S extends ProcedureDef, T extends ProcedureInstance<S>> Collection<T> findMostSpecificProcedures(List<T> acceptable)
+	protected <S extends ProcedureDef, T extends ProcedureInstance<S>> Collection<T> findMostSpecificProcedures(List<T> acceptable, Matcher<T> matcher)
 	throws SemanticException {
 
 		// now, use JLS 15.11.2.2
 		// First sort from most- to least-specific.
-		MostSpecificComparator<S,T> msc = new MostSpecificComparator<S,T>();
+		Comparator<T> msc = mostSpecificComparator(matcher);
 		acceptable = new ArrayList<T>(acceptable); // make into array list to sort
 		Collections.<T>sort(acceptable, msc);
 
@@ -1505,7 +1490,7 @@ public class TypeSystem_c implements TypeSystem
 		while (i.hasNext()) {
 			T p = i.next();
 
-			if (msc.compare(first, p) >= 0) {
+			if (msc.compare(first, p) == 0) {
 				maximal.add(p);
 			}
 		}
@@ -1551,6 +1536,10 @@ public class TypeSystem_c implements TypeSystem
 		return maximal;
 	}
 
+	protected <S extends ProcedureDef, T extends ProcedureInstance<S>> Comparator<T> mostSpecificComparator(Matcher<T> matcher) {
+	    return new MostSpecificComparator<S,T>();
+	}
+
 	public static class TypeEquals implements Predicate2<Type> {
 		public boolean isTrue(Type o, Type p) {
 			return o.typeEquals(p);
@@ -1574,9 +1563,11 @@ public class TypeSystem_c implements TypeSystem
 	 */
 	protected static class MostSpecificComparator<S extends ProcedureDef, T extends ProcedureInstance<S>> implements Comparator<T> {
 		public int compare(T p1, T p2) {
-			if (p1.moreSpecific(p2)) return -1;
-			if (p2.moreSpecific(p1)) return 1;
-			return 0;
+		    if (p1.moreSpecific(p2))
+			return -1;
+		    if (p2.moreSpecific(p1))
+			return 1;
+		    return 0;
 		}
 	}
 
