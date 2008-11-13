@@ -56,9 +56,9 @@
 		<pathelement location="${lib}/ppg.jar" />
 	</path>
 
-	<fileset id="epl.excludes.src" dir="${src}" excludes="polyglot/parse/Grm.java,polyglot/parse/sym.java,polyglot/parse/Lexer_c.java,polyglot/qq/**,polyglot/ext/**,polyglot/frontend/JLExtensionInfo.java,polyglot/parse/BaseParser.java" />
+        <fileset id="epl.excludes.src" dir="${src}" excludes="polyglot/parse/Grm.java,polyglot/parse/sym.java,polyglot/parse/Lexer_c.java,polyglot/qq/**,polyglot/ext/**,polyglot/frontend/JLExtensionInfo.java,polyglot/parse/BaseParser.java,polyglot/lex/EscapedUnicodeReader.java" />
 
-	<fileset id="epl.excludes.classes" dir="${classes}" excludes="polyglot/parse/Grm.class,polyglot/parse/CUP$Grm$actions.class,polyglot/parse/sym.class,polyglot/parse/Lexer_c.class,polyglot/qq/**,polyglot/ext/**,polyglot/frontend/JLExtensionInfo.class,polyglot/parse/BaseParser.class" />
+        <fileset id="epl.excludes.classes" dir="${classes}" excludes="polyglot/parse/Grm.class,polyglot/parse/CUP$Grm$actions.class,polyglot/parse/sym.class,polyglot/parse/Lexer_c.class,polyglot/qq/**,polyglot/ext/**,polyglot/frontend/JLExtensionInfo.class,polyglot/parse/BaseParser.class,polyglot/lex/EscapedUnicodeReader.class" />
 
 	<!-- classpath to use when bootstrapping java_cup.jar -->
 	<path id="cup.jar.classpath">
@@ -655,7 +655,7 @@
 	<!-- build a combined source and binary jar file -->
 	<target name="bin-epl.jar" depends="compile-epl-base,configure-buildstring,mkdir-tmp">
 		<copy todir="${tmp}">
-			<fileset dir="${basedir}/classes" includes="**/*.class" excludes="polyglot/parse/Grm.class,polyglot/parse/CUP$Grm$actions.class,polyglot/parse/sym.class,polyglot/parse/Lexer_c.class,polyglot/qq/**,polyglot/ext/**,polyglot/frontend/JLExtensionInfo.class,polyglot/parse/BaseParser.class,spolyglot/lex/EscapedUnicodeReader.class" />
+			<fileset dir="${basedir}/classes" includes="**/*.class" excludes="polyglot/parse/Grm.class,polyglot/parse/CUP$Grm$actions.class,polyglot/parse/sym.class,polyglot/parse/Lexer_c.class,polyglot/qq/**,polyglot/ext/**,polyglot/frontend/JLExtensionInfo.class,polyglot/parse/BaseParser.class,polyglot/lex/EscapedUnicodeReader.class" />
 		</copy>
 
 		<mkdir dir="${tmp}/META-INF" />
