@@ -183,7 +183,7 @@ public class Compiler
 	    catch (InternalCompilerError e) {
 		// Report it like other errors, but rethrow to get the stack trace.
 		try {
-		    eq.enqueue(ErrorInfo.INTERNAL_ERROR, e.message(), e.position());
+		    eq.enqueue(ErrorInfo.INTERNAL_ERROR, e.message() != null ? e.message() : "InternalCompilerError", e.position());
 		}
 		catch (ErrorLimitError e2) {
 		}
