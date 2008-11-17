@@ -90,7 +90,6 @@ public class QName implements Serializable {
     public boolean equals(Object o) {
 	if (o == null)
 	    return false;
-	assert o instanceof QName;
         return this == o;
     }
 
