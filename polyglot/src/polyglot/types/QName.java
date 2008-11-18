@@ -88,8 +88,6 @@ public class QName implements Serializable {
     public final void equals(Name s) { }
 
     public boolean equals(Object o) {
-	if (o == null)
-	    return false;
         return this == o;
     }
 
