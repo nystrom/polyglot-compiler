@@ -192,7 +192,7 @@ public class Position implements Serializable
             s = file;
         }
 
-        if (s == null) {
+        if (s == null || s.length() == 0) {
             s = "unknown file";
         }
         
@@ -210,11 +210,11 @@ public class Position implements Serializable
     public String toString() {
         String s = path;
 
-        if (s == null) {
+        if (s == null || s.length() == 0) {
             s = file;
         }
 
-        if (s == null) {
+        if (s == null || s.length() == 0) {
             s = "unknown file";
         }
 
