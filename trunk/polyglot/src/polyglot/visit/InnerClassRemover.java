@@ -26,7 +26,7 @@ import polyglot.util.UniqueID;
 
 public class InnerClassRemover extends ContextVisitor {
     // Name of field used to carry a pointer to the enclosing class.
-    private static final Name OUTER_FIELD_NAME = Name.make("out$");
+    public static final Name OUTER_FIELD_NAME = Name.make("out$");
 
     public InnerClassRemover(Job job, TypeSystem ts, NodeFactory nf) {
         super(job, ts, nf);
@@ -132,7 +132,7 @@ public class InnerClassRemover extends ContextVisitor {
                 // Fix the ci.
                 {
                 List<Type> args = new ArrayList<Type>();
-                args.add(ci.container());
+                args.add(q.type());
                 args.addAll(ci.formalTypes());
                 ci = ci.formalTypes(args);
                 neu = neu.constructorInstance(ci);
@@ -194,7 +194,7 @@ public class InnerClassRemover extends ContextVisitor {
             // Fix the ci if a copy; otherwise, let the ci be modified at the declaration node.
             if (fixCI) {
                 List<Type> args = new ArrayList<Type>();
-                args.add(ci.container());
+                args.add(q.type());
                 args.addAll(ci.formalTypes());
                 ci = ci.formalTypes(args);
                 cc = cc.constructorInstance(ci);
