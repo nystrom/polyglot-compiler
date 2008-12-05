@@ -1500,7 +1500,7 @@ public class TypeSystem_c implements TypeSystem
 			List<T> notAbstract = new ArrayList<T>(maximal.size());
 			for (Iterator<T> j = maximal.iterator(); j.hasNext(); ) {
 				T p = j.next();
-				if (! (p instanceof MemberDef) || ! ((MemberDef) p).flags().isAbstract()) {
+				if (! (p instanceof MemberInstance) || ! ((MemberInstance) p).flags().isAbstract()) {
 					notAbstract.add(p);
 				}
 			}
