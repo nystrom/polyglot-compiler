@@ -288,7 +288,9 @@ public class New_c extends Expr_c implements New
 	    }
 	    else {
 		anonType.superType(Types.<Type>ref(ts.Object()));
-		anonType.addInterface(ct);
+                assert anonType.interfaces().isEmpty() || anonType.interfaces().get(0) == ct;
+                if (anonType.interfaces().isEmpty())
+                    anonType.addInterface(ct);
 	    }
 	}
 
