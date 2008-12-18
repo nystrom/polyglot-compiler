@@ -3,7 +3,7 @@ package polyglot.frontend;
 import java.util.*;
 
 public abstract class AllBarrierGoal extends AbstractGoal_c {
-    Scheduler scheduler;
+    protected Scheduler scheduler;
     
     public AllBarrierGoal(Scheduler scheduler) {
         super();
