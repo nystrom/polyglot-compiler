@@ -96,5 +96,10 @@ public interface ExtensionInfo {
         the character encoding to be defined. */
     FileSource createFileSource(File sourceFile, boolean userSpecified)
 	throws IOException;
+    
+    /** Create file source for a file. The main purpose is to allow
+        the character encoding to be defined. */
+    FileSource createFileSource(Resource sourceFile, boolean userSpecified)
+    throws IOException;
 
 }

@@ -21,6 +21,7 @@ import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Option;
+import polyglot.visit.PostCompiled;
 
 
 /**
@@ -118,9 +119,8 @@ public abstract class Scheduler {
     }
     
     Goal EndAll;
-    Goal EndCommandLine;
     
-    protected Goal End(Job job) {
+    public Goal End(Job job) {
 	    return new SourceGoal_c("End", job) {
 		    public boolean runTask() {
 			    // The job has finished.  Let's remove it from the job map
@@ -130,37 +130,34 @@ public abstract class Scheduler {
 		    }
 	    }.intern(this);
     }
+    
+    Collection<Job> shouldCompile = new LinkedHashSet<Job>();
+    
+    public boolean shouldCompile(Job job) {
+	if (commandLineJobs().contains(job))
+	    return true;
+        if (Globals.Options().compile_command_line_only)
+            return false;
+        return shouldCompile.contains(job);
+    }
+    
+    protected Goal PostCompiled() {
+	if (EndAll == null)
+	    EndAll = new PostCompiled(extInfo);
+	return EndAll;
+    }
 
     protected Goal EndAll() {
-	    if (EndAll == null)
-		    EndAll = new AllBarrierGoal("EndAll", this) {
-		    public Goal prereqForJob(Job job) {
-			    return End(job);
-		    }
-	    };
-	    return EndAll;
+	return PostCompiled();
     }
 
     protected Goal EndCommandLine() {
-	    if (EndCommandLine == null)
-		    EndCommandLine = new BarrierGoal(commandLineJobs()) {
-		    public Goal prereqForJob(Job job) {
-			    return End(job);
-		    }
-
-		    public String name() { return "EndCommandLine"; }
-	    };
-	    return EndCommandLine;
+	return EndAll();
     }
 
     public boolean runToCompletion() {
         boolean okay;
-        if (Globals.Options().compile_command_line_only) {
-            okay = runToCompletion(EndCommandLine());
-        }
-        else {
-            okay = runToCompletion(EndAll());
-        }
+        okay = runToCompletion(EndAll());
         return okay;
     }
 
@@ -496,12 +493,8 @@ public abstract class Scheduler {
         assert prev == End(job);
         
         if (compile) {
-            if (Globals.Options().compile_command_line_only) {
-        	EndCommandLine().addPrereq(prev);
-            }
-            else {
-        	EndAll().addPrereq(prev);
-            }
+            shouldCompile.add(job);
+//            EndAll().addPrereq(prev);
         }
     }
 

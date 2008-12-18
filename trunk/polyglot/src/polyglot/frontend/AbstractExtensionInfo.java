@@ -174,6 +174,12 @@ public abstract class AbstractExtensionInfo implements ExtensionInfo {
     public FileSource createFileSource(File f, boolean user)
 	throws IOException
     {
+	return createFileSource(new FileResource(f), user);
+    }
+    
+    public FileSource createFileSource(Resource f, boolean user)
+    throws IOException
+    {
 	return new FileSource(f, user);
     }
 }

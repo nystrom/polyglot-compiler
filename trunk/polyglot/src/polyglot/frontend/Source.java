@@ -7,7 +7,6 @@
 
 package polyglot.frontend;
 
-import java.io.File;
 import java.util.Date;
 
 /** A <code>Source</code> represents a source file. */

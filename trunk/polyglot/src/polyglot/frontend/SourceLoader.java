@@ -9,47 +9,36 @@ package polyglot.frontend;
 
 import java.io.*;
 import java.util.*;
-import java.util.jar.JarFile;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import polyglot.main.Report;
 import polyglot.types.QName;
 import polyglot.util.FileUtil;
-import polyglot.util.InternalCompilerError;
 
 /** A <code>SourceLoader</code> is responsible for loading source files. */
 public class SourceLoader
 {
     protected ExtensionInfo sourceExt;
-    protected Collection sourcePath;
+    protected List<File> sourcePath;
 
     /** 0 if unknown, 1 if case insensitive, -1 if not. */
     protected int caseInsensitive;
 
     /** Set of sources already loaded.  An attempt to load a source
       * already loaded will cause an IOException. */
-    protected Map loadedSources;
+    protected Map<Object,Source> loadedSources;
 
-    /**
-     * This is a map from Files (of directories) to Set[String]s, which
-     * records the first level of contents of the directory. This cache
-     * is used to avoid a number of File.exists() calls.
-     */
-    protected Map directoryContentsCache;
-
-    public SourceLoader(ExtensionInfo sourceExt, Collection sourcePath) {
+    public SourceLoader(ExtensionInfo sourceExt, List<File> sourcePath) {
 	this.sourcePath = sourcePath;
 	this.sourceExt = sourceExt;
-        this.directoryContentsCache = new HashMap();
         this.caseInsensitive = 0;
-        this.loadedSources = new HashMap();
+        this.loadedSources = new HashMap<Object, Source>();
     }
 
     /** Load a source from a specific file. */
     public FileSource fileSource(String fileName) throws IOException {
         return fileSource(fileName, false);
     }
+    
     public FileSource fileSource(String fileName, boolean userSpecified) throws IOException {
         File sourceFile = new File(fileName);
         
@@ -100,7 +89,8 @@ public class SourceLoader
         if (Report.should_report(Report.loader, 2))
             Report.report(2, "Loading class from " + sourceFile);
 
-        FileSource s = (FileSource) loadedSources.get(fileKey(sourceFile));
+        Resource r = new FileResource(sourceFile);
+        FileSource s = (FileSource) loadedSources.get(fileKey(r));
         
         if (s != null) {
             if (!s.userSpecified && userSpecified) {
@@ -109,8 +99,8 @@ public class SourceLoader
             return s;
         }
         
-        s = sourceExt.createFileSource(sourceFile, userSpecified);
-        loadedSources.put(fileKey(sourceFile), s);
+        s = sourceExt.createFileSource(r, userSpecified);
+        loadedSources.put(fileKey(r), s);
         return s;
     }
 
@@ -135,8 +125,8 @@ public class SourceLoader
         String fileName = name.toString().replace('.', File.separatorChar);
 
 	/* Search the source path. */
-        for (Iterator i = sourcePath.iterator(); i.hasNext(); ) {
-            File directory = (File) i.next();
+        for (Iterator<File> i = sourcePath.iterator(); i.hasNext(); ) {
+            File directory = i.next();
 
             File f = new File(directory, fileName);
 
@@ -147,153 +137,42 @@ public class SourceLoader
 
         return false;
     }
-    
-    public static class ZipSource extends FileSource {
-	String entryName;
-	
-	public ZipSource(File file, String entryName) throws IOException {
-	    super(file);
-	    this.entryName = entryName;
-	}
-
-	@Override
-	protected Reader createReader(InputStream str) {
-	    // TODO Auto-generated method stub
-	    return super.createReader(str);
-	}
-	
-	/** Open the source file. */
-	public Reader open() throws IOException {
-	    if (reader == null) {
-		ZipFile zip = file.getName().endsWith(".jar") ? new JarFile(file) : new ZipFile(file);
-		ZipEntry ze = zip.getEntry(entryName);
-		if (ze == null)
-		    throw new FileNotFoundException("Could not find " + entryName + " in " + file);
-		InputStream str = zip.getInputStream(ze);
-		reader = createReader(str);
-	    }
-	    return reader;
-	}
-
-	public boolean equals(Object o) {
-	    if (o instanceof ZipSource) {
-		ZipSource s = (ZipSource) o;
-		return file.equals(s.file) && entryName.equals(s.entryName);
-	    }
-
-	    return false;
-	}
-
-	public int hashCode() {
-	    return file.getPath().hashCode() + entryName.hashCode();
-	}
-
-	public String toString() {
-	    return super.toString() + ":" + entryName;
-	}
-
-	public String name() {
-	    return entryName.substring(entryName.lastIndexOf('/')+1);
-	}
-    }
-    
+        
     /** Load the source file for the given class name using the source path. */
     public FileSource classSource(QName className) {
+	ClassPathResourceLoader loader = new ClassPathResourceLoader(sourcePath);
 	/* Search the source path. */
         String[] exts = sourceExt.fileExtensions();
 
         for (int k = 0; k < exts.length; k++) {
             String fileName = className.toString().replace('.', File.separatorChar) +
-                                      "." + exts[k];
+            "." + exts[k];
 
-            for (Iterator i = sourcePath.iterator(); i.hasNext(); ) {
-                File directory = (File) i.next();
-                
-                if (directory.isFile() && (directory.getName().endsWith(".jar") || directory.getName().endsWith(".zip"))) {
-                    String zipEntry = fileName.replace(File.separatorChar, '/');
-                    ZipFile zip;
-                    
-                    try {
-                	File dir = directory;
-                	if (dir.getName().endsWith(".jar")) {
-                	    zip = new JarFile(dir);
-                	}
-                	else {
-                	    zip = new ZipFile(dir);
-                	}
-
-                	ZipEntry ze = zip.getEntry(zipEntry);
-                	if (ze != null)
-                	    return new ZipSource(directory, zipEntry);
-                    }
-                    catch (IOException ex) {
-		    }
-                }
-                
-                if (! directory.isDirectory())
-                    continue;
-                
-                Set dirContents = (Set)directoryContentsCache.get(directory);
-                if (dirContents == null) {
-                    dirContents = new HashSet();
-                    directoryContentsCache.put(directory, dirContents);
-                    if (directory.exists()) {
-                        String[] contents = directory.list();
-                        // May return null if directory is not found
-                        if (contents == null)
-                            continue;
-                        for (int j = 0; j < contents.length; j++) {
-                            dirContents.add(contents[j]);
-                        }
-                    }                
-                }
-
-                // check if the source file exists in the directory
-                int index = fileName.indexOf(File.separatorChar);
-                if (index < 0) index = fileName.length(); 
-                String firstPart = fileName.substring(0, index);
-
-                if (dirContents.contains(firstPart)) {
-                    // the directory contains at least the first part of the
-                    // file path. We will check if this file exists.
-                    File sourceFile;
-                    
-                    if (directory != null && directory.equals(current_dir())) {
-                        sourceFile = new File(fileName);
-                    }
-                    else {
-                        sourceFile = new File(directory, fileName);
-                    }
-                    
-                    // Skip it if already loaded
-                    FileSource s = (FileSource) loadedSources.get(fileKey(sourceFile));
-
-                    if (s != null) {
-                        return s;
-                    }
-                    
-                    try {
-                        if (Report.should_report(Report.loader, 2))
-                            Report.report(2, "Loading " + className + " from " + sourceFile);
-                        s = sourceExt.createFileSource(sourceFile, false);
-                        loadedSources.put(fileKey(sourceFile), s);
-                        return s;
-                    }
-                    catch (IOException e) {
-                    }
-                }
+            Resource r = loader.loadResource(fileName);
+            if (r != null) {
+        	try {
+        	    if (Report.should_report(Report.loader, 2))
+        		Report.report(2, "Loading " + className + " from " + r);
+        	    FileSource s = sourceExt.createFileSource(r, false);
+        	    loadedSources.put(fileKey(r), s);
+        	    return s;
+        	}
+        	catch (IOException e) {
+        	}
             }
         }
 
         return null;
     }
 
-    public Object fileKey(File file) {
+    public Object fileKey(Resource r) {
+	File file = r.file();
+	String suffix = r instanceof FileResource ? "" : ":" + r.name();
 	try {
-	    return file.getCanonicalPath();
+	    return file.getCanonicalPath() + suffix;
 	}
 	catch (IOException e) {
-	    return file.getAbsolutePath();
+	    return file.getAbsolutePath() + suffix;
 	}
     }
 }
