@@ -7,56 +7,52 @@
 
 package polyglot.frontend;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.Date;
 
 /** A <code>Source</code> represents a source file. */
 public class FileSource extends Source
 {
-    protected final File file;
+    protected final Resource resource;
     protected Reader reader;
 
-    public FileSource(File file) throws IOException {
-        this(file, false);
+    public FileSource(Resource r) throws IOException {
+        this(r, false);
+    }
+    
+    public  Resource resource() {
+	return resource;
     }
         
-    public FileSource(File file, boolean userSpecified) throws IOException {
-        super(file.getName(), userSpecified);
-        this.file = file;
+    public FileSource(Resource r, boolean userSpecified) throws IOException {
+        super(r.name(), userSpecified);
+        this.resource = r;
     
-        if (! file.exists()) {
-            throw new FileNotFoundException(file.getName());
+        if (! r.file().exists()) {
+            throw new FileNotFoundException(r.name());
         }
 
-        path = file.getCanonicalPath();
-        lastModified = new Date(file.lastModified());
+        path = r.file().getCanonicalPath();
+        lastModified = new Date(r.file().lastModified());
     }
 
     public boolean equals(Object o) {
 	if (o instanceof FileSource) {
 	    FileSource s = (FileSource) o;
-	    return file.equals(s.file);
+	    return resource.equals(s.resource);
 	}
 
 	return false;
     }
 
     public int hashCode() {
-	return file.getPath().hashCode();
+	return resource.hashCode();
     }
 
     /** Open the source file. */
     public Reader open() throws IOException {
 	if (reader == null) {
-	    FileInputStream str = new FileInputStream(file);
-	    reader = createReader(str);
+	    reader = createReader(resource.getInputStream());
 	}
 
 	return reader;
@@ -80,6 +76,6 @@ public class FileSource extends Source
     }
 
     public String toString() {
-	return file.getPath();
+	return resource.toString();
     }
 }

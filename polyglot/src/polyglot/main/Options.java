@@ -8,15 +8,9 @@
 package polyglot.main;
 import java.io.File;
 import java.io.PrintStream;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 
 import polyglot.frontend.ExtensionInfo;
-import polyglot.frontend.Globals;
 
 /** 
  * This object encapsulates various polyglot options. 
@@ -31,7 +25,7 @@ public class Options {
      * Fields for storing values for options.
      */
     public int error_count = 100;
-    public Collection<File> source_path; // List<File>
+    public List<File> source_path; // List<File>
     public File output_directory;
     public String default_classpath;
     public String default_output_classpath;

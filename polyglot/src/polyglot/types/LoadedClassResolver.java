@@ -7,10 +7,11 @@
 
 package polyglot.types;
 
+import java.io.File;
 import java.io.InvalidClassException;
 import java.util.*;
 
-import polyglot.frontend.SchedulerException;
+import polyglot.frontend.*;
 import polyglot.main.Report;
 import polyglot.main.Version;
 import polyglot.types.reflect.*;
@@ -28,7 +29,8 @@ public class LoadedClassResolver implements TopLevelResolver
 
   protected TypeSystem ts;
   protected TypeEncoder te;
-  protected ClassPathLoader loader;
+  protected ClassFileLoader loader;
+  protected ClassPathResourceLoader pathloader;
   protected Version version;
   protected Set<QName> nocache;
   protected boolean allowRawClasses;
@@ -50,7 +52,8 @@ public class LoadedClassResolver implements TopLevelResolver
   {
     this.ts = ts;
     this.te = new TypeEncoder(ts);
-    this.loader = new ClassPathLoader(classpath, loader);
+    this.loader = loader;
+    this.pathloader = new ClassPathResourceLoader(classpath);
     this.version = version;
     this.nocache = new HashSet<QName>();
     this.allowRawClasses = allowRawClasses;
@@ -61,7 +64,7 @@ public class LoadedClassResolver implements TopLevelResolver
   }
 
   public boolean packageExists(QName name) {
-    return loader.packageExists(name.toString());
+    return pathloader.dirExists(name.toString().replace('.', File.separatorChar));
   }
 
   /**
@@ -73,18 +76,20 @@ public class LoadedClassResolver implements TopLevelResolver
     }
     
     try {
-        ClassFile clazz = loader.loadClass(name.toString());
+	String classFileName = name.toString().replace('.', File.separatorChar) + ".class";
+	Resource r = pathloader.loadResource(classFileName);
+        ClassFile clazz = loader.loadClass(r);
 
         if (clazz == null) {
             if (Report.should_report(report_topics, 4)) {
                 Report.report(4, "Class " + name + " not found in classpath "
-                        + loader.classpath());
+                        + pathloader.classpath());
             }
         }
         else {
             if (Report.should_report(report_topics, 4)) {
                 Report.report(4, "Class " + name + " found in classpath "
-                        + loader.classpath());
+                        + pathloader.classpath());
             }
             return clazz;
         }
