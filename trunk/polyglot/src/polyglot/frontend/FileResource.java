@@ -13,13 +13,22 @@ public class FileResource implements Resource {
     }
 
     public int hashCode() {
-	return source.hashCode();
+	return canonicalPath().hashCode();
+    }
+    
+    private String canonicalPath() {
+	try {
+	return source.getCanonicalPath();
+	}
+	catch (IOException e) {
+	    return source.getAbsolutePath();
+	}
     }
 
     public boolean equals(Object o) {
 	if ( o instanceof FileResource) {
 	    FileResource r = (FileResource) o;
-	    return source.equals(r.source);
+	    return canonicalPath().equals(r.canonicalPath());
 	}
 	return false;
     }
