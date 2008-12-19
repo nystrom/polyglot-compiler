@@ -18,13 +18,22 @@ public class ZipResource implements Resource {
     }
     
     public int hashCode() {
-	return source.hashCode() + entryName.hashCode();
+	return canonicalPath().hashCode() + entryName.hashCode();
+    }
+    
+    private String canonicalPath() {
+	try {
+	return source.getCanonicalPath();
+	}
+	catch (IOException e) {
+	    return source.getAbsolutePath();
+	}
     }
 
     public boolean equals(Object o) {
 	if ( o instanceof ZipResource) {
 	    ZipResource r = (ZipResource) o;
-	    return source.equals(r.source) && entryName.equals(r.entryName);
+	    return canonicalPath().equals(r.canonicalPath()) && entryName.equals(r.entryName);
 	}
 	return false;
     }
