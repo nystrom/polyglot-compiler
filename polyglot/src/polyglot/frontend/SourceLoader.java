@@ -125,13 +125,21 @@ public class SourceLoader
         String fileName = name.toString().replace('.', File.separatorChar);
 
         /* Search the source path. */
-        boolean result = new ClassPathResourceLoader(sourcePath).dirExists(fileName);
+        boolean result = pathloader().dirExists(fileName);
         return result;
+    }
+
+    ClassPathResourceLoader pathloader;
+    
+    private ClassPathResourceLoader pathloader() {
+	if (pathloader == null)
+	    pathloader = new ClassPathResourceLoader(sourcePath);
+	return pathloader;
     }
         
     /** Load the source file for the given class name using the source path. */
     public FileSource classSource(QName className) {
-	ClassPathResourceLoader loader = new ClassPathResourceLoader(sourcePath);
+	ClassPathResourceLoader loader = pathloader();
 	/* Search the source path. */
         String[] exts = sourceExt.fileExtensions();
 
