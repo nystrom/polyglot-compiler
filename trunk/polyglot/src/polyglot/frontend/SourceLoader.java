@@ -124,18 +124,9 @@ public class SourceLoader
     public boolean packageExists(QName name) {
         String fileName = name.toString().replace('.', File.separatorChar);
 
-	/* Search the source path. */
-        for (Iterator<File> i = sourcePath.iterator(); i.hasNext(); ) {
-            File directory = i.next();
-
-            File f = new File(directory, fileName);
-
-            if (f.isDirectory() && FileUtil.checkNameFromRoot(directory, f)) {
-                return true;
-            }
-        }
-
-        return false;
+        /* Search the source path. */
+        boolean result = new ClassPathResourceLoader(sourcePath).dirExists(fileName);
+        return result;
     }
         
     /** Load the source file for the given class name using the source path. */
