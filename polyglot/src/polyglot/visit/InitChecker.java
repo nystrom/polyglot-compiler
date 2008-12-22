@@ -789,6 +789,32 @@ public class InitChecker extends DataFlow
      * is static, then the target of the field must be the current class; if
      * the field is not static then the target must be "this".
      */
+    protected boolean isFieldsTargetAppropriate(Field f) {
+	CodeDef ci = currCBI.currCodeDecl.codeDef();
+	ClassType containingClass = currCBI.currClass.asType();
+	
+	if (f.fieldInstance().flags().isStatic()) {
+	    Type container = f.fieldInstance().def().container().get();
+	    return container instanceof ClassType && containingClass.def().equals(((ClassType) container).def());
+	}
+	else {
+	    if (f.target() instanceof Special) {
+		Special s = (Special) f.target();
+		if (Special.THIS.equals(s.kind())) {
+		    return s.qualifier() == null
+		    || (s.qualifier().type() instanceof ClassType &&
+			    containingClass.def().equals(((ClassType) s.qualifier().type()).def()));
+		}
+	    }
+	    return false;
+	}
+    }
+    /**
+     * Determine if we are interested in this field on the basis of the
+     * target of the field. To wit, if the field
+     * is static, then the target of the field must be the current class; if
+     * the field is not static then the target must be "this".
+     */
     protected boolean isFieldsTargetAppropriate(FieldAssign f) {
         CodeDef ci = currCBI.currCodeDecl.codeDef();
         ClassType containingClass = currCBI.currClass.asType();
@@ -850,6 +876,9 @@ public class InitChecker extends DataFlow
         
             if (n instanceof Local) {
                 checkLocal(graph, (Local)n, dfIn, dfOut);
+            }
+            else if (n instanceof Field) {
+        	checkField(graph, (Field)n, dfIn, dfOut);
             }
             else if (n instanceof LocalAssign) {
                 checkLocalAssign(graph, (LocalAssign)n, dfIn, dfOut);
@@ -969,6 +998,29 @@ public class InitChecker extends DataFlow
             currCBI.fieldsConstructorInitializes.put(ci, s);
         }
     }
+    
+    /**
+     * Check that the field access <code>f</code> is used correctly.
+     */
+    protected void checkField(FlowGraph graph, 
+	    Field f, 
+	    DataFlowItem dfIn, 
+	    DataFlowItem dfOut) 
+    throws SemanticException {
+	if (isFieldsTargetAppropriate(f) && f.flags().isFinal() && (currCBI.currCodeDecl instanceof ConstructorDecl || currCBI.currCodeDecl instanceof FieldDecl)) {
+	    MinMaxInitCount initCount = dfIn.initStatus.get(f.fieldInstance().def());         
+	    if (initCount != null && InitCount.ZERO.equals(initCount.getMin())) {
+		// the field may not have been initialized. 
+		// However, we only want to complain if the field is reachable
+		if (f.reachable()) {
+		    throw new SemanticException("Field \"" + f.name().id() +
+		                                "\" may not have been initialized",
+		                                f.position());
+		}
+	    }
+	}
+    }
+    
     
     /**
      * Check that the local variable <code>l</code> is used correctly.
