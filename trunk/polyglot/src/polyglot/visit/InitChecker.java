@@ -1012,6 +1012,16 @@ public class InitChecker extends DataFlow
 	    if (initCount != null && InitCount.ZERO.equals(initCount.getMin())) {
 		// the field may not have been initialized. 
 		// However, we only want to complain if the field is reachable
+		if (currCBI.currCodeDecl instanceof ConstructorDecl) {
+		    ConstructorDecl cd = (ConstructorDecl) currCBI.currCodeDecl;
+		    if (cd.body() == null)
+			return;
+		    if (cd.body().statements().size() > 0 && cd.body().statements().get(0) instanceof ConstructorCall) {
+			ConstructorCall cc = (ConstructorCall) cd.body().statements().get(0);
+			if (cc.kind() == ConstructorCall.THIS)
+			    return;
+		    }
+		}
 		if (f.reachable()) {
 		    throw new SemanticException("Field \"" + f.name().id() +
 		                                "\" may not have been initialized",
