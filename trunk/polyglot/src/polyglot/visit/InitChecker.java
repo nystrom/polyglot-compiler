@@ -68,7 +68,7 @@ public class InitChecker extends DataFlow
          * to MinMaxInitCounts. This Map is used as the basis for the Maps returned
          * in createInitialItem(). 
          * */
-        public Map<FieldDef, MinMaxInitCount> currClassFinalFieldInitCounts = new HashMap<FieldDef, MinMaxInitCount>();
+        public Map<FieldDef, MinMaxInitCount> currClassFinalFieldInitCounts = new LinkedHashMap<FieldDef, MinMaxInitCount>();
         /**
          * List of all the constructors. These will be checked once all the
          * initializer blocks have been processed.
@@ -80,14 +80,14 @@ public class InitChecker extends DataFlow
          * which constructors call which constructors.
          * This is used in checking the initialization of final fields.
          */
-        public Map<ConstructorDef,ConstructorDef> constructorCalls = new HashMap<ConstructorDef, ConstructorDef>();
+        public Map<ConstructorDef,ConstructorDef> constructorCalls = new LinkedHashMap<ConstructorDef, ConstructorDef>();
         
         /**
          * Map from ConstructorInstances to Sets of FieldInstances, detailing
          * which final non-static fields each constructor initializes. 
          * This is used in checking the initialization of final fields.
          */
-        public Map<ConstructorDef, Set<FieldDef>> fieldsConstructorInitializes = new HashMap<ConstructorDef, Set<FieldDef>>();
+        public Map<ConstructorDef, Set<FieldDef>> fieldsConstructorInitializes = new LinkedHashMap<ConstructorDef, Set<FieldDef>>();
         
         /**
          * Set of LocalInstances from the outer class body that were used
@@ -106,7 +106,7 @@ public class InitChecker extends DataFlow
          * these local variables are definitely assigned before the class
          * declaration of C. 
          */
-        public Map<Node, Set<LocalDef>> localsUsedInClassBodies = new HashMap<Node, Set<LocalDef>>();
+        public Map<Node, Set<LocalDef>> localsUsedInClassBodies = new LinkedHashMap<Node, Set<LocalDef>>();
         
         /**
          * Set of LocalInstances that we have seen declarations for in this 
@@ -517,7 +517,7 @@ public class InitChecker extends DataFlow
     }
 
     private DataFlowItem createInitDFI() {
-        return new DataFlowItem(new HashMap<VarDef, MinMaxInitCount>(currCBI.currClassFinalFieldInitCounts));
+        return new DataFlowItem(new LinkedHashMap<VarDef, MinMaxInitCount>(currCBI.currClassFinalFieldInitCounts));
     }
     
     /**
@@ -561,7 +561,7 @@ public class InitChecker extends DataFlow
             Item itm = (Item)iter.next();
             if (itm == BOTTOM) continue;
             if (m == null) {
-                m = new HashMap<VarDef, MinMaxInitCount>(((DataFlowItem)itm).initStatus);
+                m = new LinkedHashMap<VarDef, MinMaxInitCount>(((DataFlowItem)itm).initStatus);
             } 
             else { 
                 Map<VarDef, MinMaxInitCount> n = ((DataFlowItem)itm).initStatus;
@@ -656,7 +656,7 @@ public class InitChecker extends DataFlow
      * parameter
      */
     protected Map flowFormal(DataFlowItem inItem, FlowGraph graph, Formal f, Set succEdgeKeys) {
-        Map<VarDef, MinMaxInitCount> m = new HashMap<VarDef, MinMaxInitCount>(inItem.initStatus);
+        Map<VarDef, MinMaxInitCount> m = new LinkedHashMap<VarDef, MinMaxInitCount>(inItem.initStatus);
         // a formal argument is always defined.            
         m.put(f.localDef(), new MinMaxInitCount(InitCount.ONE,InitCount.ONE));
             
@@ -674,7 +674,7 @@ public class InitChecker extends DataFlow
                                 FlowGraph graph, 
                                 LocalDecl ld, 
                                 Set succEdgeKeys) {
-        Map<VarDef, MinMaxInitCount> m = new HashMap<VarDef, MinMaxInitCount>(inItem.initStatus);
+        Map<VarDef, MinMaxInitCount> m = new LinkedHashMap<VarDef, MinMaxInitCount>(inItem.initStatus);
         MinMaxInitCount initCount = m.get(ld.localDef());
         //if (initCount == null) {
             if (ld.init() != null) {
@@ -714,7 +714,7 @@ public class InitChecker extends DataFlow
                                   LocalAssign a, 
                                   Set succEdgeKeys) {
           Local l = (Local) a.local();
-          Map<VarDef, MinMaxInitCount> m = new HashMap<VarDef, MinMaxInitCount>(inItem.initStatus);
+          Map<VarDef, MinMaxInitCount> m = new LinkedHashMap<VarDef, MinMaxInitCount>(inItem.initStatus);
           MinMaxInitCount initCount = m.get(l.localInstance().def());
 
           // initcount could be null if the local is defined in the outer
@@ -743,7 +743,7 @@ public class InitChecker extends DataFlow
         if (fi.flags().isFinal() && isFieldsTargetAppropriate(a)) {
             // this field is final and the target for this field is 
             // appropriate for what we are interested in.
-            Map<VarDef, MinMaxInitCount> m = new HashMap<VarDef, MinMaxInitCount>(inItem.initStatus);
+            Map<VarDef, MinMaxInitCount> m = new LinkedHashMap<VarDef, MinMaxInitCount>(inItem.initStatus);
             MinMaxInitCount initCount = m.get(fi);
             // initCount may be null if the field is defined in an
             // outer class.
