@@ -192,7 +192,7 @@ public class ClassDef_c extends Def_c implements ClassDef
     }
 
     public void outer(Ref<ClassDef> outer) {
-        if (kind() == TOP_LEVEL)
+        if (outer != null && kind() == TOP_LEVEL)
             throw new InternalCompilerError("Top-level classes cannot have outer classes.");
         this.outer = outer;
     }
