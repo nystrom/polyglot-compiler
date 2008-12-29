@@ -180,8 +180,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	    flags = flags.Public().Abstract();
 	}
 	
-	MethodDef mi = ts.methodDef(position(), Types.ref(ct.asType()), flags, returnType.typeRef(), name.id(),
-	                                 Collections.<Ref<? extends Type>>emptyList(), Collections.<Ref<? extends Type>>emptyList());
+	MethodDef mi = createMethodDef(ts, ct, flags);
         ct.addMethod(mi);
 	
 	TypeBuilder tbChk = tb.pushCode(mi);
@@ -213,6 +212,12 @@ public class MethodDecl_c extends Term_c implements MethodDecl
         
         n = (MethodDecl_c) n.body(body);
         return n.methodDef(mi);
+    }
+
+    protected MethodDef createMethodDef(TypeSystem ts, ClassDef ct, Flags flags) {
+	MethodDef mi = ts.methodDef(position(), Types.ref(ct.asType()), flags, returnType.typeRef(), name.id(),
+	                                 Collections.<Ref<? extends Type>>emptyList(), Collections.<Ref<? extends Type>>emptyList());
+	return mi;
     }
 
     public Context enterScope(Context c) {

@@ -166,8 +166,7 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
             flags = flags.Public().Abstract();
         }
 
-        ConstructorDef ci = ts.constructorDef(position(), Types.ref(ct.asType()), flags,
-                                              Collections.<Ref<? extends Type>>emptyList(), Collections.<Ref<? extends Type>>emptyList());
+        ConstructorDef ci = createConstructorDef(ts, ct, flags);
         ct.addConstructor(ci);
 
         TypeBuilder tbChk = tb.pushCode(ci);
@@ -199,6 +198,12 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
         
         n = (ConstructorDecl_c) n.body(body);
         return n.constructorDef(ci);
+    }
+
+    protected ConstructorDef createConstructorDef(TypeSystem ts, ClassDef ct, Flags flags) {
+	ConstructorDef ci = ts.constructorDef(position(), Types.ref(ct.asType()), flags,
+                                              Collections.<Ref<? extends Type>>emptyList(), Collections.<Ref<? extends Type>>emptyList());
+	return ci;
     }
 
     public Context enterScope(Context c) {

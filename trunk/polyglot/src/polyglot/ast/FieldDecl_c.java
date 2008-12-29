@@ -175,7 +175,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
             flags = flags.Public().Static().Final();
         }
 
-        FieldDef fi = ts.fieldDef(position(), Types.ref(ct.asType()), flags, type.typeRef(), name.id());
+        FieldDef fi = createFieldDef(ts, ct, flags);
         ct.addField(fi);
 
         TypeBuilder tbChk = tb.pushDef(fi);
@@ -184,7 +184,7 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
 
         if (init != null) {
             Flags iflags = flags.isStatic() ? Flags.STATIC : Flags.NONE;
-            ii = ts.initializerDef(init.position(), Types.<ClassType>ref(ct.asType()), iflags);
+            ii = createInitializerDef(ts, ct, iflags);
             fi.setInitializer(ii);
             tbChk = tbChk.pushCode(ii);
         }
@@ -212,6 +212,17 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         n = (FieldDecl_c) n.flags(n.flags.flags(flags));
 
         return n;
+    }
+
+    protected InitializerDef createInitializerDef(TypeSystem ts, ClassDef ct, Flags iflags) {
+	InitializerDef ii;
+	ii = ts.initializerDef(init.position(), Types.<ClassType>ref(ct.asType()), iflags);
+	return ii;
+    }
+
+    protected FieldDef createFieldDef(TypeSystem ts, ClassDef ct, Flags flags) {
+	FieldDef fi = ts.fieldDef(position(), Types.ref(ct.asType()), flags, type.typeRef(), name.id());
+	return fi;
     }
 
     public Context enterScope(Context c) {

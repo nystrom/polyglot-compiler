@@ -132,9 +132,7 @@ public class Initializer_c extends Term_c implements Initializer
 
         Flags flags = this.flags.flags();
 
-        InitializerDef ii = ts.initializerDef(position(), Types.ref(ct.asType()), flags);
-
-        ii = ts.initializerDef(position(), Types.<ClassType> ref(ct.asType()), flags);
+        InitializerDef ii = createInitializerDef(ts, ct, flags);
         TypeBuilder tbChk = tb.pushCode(ii);
 
         final TypeBuilder tbx = tb;
@@ -152,6 +150,11 @@ public class Initializer_c extends Term_c implements Initializer
         n = (Initializer_c) n.initializerDef(ii);
 
         return n;
+    }
+
+    protected InitializerDef createInitializerDef(TypeSystem ts, ClassDef ct, Flags flags) {
+	InitializerDef ii = ts.initializerDef(position(), Types.ref(ct.asType()), flags);
+	return ii;
     }
 
     public Node visitSignature(NodeVisitor v) {
