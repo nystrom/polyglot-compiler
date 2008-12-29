@@ -27,7 +27,7 @@ public class CachingResolver implements TopLevelResolver, Copy {
     public CachingResolver(TopLevelResolver inner, boolean cacheNotFound) {
 	this.inner = inner;
         this.cacheNotFound = cacheNotFound;
-	this.cache = new HashMap<QName, Object>();
+	this.cache = new LinkedHashMap<QName, Object>();
     }
 
     public CachingResolver(TopLevelResolver inner) {

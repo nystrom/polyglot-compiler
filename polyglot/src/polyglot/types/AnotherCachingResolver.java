@@ -28,7 +28,7 @@ public class AnotherCachingResolver implements Resolver, Copy {
     public AnotherCachingResolver(Resolver inner, boolean cacheNotFound) {
 	this.inner = inner;
 	this.cacheNotFound = cacheNotFound;
-	this.cache = new HashMap<Object, Object>();
+	this.cache = new LinkedHashMap<Object, Object>();
     }
 
     public AnotherCachingResolver(Resolver inner) {
