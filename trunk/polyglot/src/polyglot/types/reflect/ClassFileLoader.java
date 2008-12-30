@@ -11,7 +11,7 @@ import polyglot.main.Report;
 import polyglot.util.FileUtil;
 import polyglot.util.InternalCompilerError;
 import polyglot.frontend.ExtensionInfo;
-import sun.misc.Resource;
+import polyglot.frontend.Resource;
 
 import java.io.*;
 import java.util.*;
@@ -38,7 +38,7 @@ public class ClassFileLoader
      * If the class does not exist in the specified file/directory, then
      * <code>null</code> is returned.
      */
-    public ClassFile loadClass(polyglot.frontend.Resource r) {
+    public ClassFile loadClass(Resource r) {
 	if (r == null)
 	    return null;
 	
