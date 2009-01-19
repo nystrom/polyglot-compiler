@@ -816,6 +816,8 @@ public class InitChecker extends DataFlow
      * the field is not static then the target must be "this".
      */
     protected boolean isFieldsTargetAppropriate(FieldAssign f) {
+        if (currCBI == null || currCBI.currCodeDecl == null)
+            return false;
         CodeDef ci = currCBI.currCodeDecl.codeDef();
         ClassType containingClass = currCBI.currClass.asType();
 
