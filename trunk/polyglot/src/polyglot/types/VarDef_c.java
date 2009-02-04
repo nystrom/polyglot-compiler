@@ -7,7 +7,6 @@
 
 package polyglot.types;
 
-import polyglot.frontend.*;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 
@@ -97,15 +96,15 @@ public abstract class VarDef_c extends Def_c implements VarDef
     
     /** Destructive update of constant value. */
     public void setConstantValue(Object constantValue) {
-        if (! (constantValue == null) &&
-                ! (constantValue instanceof Boolean) &&
-                ! (constantValue instanceof Number) &&
-                ! (constantValue instanceof Character) &&
-                ! (constantValue instanceof String)) {
-            
-            throw new InternalCompilerError(
-            "Can only set constant value to a primitive or String.");
-        }
+//        if (! (constantValue == null) &&
+//                ! (constantValue instanceof Boolean) &&
+//                ! (constantValue instanceof Number) &&
+//                ! (constantValue instanceof Character) &&
+//                ! (constantValue instanceof String)) {
+//            
+//            throw new InternalCompilerError(
+//            "Can only set constant value to a primitive or String.");
+//        }
 
         this.constantRef.update(new ConstantValue(constantValue));
     }
