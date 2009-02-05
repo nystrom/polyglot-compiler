@@ -32,7 +32,7 @@ public class InnerClassRemover extends ContextVisitor {
         super(job, ts, nf);
     }
 
-    Map<ClassDef, FieldDef> outerFieldInstance = new HashMap<ClassDef, FieldDef>();
+    protected Map<ClassDef, FieldDef> outerFieldInstance = new HashMap<ClassDef, FieldDef>();
     
     /** Get a reference to the enclosing instance of the current class that is of type containerClass */
     Expr getContainer(Position pos, Expr this_, ClassDef currentClass, ClassDef containerClass) {
@@ -53,7 +53,7 @@ public class InnerClassRemover extends ContextVisitor {
 
     public Node override(Node parent, Node n) {
         if (n instanceof SourceFile) {
-        	ContextVisitor lcv = localClassRemover();
+            ContextVisitor lcv = localClassRemover();
             lcv = (ContextVisitor) lcv.begin();
             lcv = (ContextVisitor) lcv.context(context);
 
@@ -218,10 +218,9 @@ public class InnerClassRemover extends ContextVisitor {
 
                 // Add a field for the enclosing class.
                 ClassType ct = (ClassType) Types.get(cd.classDef().container());
+                
                 FieldDef fi = boxThis(cd.classDef(), ct.def());
-                
                 cd = addFieldsToClass(cd, Collections.singletonList(fi), ts, nf, true);
-                
                 cd = fixQualifiers(cd);
             }
             
@@ -464,7 +463,7 @@ public class InnerClassRemover extends ContextVisitor {
     }
 
     // Create a field instance for a qualified this.
-    private FieldDef boxThis(ClassDef currClass, ClassDef outerClass) {
+    protected FieldDef boxThis(ClassDef currClass, ClassDef outerClass) {
 	FieldDef fi = outerFieldInstance.get(currClass);
         if (fi != null) return fi;
         
