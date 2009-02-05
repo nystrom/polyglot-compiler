@@ -16,12 +16,12 @@ import polyglot.util.*;
 //Remove inner member
 
 public class LocalClassRemover extends ContextVisitor {
-    protected final class ConstructorCallRewriter extends NodeVisitor {
-	private final List<FieldDef> newFields;
-	private final ClassDef theLocalClass;
-	ClassDef curr;
+    protected class ConstructorCallRewriter extends NodeVisitor {
+	protected final List<FieldDef> newFields;
+	protected final ClassDef theLocalClass;
+	protected ClassDef curr;
 
-	protected ConstructorCallRewriter(List<FieldDef> fields, ClassDef ct) {
+	public ConstructorCallRewriter(List<FieldDef> fields, ClassDef ct) {
 	    this.newFields = fields;
 	    this.theLocalClass = ct;
 	}
@@ -283,10 +283,11 @@ public class LocalClassRemover extends ContextVisitor {
 	return nf.CanonicalTypeNode(pos, ts.Object());
     }
 
-    ClassDecl rewriteLocalClass(ClassDecl cd, List<FieldDef> newFields) {
+    protected ClassDecl rewriteLocalClass(ClassDecl cd, List<FieldDef> newFields) {
 	return InnerClassRemover.addFieldsToClass(cd, newFields, ts, nf, false);
     }
 
+    protected
     Node rewriteConstructorCalls(Node s, final ClassDef ct, final List<FieldDef> fields) {
 	Node r = s.visit(new ConstructorCallRewriter(fields, ct));
 	return r;
@@ -358,7 +359,7 @@ public class LocalClassRemover extends ContextVisitor {
     }
 
     // Add local variables to the argument list until it matches the declaration.
-    List<Expr> addArgs(ProcedureCall n, ConstructorDef nci, List<FieldDef> fields, ClassDef curr, ClassDef theLocalClass) {
+    protected List<Expr> addArgs(ProcedureCall n, ConstructorDef nci, List<FieldDef> fields, ClassDef curr, ClassDef theLocalClass) {
 	if (nci == null || fields == null || fields.isEmpty() || n.arguments().size() == nci.formalTypes().size())
 	    return n.arguments();
 	List<Expr> args = new ArrayList<Expr>();
