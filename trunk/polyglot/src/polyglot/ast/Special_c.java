@@ -109,7 +109,7 @@ public class Special_c extends Expr_c implements Special
         if (t == null || (c.inStaticContext() && ts.typeEquals(t, c.currentClass()))) {
             // trying to access "this" or "super" from a static context.
             throw new SemanticException("Cannot access a non-static " +
-                "field or method, or refer to \"this\" or \"super\" " + 
+                "member or refer to \"this\" or \"super\" " + 
                 "from a static context.", this.position());
         }
         
