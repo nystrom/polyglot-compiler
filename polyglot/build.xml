@@ -508,7 +508,7 @@
 
 	<!-- do a cvs checkout into a tmp directory and run ant task there -->
 	<target name="sub-ant-cvs">
-		<ant inheritAll="false" antfile="${tmp}/polyglot/build.xml" dir="${tmp}/polyglot" target="${sub-ant.target}" />
+		<ant inheritAll="false" antfile="${tmp}/polyglot3-dev/build.xml" dir="${tmp}/polyglot3-dev" target="${sub-ant.target}" />
 	</target>
 
 	<target name="source-tarball-stable" depends="configure-buildstring" description="generate a source tarball from CVS">
@@ -522,7 +522,7 @@
 		<antcall target="sub-ant-cvs">
 			<param name="sub-ant.target" value="src.tar" />
 		</antcall>
-                <move tofile="${basedir}/polyglot-${jl.version}-src.tar.gz" file="${tmp}/polyglot/polyglot-${jl.version}-src.tar.gz" />
+                <move tofile="${basedir}/polyglot-${jl.version}-src.tar.gz" file="${tmp}/polyglot3-dev/polyglot-${jl.version}-src.tar.gz" />
 		<antcall target="rmdir-tmp" />
 	</target>
 
@@ -534,7 +534,7 @@
 		<antcall target="sub-ant-cvs">
 			<param name="sub-ant.target" value="bin-epl.jar" />
 		</antcall>
-                <move tofile="${basedir}/polyglot_${jl.version}.jar" file="${tmp}/polyglot/lib/polyglot-epl.jar" />
+                <move tofile="${basedir}/polyglot_${jl.version}.jar" file="${tmp}/polyglot3-dev/lib/polyglot-epl.jar" />
 		<antcall target="rmdir-tmp" />
 	</target>
 
@@ -546,7 +546,7 @@
 		<antcall target="sub-ant-cvs">
 			<param name="sub-ant.target" value="src-epl.jar" />
 		</antcall>
-		<move tofile="${basedir}/polyglot_src_${jl.version}.jar" file="${tmp}/polyglot/polygot_src_latest.jar" />
+		<move tofile="${basedir}/polyglot_src_${jl.version}.jar" file="${tmp}/polyglot3-dev/polygot_src_latest.jar" />
 		<antcall target="rmdir-tmp" />
 	</target>
 
