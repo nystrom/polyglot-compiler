@@ -9,24 +9,30 @@ public class FunctionInstance_c<T extends FunctionDef> extends ProcedureInstance
         super(ts, pos, def);
     }
     
-    protected Type returnType;
+    protected Ref<? extends Type> returnType;
 
     public FunctionInstance<T> returnType(Type returnType) {
-        FunctionInstance_c<T> p = (FunctionInstance_c<T>) copy();
-        p.returnType = returnType;
-        return p;
+        return returnTypeRef(Types.ref(returnType));
+    }
+
+    public FunctionInstance<T> returnTypeRef(Ref<? extends Type> returnType) {
+	FunctionInstance_c<T> p = (FunctionInstance_c<T>) copy();
+	p.returnType = returnType;
+	return p;
     }
     
     public Type returnType() {
         if (returnType == null) {
-            Type t = def().returnType().get();
-//            if (t instanceof UnknownType) {
-//        	assert false;
-//        	return t;
-//            }
-            returnType = t;
+            return def().returnType().get();
         }
-        return returnType;
+        return Types.get(returnType);
+    }
+    
+    public Ref<? extends Type> returnTypeRef() {
+	if (returnType == null) {
+	    return def().returnType();
+	}
+	return returnType;
     }
 
     public FunctionInstance<T> formalTypes(List<Type> formalTypes) {

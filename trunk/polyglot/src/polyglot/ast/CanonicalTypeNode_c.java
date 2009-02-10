@@ -8,7 +8,6 @@
 
 package polyglot.ast;
 
-import polyglot.frontend.ExtensionInfo;
 import polyglot.types.*;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;

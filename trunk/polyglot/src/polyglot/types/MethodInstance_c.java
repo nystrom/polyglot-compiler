@@ -23,7 +23,7 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
 
     public StructType container() {
         if (this.container == null) {
-            this.container = Types.get(def().container());
+            return Types.get(def().container());
         }
         return this.container;
     }
@@ -36,7 +36,7 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
     
     public Flags flags() {
         if (this.flags == null) { 
-            this.flags = def().flags();
+            return def().flags();
         }
         return this.flags;
     }
@@ -49,13 +49,16 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
 
     public Name name() {
         if (this.name == null) { 
-            this.name = def().name();
+            return def().name();
         }
         return this.name;
     }
     
     public MethodInstance returnType(Type returnType) {
         return (MethodInstance) super.returnType(returnType);
+    }
+    public MethodInstance returnTypeRef(Ref<? extends Type> returnType) {
+	return (MethodInstance) super.returnTypeRef(returnType);
     }
 
     public MethodInstance formalTypes(List<Type> formalTypes) {

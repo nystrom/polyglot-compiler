@@ -20,7 +20,7 @@ public class ConstructorInstance_c extends ProcedureInstance_c<ConstructorDef> i
 
     public StructType container() {
         if (this.container == null) {
-            this.container = Types.get(def().container());
+            return Types.get(def().container());
         }
         return this.container;
     }
@@ -33,7 +33,7 @@ public class ConstructorInstance_c extends ProcedureInstance_c<ConstructorDef> i
 
     public Flags flags() {
         if (this.flags == null) { 
-            this.flags = def().flags();
+            return def().flags();
         }
         return this.flags;
     }

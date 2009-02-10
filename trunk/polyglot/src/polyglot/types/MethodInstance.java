@@ -47,4 +47,6 @@ public interface MethodInstance extends FunctionInstance<MethodDef>, MemberInsta
      * Return true if this method has the same signature as <code>mi</code>.
      */
     boolean isSameMethod(MethodInstance mi);
+
+    public MethodInstance returnTypeRef(Ref<? extends Type> returnType);
 }

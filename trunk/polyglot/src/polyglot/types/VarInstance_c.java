@@ -45,7 +45,7 @@ public class VarInstance_c<T extends VarDef> extends Use_c<T> implements VarInst
 
     public Flags flags() {
         if (flags == null) {
-            flags = def().flags();
+            return def().flags();
         }
         return flags;
     }
@@ -60,7 +60,7 @@ public class VarInstance_c<T extends VarDef> extends Use_c<T> implements VarInst
 
     public Name name() {
         if (name == null) {
-            name = def().name();
+            return def().name();
         }
         return name;
     }
@@ -75,7 +75,7 @@ public class VarInstance_c<T extends VarDef> extends Use_c<T> implements VarInst
 
     public Type type() {
         if (type == null) {
-            type = Types.get(def().type());
+            return Types.get(def().type());
         }
         return type;
     }

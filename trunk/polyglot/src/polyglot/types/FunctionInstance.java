@@ -14,4 +14,8 @@ package polyglot.types;
  */
 public interface FunctionInstance<T extends ProcedureDef> extends ProcedureInstance<T> {
     Type returnType();
+
+    public FunctionInstance<T> returnTypeRef(Ref<? extends Type> returnType);
+
+    public Ref<? extends Type> returnTypeRef();
 }

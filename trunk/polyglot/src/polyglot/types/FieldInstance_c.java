@@ -8,11 +8,11 @@ public class FieldInstance_c extends VarInstance_c<FieldDef> implements FieldIns
         super(ts, pos, def);
     }
 
-    StructType container;
+    protected StructType container;
 
     public StructType container() {
         if (container == null) {
-            container = Types.get(def().container());
+            return Types.get(def().container());
         }
         return container;
     }
