@@ -43,7 +43,7 @@
 	<!--
 	<property name="cvs.root" value=":pserver:anonymous@gforge.cis.cornell.edu:/cvsroot/polyglot" />
 	-->
-	<property name="cvs.root" value=":ext:gforge.cis.cornell.edu:/cvsroot/polyglot" />
+	<property name="cvs.root" value=":ext:gforge.cis.cornell.edu:/cvsroot/polyglot3-dev" />
 
 	<!-- temporary directory -->
 	<property name="tmp" location="${basedir}/tmp" />
