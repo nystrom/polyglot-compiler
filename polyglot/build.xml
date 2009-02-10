@@ -43,7 +43,7 @@
 	<!--
 	<property name="cvs.root" value=":pserver:anonymous@gforge.cis.cornell.edu:/cvsroot/polyglot" />
 	-->
-	<property name="cvs.root" value=":ext:gforge.cis.cornell.edu:/cvsroot/polyglot3-dev" />
+	<property name="cvs.root" value=":ext:gforge.cis.cornell.edu:/cvsroot/polyglot" />
 
 	<!-- temporary directory -->
 	<property name="tmp" location="${basedir}/tmp" />
@@ -728,11 +728,11 @@
 	</target>
 
 	<target name="cvs-checkout" depends="mkdir-tmp">
-		<cvs command="checkout polyglot" quiet="true" cvsRsh="ssh" cvsRoot="${cvs.root}" dest="${tmp}" failonerror="true" />
+		<cvs command="checkout polyglot3-dev" quiet="true" cvsRsh="ssh" cvsRoot="${cvs.root}" dest="${tmp}" failonerror="true" />
 	</target>
 
 	<target name="cvs-tag" depends="configure-buildstring">
-		<cvs command="checkout rtag -F -rRELEASE_${jl.version.major}_${jl.version.minor}_${jl.version.patch} polyglot" cvsRoot="${cvs.root}" failonerror="true" />
+		<cvs command="checkout rtag -F -rRELEASE_${jl.version.major}_${jl.version.minor}_${jl.version.patch} polyglot3-dev" cvsRoot="${cvs.root}" failonerror="true" />
 	</target>
 
 
