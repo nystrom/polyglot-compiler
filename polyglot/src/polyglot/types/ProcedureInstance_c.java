@@ -27,14 +27,14 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
     
     public List<Type> formalTypes() {
         if (this.formalTypes == null) {
-            this.formalTypes = new TransformingList<Ref<? extends Type>, Type>(def().formalTypes(), new DerefTransform<Type>());
+            return new TransformingList<Ref<? extends Type>, Type>(def().formalTypes(), new DerefTransform<Type>());
         }
         return this.formalTypes;
     }
 
     public List<Type> throwTypes() {
         if (this.throwTypes == null) {
-            this.throwTypes = new TransformingList<Ref<? extends Type>, Type>(def().throwTypes(), new DerefTransform<Type>());
+            return new TransformingList<Ref<? extends Type>, Type>(def().throwTypes(), new DerefTransform<Type>());
         }
         return this.throwTypes;
     }

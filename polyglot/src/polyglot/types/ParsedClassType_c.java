@@ -30,7 +30,7 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
     
     public StructType container() {
         if (container == null) {
-            container = super.container();
+            return super.container();
         }
         return container;
     }
@@ -94,7 +94,7 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
     /** Get the class's flags. */
     public Flags flags() {
         if (flags == null) {
-            flags = def().flags();
+            return def().flags();
         }
         return flags;
     }

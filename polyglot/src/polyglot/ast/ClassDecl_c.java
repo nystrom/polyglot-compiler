@@ -159,6 +159,22 @@ public class ClassDecl_c extends Term_c implements ClassDecl
     }
 
     public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
+	ClassDecl_c n = this;
+	n = n.preBuildTypes(tb);
+	n = n.buildTypesBody(tb);
+	n = n.postBuildTypes(tb);
+	return n;
+    }
+
+    private ClassDecl_c buildTypesBody(TypeBuilder tb) throws SemanticException {
+	ClassDecl_c n = this;
+	TypeBuilder tb2 = tb.pushClass(n.type);
+	ClassBody body = (ClassBody) n.visitChild(n.body, tb2);
+	n = (ClassDecl_c) n.body(body);
+	return n;
+    }
+    
+    public ClassDecl_c preBuildTypes(TypeBuilder tb) throws SemanticException {
         tb = tb.pushClass(position(), flags.flags(), name.id());
 
         ClassDef type = tb.currentClass();
@@ -178,35 +194,33 @@ public class ClassDecl_c extends Term_c implements ClassDecl
             type.flags(type.flags().Abstract());
         }
 
-        TypeBuilder tbSup = tb;
-        TypeBuilder tbChk = tb;
-        
         ClassDecl_c n = this;
         FlagsNode flags = (FlagsNode) n.visitChild(n.flags, tb);
         Id name = (Id) n.visitChild(n.name, tb);
 
-        TypeNode superClass = (TypeNode) n.visitChild(n.superClass, tbSup);
-        List<TypeNode> interfaces = n.visitList(n.interfaces, tbSup);
+        TypeNode superClass = (TypeNode) n.visitChild(n.superClass, tb);
+        List<TypeNode> interfaces = n.visitList(n.interfaces, tb);
 
         n = n.reconstruct(flags, name, superClass, interfaces, n.body);
         
         n.setSuperClass(tb.typeSystem(), type);
         n.setInterfaces(tb.typeSystem(), type);
 
-        ClassBody body = (ClassBody) n.visitChild(n.body, tbChk);
-        
-        n = (ClassDecl_c) n.body(body);
-        
         n = (ClassDecl_c) n.classDef(type).flags(flags.flags(type.flags()));
-
+    
+        return n;
+    }
+    
+    public ClassDecl_c postBuildTypes(TypeBuilder tb) throws SemanticException {
+	ClassDecl_c n = (ClassDecl_c) this.copy();
+	
         if (n.defaultConstructorNeeded()) {
             ConstructorDecl cd = n.createDefaultConstructor(type, tb.typeSystem(), tb.nodeFactory());
-            cd = (ConstructorDecl) tbChk.visitEdge(this, cd);
+            TypeBuilder tb2 = tb.pushClass(n.type);
+            cd = (ConstructorDecl) tb2.visitEdge(n, cd);
             n = (ClassDecl_c) n.body(n.body().addMember(cd));
             n.defaultCI = cd.constructorDef();
         }
-
-        n.type = type;
         
         return n;
     }

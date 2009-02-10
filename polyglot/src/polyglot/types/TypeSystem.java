@@ -11,10 +11,11 @@ import java.util.*;
 
 import polyglot.frontend.ExtensionInfo;
 import polyglot.frontend.Source;
-import polyglot.types.TypeSystem_c.MethodMatcher;
+import polyglot.main.Report;
+import polyglot.types.TypeSystem_c.*;
 import polyglot.types.reflect.ClassFile;
 import polyglot.types.reflect.ClassFileLazyClassInitializer;
-import polyglot.util.Position;
+import polyglot.util.*;
 
 /**
  * The <code>TypeSystem</code> defines the types of the language and
@@ -875,4 +876,18 @@ public interface TypeSystem {
     boolean isDouble(Type t);
     boolean isBoolean(Type t);
     boolean isVoid(Type t);
+
+    public <S extends ProcedureDef, T extends ProcedureInstance<S>> Collection<T> findMostSpecificProcedures(List<T> acceptable, Matcher<T> matcher) throws SemanticException;
+
+    /**
+     * Populates the list acceptable with those MethodInstances which are
+     * Applicable and Accessible as defined by JLS 15.11.2.1
+     */
+    public List<MethodInstance> findAcceptableMethods(Type container, MethodMatcher matcher, ClassDef currClass) throws SemanticException;
+
+    /**
+     * Populates the list acceptable with those MethodInstances which are
+     * Applicable and Accessible as defined by JLS 15.11.2.1
+     */
+    public List<ConstructorInstance> findAcceptableConstructors(Type container, ConstructorMatcher matcher, ClassDef currClass) throws SemanticException;
 }

@@ -1470,7 +1470,7 @@ public class TypeSystem_c implements TypeSystem
 		return ci;
 	}
 
-	protected <S extends ProcedureDef, T extends ProcedureInstance<S>> Collection<T> findMostSpecificProcedures(List<T> acceptable, Matcher<T> matcher)
+	public <S extends ProcedureDef, T extends ProcedureInstance<S>> Collection<T> findMostSpecificProcedures(List<T> acceptable, Matcher<T> matcher)
 	throws SemanticException {
 
 		// now, use JLS 15.11.2.2
@@ -1575,7 +1575,7 @@ public class TypeSystem_c implements TypeSystem
 	 * Populates the list acceptable with those MethodInstances which are
 	 * Applicable and Accessible as defined by JLS 15.11.2.1
 	 */
-	protected List<MethodInstance> findAcceptableMethods(Type container, MethodMatcher matcher, ClassDef currClass)
+	public List<MethodInstance> findAcceptableMethods(Type container, MethodMatcher matcher, ClassDef currClass)
 			throws SemanticException {
 
 		assert_(container);
@@ -1598,12 +1598,18 @@ public class TypeSystem_c implements TypeSystem
 		LinkedList<Type> typeQueue = new LinkedList<Type>();
 		typeQueue.addLast(container);
 
+		Q:
 		while (! typeQueue.isEmpty()) {
 			Type t = typeQueue.removeFirst();
 
 			if (t instanceof StructType) {
 			    StructType type = (StructType) t;
 
+			    for (Type s : visitedTypes) {
+				if (typeEquals(type, s))
+				    continue Q;
+			    }
+		
 			    if (visitedTypes.contains(type)) {
 				continue;
 			    }
@@ -1709,7 +1715,7 @@ public class TypeSystem_c implements TypeSystem
 	 * Populates the list acceptable with those MethodInstances which are
 	 * Applicable and Accessible as defined by JLS 15.11.2.1
 	 */
-	protected List<ConstructorInstance> findAcceptableConstructors(Type container, ConstructorMatcher matcher, ClassDef currClass) throws SemanticException {
+	public List<ConstructorInstance> findAcceptableConstructors(Type container, ConstructorMatcher matcher, ClassDef currClass) throws SemanticException {
 	    assert_(container);
 
 	    SemanticException error = null;
