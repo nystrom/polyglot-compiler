@@ -1,0 +1,12 @@
+package polyglot.types;
+
+import polyglot.frontend.Goal;
+
+public interface LazyRef<T> extends Ref<T> {
+    Runnable resolver();
+    void setResolver(Runnable resolver);
+    
+    void lock();
+    void unlock();
+    boolean locked();
+}
