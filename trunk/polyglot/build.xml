@@ -732,7 +732,7 @@
 	</target>
 
 	<target name="cvs-tag" depends="configure-buildstring">
-		<cvs command="checkout rtag -F -rRELEASE_${jl.version.major}_${jl.version.minor}_${jl.version.patch} polyglot3-dev" cvsRoot="${cvs.root}" failonerror="true" />
+		<cvs command="rtag -F RELEASE_${jl.version.major}_${jl.version.minor}_${jl.version.patch} polyglot3-dev" cvsRoot="${cvs.root}" failonerror="true" />
 	</target>
 
 
