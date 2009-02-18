@@ -76,7 +76,7 @@ public class Labeled_c extends Stmt_c implements Labeled
           // Return a NodeList of statements, applying the label to the first
           // statement.
           NodeList nl = (NodeList) statement;
-          List<Stmt> stmts = new ArrayList<Stmt>(nl.nodes());
+          List<Node> stmts = new ArrayList<Node>(nl.nodes());
           
           Stmt first = (Stmt) stmts.get(0);
           first = reconstruct(label, first);
