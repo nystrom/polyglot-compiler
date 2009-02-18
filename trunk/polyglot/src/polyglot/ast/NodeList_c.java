@@ -8,8 +8,9 @@ package polyglot.ast;
 
 import java.util.List;
 
-import polyglot.util.Position;
-import polyglot.util.TypedList;
+import polyglot.types.Context;
+import polyglot.util.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>NodeList</code> represents a list of AST nodes.
@@ -20,7 +21,7 @@ import polyglot.util.TypedList;
  */
 public class NodeList_c extends Node_c implements NodeList {
   protected NodeFactory nf;
-  protected List nodes;
+  protected List<Node> nodes;
 
   public NodeList_c(Position pos, NodeFactory nf, List nodes) {
     super(pos);
@@ -64,7 +65,21 @@ public class NodeList_c extends Node_c implements NodeList {
    * @see polyglot.ast.NodeList#toBlock()
    */
   public Block toBlock() {
-    return nf.Block(position, nodes);
+    return nf.Block(position, (List) nodes);
+  }
+  
+  @Override
+    public void addDecls(Context c) {
+      for (Node n : nodes) {
+	n.addDecls(c);
+    }
   }
 
+  @Override
+  public Node visitChildren(NodeVisitor v) {
+      List l = visitList(nodes, v);
+      if (CollectionUtil.allEqual(l, nodes))
+	  return this;      
+      return nodes(l);
+    }
 }

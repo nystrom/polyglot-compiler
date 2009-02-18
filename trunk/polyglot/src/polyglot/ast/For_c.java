@@ -21,9 +21,9 @@ import polyglot.visit.*;
  */
 public class For_c extends Loop_c implements For
 {
-    protected List inits;
+    protected List<ForInit> inits;
     protected Expr cond;
-    protected List iters;
+    protected List<ForUpdate> iters;
     protected Stmt body;
 
     public For_c(Position pos, List inits, Expr cond, List iters, Stmt body) {
@@ -36,7 +36,7 @@ public class For_c extends Loop_c implements For
     }
 
     /** List of initialization statements */
-    public List inits() {
+    public List<ForInit> inits() {
 	return Collections.unmodifiableList(this.inits);
     }
 
@@ -60,12 +60,12 @@ public class For_c extends Loop_c implements For
     }
 
     /** List of iterator expressions. */
-    public List iters() {
+    public List<ForUpdate> iters() {
 	return Collections.unmodifiableList(this.iters);
     }
 
     /** Set the iterator expressions of the statement. */
-    public For iters(List iters) {
+    public For iters(List<ForUpdate> iters) {
 	For_c n = (For_c) copy();
 	n.iters = TypedList.copyAndCheck(iters, ForUpdate.class, true);
 	return n;
@@ -206,7 +206,26 @@ public class For_c extends Loop_c implements For
     }
 
     public String toString() {
-	return "for (...) ...";
+	StringBuilder sb = new StringBuilder();
+	sb.append("for (");
+	String sep = "";
+	for (ForInit s : inits()) {
+	    sb.append(sep);
+	    sep = ", ";
+	    sb.append(s);
+	}
+	sb.append("; ");
+	if (cond() != null)
+	    sb.append(cond());
+	sep = "";
+	for (ForUpdate s : iters()) {
+	    sb.append(sep);
+	    sep = ", ";
+	    sb.append(s);
+	}
+	sb.append(") ");
+	sb.append(body());
+	return sb.toString();
     }
 
     private void printForInit(ForInit s, CodeWriter w, PrettyPrinter tr, boolean printType) {

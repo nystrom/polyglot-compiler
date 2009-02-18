@@ -23,10 +23,10 @@ public interface NodeList extends Node {
   NodeFactory nodeFactory();
   
   /** Get the nodes contained in the list. */
-  List nodes();
+  List<Node> nodes();
   
   /** Set the nodes contained in the list. */
-  NodeList nodes(List nodes);
+  NodeList nodes(List<Node> nodes);
   
   /** Convert the list into a <code>Block</code>. */
   Block toBlock();
