@@ -42,13 +42,13 @@ public class PostCompiled extends AllBarrierGoal
 	}
     }
 
-    public final static String verbose = "verbose";
+    public final static String postcompile = "postcompile";
 
     public boolean runTask() {
 	Compiler compiler = ext.compiler();
 
-	if (Report.should_report(verbose, 1))
-	    Report.report(1, "Output files: " + compiler.outputFiles());
+	if (Report.should_report(postcompile, 2))
+	    Report.report(2, "Output files: " + compiler.outputFiles());
 
 	long start_time = System.currentTimeMillis();
 
@@ -83,7 +83,7 @@ public class PostCompiled extends AllBarrierGoal
                 javacCmd[j] = (String) iter.next();
             }
 
-            if (Report.should_report(verbose, 1)) {
+            if (Report.should_report(postcompile, 1)) {
                 StringBuffer cmdStr = new StringBuffer();
                 for (int i = 0; i < javacCmd.length; i++)
                     cmdStr.append(javacCmd[i]+" ");
