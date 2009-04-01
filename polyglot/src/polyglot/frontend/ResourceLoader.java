@@ -194,8 +194,10 @@ public class ResourceLoader
             dirContentsCache.put(dir, dirContents);
             if (dir.exists() && dir.isDirectory()) {
                 String[] contents = dir.list();
-                for (int j = 0; j < contents.length; j++) {
-                    dirContents.add(contents[j]);
+                if (contents != null) {
+                    for (int j = 0; j < contents.length; j++) {
+                        dirContents.add(contents[j]);
+                    }
                 }
             }
         }
