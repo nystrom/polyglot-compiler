@@ -337,20 +337,22 @@ public class ClassDecl_c extends Term_c implements ClassDecl
     protected ConstructorDecl createDefaultConstructor(ClassDef thisType, TypeSystem ts, NodeFactory nf)
     throws SemanticException
     {
+        Position pos = body().position().startOf();
+
         Block block = null;
 
         Ref<? extends Type> superType = thisType.superType();
 
         if (superType != null) {
-            ConstructorCall cc = nf.SuperCall(position().startOf(), Collections.EMPTY_LIST);
-            block = nf.Block(position().startOf(), cc);
+            ConstructorCall cc = nf.SuperCall(pos, Collections.EMPTY_LIST);
+            block = nf.Block(pos, cc);
         }
         else {
-            block = nf.Block(position().startOf());
+            block = nf.Block(pos);
         }
 
-        ConstructorDecl cd = nf.ConstructorDecl(body().position().startOf(),
-                nf.FlagsNode(body().position().startOf(), Flags.PUBLIC),
+        ConstructorDecl cd = nf.ConstructorDecl(pos,
+                nf.FlagsNode(pos, Flags.PUBLIC),
                 name, Collections.EMPTY_LIST,
                 Collections.EMPTY_LIST,
                 block);
