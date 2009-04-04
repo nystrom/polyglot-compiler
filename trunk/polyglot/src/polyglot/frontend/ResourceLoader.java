@@ -58,6 +58,9 @@ public class ResourceLoader
                              name.replace('.', File.separatorChar));
         }
 
+        if (!dir.canRead())
+            return false;
+
         try {
             if (dir.getName().endsWith(".jar") ||
                 dir.getName().endsWith(".zip")) {
@@ -99,6 +102,9 @@ public class ResourceLoader
 	    Report.report(3, "looking in " + dir + " for " + name);
         }
 	
+        if (!dir.canRead())
+            return null;
+        
         try {
             if (dir.getName().endsWith(".jar") ||
                 dir.getName().endsWith(".zip")) {
