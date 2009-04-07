@@ -75,7 +75,11 @@ public class ArrayAccessAssign_c extends Assign_c implements ArrayAccessAssign
   }
   
   public Expr left(NodeFactory nf) {
-      return nf.ArrayAccess(position(), array, index);
+      ArrayAccess aa = nf.ArrayAccess(position(), array, index);
+      if (type != null)
+            return aa.type(type);
+      else
+            return aa;
   }
 
   @Override
