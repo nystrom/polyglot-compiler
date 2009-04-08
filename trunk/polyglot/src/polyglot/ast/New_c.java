@@ -203,7 +203,6 @@ public class New_c extends Expr_c implements New
 
                 if (ct.isMember() && ! ct.flags().isStatic()) {
                     New k = n.findQualifier(childtc, ct);
-                    tn = k.objectType();
                     qualifier = (Expr) k.visitChild(k.qualifier(), childtc);
                 }
             }
