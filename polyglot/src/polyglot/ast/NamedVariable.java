@@ -21,4 +21,7 @@ public interface NamedVariable extends Variable
 
     /** Return the type object for the variable. */
     public VarInstance varInstance();
+
+    /** Return the name of the variable. */
+    public Id name();
 }
