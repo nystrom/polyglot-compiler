@@ -40,10 +40,7 @@
 	<property name="pao.dir" location="${examples.dir}/pao" />
 	<property name="coffer.dir" location="${examples.dir}/coffer" />
 
-	<!--
-	<property name="cvs.root" value=":pserver:anonymous@gforge.cis.cornell.edu:/cvsroot/polyglot" />
-	-->
-	<property name="cvs.root" value=":ext:gforge.cis.cornell.edu:/cvsroot/polyglot" />
+        <property name="svn.root" value="http://polyglot-compiler.googlecode.com/svn" />
 
 	<!-- temporary directory -->
 	<property name="tmp" location="${basedir}/tmp" />
@@ -506,47 +503,47 @@
 
 	<!-- Distribution targets -->
 
-	<!-- do a cvs checkout into a tmp directory and run ant task there -->
-	<target name="sub-ant-cvs">
-		<ant inheritAll="false" antfile="${tmp}/polyglot3-dev/build.xml" dir="${tmp}/polyglot3-dev" target="${sub-ant.target}" />
+	<!-- do a svn checkout into a tmp directory and run ant task there -->
+	<target name="sub-ant-svn">
+		<ant inheritAll="false" antfile="${tmp}/polyglot/build.xml" dir="${tmp}/polyglot" target="${sub-ant.target}" />
 	</target>
 
 	<target name="source-tarball-stable" depends="configure-buildstring" description="generate a source tarball from CVS">
-		<antcall target="cvs-checkout" />
-		<antcall target="sub-ant-cvs">
+		<antcall target="svn-checkout" />
+		<antcall target="sub-ant-svn">
 			<param name="sub-ant.target" value="gen-version" />
 		</antcall>
-		<antcall target="sub-ant-cvs">
+		<antcall target="sub-ant-svn">
 			<param name="sub-ant.target" value="javadoc" />
 		</antcall>
-		<antcall target="sub-ant-cvs">
+		<antcall target="sub-ant-svn">
 			<param name="sub-ant.target" value="src.tar" />
 		</antcall>
-                <move tofile="${basedir}/polyglot-${jl.version}-src.tar.gz" file="${tmp}/polyglot3-dev/polyglot-${jl.version}-src.tar.gz" />
+                <move tofile="${basedir}/polyglot-${jl.version}-src.tar.gz" file="${tmp}/polyglot/polyglot-${jl.version}-src.tar.gz" />
 		<antcall target="rmdir-tmp" />
 	</target>
 
 	<target name="binary-jar-epl-stable" depends="configure-buildstring" description="generate an EPL jar file from CVS">
-		<antcall target="cvs-checkout" />
-		<antcall target="sub-ant-cvs">
+		<antcall target="svn-checkout" />
+		<antcall target="sub-ant-svn">
 			<param name="sub-ant.target" value="gen-version" />
 		</antcall>
-		<antcall target="sub-ant-cvs">
+		<antcall target="sub-ant-svn">
 			<param name="sub-ant.target" value="bin-epl.jar" />
 		</antcall>
-                <move tofile="${basedir}/polyglot_${jl.version}.jar" file="${tmp}/polyglot3-dev/lib/polyglot-epl.jar" />
+                <move tofile="${basedir}/polyglot_${jl.version}.jar" file="${tmp}/polyglot/lib/polyglot-epl.jar" />
 		<antcall target="rmdir-tmp" />
 	</target>
 
 	<target name="source-jar-epl-stable" depends="configure-buildstring" description="generate an EPL source jar file from CVS" >
-		<antcall target="cvs-checkout" />
-		<antcall target="sub-ant-cvs">
+		<antcall target="svn-checkout" />
+		<antcall target="sub-ant-svn">
 			<param name="sub-ant.target" value="gen-version" />
 		</antcall>
-		<antcall target="sub-ant-cvs">
+		<antcall target="sub-ant-svn">
 			<param name="sub-ant.target" value="src-epl.jar" />
 		</antcall>
-		<move tofile="${basedir}/polyglot_src_${jl.version}.jar" file="${tmp}/polyglot3-dev/polygot_src_latest.jar" />
+		<move tofile="${basedir}/polyglot_src_${jl.version}.jar" file="${tmp}/polyglot/polygot_src_latest.jar" />
 		<antcall target="rmdir-tmp" />
 	</target>
 
@@ -727,12 +724,16 @@
 		</antcall>
 	</target>
 
-	<target name="cvs-checkout" depends="mkdir-tmp">
-		<cvs command="checkout polyglot3-dev" quiet="true" cvsRsh="ssh" cvsRoot="${cvs.root}" dest="${tmp}" failonerror="true" />
+	<target name="svn-checkout" depends="mkdir-tmp">
+          <exec dir="${tmp}" executable="/opt/local/bin/svn" logError="true" failonerror="true">
+                <arg line="checkout ${svn.root}/trunk/polyglot"/>
+          </exec>
 	</target>
 
-	<target name="cvs-tag" depends="configure-buildstring">
-		<cvs command="rtag -F RELEASE_${jl.version.major}_${jl.version.minor}_${jl.version.patch} polyglot3-dev" cvsRoot="${cvs.root}" failonerror="true" />
+	<target name="svn-tag" depends="configure-buildstring">
+                <svn>
+                        <copy srcUrl="${svn.root}/trunk" dstUrl="${svn.root}/tags/release-${jl.version.major}.${jl.version.minor}.${jl.version.patch}" failonerror="true"/>
+                </svn>
 	</target>
 
 
