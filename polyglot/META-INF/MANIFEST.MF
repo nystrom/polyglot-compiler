@@ -3,10 +3,12 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Polyglot3
 Main-Class: polyglot.main.Main
 Bundle-SymbolicName: polyglot3
-Bundle-Version: 3.0.0
+Bundle-Version: 3.0.2
 Bundle-Localization: plugin
 Export-Package: polyglot.ast,
  polyglot.frontend,
+ polyglot.frontend.goals,
+ polyglot.frontend.passes,
  polyglot.lex,
  polyglot.main,
  polyglot.parse,
