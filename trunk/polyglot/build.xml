@@ -40,7 +40,7 @@
 	<property name="pao.dir" location="${examples.dir}/pao" />
 	<property name="coffer.dir" location="${examples.dir}/coffer" />
 
-        <property name="svn.root" value="http://polyglot-compiler.googlecode.com/svn" />
+        <property name="svn.root" value="https://polyglot-compiler.googlecode.com/svn" />
 
 	<!-- temporary directory -->
 	<property name="tmp" location="${basedir}/tmp" />
@@ -731,9 +731,8 @@
 	</target>
 
 	<target name="svn-tag" depends="configure-buildstring">
-                <svn>
-                        <copy srcUrl="${svn.root}/trunk" dstUrl="${svn.root}/tags/release-${jl.version.major}.${jl.version.minor}.${jl.version.patch}" failonerror="true"/>
-                </svn>
+          <echo>svn delete ${svn.root}/tags/release-${jl.version.major}.${jl.version.minor}.${jl.version.patch}</echo>
+          <echo>svn copy ${svn.root}/trunk ${svn.root}/tags/release-${jl.version.major}.${jl.version.minor}.${jl.version.patch}</echo>
 	</target>
 
 
