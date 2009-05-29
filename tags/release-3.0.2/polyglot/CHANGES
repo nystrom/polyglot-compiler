@@ -1,0 +1,28 @@
+Polyglot Change Log
+===================
+
+This file documents changes between releases of Polyglot.
+
+May 29, 2009: Polyglot 3.0.2
+============================
+
+Misc bug fixes.
+
+Apr 7, 2009: Polyglot 3.0.1
+===========================
+
+Misc bug fixes.
+
+Feb 10, 2009: Polyglot 3.0.0
+============================
+
+Major revision of pass scheduling.  Passes no longer abort when dependencies
+are not satisfied.
+
+Use Java5 generics in the implementation.
+
+Distinguish between uses and definitions of type objects.
+
+Miscellaneous refactorings.
+
+Miscellaneous bug fixes.
