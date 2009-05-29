@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry excluding="polyglot/ext/param/|polyglot/ext/param/types/|polyglot/qq/" kind="src" path="src"/>
-	<classpathentry kind="lib" path="lib/java_cup.jar"/>
-	<classpathentry kind="lib" path="lib/ppg.jar"/>
-	<classpathentry kind="lib" path="lib/JFlex.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="output" path="classes"/>
-</classpath>
