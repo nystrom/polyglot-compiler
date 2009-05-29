@@ -25,9 +25,9 @@ import polyglot.visit.*;
 public class Switch_c extends Stmt_c implements Switch
 {
     protected Expr expr;
-    protected List<SwitchElement> elements;
+    protected List elements;
 
-    public Switch_c(Position pos, Expr expr, List<SwitchElement> elements) {
+    public Switch_c(Position pos, Expr expr, List elements) {
 	super(pos);
 	assert(expr != null && elements != null);
 	this.expr = expr;
@@ -47,19 +47,19 @@ public class Switch_c extends Stmt_c implements Switch
     }
 
     /** Get the switch elements of the statement. */
-    public List<SwitchElement> elements() {
+    public List elements() {
 	return Collections.unmodifiableList(this.elements);
     }
 
     /** Set the switch elements of the statement. */
-    public Switch elements(List<SwitchElement> elements) {
+    public Switch elements(List elements) {
 	Switch_c n = (Switch_c) copy();
 	n.elements = TypedList.copyAndCheck(elements, SwitchElement.class, true);
 	return n;
     }
 
     /** Reconstruct the statement. */
-    protected Switch_c reconstruct(Expr expr, List<SwitchElement> elements) {
+    protected Switch_c reconstruct(Expr expr, List elements) {
 	if (expr != this.expr || ! CollectionUtil.allEqual(elements, this.elements)) {
 	    Switch_c n = (Switch_c) copy();
 	    n.expr = expr;
@@ -77,7 +77,7 @@ public class Switch_c extends Stmt_c implements Switch
     /** Visit the children of the statement. */
     public Node visitChildren(NodeVisitor v) {
 	Expr expr = (Expr) visitChild(this.expr, v);
-	List<SwitchElement> elements = visitList(this.elements, v);
+	List elements = visitList(this.elements, v);
 	return reconstruct(expr, elements);
     }
 
@@ -94,11 +94,11 @@ public class Switch_c extends Stmt_c implements Switch
     }
 
     public Node checkConstants(ContextVisitor tc) throws SemanticException {
-        Collection<Object> labels = new HashSet<Object>();
+        Collection labels = new HashSet();
 
         // Check for duplicate labels.
-        for (Iterator<SwitchElement> i = elements.iterator(); i.hasNext();) {
-            SwitchElement s = i.next();
+        for (Iterator i = elements.iterator(); i.hasNext();) {
+            SwitchElement s = (SwitchElement) i.next();
             
             if (s instanceof Case) {
                 Case c = (Case) s;
@@ -154,8 +154,8 @@ public class Switch_c extends Stmt_c implements Switch
         boolean lastWasCase = false;
         boolean first = true;
 
-	for (Iterator<SwitchElement> i = elements.iterator(); i.hasNext();) {
-            SwitchElement s = i.next();
+	for (Iterator i = elements.iterator(); i.hasNext();) {
+            SwitchElement s = (SwitchElement) i.next();
             if (s instanceof Case) {
                 if (lastWasCase) w.unifiedBreak(0);
                 else if (! first) w.unifiedBreak(0);
@@ -181,12 +181,14 @@ public class Switch_c extends Stmt_c implements Switch
     }
 
     public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        SwitchElement prev = null;
+
         List<Term> cases = new ArrayList<Term>(elements.size()+1);
         List<Integer> entry = new ArrayList<Integer>(elements.size()+1);
         boolean hasDefault = false;
 
         for (Iterator<SwitchElement> i = elements.iterator(); i.hasNext(); ) {
-            SwitchElement s = i.next();
+            SwitchElement s = (SwitchElement) i.next();
 
             if (s instanceof Case) {
                 cases.add(s);

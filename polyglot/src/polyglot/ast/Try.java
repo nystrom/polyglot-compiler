@@ -25,12 +25,12 @@ public interface Try extends CompoundStmt
     /** List of catch blocks.
      * @return A list of {@link polyglot.ast.Catch Catch}.
      */
-    List<Catch> catchBlocks();
+    List catchBlocks();
 
     /** Set the list of catch blocks.
      * @param catchBlocks A list of {@link polyglot.ast.Catch Catch}.
      */
-    Try catchBlocks(List<Catch> catchBlocks);
+    Try catchBlocks(List catchBlocks);
 
     /** The block to "finally" execute. */
     Block finallyBlock();

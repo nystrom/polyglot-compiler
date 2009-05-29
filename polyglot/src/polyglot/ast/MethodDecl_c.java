@@ -294,17 +294,9 @@ public class MethodDecl_c extends Term_c implements MethodDecl
             throw new SemanticException(e.getMessage(), position());
         }
 
-        Type container = Types.get(methodDef().container());
-        ClassType ct = container.toClass();
-
 	if (body == null && ! (flags.isAbstract() || flags.isNative())) {
 	    throw new SemanticException("Missing method body.", position());
 	}
-
-        if (body != null && ct.flags().isInterface()) {
-	    throw new SemanticException(
-		"Interface methods cannot have a body.", position());
-        }
 
 	if (body != null && flags.isAbstract()) {
 	    throw new SemanticException(
@@ -317,7 +309,8 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	}
 
         // check that inner classes do not declare static methods
-        if (ct != null && flags.isStatic() && ct.isInnerClass()) {
+        if (flags.isStatic() &&
+              methodDef().container().get().toClass().isInnerClass()) {
             // it's a static method in an inner class.
             throw new SemanticException("Inner classes cannot declare " + 
                     "static methods.", this.position());             

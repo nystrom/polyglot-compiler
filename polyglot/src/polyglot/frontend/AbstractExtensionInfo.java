@@ -121,7 +121,7 @@ public abstract class AbstractExtensionInfo implements ExtensionInfo {
     
     protected abstract Scheduler createScheduler();
     
-    public final Scheduler scheduler() {
+    public Scheduler scheduler() {
         if (scheduler == null) {
             scheduler = createScheduler();
         }
@@ -132,7 +132,7 @@ public abstract class AbstractExtensionInfo implements ExtensionInfo {
     protected abstract TypeSystem createTypeSystem();
 
     /** Get the type system for this extension. */
-    public final TypeSystem typeSystem() {
+    public TypeSystem typeSystem() {
 	if (ts == null) {
 	    ts = createTypeSystem();
 	}
@@ -143,7 +143,7 @@ public abstract class AbstractExtensionInfo implements ExtensionInfo {
     protected abstract NodeFactory createNodeFactory();
 
     /** Get the AST node factory for this extension. */
-    public final NodeFactory nodeFactory() {
+    public NodeFactory nodeFactory() {
 	if (nf == null) {
 	    nf = createNodeFactory();
 	}

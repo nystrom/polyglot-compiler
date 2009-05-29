@@ -16,7 +16,7 @@ import polyglot.main.Options;
 /**
  * This class represents a posiiton within a file.
  **/
-public class Position implements Serializable, Copy
+public class Position implements Serializable
 {
     static final long serialVersionUID = -4588386982624074261L;
 
@@ -33,12 +33,10 @@ public class Position implements Serializable, Copy
     // stream
     private int offset;
     private int endOffset;
-    
-    private boolean compilerGenerated;
 
     public static final int UNKNOWN = -1;
     public static final int END_UNUSED = -2;
-    public static final Position COMPILER_GENERATED = new Position(true, null, "Compiler Generated");
+    public static final Position COMPILER_GENERATED = new Position(null, "Compiler Generated");
     
     public static final int THIS_METHOD = 1;
     public static final int CALLER = THIS_METHOD + 1;
@@ -52,7 +50,7 @@ public class Position implements Serializable, Copy
             return COMPILER_GENERATED;
         StackTraceElement[] stack = new Exception().getStackTrace();
         if (depth < stack.length) {
-            return new Position(true, null, stack[depth].getFileName() + " (compiler generated)", stack[depth].getLineNumber());
+            return new Position(null, stack[depth].getFileName() + " (compiler generated)", stack[depth].getLineNumber());
         }
         else {
             return COMPILER_GENERATED;
@@ -64,25 +62,6 @@ public class Position implements Serializable, Copy
         return compilerGenerated(CALLER);
     }
 
-    public boolean isCompilerGenerated() {
-        return compilerGenerated;
-    }
-    
-    public Position copy() {
-	try {
-	    return (Position) super.clone();
-	} catch (CloneNotSupportedException e) {
-	    assert false;
-	    return Position.compilerGenerated();
-	}
-    }
-    
-    public Position markCompilerGenerated() {
-	Position p = copy();
-	p.compilerGenerated = true;
-	return p;
-    }
-    
     /** For deserialization. */
     protected Position() {
         line = endLine = 0;
@@ -90,18 +69,8 @@ public class Position implements Serializable, Copy
         offset = endOffset = 0;
     }
 
-    private Position(boolean compilerGenerated, String path, String file) {
-        this(path, file, UNKNOWN, UNKNOWN);
-        this.compilerGenerated = compilerGenerated;
-    }
-
     public Position(String path, String file) {
         this(path, file, UNKNOWN, UNKNOWN);
-    }
-
-    private Position(boolean compilerGenerated, String path, String file, int line) {
-        this(path, file, line, UNKNOWN);
-        this.compilerGenerated = compilerGenerated;
     }
 
     public Position(String path, String file, int line) {

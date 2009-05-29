@@ -21,10 +21,10 @@ import polyglot.visit.*;
 public class Try_c extends Stmt_c implements Try
 {
     protected Block tryBlock;
-    protected List<Catch> catchBlocks;
+    protected List catchBlocks;
     protected Block finallyBlock;
 
-    public Try_c(Position pos, Block tryBlock, List<Catch> catchBlocks, Block finallyBlock) {
+    public Try_c(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock) {
 	super(pos);
 	assert(tryBlock != null && catchBlocks != null); // finallyBlock may be null, catchBlocks empty
 	assert(! catchBlocks.isEmpty() || finallyBlock != null); // must be either try-catch or try(-catch)-finally
@@ -46,12 +46,12 @@ public class Try_c extends Stmt_c implements Try
     }
 
     /** Get the catch blocks of the statement. */
-    public List<Catch> catchBlocks() {
+    public List catchBlocks() {
 	return Collections.unmodifiableList(this.catchBlocks);
     }
 
     /** Set the catch blocks of the statement. */
-    public Try catchBlocks(List<Catch> catchBlocks) {
+    public Try catchBlocks(List catchBlocks) {
 	Try_c n = (Try_c) copy();
 	n.catchBlocks = TypedList.copyAndCheck(catchBlocks, Catch.class, true);
 	return n;
@@ -70,7 +70,7 @@ public class Try_c extends Stmt_c implements Try
     }
 
     /** Reconstruct the statement. */
-    protected Try_c reconstruct(Block tryBlock, List<Catch> catchBlocks, Block finallyBlock) {
+    protected Try_c reconstruct(Block tryBlock, List catchBlocks, Block finallyBlock) {
 	if (tryBlock != this.tryBlock || ! CollectionUtil.allEqual(catchBlocks, this.catchBlocks) || finallyBlock != this.finallyBlock) {
 	    Try_c n = (Try_c) copy();
 	    n.tryBlock = tryBlock;
@@ -85,7 +85,7 @@ public class Try_c extends Stmt_c implements Try
     /** Visit the children of the statement. */
     public Node visitChildren(NodeVisitor v) {
 	Block tryBlock = (Block) visitChild(this.tryBlock, v);
-	List<Catch> catchBlocks = visitList(this.catchBlocks, v);
+	List catchBlocks = visitList(this.catchBlocks, v);
 	Block finallyBlock = (Block) visitChild(this.finallyBlock, v);
 	return reconstruct(tryBlock, catchBlocks, finallyBlock);
     }
@@ -130,9 +130,10 @@ public class Try_c extends Stmt_c implements Try
         }
         
         ExceptionChecker newec = ec.push();
-        for (ListIterator<Catch> i = this.catchBlocks.listIterator(this.catchBlocks.size()); i.hasPrevious(); ) {
-            Catch cb = i.previous();
+        for (ListIterator i = this.catchBlocks.listIterator(this.catchBlocks.size()); i.hasPrevious(); ) {
+            Catch cb = (Catch) i.previous();
             Type catchType = cb.catchType();
+            
             newec = newec.push(catchType);
         }
         
@@ -143,8 +144,8 @@ public class Try_c extends Stmt_c implements Try
         
         // Walk through our catch blocks, making sure that they each can 
         // catch something.
-        for (Iterator<Catch> i = this.catchBlocks.iterator(); i.hasNext(); ) {
-            Catch cb = i.next();
+        for (Iterator i = this.catchBlocks.iterator(); i.hasNext(); ) {
+            Catch cb = (Catch) i.next();
             Type catchType = cb.catchType();
             
             
@@ -203,8 +204,8 @@ public class Try_c extends Stmt_c implements Try
 
         int count = 0;
 
-	for (Iterator<Catch> it = catchBlocks.iterator(); it.hasNext(); ) {
-	    Catch cb = it.next();
+	for (Iterator it = catchBlocks.iterator(); it.hasNext(); ) {
+	    Catch cb = (Catch) it.next();
 
             if (count++ > 2) {
               sb.append("...");
@@ -227,8 +228,8 @@ public class Try_c extends Stmt_c implements Try
 	w.write("try");
 	printSubStmt(tryBlock, w, tr);
 
-	for (Iterator<Catch> it = catchBlocks.iterator(); it.hasNext(); ) {
-	    Catch cb = it.next();
+	for (Iterator it = catchBlocks.iterator(); it.hasNext(); ) {
+	    Catch cb = (Catch) it.next();
 	    w.newline(0);
 	    printBlock(cb, w, tr);
 	}
@@ -252,8 +253,8 @@ public class Try_c extends Stmt_c implements Try
         CFGBuilder v1 = v.push(this, false);
         CFGBuilder v2 = v.push(this, true);
 
-        for (Iterator<Type> i = ts.uncheckedExceptions().iterator(); i.hasNext(); ) {
-            Type type = i.next();
+        for (Iterator i = ts.uncheckedExceptions().iterator(); i.hasNext(); ) {
+            Type type = (Type) i.next();
             v1.visitThrow(tryBlock, ENTRY, type);
         }
 
@@ -266,8 +267,8 @@ public class Try_c extends Stmt_c implements Try
             v1.visitCFG(tryBlock, this, EXIT);
         }
 
-        for (Iterator<Catch> it = catchBlocks.iterator(); it.hasNext(); ) {
-            Catch cb = it.next();
+        for (Iterator it = catchBlocks.iterator(); it.hasNext(); ) {
+            Catch cb = (Catch) it.next();
             if (finallyBlock != null) {
                 v2.visitCFG(cb, finallyBlock, ENTRY);
             } else {
