@@ -7,8 +7,6 @@ Bundle-Version: 3.0.2
 Bundle-Localization: plugin
 Export-Package: polyglot.ast,
  polyglot.frontend,
- polyglot.frontend.goals,
- polyglot.frontend.passes,
  polyglot.lex,
  polyglot.main,
  polyglot.parse,
