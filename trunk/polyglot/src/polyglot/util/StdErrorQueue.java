@@ -78,7 +78,7 @@ public class StdErrorQueue extends AbstractErrorQueue
 	width += prefix.length() + 1;
 
 	int lmargin = 4;
-	int rmargin = 78;
+	int rmargin = Integer.MAX_VALUE; // 78;
 
 	StringTokenizer lines = new StringTokenizer(message, "\n", true);
         boolean needNewline = false;
