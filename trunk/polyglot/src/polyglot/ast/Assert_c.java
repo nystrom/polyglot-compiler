@@ -69,16 +69,6 @@ public class Assert_c extends Stmt_c implements Assert
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
-        if (! Globals.Options().assertions) {
-            ErrorQueue eq = tc.errorQueue();
-            eq.enqueue(ErrorInfo.WARNING,
-                       "assert statements are disabled. Recompile " +
-                       "with -assert and ensure the post compiler supports " +
-                       "assert (e.g., -post \"javac -source 1.4\"). " +
-                       "Removing the statement and continuing.",
-                       cond.position());
-        }
-
         if (! cond.type().isBoolean()) {
             throw new SemanticException("Condition of assert statement " +
                                         "must have boolean type.",
