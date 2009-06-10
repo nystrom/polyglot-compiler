@@ -15,6 +15,7 @@ public class VarInstance_c<T extends VarDef> extends Use_c<T> implements VarInst
         if (!constantValueSet && def.known()) {
             isConstant = def().isConstant();
             constantValue = def().constantValue();
+            constantValueSet = true;
         }
         return constantValue;
     }
@@ -23,12 +24,14 @@ public class VarInstance_c<T extends VarDef> extends Use_c<T> implements VarInst
     	if (!constantValueSet && def.known()) {
             isConstant = def().isConstant();
             constantValue = def().constantValue();
+            constantValueSet = true;
         }
         return isConstant;
     }
 
     public VarInstance<T> constantValue(Object o) {
         VarInstance_c<T> v = (VarInstance_c<T>) copy();
+        v.constantValueSet = true;
         v.isConstant = true;
         v.constantValue = constantValue;
         return v;
@@ -36,6 +39,7 @@ public class VarInstance_c<T extends VarDef> extends Use_c<T> implements VarInst
 
     public VarInstance<T> notConstant() {
         VarInstance_c<T> v = (VarInstance_c<T>) copy();
+        v.constantValueSet = true;
         v.isConstant = false;
         v.constantValue = null;
         return v;
