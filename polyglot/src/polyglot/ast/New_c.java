@@ -228,7 +228,7 @@ public class New_c extends Expr_c implements New
                 if (! qualifier.type().isClass()) {
                     throw new SemanticException("Cannot instantiate member class of non-class type.", n.position());
                 }
-                Type ct = ts.findMemberType(qualifier.type(), name, c.currentClassDef());
+                Type ct = ts.findMemberType(qualifier.type(), name, c);
                 ((Ref<Type>) tn.typeRef()).update(ct);
                 tn = nf.CanonicalTypeNode(n.objectType().position(), tn.typeRef());
             }
@@ -325,7 +325,7 @@ public class New_c extends Expr_c implements New
         // Search all enclosing classes for the type.
         while (t != null) {
             try {
-                Type mt = ts.findMemberType(t, name, c.currentClassDef());
+                Type mt = ts.findMemberType(t, name, c);
 
                 if (mt instanceof ClassType) {
                     ClassType cmt = (ClassType) mt;
@@ -349,7 +349,7 @@ public class New_c extends Expr_c implements New
         // Create the qualifier.
         Expr q;
 
-        if (outer.typeEquals(c.currentClass())) {
+        if (outer.typeEquals(c.currentClass(), ar.context())) {
             q = nf.This(position().startOf());
         }
         else {
@@ -382,7 +382,7 @@ public class New_c extends Expr_c implements New
             if (anonType != null) {
                 c = c.pushClass(anonType, anonType.asType());
             }
-            ci = ts.findConstructor(ct, ts.ConstructorMatcher(ct, argTypes), c.currentClassDef());
+            ci = ts.findConstructor(ct, ts.ConstructorMatcher(ct, argTypes, c));
         }
         else {
             ConstructorDef dci = ts.defaultConstructor(this.position(), Types.<ClassType>ref(ct));

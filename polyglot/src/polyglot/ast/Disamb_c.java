@@ -126,7 +126,7 @@ public class Disamb_c implements Disamb
 
         if (exprOK()) {
             try {
-                FieldInstance fi = ts.findField(t, ts.FieldMatcher(t, name.id()), c.currentClassDef());
+                FieldInstance fi = ts.findField(t, ts.FieldMatcher(t, name.id(), c));
                 return nf.Field(pos, tn, name).fieldInstance(fi);
             } catch (NoMemberException e) {
                 if (e.getKind() != NoMemberException.FIELD) {
@@ -143,7 +143,7 @@ public class Disamb_c implements Disamb
             Resolver tc = t.toClass().resolver();
             Named n;
             try {
-                n = tc.find(ts.MemberTypeMatcher(t, name.id()));
+                n = tc.find(ts.MemberTypeMatcher(t, name.id(), c));
             }
             catch (NoClassException e) {
                 return null;
@@ -231,7 +231,7 @@ public class Disamb_c implements Disamb
 	    ClassType scope = c.findFieldScope(name.id());
 	    assert scope != null;
 	    
-	    if (! ts.typeEquals(scope, c.currentClass())) {
+	    if (! ts.typeEquals(scope, c.currentClass(), c)) {
 		r = (Special) nf.This(pos.startOf(), nf.CanonicalTypeNode(pos.startOf(), scope)).del().typeCheck(v);
 	    }
 	    else {
@@ -258,7 +258,7 @@ public class Disamb_c implements Disamb
             ClassType scope = c.findMethodScope(name.id());
             assert scope != null;
 
-	    if (! ts.typeEquals(scope, c.currentClass())) {
+	    if (! ts.typeEquals(scope, c.currentClass(), c)) {
 		r = (Special) nf.This(pos.startOf(), nf.CanonicalTypeNode(pos.startOf(), scope)).del().typeCheck(v);
 	    }
 	    else {

@@ -167,7 +167,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 
             Type qt = qualifier.type();
 
-            if (! qt.isClass() || !qt.isSubtype(superType.toClass().outer())) {
+            if (! qt.isClass() || !qt.isSubtype(superType.toClass().outer(), c)) {
                 throw new SemanticException("The type of the qualifier " +
                     "\"" + qt + "\" does not match the immediately enclosing " +
                     "class  of the super class \"" +
@@ -194,7 +194,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
                 ClassType e = ct;
                 
                 while (e != null) {
-                    if (e.isSubtype(superContainer) && ct.hasEnclosingInstance(e)) {
+                    if (e.isSubtype(superContainer, c) && ct.hasEnclosingInstance(e)) {
                         NodeFactory nf = tc.nodeFactory();
                         q = nf.This(position(), nf.CanonicalTypeNode(position(), e)).type(e);
 
@@ -229,7 +229,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	    ct = ct.superClass().toClass();
 	}
 	
-	ConstructorInstance ci = ts.findConstructor(ct, ts.ConstructorMatcher(ct, argTypes), c.currentClassDef());
+	ConstructorInstance ci = ts.findConstructor(ct, ts.ConstructorMatcher(ct, argTypes, c));
 
 	return n.constructorInstance(ci);
     }

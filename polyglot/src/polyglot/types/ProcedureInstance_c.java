@@ -48,7 +48,7 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
      * does not include any info regarding Java 1.2, so all inner class
      * rules are found empirically using jikes and javac.
      */
-    public boolean moreSpecific(ProcedureInstance<T> p) {
+    public boolean moreSpecific(ProcedureInstance<T> p, Context context) {
         ProcedureInstance<T> p1 = this;
         ProcedureInstance<T> p2 = p;
 
@@ -65,13 +65,13 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
         
         if (t1 != null && t2 != null) {
             if (t1.isClass() && t2.isClass()) {
-                if (! t1.isSubtype(t2) &&
+                if (! t1.isSubtype(t2, context) &&
                         ! t1.toClass().isEnclosed(t2.toClass())) {
                     return false;
                 }
             }
             else {
-                if (! t1.isSubtype(t2)) {
+                if (! t1.isSubtype(t2, context)) {
                     return false;
                 }
             }
@@ -79,12 +79,12 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
 
         // rule 2:
         // if the formal params of p1 can be used to call p2, p1 is more specific
-        return p2.callValid(t1, p1.formalTypes());
+        return p2.callValid(t1, p1.formalTypes(), context);
     }
     
     /** Returns true if the procedure has the given formal parameter types. */
-    public boolean hasFormals(List<Type> formalTypes) {
-        return CollectionUtil.allElementwise(this.formalTypes(), formalTypes, new TypeEquals());
+    public boolean hasFormals(List<Type> formalTypes, Context context) {
+        return CollectionUtil.allElementwise(this.formalTypes(), formalTypes, new TypeEquals(context));
     }
 
     /** Returns true iff <code>this</code> throws fewer exceptions than
@@ -107,7 +107,7 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
     }
 
     /** Returns true if a call can be made with the given argument types. */
-    public boolean callValid(Type thisType, List<Type> argTypes) {
+    public boolean callValid(Type thisType, List<Type> argTypes, Context context) {
         List<Type> l1 = this.formalTypes();
         List<Type> l2 = argTypes;
 
@@ -118,7 +118,7 @@ public class ProcedureInstance_c<T extends ProcedureDef> extends Use_c<T> implem
             Type t1 = (Type) i1.next();
             Type t2 = (Type) i2.next();
 
-            if (! ts.isImplicitCastValid(t2, t1)) {
+            if (! ts.isImplicitCastValid(t2, t1, context)) {
                 return false;
             }
         }

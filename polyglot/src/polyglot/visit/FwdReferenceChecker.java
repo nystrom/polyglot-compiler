@@ -67,7 +67,7 @@ public class FwdReferenceChecker extends ContextVisitor
                 StructType fContainer = f.fieldInstance().container();
 
                 if (inStaticInit == f.fieldInstance().flags().isStatic() &&
-                    currentClass.typeEquals(fContainer) &&
+                    currentClass.typeEquals(fContainer, context) &&
                    !declaredFields.contains(f.fieldInstance().def()) &&
                    f.isTargetImplicit()) {
                     throw new SemanticException("Illegal forward reference", 

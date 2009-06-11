@@ -151,7 +151,7 @@ public class Context_c implements Context
 
             // Found a class that has a method of the right name.
             // Now need to check if the method is of the correct type.
-            return ts.findMethod(this.currentClass(), matcher.container(this.currentClass()), this.currentClassDef());
+            return ts.findMethod(this.currentClass(), matcher.container(this.currentClass()));
         }
 
         if (outer != null) {
@@ -226,7 +226,7 @@ public class Context_c implements Context
 	if (vi instanceof FieldInstance) {
 	    FieldInstance fi = (FieldInstance) vi;
 
-	    if (! ts.isAccessible(fi, this.currentClassDef())) {
+	    if (! ts.isAccessible(fi, this)) {
                 throw new SemanticException("Field " + name + " not accessible.");
 	    }
 
@@ -483,7 +483,7 @@ public class Context_c implements Context
         
         if (t == null && isClass()) {
             try {
-        	t = ts.classContextResolver(this.currentClass(), this.currentClassDef()).find(matcher);
+        	t = ts.classContextResolver(this.currentClass(), this).find(matcher);
             }
             catch (SemanticException e) {
             }
@@ -513,7 +513,7 @@ public class Context_c implements Context
         
         if (vi == null && isClass()) {
             try {
-                return ts.findField(this.currentClass(), ts.FieldMatcher(this.currentClass(), name), this.currentClassDef());
+                return ts.findField(this.currentClass(), ts.FieldMatcher(this.currentClass(), name, this));
             }
             catch (SemanticException e) {
                 return null;

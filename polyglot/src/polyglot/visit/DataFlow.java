@@ -905,7 +905,7 @@ public abstract class DataFlow extends ErrorHandlingVisitor
             EdgeKey key = (EdgeKey)j.next();
             
             if (!(key instanceof ExceptionEdgeKey &&
-               ((ExceptionEdgeKey)key).type().isSubtype(ts.Error()))) {
+               ((ExceptionEdgeKey)key).type().isSubtype(ts.Error(), ts.emptyContext()))) {
                 // the key is not an error edge key.
                 filtered.add(item);
             }
@@ -979,7 +979,7 @@ public abstract class DataFlow extends ErrorHandlingVisitor
 			if (key instanceof ExceptionEdgeKey) {
 				// the key is an exception edge key.
 				ExceptionEdgeKey eek = (ExceptionEdgeKey)key;
-				if (eek.type().isImplicitCastValid(excType)) {
+				if (eek.type().isImplicitCastValid(excType, ts.emptyContext())) {
 					filtered.add(item);
 				}
 			}

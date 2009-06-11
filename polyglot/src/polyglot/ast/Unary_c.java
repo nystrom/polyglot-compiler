@@ -101,7 +101,7 @@ public class Unary_c extends Expr_c implements Unary
 	}
 
 	if (op == BIT_NOT) {
-	    if (! ts.isImplicitCastValid(expr.type(), ts.Long())) {
+	    if (! ts.isImplicitCastValid(expr.type(), ts.Long(), tc.context())) {
 		throw new SemanticException("Operand of " + op +
 		    " operator must be numeric.", expr.position());
 	    }
@@ -132,13 +132,13 @@ public class Unary_c extends Expr_c implements Unary
 
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         TypeSystem ts = av.typeSystem();
-
+        Context context = av.context();
         try {
             if (child == expr) {
                 if (op == POST_INC || op == POST_DEC ||
                     op == PRE_INC || op == PRE_DEC) {
 
-                    if (ts.isImplicitCastValid(child.type(), av.toType())) {
+                    if (ts.isImplicitCastValid(child.type(), av.toType(), context)) {
                         return ts.promote(child.type());
                     }
                     else {
@@ -146,7 +146,7 @@ public class Unary_c extends Expr_c implements Unary
                     }
                 }
                 else if (op == NEG || op == POS) {
-                    if (ts.isImplicitCastValid(child.type(), av.toType())) {
+                    if (ts.isImplicitCastValid(child.type(), av.toType(), context)) {
                         return ts.promote(child.type());
                     }
                     else {
@@ -154,7 +154,7 @@ public class Unary_c extends Expr_c implements Unary
                     }
                 }
                 else if (op == BIT_NOT) {
-                    if (ts.isImplicitCastValid(child.type(), av.toType())) {
+                    if (ts.isImplicitCastValid(child.type(), av.toType(), context)) {
                         return ts.promote(child.type());
                     }
                     else {

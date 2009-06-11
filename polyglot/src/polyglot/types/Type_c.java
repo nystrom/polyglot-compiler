@@ -116,8 +116,8 @@ public abstract class Type_c extends TypeObject_c implements Type
 	return ts.arrayOf(this);
     }  
     
-    public final boolean typeEquals(Type t) {
-	    return ts.typeEquals(this, t);
+    public final boolean typeEquals(Type t, Context context) {
+	    return ts.typeEquals(this, t, context);
     }
     
     public final void typeEqualsImpl(Type t) { }
@@ -131,46 +131,38 @@ public abstract class Type_c extends TypeObject_c implements Type
     /**
      * Return true if this type is a subtype of <code>ancestor</code>.
      */
-    public final boolean isSubtype(Type t) {
-	return ts.isSubtype(this, t);
+    public final boolean isSubtype(Type t, Context context) {
+	return ts.isSubtype(this, t, context);
     }
     
     /**
-     * Return true if this type descends from <code>ancestor</code> and is not equal to ancestor.
-     */
-    public final boolean descendsFrom(Type t) {
-	    return ts.descendsFrom(this, t);
-    }
-
-
-    /**
      * Return true if this type can be cast to <code>toType</code>.
      */
-    public final boolean isCastValid(Type toType) {
-	    return ts.isCastValid(this, toType);
+    public final boolean isCastValid(Type toType, Context context) {
+	    return ts.isCastValid(this, toType, context);
     }
     
     /**
      * Return true if a value of this type can be assigned to a variable of
      * type <code>toType</code>.
      */
-    public final boolean isImplicitCastValid(Type toType) {
-	    return ts.isImplicitCastValid(this, toType);
+    public final boolean isImplicitCastValid(Type toType, Context context) {
+	    return ts.isImplicitCastValid(this, toType, context);
     }
 
     /**
      * Return true a literal <code>value</code> can be converted to this type.
      * This method should be removed.  It is kept for backward compatibility.
      */
-    public final boolean numericConversionValid(long value) {
-	    return ts.numericConversionValid(this, value);
+    public final boolean numericConversionValid(long value, Context context) {
+	    return ts.numericConversionValid(this, value, context);
     }
     
     /**
      * Return true a literal <code>value</code> can be converted to this type.
      */
-    public final boolean numericConversionValid(Object value) {
-	    return ts.numericConversionValid(this, value);
+    public final boolean numericConversionValid(Object value, Context context) {
+	    return ts.numericConversionValid(this, value, context);
     }
     
     /**

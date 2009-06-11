@@ -129,7 +129,7 @@ public class For_c extends Loop_c implements For
                 if (t == null) {
                     t = dt;
                 }
-                else if (! t.typeEquals(dt)) {
+                else if (! t.typeEquals(dt, tc.context())) {
                     throw new InternalCompilerError("Local variable " +
                         "declarations in a for loop initializer must all " +
                         "be the same type, in this case " + t + ", not " +
@@ -139,7 +139,7 @@ public class For_c extends Loop_c implements For
         }
 
 	if (cond != null &&
-	    ! ts.isImplicitCastValid(cond.type(), ts.Boolean())) {
+	    ! ts.isImplicitCastValid(cond.type(), ts.Boolean(), tc.context())) {
 	    throw new SemanticException(
 		"The condition of a for statement must have boolean type.",
 		cond.position());

@@ -38,12 +38,9 @@ public class PackageContextResolver extends AbstractAccessControlResolver
     /**
      * Find a type object by name.
      * @param name Name of the class or package to find.
-     * @param accessor
-     *                Class the name is accesses from. If null, no access checks
-     *                are performed.
      * 
      */
-    public Named find(Matcher<Named> matcher, ClassDef accessor) throws SemanticException {
+    public Named find(Matcher<Named> matcher, Context context) throws SemanticException {
 	Name name = matcher.name();
 	
         Named n = null;
@@ -62,16 +59,16 @@ public class PackageContextResolver extends AbstractAccessControlResolver
             n = ts.createPackage(p, name);
         }
         
-        if (! canAccess(n, accessor)) {
-            throw new SemanticException("Cannot access " + n + " from " + accessor + ".");
+        if (! canAccess(n, context)) {
+            throw new SemanticException("Cannot access " + n + " from " + context.currentClassDef() + ".");
         }
         
         return n;
     }
 
-    protected boolean canAccess(Named n, ClassDef accessor) {
+    protected boolean canAccess(Named n, Context context) {
         if (n instanceof ClassType) {
-            return accessor == null || ts.classAccessible(((ClassType) n).def(), accessor);
+            return context == null || ts.classAccessible(((ClassType) n).def(), context);
         }
         return true;
     }

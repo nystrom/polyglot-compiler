@@ -328,14 +328,14 @@ public class MethodDecl_c extends Term_c implements MethodDecl
         TypeSystem ts = tc.typeSystem();
 
         MethodInstance mi = this.mi.asInstance();
-        for (Iterator<MethodInstance> j = mi.implemented().iterator(); j.hasNext(); ) {
+        for (Iterator<MethodInstance> j = mi.implemented(tc.context()).iterator(); j.hasNext(); ) {
             MethodInstance mj = (MethodInstance) j.next();
 
             if (! ts.isAccessible(mj, tc.context())) {
                 continue;
             }
 
-            ts.checkOverride(mi, mj);
+            ts.checkOverride(mi, mj, tc.context());
         }
     }
 

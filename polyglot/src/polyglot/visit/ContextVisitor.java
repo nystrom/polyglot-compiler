@@ -46,7 +46,7 @@ public class ContextVisitor extends ErrorHandlingVisitor
     }
 
     public NodeVisitor begin() {
-        context = ts.createContext();
+        context = ts.emptyContext();
         outer = null;
         return super.begin();
     }

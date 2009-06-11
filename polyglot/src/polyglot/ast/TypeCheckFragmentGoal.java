@@ -25,47 +25,36 @@ public class TypeCheckFragmentGoal extends AbstractGoal_c {
 	this.r = r;
 	this.mightFail = mightFail;
     }
-
+    
     public List<Goal> prereqs() {
 	List<Goal> l = super.prereqs();
 	List<Goal> l2 = Collections.singletonList(v.job().extensionInfo().scheduler().PreTypeCheck(v.job()));
 	if (l.isEmpty())
 	    return l2;
 	else
-	    return CollectionUtil.<Goal>append(l, l2);
+	    return CollectionUtil.<Goal> append(l, l2);
     }
 
     public boolean runTask() {
 	Goal g = v.job().extensionInfo().scheduler().PreTypeCheck(v.job());
 	assert g.hasBeenReached();
-	
-	if (r.locked()) {
+
+	if (state() == Goal.Status.RUNNING_RECURSIVE) {
 	    r.update(r.getCached()); // marks r known
+	    // if (! mightFail)
+	    // v.job().compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR,
+	    // "Recursive resolution for " + n + ".", n.position());
 	    return mightFail;
 	}
-	
-	r.lock();
-	
-	try {
-	    if (state() == Goal.Status.RUNNING_RECURSIVE) {
-		r.update(r.getCached()); // marks r known
-		//			if (! mightFail)
-		//			    v.job().compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, "Recursive resolution for " + n + ".", n.position());
-		return mightFail;
-	    }
 
-	    try {
-		Node m = parent.visitChild(n, v);
-		v.job().nodeMemo().put(n, m);
-		v.job().nodeMemo().put(m, m);
-		return mightFail || r.known();
-	    }
-	    catch (SchedulerException e) {
-		return false;
-	    }
+	try {
+	    Node m = parent.visitChild(n, v);
+	    v.job().nodeMemo().put(n, m);
+	    v.job().nodeMemo().put(m, m);
+	    return mightFail || r.known();
 	}
-	finally {
-	    r.unlock();
+	catch (SchedulerException e) {
+	    return false;
 	}
     }
 }

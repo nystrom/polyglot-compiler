@@ -160,7 +160,7 @@ public class Call_c extends Expr_c implements Call
         // let's find the target, using the context, and
         // set the target appropriately, and then type check
         // the result
-        MethodInstance mi = c.findMethod(ts.MethodMatcher(null, name.id(), argTypes));
+        MethodInstance mi = c.findMethod(ts.MethodMatcher(null, name.id(), argTypes, c));
         
         Receiver r;
         if (mi.flags().isStatic()) {
@@ -174,7 +174,7 @@ public class Call_c extends Expr_c implements Call
             // of the class we want.
             ClassType scope = c.findMethodScope(name.id());
 
-            if (! ts.typeEquals(scope, c.currentClass())) {
+            if (! ts.typeEquals(scope, c.currentClass(), c)) {
                 r = (Special) nf.This(position().startOf(),
                             nf.CanonicalTypeNode(position().startOf(), scope)).del().typeCheck(tc);
             }
@@ -218,8 +218,7 @@ public class Call_c extends Expr_c implements Call
         
         Type targetType = target.type();
         MethodInstance mi = ts.findMethod(targetType, 
-                                          ts.MethodMatcher(targetType, this.name.id(), argTypes),
-                                          c.currentClassDef());
+                                          ts.MethodMatcher(targetType, this.name.id(), argTypes, c));
         
         /* This call is in a static context if and only if
          * the target (possibly implicit) is a type node.
@@ -414,7 +413,7 @@ public class Call_c extends Expr_c implements Call
           
           // as exception will be thrown if no appropriate method
           // exists. 
-          MethodInstance ctxtMI = c.findMethod(c.typeSystem().MethodMatcher(null, name.id(), mi.formalTypes()));
+          MethodInstance ctxtMI = c.findMethod(c.typeSystem().MethodMatcher(null, name.id(), mi.formalTypes(), c));
           
           // cannot perform this check due to the context's findMethod returning a 
           // different method instance than the typeSystem in some situations

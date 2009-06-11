@@ -75,7 +75,7 @@ public class Assert_c extends Stmt_c implements Assert
                                         cond.position());
         }
 
-        if (errorMessage != null && ts.typeEquals(errorMessage.type(), ts.Void())) {
+        if (errorMessage != null && ts.typeEquals(errorMessage.type(), ts.Void(), tc.context())) {
             throw new SemanticException("Error message in assert statement " +
                                         "must have a value.",
                                         errorMessage.position());

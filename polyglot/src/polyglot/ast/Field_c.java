@@ -135,7 +135,7 @@ e = new Exception();
       Context c = tc.context();
       TypeSystem ts = tc.typeSystem();
       
-      FieldInstance fi = ts.findField(target.type(), ts.FieldMatcher(target.type(), name.id()), c.currentClassDef());
+      FieldInstance fi = ts.findField(target.type(), ts.FieldMatcher(target.type(), name.id(), c));
 
       if (fi == null) {
 	  throw new InternalCompilerError("Cannot access field on node of type " +

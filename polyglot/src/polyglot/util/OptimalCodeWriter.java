@@ -590,8 +590,9 @@ abstract class Item
     }
 
     public String summarize(String s) {
-	if (s.length() <= 79) return s;
-	return s.substring(0, 76) + "...";
+	return s;
+//	if (s.length() <= 79) return s;
+//	return s.substring(0, 76) + "...";
     }
 
     public String toString() {

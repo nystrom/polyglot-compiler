@@ -167,7 +167,7 @@ public class ExceptionChecker extends ErrorHandlingVisitor
                 if (ec.catchable != null) {
                     for (Iterator<Type> iter = ec.catchable.iterator(); iter.hasNext(); ) {
                         Type catchType = (Type)iter.next();
-                        if (ts.isSubtype(t, catchType)) {
+                        if (ts.isSubtype(t, catchType, ts.emptyContext())) {
                             exceptionCaught = true;
                             break;
                         }

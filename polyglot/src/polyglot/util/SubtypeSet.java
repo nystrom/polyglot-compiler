@@ -9,8 +9,7 @@ package polyglot.util;
 
 import java.util.*;
 
-import polyglot.types.Type;
-import polyglot.types.TypeSystem;
+import polyglot.types.*;
 
 /**
  * Class to implement sets containing <code>polyglot.types.Type </code>.  
@@ -74,17 +73,19 @@ public class SubtypeSet implements java.util.Set<Type>
 
         Type type = o;
 
-        if (ts.isSubtype(type, topType)) {
+        Context context = ts.emptyContext();
+        
+        if (ts.isSubtype(type, topType, context)) {
             boolean haveToAdd = true;
 
             for (Iterator<Type> i = v.iterator(); i.hasNext(); ) {
                 Type t = i.next();
 
-                if (! ts.typeEquals(t, type) && ts.isSubtype(t, type)) {
+                if (! ts.typeEquals(t, type, context) && ts.isSubtype(t, type, context)) {
                     i.remove();
                 }
 
-                if (ts.isSubtype(type, t)) {
+                if (ts.isSubtype(type, t, context)) {
                     haveToAdd = false;
                     break;
                 }
@@ -133,9 +134,11 @@ public class SubtypeSet implements java.util.Set<Type>
 	if (o instanceof Type) {
 	    Type type = (Type) o;
 	    
+	    Context context = ts.emptyContext();
+	    
 	    for (Iterator<Type> i = v.iterator(); i.hasNext(); ) {
 		Type t = (Type) i.next();
-		if (ts.isSubtype(type, t)) {
+		if (ts.isSubtype(type, t, context)) {
 		    return true;
 		}
 	    }
@@ -150,9 +153,10 @@ public class SubtypeSet implements java.util.Set<Type>
      * one of the elements in the set.
      */
     public boolean containsSubtype(Type type) {
+	Context context = ts.emptyContext();
 	for (Iterator<Type> i = v.iterator(); i.hasNext(); ) {
 	    Type t = (Type)i.next();
-	    if (ts.isSubtype(type, t) || ts.isSubtype(t, type)) return true;
+	    if (ts.isSubtype(type, t, context) || ts.isSubtype(t, type, context)) return true;
 	}
 
 	return false;
@@ -192,12 +196,14 @@ public class SubtypeSet implements java.util.Set<Type>
 
         Type type = (Type) o;
 
+	Context context = ts.emptyContext();
+
         boolean removed = false;
 
 	for (Iterator<Type> i = v.iterator(); i.hasNext(); ) {
 	    Type t = (Type) i.next();
 
-	    if (ts.isSubtype(t, type)) {
+	    if (ts.isSubtype(t, type, context)) {
 		removed = true;
 		i.remove(); 
 	    }

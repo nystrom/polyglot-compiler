@@ -86,7 +86,7 @@ public class Cast_c extends Expr_c implements Cast
     {
         TypeSystem ts = tc.typeSystem();
 
-        if (! ts.isCastValid(expr.type(), castType.type())) {
+        if (! ts.isCastValid(expr.type(), castType.type(), tc.context())) {
 	    throw new SemanticException("Cannot cast the expression of type \"" 
 					+ expr.type() + "\" to type \"" 
 					+ castType.type() + "\".",
@@ -165,7 +165,7 @@ public class Cast_c extends Expr_c implements Cast
 
         if (v instanceof String) {
             TypeSystem ts = castType.type().typeSystem();
-            if (castType.type().typeEquals(ts.String())) return v;
+            if (castType.type().typeEquals(ts.String(), ts.emptyContext())) return v;
         }
 
         if (v instanceof Double) {

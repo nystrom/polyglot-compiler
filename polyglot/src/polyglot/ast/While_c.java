@@ -80,7 +80,7 @@ public class While_c extends Loop_c implements While
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
 	TypeSystem ts = tc.typeSystem();
 	
-	if (! ts.typeEquals(cond.type(), ts.Boolean())) {
+	if (! ts.typeEquals(cond.type(), ts.Boolean(), tc.context())) {
 	    throw new SemanticException(
 		"Condition of while statement must have boolean type.",
 		cond.position());

@@ -456,7 +456,7 @@ public class LocalClassRemover extends ContextVisitor {
 	    // type of the class we want.
 	    ClassType scope = (ClassType) fi.container();
 
-	    if (! ts.typeEquals(scope, c.currentClass())) {
+	    if (! ts.typeEquals(scope, c.currentClass(), context)) {
 		r = nf.This(pos.startOf(), nf.CanonicalTypeNode(pos, scope)).type(scope);
 	    } else {
 		r = nf.This(pos.startOf()).type(scope);

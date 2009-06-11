@@ -47,11 +47,11 @@ public interface StructType extends Type {
      * @see polyglot.types.Type
      * @see polyglot.types.MethodDef
      */
-    List<MethodInstance> methods(Name name, List<Type> argTypes);
+    List<MethodInstance> methods(Name name, List<Type> argTypes, Context context);
 
     /**
      * Return the true if the type has the given method.
      */
-    boolean hasMethod(MethodInstance mi);
+    boolean hasMethod(MethodInstance mi, Context context);
 
 }

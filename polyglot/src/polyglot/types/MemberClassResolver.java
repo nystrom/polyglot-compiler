@@ -117,7 +117,7 @@ public class MemberClassResolver implements TopLevelResolver
 
           // Uncomment if we should search superclasses
           // return ct.resolver().find(name);
-          Named n = ct.memberTypeMatching(ts.MemberTypeMatcher(ct, name));
+          Named n = ct.memberTypeMatching(ts.MemberTypeMatcher(ct, name, ts.emptyContext()));
 
           if (n != null) {
               if (Report.should_report(report_topics, 2))
