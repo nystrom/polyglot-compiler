@@ -11,11 +11,11 @@ import java.util.*;
 
 import polyglot.frontend.ExtensionInfo;
 import polyglot.frontend.Source;
-import polyglot.main.Report;
-import polyglot.types.TypeSystem_c.*;
+import polyglot.types.TypeSystem_c.ConstructorMatcher;
+import polyglot.types.TypeSystem_c.MethodMatcher;
 import polyglot.types.reflect.ClassFile;
 import polyglot.types.reflect.ClassFileLazyClassInitializer;
-import polyglot.util.*;
+import polyglot.util.Position;
 
 /**
  * The <code>TypeSystem</code> defines the types of the language and
@@ -78,6 +78,9 @@ public interface TypeSystem {
      */
     boolean packageExists(QName name);
 
+    /** Return class def of a type, or null. */
+    ClassDef classDefOf(Type t);
+    
     /** Get the named type object with the following name.
      * @param name The name of the type object to look for.
      * @exception SemanticException when object is not found.    
@@ -165,24 +168,27 @@ public interface TypeSystem {
      * <pre>
      *    descendsFrom(child, ancestor) || equals(child, ancestor)
      * </pre>
+     * @param context TODO
      */
-    boolean isSubtype(Type child, Type ancestor);
+    boolean isSubtype(Type child, Type ancestor, Context context);
 
     /**
      * Returns true iff child is not ancestor, but child descends from ancestor.     */
-    boolean descendsFrom(Type child, Type ancestor);
-
+    boolean descendsFrom(ClassDef child, ClassDef ancestor);
+    
     /**
      * Returns true iff a cast from fromType to toType is valid; in other
      * words, some non-null members of fromType are also members of toType.
+     * @param context TODO
      */
-    boolean isCastValid(Type fromType, Type toType);
+    boolean isCastValid(Type fromType, Type toType, Context context);
 
     /**
      * Returns true iff an implicit cast from fromType to toType is valid;
      * in other words, every member of fromType is member of toType.
+     * @param context TODO
      */
-    boolean isImplicitCastValid(Type fromType, Type toType);
+    boolean isImplicitCastValid(Type fromType, Type toType, Context context);
 
     /**
      * Returns true iff type1 and type2 represent the same type object.
@@ -196,8 +202,9 @@ public interface TypeSystem {
      * Returns true iff type1 and type2 are equivalent.
      * This is usually the same as equals(type1, type2), but may
      * differ in the presence of, say, type aliases.
+     * @param context TODO
      */
-    boolean typeEquals(Type type1, Type type2);
+    boolean typeEquals(Type type1, Type type2, Context context);
 
     /**
      * Returns true iff type1 and type2 are equivalent.
@@ -211,19 +218,21 @@ public interface TypeSystem {
      * <code>t</code>.  This method should be removed.  It is kept for backward
      * compatibility.
      */
-    boolean numericConversionValid(Type t, long value);
+    boolean numericConversionValid(Type t, long value, Context context);
 
     /**
      * Returns true if <code>value</code> can be implicitly cast to
      * type <code>t</code>.
+     * @param context TODO
      */
-    boolean numericConversionValid(Type t, Object value);
+    boolean numericConversionValid(Type t, Object value, Context context);
 
     /**
      * Returns the least common ancestor of type1 and type2
+     * @param context TODO
      * @exception SemanticException if the LCA does not exist
      */
-    Type leastCommonAncestor(Type type1, Type type2) throws SemanticException;
+    Type leastCommonAncestor(Type type1, Type type2, Context context) throws SemanticException;
 
     /**
      * Checks whether a class member can be accessed from <code>context</code>.
@@ -231,19 +240,9 @@ public interface TypeSystem {
     boolean isAccessible(MemberInstance<? extends MemberDef> mi, Context context);
 
     /**
-     * Checks whether a class member can be accessed from the body of
-     * class <code>contextClass</code>.
-     */
-    boolean isAccessible(MemberInstance<? extends MemberDef> mi, ClassDef contextClass);
-
-
-    /**
      * Checks whether a class can be accessed from Context context.
      */
     boolean classAccessible(ClassDef ct, Context context);
-
-    /** True if the class targetClass accessible from the body of class contextClass. */
-    boolean classAccessible(ClassDef targetClass, ClassDef contextClass);
    
     /**
      * Checks whether a top-level or member class can be accessed from the
@@ -308,15 +307,6 @@ public interface TypeSystem {
 
     /**
      * Returns the field named 'name' defined on 'type'.
-     * We check if the field is accessible from the class currClass.
-     * @exception SemanticException if the field cannot be found or is
-     * inaccessible.
-     */
-    FieldInstance findField(Type container, TypeSystem_c.FieldMatcher matcher, ClassDef currClass)
-        throws SemanticException;
-
-    /**
-     * Returns the field named 'name' defined on 'type'.
      * @exception SemanticException if the field cannot be found or is
      * inaccessible.
      */
@@ -324,10 +314,10 @@ public interface TypeSystem {
 	throws SemanticException;
     
     Matcher<Named> TypeMatcher(Name name);
-    Matcher<Named> MemberTypeMatcher(Type container, Name name);
-    TypeSystem_c.FieldMatcher FieldMatcher(Type container, Name name);
-    TypeSystem_c.MethodMatcher MethodMatcher(Type container, Name name, List<Type> argTypes);
-    TypeSystem_c.ConstructorMatcher ConstructorMatcher(Type container, List<Type> argTypes);
+    Matcher<Named> MemberTypeMatcher(Type container, Name name, Context context);
+    TypeSystem_c.FieldMatcher FieldMatcher(Type container, Name name, Context context);
+    TypeSystem_c.MethodMatcher MethodMatcher(Type container, Name name, List<Type> argTypes, Context context);
+    TypeSystem_c.ConstructorMatcher ConstructorMatcher(Type container, List<Type> argTypes, Context context);
 
     /**
      * Find a method.  We need to pass the class from which the method
@@ -339,7 +329,7 @@ public interface TypeSystem {
      * inaccessible.
      */
     MethodInstance findMethod(Type container,
-	    MethodMatcher matcher, ClassDef currClass) throws SemanticException;
+	    MethodMatcher matcher) throws SemanticException;
 
     /**
      * Find a constructor.  We need to pass the class from which the constructor
@@ -350,23 +340,14 @@ public interface TypeSystem {
      * inaccessible.
      */
     ConstructorInstance findConstructor(Type container,
-	    TypeSystem_c.ConstructorMatcher matcher, ClassDef currClass) throws SemanticException;
-
-    /**
-     * Find a member class.
-     * We check if the field is accessible from the class currClass.
-     * @exception SemanticException if the class cannot be found or is
-     * inaccessible.
-     */
-    Type findMemberType(Type container, Name name, ClassDef currClass)
-    throws SemanticException;
+	    TypeSystem_c.ConstructorMatcher matcher) throws SemanticException;
 
     /**
      * Find a member class.
      * @exception SemanticException if the class cannot be found or is
      * inaccessible.
      */
-    Type findMemberType(Type container, Name name)
+    Type findMemberType(Type container, Name name, Context context)
 	throws SemanticException;
 
     /**
@@ -394,7 +375,7 @@ public interface TypeSystem {
     /**
      * Returns true iff <code>t</code> has the method <code>mi</code>.
      */
-    boolean hasMethod(Type t, MethodInstance mi);
+    boolean hasMethod(Type t, MethodInstance mi, Context context);
 
     /**
      * Returns true iff <code>t</code> has a method with name <code>name</code>
@@ -404,19 +385,21 @@ public interface TypeSystem {
 
     /**
      * Returns true iff <code>m1</code> is the same method as <code>m2</code>.
+     * @param context TODO
      */
-    boolean isSameMethod(MethodInstance m1, MethodInstance m2);
+    boolean isSameMethod(MethodInstance m1, MethodInstance m2, Context context);
 
     /**
      * Returns true iff <code>m1</code> is more specific than <code>m2</code>.
      */
-    <T extends ProcedureDef> boolean moreSpecific(ProcedureInstance<T> p1, ProcedureInstance<T> p2);
+    <T extends ProcedureDef> boolean moreSpecific(ProcedureInstance<T> p1, ProcedureInstance<T> p2, Context context);
 
     /**
      * Returns true iff <code>p</code> has exactly the formal arguments
      * <code>formalTypes</code>.
+     * @param context TODO
      */
-    boolean hasFormals(ProcedureInstance<? extends ProcedureDef> p, List<Type> formalTypes);
+    boolean hasFormals(ProcedureInstance<? extends ProcedureDef> p, List<Type> formalTypes, Context context);
 
     ////
     // Functions which yield particular types.
@@ -593,15 +576,15 @@ public interface TypeSystem {
     /**
      * Create a new context object for looking up variables, types, etc.
      */
-    Context createContext();
+    Context emptyContext();
 
     /** Get a resolver for looking up a type in a package. */
-    Resolver packageContextResolver(Package pkg, ClassDef accessor);
+    Resolver packageContextResolver(Package pkg, ClassDef accessor, Context context);
     Resolver packageContextResolver(Package pkg);
     AccessControlResolver createPackageContextResolver(Package pkg);
     
     /** Get a resolver for looking up a type in a class context. */
-    Resolver classContextResolver(Type ct, ClassDef accessor);
+    Resolver classContextResolver(Type ct, Context context);
     Resolver classContextResolver(Type ct);
     AccessControlResolver createClassContextResolver(Type ct);
 
@@ -685,32 +668,37 @@ public interface TypeSystem {
      * Return true if <code>pi</code> can be called with 
      * actual parameters of types <code>actualTypes</code>.
      * @param thisType TODO
+     * @param context TODO
      */
-    boolean callValid(ProcedureInstance<? extends ProcedureDef> mi, Type thisType, List<Type> argTypes);
+    boolean callValid(ProcedureInstance<? extends ProcedureDef> mi, Type thisType, List<Type> argTypes, Context context);
 
     /**
      * Get the list of methods <code>mi</code> (potentially) overrides, in
      * order from this class (that is, including <code>this</code>) to super
      * classes.
+     * @param context TODO
      */
-    List<MethodInstance> overrides(MethodInstance mi);
+    List<MethodInstance> overrides(MethodInstance mi, Context context);
 
     /**
      * Return true if <code>mi</code> can override <code>mj</code>.
+     * @param context TODO
      */
-    boolean canOverride(MethodInstance mi, MethodInstance mj);
+    boolean canOverride(MethodInstance mi, MethodInstance mj, Context context);
 
     /**
      * Throw a SemanticException if <code>mi</code> cannot override 
      * <code>mj</code>.
+     * @param context TODO
      */
-    void checkOverride(MethodInstance mi, MethodInstance mj) throws SemanticException;
+    void checkOverride(MethodInstance mi, MethodInstance mj, Context context) throws SemanticException;
 
     /**
      * Get the list of methods <code>mi</code> implements, in no
      * specified order.
+     * @param context TODO
      */
-    List<MethodInstance> implemented(MethodInstance mi);
+    List<MethodInstance> implemented(MethodInstance mi, Context context);
     
     /**
      * Return the primitive with the given name.
@@ -805,8 +793,9 @@ public interface TypeSystem {
      * Assert that <code>ct</code> implements all abstract methods that it 
      * has to; that is, if it is a concrete class, then it must implement all
      * interfaces and abstract methods that it or its superclasses declare.
+     * @param context TODO
      */
-    public void checkClassConformance(ClassType ct) throws SemanticException;
+    public void checkClassConformance(ClassType ct, Context context) throws SemanticException;
 
     /**
      * Find a potentially suitable implementation of the method <code>mi</code>
@@ -816,11 +805,12 @@ public interface TypeSystem {
      * that is visible from <code>ct</code>, with the correct signature, in
      * the most precise class in the class hierarchy starting from
      * <code>ct</code>.
+     * @param context TODO
      * 
      * @return a suitable implementation of the method mi in the class
      *         <code>ct</code> or a supertype thereof, null if none exists.
      */
-    public MethodInstance findImplementingMethod(ClassType ct, MethodInstance mi);
+    public MethodInstance findImplementingMethod(ClassType ct, MethodInstance mi, Context context);
     
     /**
      * Find a potentially suitable implementation of the method <code>mi</code>
@@ -831,11 +821,12 @@ public interface TypeSystem {
      * that is visible from <code>ct</code>, with the correct signature, in
      * the most precise class in the class hierarchy starting from
      * <code>ct</code>.
+     * @param context TODO
      * 
      * @return a suitable implementation of the method mi in the class
      *         <code>ct</code> or a supertype thereof, null if none exists.
      */
-    public MethodInstance findImplementingMethod(ClassType ct, MethodInstance mi, boolean includeAbstract);
+    public MethodInstance findImplementingMethod(ClassType ct, MethodInstance mi, boolean includeAbstract, Context context);
 
     /**
      * Given the JVM encoding of a set of flags, returns the Flags object
@@ -877,17 +868,19 @@ public interface TypeSystem {
     boolean isBoolean(Type t);
     boolean isVoid(Type t);
 
-    public <S extends ProcedureDef, T extends ProcedureInstance<S>> Collection<T> findMostSpecificProcedures(List<T> acceptable, Matcher<T> matcher) throws SemanticException;
+    public <S extends ProcedureDef, T extends ProcedureInstance<S>> Collection<T> findMostSpecificProcedures(List<T> acceptable, Matcher<T> matcher, Context context) throws SemanticException;
 
     /**
      * Populates the list acceptable with those MethodInstances which are
      * Applicable and Accessible as defined by JLS 15.11.2.1
      */
-    public List<MethodInstance> findAcceptableMethods(Type container, MethodMatcher matcher, ClassDef currClass) throws SemanticException;
+    public List<MethodInstance> findAcceptableMethods(Type container, MethodMatcher matcher) throws SemanticException;
 
     /**
      * Populates the list acceptable with those MethodInstances which are
      * Applicable and Accessible as defined by JLS 15.11.2.1
      */
-    public List<ConstructorInstance> findAcceptableConstructors(Type container, ConstructorMatcher matcher, ClassDef currClass) throws SemanticException;
+    public List<ConstructorInstance> findAcceptableConstructors(Type container, ConstructorMatcher matcher) throws SemanticException;
+
+    List<Type> abstractSuperInterfaces(Type t);
 }

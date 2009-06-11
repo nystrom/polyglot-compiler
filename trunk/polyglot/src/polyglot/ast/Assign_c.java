@@ -91,10 +91,11 @@ public abstract class Assign_c extends Expr_c implements Assign, Ambiguous
 
     Type s = right.type();
 
+    Context context = tc.context();
     if (op == ASSIGN) {
-      if (! ts.isImplicitCastValid(s, t) &&
-          ! ts.typeEquals(s, t) &&
-          ! ts.numericConversionValid(t, right.constantValue())) {
+      if (! ts.isImplicitCastValid(s, t, context) &&
+          ! ts.typeEquals(s, t, context) &&
+          ! ts.numericConversionValid(t, right.constantValue(), context)) {
 
         throw new SemanticException("Cannot assign " + s + " to " + t + ".",
                                     position());
@@ -105,7 +106,7 @@ public abstract class Assign_c extends Expr_c implements Assign, Ambiguous
 
     if (op == ADD_ASSIGN) {
       // t += s
-      if (ts.typeEquals(t, ts.String()) && ts.canCoerceToString(s, tc.context())) {
+      if (ts.typeEquals(t, ts.String(), context) && ts.canCoerceToString(s, context)) {
         return n.type(ts.String());
       }
 
@@ -134,8 +135,8 @@ public abstract class Assign_c extends Expr_c implements Assign, Ambiguous
         return n.type(ts.Boolean());
       }
 
-      if (ts.isImplicitCastValid(t, ts.Long()) &&
-          ts.isImplicitCastValid(s, ts.Long())) {
+      if (ts.isImplicitCastValid(t, ts.Long(), context) &&
+          ts.isImplicitCastValid(s, ts.Long(), context)) {
         return n.type(ts.promote(t, s));
       }
 
@@ -145,8 +146,8 @@ public abstract class Assign_c extends Expr_c implements Assign, Ambiguous
     }
 
     if (op == SHL_ASSIGN || op == SHR_ASSIGN || op == USHR_ASSIGN) {
-      if (ts.isImplicitCastValid(t, ts.Long()) &&
-          ts.isImplicitCastValid(s, ts.Long())) {
+      if (ts.isImplicitCastValid(t, ts.Long(), context) &&
+          ts.isImplicitCastValid(s, ts.Long(), context)) {
         // Only promote the left of a shift.
         return n.type(ts.promote(t));
       }
@@ -166,7 +167,7 @@ public abstract class Assign_c extends Expr_c implements Assign, Ambiguous
 
           // If the RHS is an integral constant, we can relax the expected
           // type to the type of the constant.
-          if (ts.numericConversionValid(leftType(), child.constantValue())) {
+          if (ts.numericConversionValid(leftType(), child.constantValue(), av.context())) {
               return child.type();
           }
           else {

@@ -415,6 +415,7 @@ public class CFGBuilder implements Copy
     public void visitThrow(Term t, int entry, Type type) {
         Term last = t;
         CFGBuilder last_visitor = this;
+        Context context = ts.emptyContext();
 
         for (CFGBuilder v = this; v != null; v = v.outer) {
             Term c = v.innermostTarget;
@@ -430,13 +431,13 @@ public class CFGBuilder implements Copy
                         int e = (last == t && entry == Term.ENTRY) ? Term.ENTRY : Term.EXIT;
 
                         // definite catch
-                        if (type.isImplicitCastValid(cb.catchType())) {
+                        if (type.isImplicitCastValid(cb.catchType(), context)) {
                             edge(last_visitor, last, e, cb, Term.ENTRY, 
                                     new FlowGraph.ExceptionEdgeKey(type));
                             definiteCatch = true;
                         }
                         // possible catch
-                        else if (cb.catchType().isImplicitCastValid(type)) { 
+                        else if (cb.catchType().isImplicitCastValid(type, context)) { 
                             edge(last_visitor, last, e, cb, Term.ENTRY, 
                                     new FlowGraph.ExceptionEdgeKey(cb.catchType()));
                         }
@@ -458,7 +459,7 @@ public class CFGBuilder implements Copy
         int e = (last == t && entry == Term.ENTRY) ? Term.ENTRY : Term.EXIT;
         
         // If not caught, insert a node from the thrower to exit.
-        if (errorEdgesToExitNode || !type.isSubtype(ts.Error())) {
+        if (errorEdgesToExitNode || !type.isSubtype(ts.Error(), context)) {
             edge(last_visitor, last, e, graph.root(), Term.EXIT, 
                     new FlowGraph.ExceptionEdgeKey(type));
         }

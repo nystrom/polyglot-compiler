@@ -37,9 +37,8 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
     /**
      * Find a type object in the context of the class.
      * @param name The name to search for.
-     * @param accessor Class the name is accesses from.  If null, no access checks are performed.
      */
-    public Named find(Matcher<Named> matcher, ClassDef accessor) throws SemanticException {
+    public Named find(Matcher<Named> matcher, Context context) throws SemanticException {
 	Name name = matcher.name();
 	
         if (Report.should_report(TOPICS, 2))
@@ -141,7 +140,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
         }
 
         if (m != null) {
-            if (! canAccess(m, accessor)) {
+            if (! canAccess(m, context.currentClassDef(), context)) {
         	throw new SemanticException("Cannot access member type \"" + m + "\".");
             }
             return m;
@@ -156,7 +155,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
         if (type.superClass() != null) {
             Type sup = type.superClass();
             if (sup instanceof ClassType) {
-                Resolver r = ts.classContextResolver((ClassType) sup, accessor);
+                Resolver r = ts.classContextResolver((ClassType) sup, context);
                 try {
                     Named n = r.find(matcher);
                     acceptable.add(n);
@@ -169,7 +168,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
         for (Iterator<Type> i = type.interfaces().iterator(); i.hasNext(); ) {
             Type sup = (Type) i.next();
             if (sup instanceof ClassType) {
-                Resolver r = ts.classContextResolver((ClassType) sup, accessor);
+                Resolver r = ts.classContextResolver((ClassType) sup, context);
                 try {
                     Named n = r.find(matcher);
                     acceptable.add(n);
@@ -220,9 +219,9 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
         return t;
     }
 
-    protected boolean canAccess(Named n, ClassDef accessor) {
+    protected boolean canAccess(Named n, ClassDef accessor, Context context) {
         if (n instanceof MemberInstance) {
-            return accessor == null || ts.isAccessible((MemberInstance) n, accessor);
+            return accessor == null || ts.isAccessible((MemberInstance) n, context);
         }
         return true;
     }

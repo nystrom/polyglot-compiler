@@ -256,6 +256,7 @@ public class Binary_c extends Expr_c implements Binary
 	Type r = right.type();
 
 	TypeSystem ts = tc.typeSystem();
+	Context context = tc.context();
 
 	if (op == GT || op == LT || op == GE || op == LE) {
 	    if (! l.isNumeric()) {
@@ -274,7 +275,7 @@ public class Binary_c extends Expr_c implements Binary
 	}
 
 	if (op == EQ || op == NE) {
-            if (! ts.isCastValid(l, r) && ! ts.isCastValid(r, l)) {
+            if (! ts.isCastValid(l, r, context) && ! ts.isCastValid(r, l, context)) {
 		throw new SemanticException("The " + op +
 		    " operator must have operands of similar type.",
 		    position());
@@ -300,7 +301,7 @@ public class Binary_c extends Expr_c implements Binary
 	}
 
 	if (op == ADD) {
-	    if (ts.isSubtype(l, ts.String()) || ts.isSubtype(r, ts.String())) {
+	    if (ts.isSubtype(l, ts.String(), context) || ts.isSubtype(r, ts.String(), context)) {
                 if (!ts.canCoerceToString(r, tc.context())) {
                     throw new SemanticException("Cannot coerce an expression " + 
                                 "of type " + r + " to a String.", 
@@ -337,13 +338,13 @@ public class Binary_c extends Expr_c implements Binary
         }
 
         if (op == BIT_AND || op == BIT_OR || op == BIT_XOR) {
-            if (! ts.isImplicitCastValid(l, ts.Long())) {
+            if (! ts.isImplicitCastValid(l, ts.Long(), context)) {
                 throw new SemanticException("The " + op +
                     " operator must have numeric or boolean operands, not type " +
                     l + ".", left.position());
             }
 
-            if (! ts.isImplicitCastValid(r, ts.Long())) {
+            if (! ts.isImplicitCastValid(r, ts.Long(), context)) {
                 throw new SemanticException("The " + op +
                     " operator must have numeric or boolean operands, not type " +
                     r + ".", right.position());
@@ -365,13 +366,13 @@ public class Binary_c extends Expr_c implements Binary
         }
 
         if (op == SHL || op == SHR || op == USHR) {
-            if (! ts.isImplicitCastValid(l, ts.Long())) {
+            if (! ts.isImplicitCastValid(l, ts.Long(), context)) {
                 throw new SemanticException("The " + op +
                     " operator must have numeric operands, not type " +
                     l + ".", left.position());
             }
 
-            if (! ts.isImplicitCastValid(r, ts.Long())) {
+            if (! ts.isImplicitCastValid(r, ts.Long(), context)) {
                 throw new SemanticException("The " + op +
                     " operator must have numeric operands, not type " +
                     r + ".", right.position());
@@ -400,13 +401,14 @@ public class Binary_c extends Expr_c implements Binary
         }
 
         TypeSystem ts = av.typeSystem();
+        Context context = av.context();
 
         try {
             if (op == EQ || op == NE) {
                 // Coercion to compatible types.
                 if ((child.type().isReference() || child.type().isNull()) &&
                     (other.type().isReference() || other.type().isNull())) {
-                    return ts.leastCommonAncestor(child.type(), other.type());
+                    return ts.leastCommonAncestor(child.type(), other.type(), context);
                 }
 
                 if (child.type().isBoolean() && other.type().isBoolean()) {
@@ -417,14 +419,14 @@ public class Binary_c extends Expr_c implements Binary
                     return ts.promote(child.type(), other.type());
                 }
 
-                if (child.type().isImplicitCastValid(other.type())) {
+                if (child.type().isImplicitCastValid(other.type(), context)) {
                     return other.type();
                 }
 
                 return child.type();
             }
 
-            if (op == ADD && ts.typeEquals(type(), ts.String())) {
+            if (op == ADD && ts.typeEquals(type(), ts.String(), context)) {
                 // Implicit coercion to String. 
                 return ts.String();
             }
@@ -457,7 +459,7 @@ public class Binary_c extends Expr_c implements Binary
                 if (child.type().isNumeric() && other.type().isNumeric()) {
                     Type t = ts.promote(child.type(), other.type());
 
-                    if (ts.isImplicitCastValid(t, av.toType())) {
+                    if (ts.isImplicitCastValid(t, av.toType(), context)) {
                         return t;
                     }
                     else {
@@ -473,7 +475,7 @@ public class Binary_c extends Expr_c implements Binary
                     if (child == left) {
                         Type t = ts.promote(child.type());
 
-                        if (ts.isImplicitCastValid(t, av.toType())) {
+                        if (ts.isImplicitCastValid(t, av.toType(), context)) {
                             return t;
                         }
                         else {

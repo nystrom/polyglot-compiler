@@ -6,6 +6,7 @@
 
 package polyglot.ast;
 
+import java.util.Iterator;
 import java.util.List;
 
 import polyglot.types.Context;
@@ -66,6 +67,25 @@ public class NodeList_c extends Node_c implements NodeList {
    */
   public Block toBlock() {
     return nf.Block(position, (List) nodes);
+  }
+  
+  public String toString() {
+      StringBuffer sb = new StringBuffer();
+
+      int count = 0;
+
+      for (Iterator i = nodes.iterator(); i.hasNext(); ) {
+	  if (count++ > 2) {
+	      sb.append(" ...");
+	      break;
+	  }
+
+	  Node n = (Node) i.next();
+	  sb.append(" ");
+	  sb.append(n.toString());
+      }
+
+      return sb.toString();
   }
   
   @Override

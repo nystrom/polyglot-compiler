@@ -210,9 +210,9 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
                 ((ArrayInit) init).typeCheckElements(tc, type.type());
             }
             else {
-                if (! ts.isImplicitCastValid(init.type(), type.type()) &&
-                    ! ts.typeEquals(init.type(), type.type()) &&
-                    ! ts.numericConversionValid(type.type(), init.constantValue())) {
+                if (! ts.isImplicitCastValid(init.type(), type.type(), tc.context()) &&
+                    ! ts.typeEquals(init.type(), type.type(), tc.context()) &&
+                    ! ts.numericConversionValid(type.type(), init.constantValue(), tc.context())) {
                     throw new SemanticException("The type of the variable " +
                                                 "initializer \"" + init.type() +
                                                 "\" does not match that of " +
@@ -243,7 +243,7 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
 
             // If the RHS is an integral constant, we can relax the expected
             // type to the type of the constant.
-            if (ts.numericConversionValid(type.type(), child.constantValue())) {
+            if (ts.numericConversionValid(type.type(), child.constantValue(), av.context())) {
                 return child.type();
             }
             else {

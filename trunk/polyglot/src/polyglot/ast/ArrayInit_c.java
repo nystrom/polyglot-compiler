@@ -71,7 +71,7 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
 	        type = e.type();
 	    }
 	    else {
-	        type = ts.leastCommonAncestor(type, e.type());
+	        type = ts.leastCommonAncestor(type, e.type(), tc.context());
 	    }
 	}
 
@@ -103,7 +103,7 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
 	    Expr e = (Expr) i.next();
 
             if (e == child) {
-                if (ts.numericConversionValid(t, e.constantValue())) {
+                if (ts.numericConversionValid(t, e.constantValue(), av.context())) {
                     return child.type();
                 }
                 else {
@@ -135,9 +135,9 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
                 continue;
             }
 
-            if (! ts.isImplicitCastValid(s, t) &&
-                ! ts.typeEquals(s, t) &&
-                ! ts.numericConversionValid(t, e.constantValue())) {
+            if (! ts.isImplicitCastValid(s, t, tc.context()) &&
+                ! ts.typeEquals(s, t, tc.context()) &&
+                ! ts.numericConversionValid(t, e.constantValue(), tc.context())) {
                 throw new SemanticException("Cannot assign " + s +
                                             " to " + t + ".", e.position());
             }

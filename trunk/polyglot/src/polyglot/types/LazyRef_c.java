@@ -10,7 +10,6 @@ import polyglot.util.TypeInputStream;
 
 public class LazyRef_c<T> extends AbstractRef_c<T> implements LazyRef<T>, Serializable {
 	Runnable resolver;
-	boolean locked;
 
 	/** Create a lazy ref initialized with error value v. */
 	public LazyRef_c(T v) {
@@ -75,19 +74,5 @@ public class LazyRef_c<T> extends AbstractRef_c<T> implements LazyRef<T>, Serial
 		T o = super.getCached();
 		if (o == null) return "null";
 		return o.toString();
-	}
-
-	public void lock() {
-	    assert ! locked;
-	    locked = true;
-	}
-
-	public void unlock() {
-	    assert locked;
-	    locked = false;
-	}
-	
-	public boolean locked() {
-	    return locked;
 	}
 }

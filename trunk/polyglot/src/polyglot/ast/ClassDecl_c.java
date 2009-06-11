@@ -500,7 +500,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
                         position());
             }
 
-            if (type.typeEquals(ts.Object())) {
+            if (type.typeEquals(ts.Object(), tc.context())) {
                 throw new SemanticException("Class \"" + this.type + "\" cannot have a superclass.",
                         superClass.position());
             }
@@ -515,7 +515,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
                         type + " is not an interface.", tn.position());
             }
 
-            if (type.typeEquals(ts.Object())) {
+            if (type.typeEquals(ts.Object(), tc.context())) {
                 throw new SemanticException("Class " + this.type + " cannot have a superinterface.",
                         tn.position());
             }
@@ -537,7 +537,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         }
 
         // Check the class implements all abstract methods that it needs to.
-        ts.checkClassConformance(type);
+        ts.checkClassConformance(type, enterChildScope(body, tc.context()));
 
         return this;
     }

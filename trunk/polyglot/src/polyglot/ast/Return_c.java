@@ -107,11 +107,11 @@ public class Return_c extends Stmt_c implements Return
                     fi + ".", position());
             }
 
-	    if (ts.isImplicitCastValid(expr.type(), returnType)) {
+	    if (ts.isImplicitCastValid(expr.type(), returnType, c)) {
 	        return this;
 	    }
 
-            if (ts.numericConversionValid(returnType, expr.constantValue())) {
+            if (ts.numericConversionValid(returnType, expr.constantValue(), c)) {
                 return this;
             }
 
@@ -134,7 +134,7 @@ public class Return_c extends Stmt_c implements Return
 
                 // If expr is an integral constant, we can relax the expected
                 // type to the type of the constant.
-                if (ts.numericConversionValid(mi.returnType().get(), child.constantValue())) {
+                if (ts.numericConversionValid(mi.returnType().get(), child.constantValue(), c)) {
                     return child.type();
                 }
                 else {

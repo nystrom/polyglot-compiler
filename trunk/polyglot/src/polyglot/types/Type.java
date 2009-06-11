@@ -65,40 +65,41 @@ public interface Type extends Qualifier
      * method should return true only if the types are
      * <i>structurally equal</i>.
      * @param t Type to compare to
+     * @param context TODO
      * @return True if this type is equivalent to t.
      */
-    boolean typeEquals(Type t);
+    boolean typeEquals(Type t, Context context);
     
     /**
      * Return true if this type is a subtype of <code>ancestor</code>.
+     * @param context TODO
      */
-    boolean isSubtype(Type ancestor);
-
-    /**
-     * Return true if this type descends from <code>ancestor</code>.
-     */
-    boolean descendsFrom(Type ancestor);
+    boolean isSubtype(Type ancestor, Context context);
 
     /**
      * Return true if this type can be cast to <code>toType</code>.
+     * @param context TODO
      */
-    boolean isCastValid(Type toType);
+    boolean isCastValid(Type toType, Context context);
 
     /**
      * Return true if a value of this type can be assigned to a variable of
      * type <code>toType</code>.
+     * @param context TODO
      */
-    boolean isImplicitCastValid(Type toType);
+    boolean isImplicitCastValid(Type toType, Context context);
 
     /**
      * Return true a literal <code>value</code> can be converted to this type.
+     * @param context TODO
      */
-    boolean numericConversionValid(Object value);
+    boolean numericConversionValid(Object value, Context context);
 
     /**
      * Return true a literal <code>value</code> can be converted to this type.
+     * @param context TODO
      */
-    boolean numericConversionValid(long value);
+    boolean numericConversionValid(long value, Context context);
 
     /**
      * Return true if a primitive type.

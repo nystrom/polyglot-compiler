@@ -99,7 +99,7 @@ public class If_c extends Stmt_c implements If
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 
-	if (! ts.typeEquals(cond.type(), ts.Boolean())) {
+	if (! ts.typeEquals(cond.type(), ts.Boolean(), tc.context())) {
 	    throw new SemanticException(
 		"Condition of if statement must have boolean type.",
 		cond.position());

@@ -28,46 +28,14 @@ public class FlattenVisitor extends NodeVisitor
     }
 
     public Node override(Node parent, Node n) {
-        // Insert Blocks when needed to allow local decls to be inserted.
-        if (n instanceof If) {
-            If s = (If) n;
-            Stmt s1 = s.consequent();
-            Stmt s2 = s.alternative();
-            if (! (s1 instanceof Block)) {
-                s = s.consequent(nf.Block(s1.position(), s1));
-            }
-            if (s2 != null && ! (s2 instanceof Block)) {
-                s = s.alternative(nf.Block(s2.position(), s2));
-            }
-            return visitEdgeNoOverride(parent, s);
-        }
-
-        if (n instanceof Do) {
-            Do s = (Do) n;
-            Stmt s1 = s.body();
-            if (! (s1 instanceof Block)) {
-                s = s.body(nf.Block(s1.position(), s1));
-            }
-            return visitEdgeNoOverride(parent, s);
-        }
-
-        if (n instanceof While) {
-            While s = (While) n;
-            Stmt s1 = s.body();
-            if (! (s1 instanceof Block)) {
-                s = s.body(nf.Block(s1.position(), s1));
-            }
-            return visitEdgeNoOverride(parent, s);
-        }
-
-        if (n instanceof For) {
-            For s = (For) n;
-            Stmt s1 = s.body();
-            if (! (s1 instanceof Block)) {
-                s = s.body(nf.Block(s1.position(), s1));
-            }
-            return visitEdgeNoOverride(parent, s);
-        }
+	// Insert Blocks when needed to allow local decls to be inserted.
+	if (parent instanceof Stmt && n instanceof Stmt) {
+	    Stmt s1 = (Stmt) n;
+	    if (! (s1 instanceof Block)) {
+		Stmt s2 = nf.Block(s1.position(), s1);
+		return visitEdgeNoOverride(parent, s2);
+	    }
+	}
 
 	if (n instanceof FieldDecl || n instanceof ConstructorCall) {
             if (! stack.isEmpty()) {
@@ -97,7 +65,7 @@ public class FlattenVisitor extends NodeVisitor
     protected static int count = 0;
 
     protected static Name newID() {
-	return Name.make("flat$$$" + count++);
+	return Name.makeFresh("tmp");
     }
 
     protected Set noFlatten = new HashSet();
@@ -109,50 +77,18 @@ public class FlattenVisitor extends NodeVisitor
      */
     public NodeVisitor enter(Node parent, Node n) {
 	if (n instanceof Block) {
-	    stack.addFirst(new LinkedList());
+	    stack.addLast(new LinkedList());
+	}
+	
+	// Don't flatten the expression contained in the statement, but
+	// flatten its subexpressions.
+	if (parent instanceof Stmt && n instanceof Expr) {
+	    noFlatten.add(n);
 	}
 
-	if (n instanceof Eval) {
-	    // Don't flatten the expression contained in the statement, but
-	    // flatten its subexpressions.
-	    Eval s = (Eval) n;
-	    noFlatten.add(s.expr());
+	if (parent instanceof Assign) {
+	    noFlatten.add(n);
 	}
-
-	if (n instanceof LocalDecl) {
-	    // Don't flatten the expression contained in the statement, but
-	    // flatten its subexpressions.
-	    LocalDecl s = (LocalDecl) n;
-	    noFlatten.add(s.init());
-	}
-
-        if (n instanceof For) {
-	    For s = (For) n;
-            noFlatten.addAll(s.inits());
-            neverFlatten.addAll(s.iters());
-            neverFlatten.add(s.cond());
-        }
-
-        if (n instanceof While) {
-	    While s = (While) n;
-            neverFlatten.add(s.cond());
-        }
-
-        if (n instanceof Do) {
-	    Do s = (Do) n;
-            neverFlatten.add(s.cond());
-        }
-
-	if (n instanceof LocalAssign) {
-	    LocalAssign s = (LocalAssign) n;
-	    noFlatten.add(s.local());
-	    noFlatten.add(s.right());
-	}
-        
-        if (n instanceof Unary) {
-          Unary u = (Unary) n;
-          noFlatten.add(u.expr());
-        }
 
 	return this;
     }

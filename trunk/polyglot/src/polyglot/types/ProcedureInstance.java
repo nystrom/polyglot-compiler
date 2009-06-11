@@ -45,13 +45,15 @@ public interface ProcedureInstance<T extends ProcedureDef> extends CodeInstance<
     /**
      * Return true if <code>this</code> is more specific than <code>pi</code>
      * in terms of method overloading.
+     * @param context TODO
      */
-    boolean moreSpecific(ProcedureInstance<T> pi);
+    boolean moreSpecific(ProcedureInstance<T> pi, Context context);
 
     /**
      * Returns true if the procedure has the given arguments.
+     * @param context TODO
      */
-    boolean hasFormals(List<Type> arguments);
+    boolean hasFormals(List<Type> arguments, Context context);
 
     /**
      * Returns true if the procedure throws a subset of the exceptions
@@ -62,6 +64,7 @@ public interface ProcedureInstance<T extends ProcedureDef> extends CodeInstance<
     /**
      * Returns true if the procedure can be called with the given arguments.
      * @param thisType TODO
+     * @param context TODO
      */
-    boolean callValid(Type thisType, List<Type> actualTypes);
+    boolean callValid(Type thisType, List<Type> actualTypes, Context context);
 }

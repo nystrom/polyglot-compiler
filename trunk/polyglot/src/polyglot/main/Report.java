@@ -116,19 +116,17 @@ public class Report {
   public static boolean should_report(Collection topics, int level) {
       if (noReporting)
           return false;
-      synchronized (should_report) {
-	  for (Iterator i = should_report.iterator(); i.hasNext();) {
-	      String topic = (String) i.next();
-	      if (level(topic) >= level) return true;
-	  }
-	  if (topics != null) {
-	      for (Iterator i = topics.iterator(); i.hasNext();) {
-		  String topic = (String) i.next();
-		  if (level(topic) >= level) return true;
-	      }
-	  }
-      }
-      return false;
+    for (Iterator i = should_report.iterator(); i.hasNext();) {
+        String topic = (String) i.next();
+        if (level(topic) >= level) return true;
+    }
+    if (topics != null) {
+	for (Iterator i = topics.iterator(); i.hasNext();) {
+	    String topic = (String) i.next();
+	    if (level(topic) >= level) return true;
+	}
+    }
+    return false;
   }
   
   public static void addTopic(String topic, int level) {

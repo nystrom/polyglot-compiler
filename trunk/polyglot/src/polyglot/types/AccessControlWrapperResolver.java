@@ -16,14 +16,14 @@ package polyglot.types;
 /** A Resolver that wraps an AccessControlResolver. */
 public class AccessControlWrapperResolver implements Resolver {
     protected AccessControlResolver inner;
-    protected ClassDef accessor;
+    protected Context context;
     
-    public AccessControlWrapperResolver(AccessControlResolver inner, ClassDef accessor) {
+    public AccessControlWrapperResolver(AccessControlResolver inner, Context context) {
         this.inner = inner;
-        this.accessor = accessor;
+        this.context = context;
     }
     
     public Named find(Matcher<Named> matcher) throws SemanticException {
-        return inner.find(matcher, accessor);
+        return inner.find(matcher, context);
     }
 }

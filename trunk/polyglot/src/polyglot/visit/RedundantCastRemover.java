@@ -16,6 +16,7 @@ package polyglot.visit;
 import java.util.*;
 
 import polyglot.ast.*;
+import polyglot.types.Context;
 import polyglot.types.Type;
 
 /**
@@ -33,7 +34,8 @@ public class RedundantCastRemover extends NodeVisitor {
             Cast c = (Cast) n;
             Type castType = c.castType().type();
             Type exprType = c.expr().type();
-            if (exprType.isImplicitCastValid(castType)) {
+            Context context = castType.typeSystem().emptyContext();
+	    if (exprType.isImplicitCastValid(castType, context)) {
                 // Redundant cast.
                 return c.expr();
             }

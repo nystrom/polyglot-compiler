@@ -76,10 +76,10 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
     public abstract List<Type> interfaces();
 
     /** Return true if t has a method mi */
-    public boolean hasMethod(MethodInstance mi) {
+    public boolean hasMethod(MethodInstance mi, Context context) {
         for (MethodInstance mj : methods()) {
 
-            if (ts.isSameMethod(mi, mj)) {
+            if (ts.isSameMethod(mi, mj, context)) {
                 return true;
             }
         }
@@ -100,12 +100,12 @@ public abstract class ReferenceType_c extends Type_c implements ReferenceType
         return l;
     }
 
-    public List<MethodInstance> methods(Name name, List<Type> argTypes) {
+    public List<MethodInstance> methods(Name name, List<Type> argTypes, Context context) {
         List<MethodInstance> l = new ArrayList<MethodInstance>();
 
         for (Iterator<MethodInstance> i = methodsNamed(name).iterator(); i.hasNext(); ) {
             MethodInstance mi = (MethodInstance) i.next();
-            if (mi.hasFormals(argTypes)) {
+            if (mi.hasFormals(argTypes, context)) {
                 l.add(mi);
             }
         }

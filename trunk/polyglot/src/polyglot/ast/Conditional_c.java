@@ -113,7 +113,7 @@ public class Conditional_c extends Expr_c implements Conditional
         // From the JLS, section:
         // If the second and third operands have the same type (which may be
         // the null type), then that is the type of the conditional expression.
-        if (ts.typeEquals(t1, t2)) {
+        if (ts.typeEquals(t1, t2, tc.context())) {
             return type(t1);
         }
         
@@ -134,13 +134,13 @@ public class Conditional_c extends Expr_c implements Conditional
             
             if (t1.isIntOrLess() &&
                     t2.isInt() &&
-                    ts.numericConversionValid(t1, e2.constantValue())) {
+                    ts.numericConversionValid(t1, e2.constantValue(), tc.context())) {
                 return type(t1);
             }
 
             if (t2.isIntOrLess() &&
                     t1.isInt() &&
-                    ts.numericConversionValid(t2, e1.constantValue())) {
+                    ts.numericConversionValid(t2, e1.constantValue(), tc.context())) {
                 return type(t2);
             }
             
@@ -164,10 +164,10 @@ public class Conditional_c extends Expr_c implements Conditional
         // if neither type is assignment compatible with the other type.
         
         if (t1.isReference() && t2.isReference()) {
-            if (ts.isImplicitCastValid(t1, t2)) {
+            if (ts.isImplicitCastValid(t1, t2, tc.context())) {
                 return type(t2);
             }
-            if (ts.isImplicitCastValid(t2, t1)) {
+            if (ts.isImplicitCastValid(t2, t1, tc.context())) {
                 return type(t1);
             }
         }
