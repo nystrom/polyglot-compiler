@@ -12,7 +12,7 @@ package polyglot.frontend;
 public class JLVersion extends polyglot.main.Version {
     public String name() { return "jl"; }
     public int major() { return 3; }
-    public int minor() { return 0; }
-    public int patch_level() { return 2; }
-    public String toString() { return "3.0.2 (2009-05-28 15:57:19)"; }
+    public int minor() { return 1; }
+    public int patch_level() { return 0; }
+    public String toString() { return "3.1.0 (2009-06-11 14:44:14)"; }
 }

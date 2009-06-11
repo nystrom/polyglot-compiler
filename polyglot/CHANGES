@@ -3,6 +3,13 @@ Polyglot Change Log
 
 This file documents changes between releases of Polyglot.
 
+Jun 30, 2009: Polyglot 3.1.0
+============================
+
+Type system refactoring.  Moved type system code to polyglot.types.TypeEnv.
+Include Context in interface for isSubtype, typeEquals, isImplicitCastValid,
+etc.
+
 May 29, 2009: Polyglot 3.0.2
 ============================
 
