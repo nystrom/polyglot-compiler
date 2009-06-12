@@ -153,14 +153,28 @@ public class TypedList<T> implements List<T>, java.io.Serializable, Cloneable
 			 allowed_type,
 			 immutable);
   }
+
+    public boolean equals(Object o) {
+	if (this == o)
+	    return true;
+	if (backing_list == o)
+	    return true;
+	if (! (o instanceof List))
+	    return false;
+	if (((List) o).size() != backing_list.size())
+	    return false;
+	if (o instanceof TypedList)
+	    return backing_list.equals(((TypedList) o).backing_list);
+	else
+	    return backing_list.equals(o);
+    }
+
   public void clear() 
     { tryMod(); backing_list.clear(); }
   public boolean contains(Object o) 
     { return backing_list.contains(o); }
   public boolean containsAll(Collection coll) 
     { return backing_list.containsAll(coll); }
-  public boolean equals(Object o)
-    { return backing_list.equals(o); }
   public T get(int idx)
     { return backing_list.get(idx); }
   public int hashCode()
