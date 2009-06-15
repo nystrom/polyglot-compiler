@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="polyglot3"
+      label="Polyglot"
+      version="3.1.0"
+      provider-name="nate@nanocow.com">
+
+   <description url="http://www.cs.cornell.edu/Projects/polyglot/">
+      The Polyglot extensible compiler framework
+   </description>
+
+   <copyright url="http://polyglot-compiler.googlecode.com/svn/trunk/updates/copyright.html">
+     Copyright (C) 2000-2009 Polyglot project group, Cornell University
+     Copyright (C) 2006-2009 IBM Corporation
+   </copyright>
+
+   <license url="http://polyglot-compiler.googlecode.com/svn/trunk/updates/license.html">
+      This release of the Polyglot distribution is governed by the Eclipse
+      Public License.
+   </license>
+
+   <url>
+     <update url="http://polyglot-compiler.googlecode.com/svn/trunk/updates/"/>
+   </url>
+
+   <plugin
+         id="polyglot3"
+         download-size="0"
+         install-size="0"
+         version="3.1.0"
+         unpack="false"/>
+
+</feature>
