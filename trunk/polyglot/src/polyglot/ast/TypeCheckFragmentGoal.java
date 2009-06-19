@@ -57,4 +57,8 @@ public class TypeCheckFragmentGoal extends AbstractGoal_c {
 	    return false;
 	}
     }
+    
+    public String toString() {
+	return v.job() + ":" + v.job().extensionInfo() + ":" + name() + " (" + stateString() + ") " + parent + "->" + n;
+    }
 }
