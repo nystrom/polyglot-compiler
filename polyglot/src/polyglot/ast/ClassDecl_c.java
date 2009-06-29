@@ -394,7 +394,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         interfaces = n.visitList(n.interfaces, childtc);
         
         if (n.superClass() != null)
-            assert type.superType() == n.superClass.typeRef();
+            assert type.superType() == n.superClass().typeRef();
         
         n = n.reconstruct(flags, name, superClass, interfaces, body);
         n.checkSupertypeCycles(tc.typeSystem());
