@@ -122,7 +122,7 @@ public class SourceLoader
 
     /** Check if a directory for a package exists. */
     public boolean packageExists(QName name) {
-        String fileName = name.toString().replace('.', File.separatorChar);
+        String fileName = name.toString().replace('.', '/');
 
         /* Search the source path. */
         boolean result = pathloader().dirExists(fileName);
