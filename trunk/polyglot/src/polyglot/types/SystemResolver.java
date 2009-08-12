@@ -157,12 +157,12 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
             if (ct.isTopLevel()) {
                 Package p = ((ClassType) q).package_();
                 cachePackage(p);
-                if (p != null && containerName.toString().equals(p.fullName())) {
+                if (p != null && containerName.equals(p.fullName())) {
                     addNamed(containerName, p);
                 }
             }
             else if (ct.isMember()) {
-                if (name.toString().equals(ct.fullName())) {
+                if (name.equals(ct.fullName())) {
                     // Check that the names match; we could be installing
                     // a member class under its class file name, not its Java
                     // source full name.
@@ -176,7 +176,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
             cachePackage(p);
             QName containerName = name.qualifier();
             Package prefix = Types.get(p.prefix());
-            if (prefix != null && containerName.toString().equals(prefix.fullName())) {
+            if (prefix != null && containerName.equals(prefix.fullName())) {
                 addNamed(containerName, prefix);
             }
         }
