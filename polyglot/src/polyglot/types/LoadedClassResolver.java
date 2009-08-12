@@ -135,7 +135,7 @@ public class LoadedClassResolver implements TopLevelResolver
     // Verify that the type we loaded has the right name.  This prevents,
     // for example, requesting a type through its mangled (class file) name.
     if (result != null) {
-        if (name.toString().equals(result.fullName())) {
+        if (name.equals(result.fullName())) {
             return result;
         }
         if (result instanceof ClassType && name.equals(ts.getTransformedClassName(((ClassType) result).def()))) {
