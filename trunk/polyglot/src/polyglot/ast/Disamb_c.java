@@ -11,6 +11,7 @@ package polyglot.ast;
 import polyglot.frontend.Globals;
 import polyglot.frontend.Goal;
 import polyglot.types.*;
+import polyglot.types.Package;
 import polyglot.util.Position;
 import polyglot.visit.ContextVisitor;
 
@@ -95,15 +96,19 @@ public class Disamb_c implements Disamb
             n = pc.find(ts.TypeMatcher(name.id()));
         }
         catch (SemanticException e) {
-            return null;
+            n = null;
         }
-
+        
         Qualifier q = null;
 
         if (n instanceof Qualifier) {
             q = (Qualifier) n;
         }
-        else {
+        else if (n == null) {
+	    Package p = ts.createPackage(pn.package_(), name.id());
+	    q = p;
+	}
+	else {
             return null;
         }
         
@@ -198,7 +203,14 @@ public class Disamb_c implements Disamb
 
         // Must be a package then...
         if (packageOK()) {
-            return nf.PackageNode(pos, Types.ref(ts.packageForName(QName.make(null, name.id()))));
+            try {
+        	Package p = ts.packageForName(QName.make(null, name.id()));
+        	return nf.PackageNode(pos, Types.ref(p));
+            }
+            catch (SemanticException e) {
+            }
+            Package p = ts.createPackage(QName.make(null, name.id()));
+            return nf.PackageNode(pos, Types.ref(p));
         }
 
         return null;
