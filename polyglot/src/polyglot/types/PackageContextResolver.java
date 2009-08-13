@@ -55,9 +55,9 @@ public class PackageContextResolver extends AbstractAccessControlResolver
             }
 	}
 
-        if (n == null) {
-            n = ts.createPackage(p, name);
-        }
+//        if (n == null) {
+//            n = ts.createPackage(p, name);
+//        }
         
         if (! canAccess(n, context)) {
             throw new SemanticException("Cannot access " + n + " from " + context.currentClassDef() + ".");
