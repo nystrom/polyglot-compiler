@@ -531,7 +531,7 @@
 		<antcall target="sub-ant-svn">
 			<param name="sub-ant.target" value="bin-epl.jar" />
 		</antcall>
-                <move tofile="${basedir}/polyglot_${jl.version}.jar" file="${tmp}/polyglot/lib/polyglot-epl.jar" />
+                <move tofile="${basedir}/polyglot3_${jl.version}.jar" file="${tmp}/polyglot/lib/polyglot-epl.jar" />
 		<antcall target="rmdir-tmp" />
 	</target>
 
@@ -694,7 +694,7 @@
 	<target name="build-plugin" depends="configure-buildstring">
 		<mkdir dir="${basedir}/eclipseUpdates3/plugins" />
 		<antcall target="bin-epl.jar" />
-		<copy tofile="${basedir}/eclipseUpdates3/plugins/polyglot_${jl.version}.jar" file="${lib}/polyglot-epl.jar" />
+		<copy tofile="${basedir}/eclipseUpdates3/plugins/polyglot3_${jl.version}.jar" file="${lib}/polyglot-epl.jar" />
 	</target>
 
 	<target name="build-features" depends="configure-buildstring">
@@ -705,7 +705,7 @@
                 <copy tofile="${basedir}/eclipseUpdates3/feature.xml" file="${basedir}/eclipse/feature.xml.in" filtering="true" />
                 <copy tofile="${tmp}/feature.xml" file="${basedir}/eclipse/feature.xml.in" filtering="true" />
 		<mkdir dir="${basedir}/eclipseUpdates3/features" />
-		<jar destfile="${basedir}/eclipseUpdates3/features/polyglot_${jl.version}.jar" basedir="${tmp}" includes="feature.xml" />
+		<jar destfile="${basedir}/eclipseUpdates3/features/polyglot3_${jl.version}.jar" basedir="${tmp}" includes="feature.xml" />
                 <antcall target="rmdir-tmp"/>
 	</target>
 
