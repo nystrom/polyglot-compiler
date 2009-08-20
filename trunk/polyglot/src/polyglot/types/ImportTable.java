@@ -330,7 +330,8 @@ public class ImportTable implements Resolver
 		resolved = ts.systemResolver().find(QName.make(containerName, name)); 
 
 		// Now verify that what we found actually matches.
-		resolved = matcher.instantiate(resolved);
+		if (resolved != null)
+		    resolved = matcher.instantiate(resolved);
 	    }
 	    catch (SemanticException e) {
 		return null;
