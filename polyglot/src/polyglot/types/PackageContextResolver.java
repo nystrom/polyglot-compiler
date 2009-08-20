@@ -63,6 +63,10 @@ public class PackageContextResolver extends AbstractAccessControlResolver
             throw new SemanticException("Cannot access " + n + " from " + context.currentClassDef() + ".");
         }
         
+        if (n != null) {
+            n = matcher.instantiate(n);
+        }
+   
         return n;
     }
 
