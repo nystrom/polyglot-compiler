@@ -223,10 +223,9 @@ public class DeadCodeEliminator extends DataFlow {
 
 	    if (expr instanceof LocalAssign) {
 		LocalAssign assign = (LocalAssign)expr;
-		Expr left = assign.local();
+		Local left = assign.local();
 		right = assign.right();
-		if (!(left instanceof Local)) return n;
-		local = (Local)left;
+		local = left;
 	    } else if (expr instanceof Assign) {
 		return n;
 	    } else if (expr instanceof Unary) {
@@ -306,10 +305,8 @@ public class DeadCodeEliminator extends DataFlow {
 	    if (n instanceof Local) {
 		use.add(((Local)n).localInstance().def());
 	    } else if (n instanceof LocalAssign) {
-		Expr left = ((LocalAssign)n).local();
-		if (left instanceof Local) {
-		    def.add(((Local)left).localInstance().def());
-		}
+		Local left = ((LocalAssign)n).local();
+		def.add(((Local)left).localInstance().def());
 	    }
 
 	    return n;
@@ -338,7 +335,7 @@ public class DeadCodeEliminator extends DataFlow {
 		if (n instanceof Unary) {
 		    Unary.Operator op = ((Unary)n).operator();
 		    if (op == Unary.POST_INC || op == Unary.POST_DEC
-			|| op == Unary.PRE_INC || op == Unary.PRE_INC) {
+			|| op == Unary.PRE_INC || op == Unary.PRE_DEC) {
 
 		    	return leave(parent, n, n, this);
 		    }
@@ -353,7 +350,7 @@ public class DeadCodeEliminator extends DataFlow {
 		} else if (n instanceof Unary) {
 		    Unary.Operator op = ((Unary)n).operator();
 		    if (op == Unary.POST_INC || op == Unary.POST_DEC
-			|| op == Unary.PRE_INC || op == Unary.PRE_INC) {
+			|| op == Unary.PRE_INC || op == Unary.PRE_DEC) {
 
 			result.add(nf.Eval(pos, (Expr)n));
 		    }

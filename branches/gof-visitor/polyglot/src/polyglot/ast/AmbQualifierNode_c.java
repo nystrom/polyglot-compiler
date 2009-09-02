@@ -96,7 +96,7 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 		r.setResolver(new TypeCheckTypeGoal(parent, this, tc, r, false));
 	}
 
-	public Node disambiguate(ContextVisitor ar) throws SemanticException {
+	public Node typeCheck(ContextVisitor ar) throws SemanticException {
 		SemanticException ex;
 		
 		try {
@@ -106,6 +106,10 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 				QualifierNode qn = (QualifierNode) n;
 				Qualifier q = qn.qualifierRef().get();
 				qualifier.update(q);
+				
+				if (n != this)
+				    n = n.del().typeCheck(ar);
+
 				return n;
 			}
 

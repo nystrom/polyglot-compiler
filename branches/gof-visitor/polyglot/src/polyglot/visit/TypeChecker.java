@@ -28,7 +28,7 @@ public class TypeChecker extends ContextVisitor
     
     public Node override(Node parent, Node n) {
     	Node n_ = memo.get(n);
-    	n_ = null;
+    	n_ = null; // HACK
 		if (n_ != null) {
 	        this.addDecls(n_);
 			return n_;

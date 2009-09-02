@@ -8,18 +8,9 @@
 
 package polyglot.main;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Stack;
-import polyglot.util.ErrorInfo;
-import polyglot.util.ErrorQueue;
-import polyglot.util.Position;
-import polyglot.util.SimpleErrorQueue;
+import java.util.*;
+
+import polyglot.util.*;
 
 /** Class used for reporting debug messages. */
 public class Report {
@@ -132,7 +123,7 @@ public class Report {
   public static void addTopic(String topic, int level) {
       Integer i = (Integer)reportTopics.get(topic);
       if (i == null || i.intValue() < level) {
-          reportTopics.put(topic, new Integer(level));
+          reportTopics.put(topic, level);
       }
       noReporting = false;
   }

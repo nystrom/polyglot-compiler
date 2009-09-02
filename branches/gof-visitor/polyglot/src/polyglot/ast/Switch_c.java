@@ -90,11 +90,7 @@ public class Switch_c extends Stmt_c implements Switch
             throw new SemanticException("Switch index must be an integer.",
                                         position());
         }
-        
-        return this;
-    }
 
-    public Node checkConstants(ContextVisitor tc) throws SemanticException {
         Collection<Object> labels = new HashSet<Object>();
 
         // Check for duplicate labels.
@@ -202,7 +198,7 @@ public class Switch_c extends Stmt_c implements Switch
         // If there is no default case, add an edge to the end of the switch.
         if (! hasDefault) {
             cases.add(this);
-            entry.add(new Integer(EXIT));
+            entry.add(EXIT);
         }
 
         v.visitCFG(expr, FlowGraph.EDGE_KEY_OTHER, cases, entry);

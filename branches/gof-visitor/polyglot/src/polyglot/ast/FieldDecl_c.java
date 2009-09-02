@@ -266,17 +266,6 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     	}
     }
 
-    public Node checkConstants(ContextVisitor tc) throws SemanticException {
-        if (init == null || ! init.isConstant() || ! fi.flags().isFinal()) {
-            fi.setNotConstant();
-        }
-        else {
-            fi.setConstantValue(init.constantValue());
-        }
-
-        return this;
-    }
-
     public Node visitSignature(NodeVisitor v) {
 	FlagsNode flags = (FlagsNode) this.visitChild(this.flags, v);
         TypeNode type = (TypeNode) this.visitChild(this.type, v);
@@ -311,6 +300,13 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
 		                                init.position());
 		}
 	    }
+	}
+	
+	if (init == null || ! init.isConstant() || ! fi.flags().isFinal()) {
+	    fi.setNotConstant();
+	}
+	else {
+	    fi.setConstantValue(init.constantValue());
 	}
 	
 	return this;

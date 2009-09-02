@@ -7,7 +7,6 @@
 
 package polyglot.lex;
 
-import java_cup.runtime.Symbol;
 import polyglot.util.Position;
 
 /** Token class for char literals. */
@@ -17,7 +16,7 @@ public class CharacterLiteral extends Literal {
   public CharacterLiteral(Position position, char c, int sym)
   {
     super(position, sym); 
-    this.val = new Character(c); 
+    this.val = c; 
   }
   
   public Character getValue() 

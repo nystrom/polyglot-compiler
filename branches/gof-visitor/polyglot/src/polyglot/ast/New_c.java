@@ -264,7 +264,7 @@ public class New_c extends Expr_c implements New
         return n;
     }
 
-    protected New_c typeCheckHeader(TypeChecker childtc) throws SemanticException {
+    public New_c typeCheckHeader(TypeChecker childtc) throws SemanticException {
 	TypeSystem ts = childtc.typeSystem();
 
 	New_c n = this;
@@ -303,7 +303,7 @@ public class New_c extends Expr_c implements New
      * @param ct
      * @throws SemanticException
      */
-    protected New findQualifier(TypeChecker ar, ClassType ct) throws SemanticException {
+    public New findQualifier(TypeChecker ar, ClassType ct) throws SemanticException {
         // If we're instantiating a non-static member class, add a "this"
         // qualifier.
         NodeFactory nf = ar.nodeFactory();
@@ -399,7 +399,7 @@ public class New_c extends Expr_c implements New
         return n.type(ct);
     }
 
-    protected void typeCheckNested(ContextVisitor tc) throws SemanticException {
+    public void typeCheckNested(ContextVisitor tc) throws SemanticException {
         if (qualifier != null) {
             // We have not disambiguated the type node yet.
 
@@ -438,7 +438,7 @@ public class New_c extends Expr_c implements New
         }
     }
 
-    protected void typeCheckFlags(ContextVisitor tc) throws SemanticException {
+    public void typeCheckFlags(ContextVisitor tc) throws SemanticException {
         ClassType ct = tn.type().toClass();
 
 	if (this.body == null) {

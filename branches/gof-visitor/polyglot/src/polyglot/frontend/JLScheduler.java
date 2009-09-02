@@ -15,8 +15,8 @@ package polyglot.frontend;
 
 import java.util.*;
 
-import polyglot.ast.Node;
-import polyglot.ast.NodeFactory;
+import polyglot.ast.*;
+import polyglot.dispatch.DispatchedTypeChecker;
 import polyglot.main.Version;
 import polyglot.types.*;
 import polyglot.util.ErrorInfo;
@@ -96,7 +96,25 @@ public class JLScheduler extends Scheduler {
     public Goal PreTypeCheck(Job job) {
     	TypeSystem ts = job.extensionInfo().typeSystem();
     	NodeFactory nf = job.extensionInfo().nodeFactory();
-        return new VisitorGoal("PreTypeCheck", job, new TypeCheckPreparer(job, ts, nf, job.nodeMemo())).intern(this);
+        return new VisitorGoal("PreTypeCheck", job, new TypeCheckPreparer(job, ts, nf, job.nodeMemo()) {
+    	    @Override
+    	    public Node override(Node parent, Node n) {
+    		if (n instanceof SourceFile) {
+    		    ContextVisitor v = new ContextVisitor(job, ts, nf) {
+    			@Override
+    			protected Node leaveCall(Node n) throws SemanticException {
+    			    return n.context(context().freeze());
+    			}
+    		    };
+    		    v = v.context(ts.emptyContext());
+    		    n = n.visit(v);
+    		    
+    		    return visitEdgeNoOverride(parent, n);
+    		}
+    		
+    		return null;
+    	    }
+        }).intern(this);
     }
     
     public Goal ReassembleAST(final Job job) {
@@ -118,10 +136,27 @@ public class JLScheduler extends Scheduler {
     	}).intern(this);
     }
     
-    public Goal TypeChecked(Job job) {
-    	TypeSystem ts = job.extensionInfo().typeSystem();
-    	NodeFactory nf = job.extensionInfo().nodeFactory();
-    	return new VisitorGoal("TypeChecked", job, new TypeChecker(job, ts, nf, job.nodeMemo())).intern(this);
+    public Goal TypeChecked(final Job job) {
+    	final TypeSystem ts = job.extensionInfo().typeSystem();
+    	final NodeFactory nf = job.extensionInfo().nodeFactory();
+    	return new VisitorGoal("TypeChecked", job, new NodeVisitor() {
+    	    @Override
+    	    public Node override(Node n) {
+    		if (n instanceof SourceFile) {
+    		    ContextVisitor v = new ContextVisitor(job, ts, nf) {
+    			@Override
+    			protected Node leaveCall(Node n) throws SemanticException {
+    			    return n.context(context().freeze());
+    			}
+    		    };
+    		    v = v.context(ts.emptyContext());
+    		    n = n.visit(v);
+
+    		    return n.accept(new DispatchedTypeChecker(job, ts, nf, job.nodeMemo()));
+    		}
+    		return null;
+    	    }    	    
+    	}).intern(this);
     }
     
     public Goal ConformanceChecked(Job job) {

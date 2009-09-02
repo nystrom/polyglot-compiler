@@ -7,6 +7,11 @@
 
 package polyglot.ast;
 
+import java.util.concurrent.ScheduledExecutorService;
+
+import polyglot.dispatch.ConstantValueVisitor;
+import polyglot.frontend.Globals;
+import polyglot.frontend.Job;
 import polyglot.types.*;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
@@ -58,11 +63,21 @@ public abstract class Expr_c extends Term_c implements Expr
     }
 
     public boolean isConstant() {
-        return false;
+	Job job = Globals.currentJob();
+	TypeSystem ts = Globals.TS();
+	NodeFactory nf = Globals.NF();
+	Object v = this.accept(new ConstantValueVisitor(job, ts, nf));
+	return v != ConstantValueVisitor.NOT_CONSTANT;
     }
 
     public Object constantValue() {
-        return null;
+	Job job = Globals.currentJob();
+	TypeSystem ts = Globals.TS();
+	NodeFactory nf = Globals.NF();
+	Object v = this.accept(new ConstantValueVisitor(job, ts, nf));
+	if (v == ConstantValueVisitor.NOT_CONSTANT)
+	    return null;
+	return v;
     }
 
     public String stringValue() {

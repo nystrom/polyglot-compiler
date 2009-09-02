@@ -26,6 +26,10 @@ public class AmbAssign_c extends Assign_c implements AmbAssign
     this.left = left;
   }
   
+  public Expr left() {
+      return left;
+  }
+  
   public Type leftType() {
       return left.type();
   }
@@ -60,22 +64,22 @@ public class AmbAssign_c extends Assign_c implements AmbAssign
       v.visitCFG(right(), this, EXIT);
   }
   
-  public Node disambiguate(ContextVisitor ar) throws SemanticException {
-      AmbAssign_c n = (AmbAssign_c) super.disambiguate(ar);
+  public Node typeCheck(ContextVisitor tc) throws SemanticException {
+      AmbAssign_c n = (AmbAssign_c) super.typeCheck(tc);
       
       if (left instanceof Local) {
-          LocalAssign a = ar.nodeFactory().LocalAssign(n.position(), (Local)left, operator(), right());
-          return a;
+          LocalAssign a = tc.nodeFactory().LocalAssign(n.position(), (Local)left, operator(), right());
+          return a.del().typeCheck(tc);
       }
       else if (left instanceof Field) {
-          FieldAssign a = ar.nodeFactory().FieldAssign(n.position(), ((Field)left).target(), ((Field)left).name(), operator(), right());
+          FieldAssign a = tc.nodeFactory().FieldAssign(n.position(), ((Field)left).target(), ((Field)left).name(), operator(), right());
           a = a.targetImplicit(((Field) left).isTargetImplicit());
           a = a.fieldInstance(((Field) left).fieldInstance());
-          return a;
+          return a.del().typeCheck(tc);
       } 
       else if (left instanceof ArrayAccess) {
-          ArrayAccessAssign a = ar.nodeFactory().ArrayAccessAssign(n.position(), ((ArrayAccess)left).array(), ((ArrayAccess)left).index(), operator(), right());
-          return a;
+          ArrayAccessAssign a = tc.nodeFactory().ArrayAccessAssign(n.position(), ((ArrayAccess)left).array(), ((ArrayAccess)left).index(), operator(), right());
+          return a.del().typeCheck(tc);
       }
 
       // LHS is still ambiguous.  The pass should get rerun later.
@@ -84,10 +88,6 @@ public class AmbAssign_c extends Assign_c implements AmbAssign
   }
   
   public Assign typeCheckLeft(ContextVisitor tc) throws SemanticException {
-      // Didn't finish disambiguation; just return.
-      return this;
-  }
-  public Node typeCheck(ContextVisitor tc) throws SemanticException {
       // Didn't finish disambiguation; just return.
       return this;
   }

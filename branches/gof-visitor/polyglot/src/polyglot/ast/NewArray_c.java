@@ -56,7 +56,7 @@ public class NewArray_c extends Expr_c implements NewArray
     }
 
     /** Get the dimension expressions of the expression. */
-    public List dims() {
+    public List<Expr> dims() {
 	return Collections.unmodifiableList(this.dims);
     }
 

@@ -218,27 +218,4 @@ public class Conditional_c extends Expr_c implements Conditional
 
         return succs;
     }
-    
-    public boolean isConstant() {
-	return cond.isConstant() && consequent.isConstant() && alternative.isConstant();
-    }
-
-    public Object constantValue() {
-        Object cond_ = cond.constantValue();
-        Object then_ = consequent.constantValue();
-        Object else_ = alternative.constantValue();
-
-        if (cond_ instanceof Boolean && then_ != null && else_ != null) {
-            boolean c = ((Boolean) cond_).booleanValue();
-            if (c) {
-                return then_;
-            }
-            else {
-                return else_;
-            }
-        }
-
-        return null;
-    }
-
 }

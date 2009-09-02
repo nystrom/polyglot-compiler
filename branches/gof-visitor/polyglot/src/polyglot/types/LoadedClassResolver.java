@@ -111,7 +111,7 @@ public class LoadedClassResolver implements TopLevelResolver
     if (Report.should_report(report_topics, 3))
       Report.report(3, "LoadedCR.find(" + name + ")");
  
-    Named result = null;
+    ClassType result = null;
     
     // First try the class file.
     ClassFile clazz = loadFile(name);
@@ -138,7 +138,7 @@ public class LoadedClassResolver implements TopLevelResolver
         if (name.equals(result.fullName())) {
             return result;
         }
-        if (result instanceof ClassType && name.equals(ts.getTransformedClassName(((ClassType) result).def()))) {
+        if (name.equals(ts.getTransformedClassName(((ClassType) result).def()))) {
             return result;
         }
     }

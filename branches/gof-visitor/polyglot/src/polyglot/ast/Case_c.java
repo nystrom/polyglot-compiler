@@ -96,14 +96,6 @@ public class Case_c extends Stmt_c implements Case
 		position());
 	}
     
-	return this;
-    }
-    
-    public Node checkConstants(ContextVisitor tc) throws SemanticException {
-        if (expr == null) {
-            return this;
-        }
-        
         if (expr.isConstant()) {
             Object o = expr.constantValue();
             

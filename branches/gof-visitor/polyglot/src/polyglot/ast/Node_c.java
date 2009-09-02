@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.util.*;
 
+import polyglot.dispatch.Dispatch;
 import polyglot.frontend.Compiler;
 import polyglot.frontend.ExtensionInfo;
 import polyglot.types.*;
@@ -30,7 +31,44 @@ public abstract class Node_c implements Node
     protected JL del;
     protected Ext ext;
     protected boolean error;
+    
+    protected Context context;
+    
+    public Node context(Context c) {
+	Node_c n = (Node_c) copy();
+	n.context = c;
+	return n;
+    }
+    
+    public Context context() {
+	return context;
+    }
 
+    public static int nextId;
+    protected int id;
+    
+    public int nodeId() {
+	return id;
+    }
+    
+    public Node copyIdFrom(Node from) {
+	Node_c n = (Node_c) copy();
+	n.id = from.nodeId();
+	return n;
+    }
+    
+    public Node acceptChildren(final Object v, final Object... args) {
+	return visitChildren(new NodeVisitor() {
+	    public Node override(Node n) {
+		return n.accept(v, args);
+	    }
+	});
+    }
+    
+    public <T> T accept(Object v, Object... args) {
+	return (T) new Dispatch.Dispatcher("visit").invoke(v, this, args);
+    }
+    
     public final int hashCode() {
     	return super.hashCode();
     }
@@ -43,6 +81,7 @@ public abstract class Node_c implements Node
     	assert(pos != null);
         this.position = pos;
         this.error = false;
+        this.id = nextId++;
     }
 
     public Node setResolverOverride(Node parent, TypeCheckPreparer v) {
