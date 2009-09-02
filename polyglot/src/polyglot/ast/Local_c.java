@@ -142,16 +142,4 @@ public class Local_c extends Expr_c implements Local
 	w.end();
     }
   }
-  
-  public boolean isConstant() {
-    return li != null && li.isConstant();
-  }
-
-  public Object constantValue() {
-    if (! isConstant()) return null;
-    return li.constantValue();
-  }
-  
-
-
 }

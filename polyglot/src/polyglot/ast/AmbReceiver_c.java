@@ -41,8 +41,8 @@ public class AmbReceiver_c extends AmbPrefix_c implements AmbReceiver
     }
 
     /** Disambiguate the receiver. */
-    public Node disambiguate(ContextVisitor ar) throws SemanticException {
-	Node n = super.disambiguate(ar);
+    public Node typeCheck(ContextVisitor ar) throws SemanticException {
+	Node n = super.typeCheck(ar);
 
 	if (n instanceof Receiver) {
 	    return n;
@@ -52,12 +52,6 @@ public class AmbReceiver_c extends AmbPrefix_c implements AmbReceiver
 	    "local variable \"" + 
             (prefix == null ? name.toString() : prefix.toString() + "." + name.toString()) +
             "\".", position());
-    }
-    
-
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        // Didn't finish disambiguation; just return.
-        return this;
     }
     
 

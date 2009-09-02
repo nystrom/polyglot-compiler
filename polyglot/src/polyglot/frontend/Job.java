@@ -7,12 +7,14 @@
 
 package polyglot.frontend;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
 import polyglot.types.TypeSystem;
 import polyglot.util.CodeWriter;
+import polyglot.visit.NodeVisitor;
 import polyglot.visit.TypeBuilder;
 
 /**
@@ -58,6 +60,28 @@ public class Job
         this.status = true;
         this.initialErrorCount = 0;
         this.reportedErrors = false;
+    }
+    
+    public Node findById(Node n) {
+	return findById(n.nodeId());
+    }
+    
+    public Node findById(final int id) {
+	if (ast == null)
+	    return null;
+	final Node[] result = new Node[1];
+	ast.visit(new NodeVisitor() {
+	    @Override
+	    public Node override(Node n) {
+		if (n.nodeId() == id)
+		    result[0] = n;
+		if (result[0] != null)
+		    return n;
+		else
+		    return null;
+	    }
+	});
+	return result[0];
     }
     
     public Map<Node,Node> nodeMemo() {

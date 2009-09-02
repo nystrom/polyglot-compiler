@@ -83,17 +83,4 @@ public class ClassLit_c extends Lit_c implements ClassLit
     w.write(".class");
     w.end();
   }
-
-  /**
-   * According to the JLS 2nd Ed, sec 15.28, a class literal 
-   * is not a compile time constant.
-   */
-  public boolean isConstant() {
-    return false;
-  }
-
-  public Object constantValue() {
-    return null;
-  }
-
 }

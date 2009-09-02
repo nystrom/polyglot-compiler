@@ -175,7 +175,6 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
         final ConstructorDef mix = ci;
         
         ConstructorDecl_c n = (ConstructorDecl_c) this.visitSignature(new NodeVisitor() {
-            int key = 0;
             public Node override(Node n) {
                 return ConstructorDecl_c.this.visitChild(n, tbx.pushCode(mix));
             }

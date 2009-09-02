@@ -50,9 +50,4 @@ public class CharLit_c extends NumLit_c implements CharLit
 	w.write(StringUtil.escape((char) value));
         w.write("'");
     }
-
-    public Object constantValue() {
-      return Character.valueOf((char) value);
-    }
-
 }

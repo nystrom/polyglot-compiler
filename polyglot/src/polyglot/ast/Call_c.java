@@ -151,7 +151,7 @@ public class Call_c extends Expr_c implements Call
      * 
      * @param argTypes list of <code>Type</code>s of the arguments
      */
-    protected Node typeCheckNullTarget(ContextVisitor tc, List<Type> argTypes) throws SemanticException {
+    public Node typeCheckNullTarget(ContextVisitor tc, List<Type> argTypes) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
         NodeFactory nf = tc.nodeFactory();
         Context c = tc.context();
@@ -195,7 +195,7 @@ public class Call_c extends Expr_c implements Call
      * Should return the container of the method instance. 
      * 
      */
-    protected Type findContainer(TypeSystem ts, MethodInstance mi) {
+    public Type findContainer(TypeSystem ts, MethodInstance mi) {
         return mi.container();
     }
 
@@ -405,7 +405,7 @@ public class Call_c extends Expr_c implements Call
   }
   
   // check that the implicit target setting is correct.
-  protected void checkConsistency(Context c) throws SemanticException {
+  public void checkConsistency(Context c) throws SemanticException {
       if (targetImplicit) {
           // the target is implicit. Check that the
           // method found in the target type is the

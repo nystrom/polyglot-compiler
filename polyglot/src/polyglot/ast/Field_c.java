@@ -148,13 +148,6 @@ e = new Exception();
       return f; 
   }
   
-  public Node checkConstants(ContextVisitor tc) throws SemanticException {
-      // Just check if the field is constant to force a dependency to be
-      // created.
-      isConstant();
-      return this;
-  }
-  
   public Type childExpectedType(Expr child, AscriptionVisitor av)
   {
       if (child == target) {
@@ -228,31 +221,13 @@ e = new Exception();
 
       return Collections.EMPTY_LIST;
   }
-
-  public boolean isConstant() {
-      if (fi != null &&
-              (target instanceof TypeNode ||
-                      (target instanceof Special && targetImplicit))) {
-          return fi.isConstant();
-      }
-
-      return false;
-  }
-
-  public Object constantValue() {
-    if (isConstant()) {
-      return fi.constantValue();
-    }
-
-    return null;
-  }
   
   /**
    * Check the consistency of the implicit target inserted by the compiler by
    * asserting that the FieldInstance in the Context for this field's name is
    * the same as the FieldInstance we assigned to this field.
    */
-  protected void checkConsistency(Context c) {
+  public void checkConsistency(Context c) {
       if (targetImplicit) {
           VarInstance vi = c.findVariableSilent(name.id());
           if (vi instanceof FieldInstance) {

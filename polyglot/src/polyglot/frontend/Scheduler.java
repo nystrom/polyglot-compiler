@@ -238,36 +238,6 @@ public abstract class Scheduler {
         
         return state == Goal.Status.SUCCESS;
     }
-
-    public static class State {
-        SystemResolver resolver;
-        State(SystemResolver resolver) {
-            this.resolver = resolver;
-        }
-    }
-    
-    public State pushGlobalState(Goal goal) {
-        TypeSystem ts = Globals.TS();
-//        SystemResolver resolver = ts.saveSystemResolver();
-        SystemResolver resolver = ts.systemResolver();
-        return new State(resolver);
-    }
-
-    public void popGlobalState(Goal goal, State s) {
-        TypeSystem ts = Globals.TS();
-        if (reached(goal)) {
-//            try {
-//                s.resolver.putAll(ts.systemResolver());
-//            }
-//            catch (SemanticException e) {
-//                ts.restoreSystemResolver(s.resolver);
-//                goal.setState(Goal.Status.FAIL);
-//            }
-        }
-        else {
-//            ts.restoreSystemResolver(s.resolver);
-        }
-    }
     
     protected static class Complete extends RuntimeException {
         protected Goal goal;
@@ -473,8 +443,6 @@ public abstract class Scheduler {
     public abstract List<Goal> goals(Job job);
     
     public void addDependenciesForJob(Job job, boolean compile) {
-        ExtensionInfo extInfo = this.extInfo;
-
         List<Goal> goals = goals(job);
 
         Goal prev = null;

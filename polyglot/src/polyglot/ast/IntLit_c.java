@@ -119,15 +119,6 @@ public class IntLit_c extends NumLit_c implements IntLit
         w.write(toString());
     }
 
-    public Object constantValue() {
-	if (kind() == LONG) {
-            return Long.valueOf(value);
-	}
-	else {
-            return Integer.valueOf((int) value);
-	}
-    }
-
     public Precedence precedence() {
         if (value < 0L && ! boundary()) {
             return Precedence.UNARY;

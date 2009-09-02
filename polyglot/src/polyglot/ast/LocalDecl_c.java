@@ -223,10 +223,6 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
             }
         }
         
-        return this;
-    }
-    
-    public Node checkConstants(ContextVisitor tc) throws SemanticException {
         if (init == null || ! init.isConstant() || ! li.flags().isFinal()) {
             li.setNotConstant();
         }

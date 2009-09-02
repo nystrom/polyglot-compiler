@@ -70,7 +70,7 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
       return reconstruct(prefix, name);
   }
   
-  public Node disambiguate(ContextVisitor ar) throws SemanticException {
+  public Node typeCheck(ContextVisitor ar) throws SemanticException {
       SemanticException ex;
       
       try {
@@ -85,6 +85,10 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
               Goal resolver = Globals.Scheduler().LookupGlobalType(sym);
               resolver.update(Goal.Status.SUCCESS);
               sym.setResolver(resolver);
+
+              if (n != this)
+        	  n = n.del().typeCheck(ar);
+
               return n;
           }
 

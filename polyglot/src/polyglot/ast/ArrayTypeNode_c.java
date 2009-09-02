@@ -55,16 +55,11 @@ public class ArrayTypeNode_c extends TypeNode_c implements ArrayTypeNode
     	return typeRef(Types.<Type>ref(tb.typeSystem().arrayOf(position(), base.typeRef())));
     }
 
-    public Node disambiguate(ContextVisitor ar) throws SemanticException {
+    public Node typeCheck(ContextVisitor ar) throws SemanticException {
 	TypeSystem ts = ar.typeSystem();
 	NodeFactory nf = ar.nodeFactory();
         return nf.CanonicalTypeNode(position(),
 		                    ts.arrayOf(position(), base.typeRef()));
-    }
-
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-	throw new InternalCompilerError(position(),
-	    "Cannot type check ambiguous node " + this + ".");
     }
 
     public Node exceptionCheck(ExceptionChecker ec) throws SemanticException {

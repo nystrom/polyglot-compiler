@@ -37,10 +37,4 @@ public abstract class Lit_c extends Expr_c implements Lit
     public boolean constantValueSet() {
         return true;
     }
-
-    public boolean isConstant() {
-	return true;
-    }
-    
-    public abstract Object constantValue();
 }

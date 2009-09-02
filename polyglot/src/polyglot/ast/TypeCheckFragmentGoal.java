@@ -3,11 +3,12 @@
  */
 package polyglot.ast;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
+import polyglot.dispatch.DispatchedTypeChecker;
 import polyglot.frontend.*;
 import polyglot.types.LazyRef;
+import polyglot.types.TypeSystem;
 import polyglot.util.CollectionUtil;
 import polyglot.visit.TypeChecker;
 
@@ -48,7 +49,13 @@ public class TypeCheckFragmentGoal extends AbstractGoal_c {
 	}
 
 	try {
-	    Node m = parent.visitChild(n, v);
+	    Job job = v.job();
+	    Map<Node, Node> memo = job.nodeMemo();
+	    TypeSystem ts = v.typeSystem();
+	    NodeFactory nf = v.nodeFactory();
+	    DispatchedTypeChecker d = new DispatchedTypeChecker(job, ts, nf, memo);
+	    Node m = d.visit(n);
+//	    Node m = parent.visitChild(n, v);
 	    v.job().nodeMemo().put(n, m);
 	    v.job().nodeMemo().put(m, m);
 	    return mightFail || r.known();

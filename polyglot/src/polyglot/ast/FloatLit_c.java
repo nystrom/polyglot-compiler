@@ -85,15 +85,6 @@ public class FloatLit_c extends Lit_c implements FloatLit
 	}
     }
 
-    public Object constantValue() {
-      if (kind == FLOAT) {
-        return new Float(value);
-      }
-      else {
-        return new Double(value);
-      }
-    }
-
     public Precedence precedence() {
         if (value < 0) {
             return Precedence.UNARY;
