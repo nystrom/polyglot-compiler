@@ -111,43 +111,6 @@ public class For_c extends Loop_c implements For
 	return c.pushBlock();
     }
 
-    /** Type check the statement. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-	TypeSystem ts = tc.typeSystem();
-
-        // Check that all initializers have the same type.
-        // This should be enforced by the parser, but check again here,
-        // just to be sure.
-        Type t = null;
-
-        for (Iterator i = inits.iterator(); i.hasNext(); ) {
-            ForInit s = (ForInit) i.next();
-
-            if (s instanceof LocalDecl) {
-                LocalDecl d = (LocalDecl) s;
-                Type dt = d.type().type();
-                if (t == null) {
-                    t = dt;
-                }
-                else if (! t.typeEquals(dt, tc.context())) {
-                    throw new InternalCompilerError("Local variable " +
-                        "declarations in a for loop initializer must all " +
-                        "be the same type, in this case " + t + ", not " +
-                        dt + ".", d.position());
-                }
-            }
-        }
-
-	if (cond != null &&
-	    ! ts.isImplicitCastValid(cond.type(), ts.Boolean(), tc.context())) {
-	    throw new SemanticException(
-		"The condition of a for statement must have boolean type.",
-		cond.position());
-	}
-
-	return this;
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         TypeSystem ts = av.typeSystem();
 

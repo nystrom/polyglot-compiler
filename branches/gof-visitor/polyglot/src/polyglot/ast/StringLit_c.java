@@ -41,11 +41,6 @@ public class StringLit_c extends Lit_c implements StringLit
 	return n;
     }
 
-    /** Type check the expression. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        return type(tc.typeSystem().String());
-    }
-
     public String toString() {
         if (StringUtil.unicodeEscape(value).length() > 11) {
             return "\"" + StringUtil.unicodeEscape(value).substring(0,8) + "...\"";

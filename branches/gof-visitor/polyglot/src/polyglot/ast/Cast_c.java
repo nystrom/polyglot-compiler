@@ -81,21 +81,6 @@ public class Cast_c extends Expr_c implements Cast
 	return reconstruct(castType, expr);
     }
 
-    /** Type check the expression. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException
-    {
-        TypeSystem ts = tc.typeSystem();
-
-        if (! ts.isCastValid(expr.type(), castType.type(), tc.context())) {
-	    throw new SemanticException("Cannot cast the expression of type \"" 
-					+ expr.type() + "\" to type \"" 
-					+ castType.type() + "\".",
-				        position());
-	}
-
-	return type(castType.type());
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         TypeSystem ts = av.typeSystem();
 

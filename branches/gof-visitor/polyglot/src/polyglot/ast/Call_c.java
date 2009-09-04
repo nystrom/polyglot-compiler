@@ -10,6 +10,9 @@ package polyglot.ast;
 
 import java.util.*;
 
+import polyglot.dispatch.DispatchedTypeChecker;
+import polyglot.frontend.Globals;
+import polyglot.frontend.Job;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -25,7 +28,7 @@ public class Call_c extends Expr_c implements Call
   protected Receiver target;
   protected Id name;
   protected List<Expr> arguments;
-  protected MethodInstance mi;
+  protected Ref<MethodInstance> mi;
   protected boolean targetImplicit;
 
   public Call_c(Position pos, Receiver target, Id name,
@@ -36,6 +39,10 @@ public class Call_c extends Expr_c implements Call
     this.name = name;
     this.arguments = TypedList.copyAndCheck(arguments, Expr.class, true);
     this.targetImplicit = (target == null);
+    
+    TypeSystem ts = Globals.TS();
+    MethodInstance mi = ts.createMethodInstance(position(), new ErrorRef_c<MethodDef>(ts, position(), "Cannot get MethodDef before type-checking method invocation."));
+    this.mi = Types.<MethodInstance>lazyRef(mi);
   }
 
   /** Get the precedence of the call. */
@@ -73,14 +80,14 @@ public class Call_c extends Expr_c implements Call
 
   /** Get the method instance of the call. */
   public MethodInstance methodInstance() {
-    return this.mi;
+    return Types.get(this.mi);
   }
 
   /** Set the method instance of the call. */
   public Call methodInstance(MethodInstance mi) {
     if (mi == this.mi) return this;
     Call_c n = (Call_c) copy();
-    n.mi = mi;
+    n.mi.update(mi);
     return n;
   }
 
@@ -136,60 +143,24 @@ public class Call_c extends Expr_c implements Call
       return reconstruct(target, name, arguments);
   }
 
+
+
   public Node buildTypes(TypeBuilder tb) throws SemanticException {
     Call_c n = (Call_c) super.buildTypes(tb);
 
-    TypeSystem ts = tb.typeSystem();
+    final TypeSystem ts = tb.typeSystem();
+    final Job job = tb.job();
+    final NodeFactory nf = tb.nodeFactory();
 
-    MethodInstance mi = ts.createMethodInstance(position(), new ErrorRef_c<MethodDef>(ts, position(), "Cannot get MethodDef before type-checking method invocation."));
-    return n.methodInstance(mi);
+    ((LazyRef<MethodInstance>) n.mi).setResolver(new Runnable() {
+	public void run() {
+	    new DispatchedTypeChecker(job, ts, nf).visit(Call_c.this);
+	} 
+    });
+    
+    return n;
   }
   
-  /**
-     * Typecheck the Call when the target is null. This method finds
-     * an appropriate target, and then type checks accordingly.
-     * 
-     * @param argTypes list of <code>Type</code>s of the arguments
-     */
-    public Node typeCheckNullTarget(ContextVisitor tc, List<Type> argTypes) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-        NodeFactory nf = tc.nodeFactory();
-        Context c = tc.context();
-
-        // the target is null, and thus implicit
-        // let's find the target, using the context, and
-        // set the target appropriately, and then type check
-        // the result
-        MethodInstance mi = c.findMethod(ts.MethodMatcher(null, name.id(), argTypes, c));
-        
-        Receiver r;
-        if (mi.flags().isStatic()) {
-            Type container = findContainer(ts, mi);            
-            r = nf.CanonicalTypeNode(position().startOf(), container).typeRef(Types.ref(container));
-        } else {
-            // The method is non-static, so we must prepend with "this", but we
-            // need to determine if the "this" should be qualified.  Get the
-            // enclosing class which brought the method into scope.  This is
-            // different from mi.container().  mi.container() returns a super type
-            // of the class we want.
-            ClassType scope = c.findMethodScope(name.id());
-
-            if (! ts.typeEquals(scope, c.currentClass(), c)) {
-                r = (Special) nf.This(position().startOf(),
-                            nf.CanonicalTypeNode(position().startOf(), scope)).del().typeCheck(tc);
-            }
-            else {
-                r = (Special) nf.This(position().startOf()).del().typeCheck(tc);
-            }
-        }
-
-        // we call computeTypes on the reciever too.
-        Call_c call = (Call_c) this.targetImplicit(true).target(r);       
-        call = (Call_c)call.methodInstance(mi).type(mi.returnType());
-//        call = (Call_c) call.methodInstance(mi);
-        return call;
-    }
-
     /**
      * Used to find the missing static target of a static method call.
      * Should return the container of the method instance. 
@@ -199,63 +170,14 @@ public class Call_c extends Expr_c implements Call
         return mi.container();
     }
 
-    /** Type check the call. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-        Context c = tc.context();
-
-        List<Type> argTypes = new ArrayList<Type>(this.arguments.size());
-
-        for (Iterator<Expr> i = this.arguments.iterator(); i.hasNext(); ) {
-            Expr e = (Expr) i.next();
-            argTypes.add(e.type());
-        }
-
-        if (this.target == null) {
-            return this.typeCheckNullTarget(tc, argTypes);
-        }
-        
-        Type targetType = target.type();
-        MethodInstance mi = ts.findMethod(targetType, 
-                                          ts.MethodMatcher(targetType, this.name.id(), argTypes, c));
-        
-        /* This call is in a static context if and only if
-         * the target (possibly implicit) is a type node.
-         */
-        boolean staticContext = (this.target instanceof TypeNode);
-
-        if (staticContext && !mi.flags().isStatic()) {
-            throw new SemanticException("Cannot call non-static method " + this.name.id()
-                                  + " of " + target.type() + " in static "
-                                  + "context.", this.position());
-        }
-
-        // If the target is super, but the method is abstract, then complain.
-        if (this.target instanceof Special && 
-            ((Special)this.target).kind() == Special.SUPER &&
-            mi.flags().isAbstract()) {
-                throw new SemanticException("Cannot call an abstract method " +
-                               "of the super class", this.position());            
-        }
-
-        Call_c call = (Call_c)this.methodInstance(mi).type(mi.returnType());
-
-        // If we found a method, the call must type check, so no need to check
-        // the arguments here.
-        call.checkConsistency(c);
-
-        return call;
-    }
-
   public Type childExpectedType(Expr child, AscriptionVisitor av)
   {
       if (child == target) {
-          return mi.container();
+          return methodInstance().container();
       }
 
       Iterator i = this.arguments.iterator();
-      Iterator j = mi.formalTypes().iterator();
+      Iterator j = methodInstance().formalTypes().iterator();
 
       while (i.hasNext() && j.hasNext()) {
           Expr e = (Expr) i.next();
@@ -394,7 +316,7 @@ public class Call_c extends Expr_c implements Call
   public List<Type> throwTypes(TypeSystem ts) {
     List<Type> l = new ArrayList<Type>();
 
-    l.addAll(mi.throwTypes());
+    l.addAll(methodInstance().throwTypes());
     l.addAll(ts.uncheckedExceptions());
 
     if (target instanceof Expr && ! (target instanceof Special)) {
@@ -413,7 +335,7 @@ public class Call_c extends Expr_c implements Call
           
           // as exception will be thrown if no appropriate method
           // exists. 
-          MethodInstance ctxtMI = c.findMethod(c.typeSystem().MethodMatcher(null, name.id(), mi.formalTypes(), c));
+          MethodInstance ctxtMI = c.findMethod(c.typeSystem().MethodMatcher(null, name.id(), methodInstance().formalTypes(), c));
           
           // cannot perform this check due to the context's findMethod returning a 
           // different method instance than the typeSystem in some situations

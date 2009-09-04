@@ -64,10 +64,6 @@ public class ClassBody_c extends Term_c implements ClassBody
         return reconstruct(members);
     }
 
-    public Node typeCheck(ContextVisitor ar) throws SemanticException {
-        return this;
-    }
-
     public String toString() {
         return "{ ... }";
     }

@@ -61,22 +61,6 @@ public class AmbExpr_c extends Expr_c implements AmbExpr
       return reconstruct(name);
   }
 
-  /** Disambiguate the expression. */
-  public Node typeCheck(ContextVisitor ar) throws SemanticException {
-    Position pos = position();
-    Disamb disamb = ar.nodeFactory().disamb();
-    Node n = disamb.disambiguate(this, ar, pos, null, name);
-
-    if (n instanceof Expr) {
-	if (n != this)
-	    n = n.del().typeCheck(ar);
-        return n;
-    }
-
-    throw new SemanticException("Could not find field or local " +
-                                "variable \"" + name + "\".", pos);
-  }
-
   /** Check exceptions thrown by the expression. */
   public Node exceptionCheck(ExceptionChecker ec) throws SemanticException {
     throw new InternalCompilerError(position(),

@@ -12,9 +12,9 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.util.*;
 
-import polyglot.dispatch.Dispatch;
+import polyglot.dispatch.*;
+import polyglot.frontend.*;
 import polyglot.frontend.Compiler;
-import polyglot.frontend.ExtensionInfo;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -32,6 +32,17 @@ public abstract class Node_c implements Node
     protected Ext ext;
     protected boolean error;
     
+    protected Ref<Node> checked;
+    Job job;
+    
+    public Node checked() {
+	return Types.get(checked);
+    }
+
+    public Ref<Node> checkedRef() {
+	return checked;
+    }
+    
     protected Context context;
     
     public Node context(Context c) {
@@ -44,17 +55,8 @@ public abstract class Node_c implements Node
 	return context;
     }
 
-    public static int nextId;
-    protected int id;
-    
     public int nodeId() {
-	return id;
-    }
-    
-    public Node copyIdFrom(Node from) {
-	Node_c n = (Node_c) copy();
-	n.id = from.nodeId();
-	return n;
+	return 0;
     }
     
     public Node acceptChildren(final Object v, final Object... args) {
@@ -81,14 +83,34 @@ public abstract class Node_c implements Node
     	assert(pos != null);
         this.position = pos;
         this.error = false;
-        this.id = nextId++;
-    }
-
-    public Node setResolverOverride(Node parent, TypeCheckPreparer v) {
-    	return null;
+        this.job = Globals.currentJob();
+        this.checked = Types.lazyRef(null);
+        setChecked();
     }
     
-    public void setResolver(Node parent, TypeCheckPreparer v) {
+    public void setChecked() {
+        ((LazyRef<Node>) this.checked).setResolver(new Runnable() {
+            public void run() {
+        	Node_c n = Node_c.this;
+        	try {
+		    Job job = n.job;
+		    TypeSystem ts = Globals.TS();
+		    NodeFactory nf = Globals.NF();
+        	    DispatchedTypeChecker v = new DispatchedTypeChecker(job, ts, nf);
+        	    Node m = n.accept(v, n.context());
+        	    n.checkedRef().update(m);
+        	}
+        	catch (PassthruError e) {
+        	    if (e.getCause() instanceof SemanticException) {
+        		SemanticException x = (SemanticException) e.getCause();
+        		Globals.Compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, x.getMessage(), x.position() != null ? x.position() : n.position());
+        	    }
+        	    else {
+        		throw new InternalCompilerError(e.getCause());
+        	    }
+        	}
+            }	   
+        });
     }
     
     public void init(Node node) {
@@ -183,6 +205,8 @@ public abstract class Node_c implements Node
                 n.ext.init(n);
             }
 
+            n.setChecked();
+            
             return n;
         }
         catch (CloneNotSupportedException e) {
@@ -334,27 +358,6 @@ public abstract class Node_c implements Node
 
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
 	return this;
-    }
-
-    public Node disambiguate(ContextVisitor ar) throws SemanticException {
-	return this;
-    }
-
-    /** Type check the AST. */
-    public Node typeCheckOverride(Node parent, ContextVisitor tc) throws SemanticException {
-        return null;
-    }
-    
-    public NodeVisitor typeCheckEnter(TypeChecker tc) throws SemanticException {
-	return tc;
-    }
-
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-	return this;
-    }
-    
-    public Node checkConstants(ContextVisitor tc) throws SemanticException {
-        return this;
     }
 
     public Node conformanceCheck(ContextVisitor tc) throws SemanticException {

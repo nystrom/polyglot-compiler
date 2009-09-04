@@ -21,10 +21,6 @@ import polyglot.util.StringUtil;
  */
 public abstract class AbstractNodeFactory_c implements NodeFactory
 {
-    public Disamb disamb() {
-        return new Disamb_c();
-    }
-
     public Id Id(Position pos, String name) {
 	return Id(pos, Name.make(name));
     }

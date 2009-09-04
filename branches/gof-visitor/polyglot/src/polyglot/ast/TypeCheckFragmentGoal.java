@@ -3,33 +3,35 @@
  */
 package polyglot.ast;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 import polyglot.dispatch.DispatchedTypeChecker;
 import polyglot.frontend.*;
 import polyglot.types.LazyRef;
 import polyglot.types.TypeSystem;
 import polyglot.util.CollectionUtil;
-import polyglot.visit.TypeChecker;
 
 public class TypeCheckFragmentGoal extends AbstractGoal_c {
-    protected Node parent;
     protected Node n;
-    protected TypeChecker v;
     protected LazyRef r;
     protected boolean mightFail;
+    private Job job;
+    private TypeSystem ts;
+    private NodeFactory nf;
 
-    public TypeCheckFragmentGoal(Node parent, Node n, TypeChecker v, LazyRef r, boolean mightFail) {
-	this.parent = parent;
+    public TypeCheckFragmentGoal(Node n, Job job, TypeSystem ts, NodeFactory nf, LazyRef r, boolean mightFail) {
 	this.n = n;
-	this.v = v;
 	this.r = r;
+	this.job = job;
+	this.ts = ts;
+	this.nf = nf;
 	this.mightFail = mightFail;
     }
     
     public List<Goal> prereqs() {
 	List<Goal> l = super.prereqs();
-	List<Goal> l2 = Collections.singletonList(v.job().extensionInfo().scheduler().PreTypeCheck(v.job()));
+	List<Goal> l2 = Collections.singletonList(job.extensionInfo().scheduler().PreTypeCheck(job));
 	if (l.isEmpty())
 	    return l2;
 	else
@@ -37,7 +39,7 @@ public class TypeCheckFragmentGoal extends AbstractGoal_c {
     }
 
     public boolean runTask() {
-	Goal g = v.job().extensionInfo().scheduler().PreTypeCheck(v.job());
+	Goal g = job.extensionInfo().scheduler().PreTypeCheck(job);
 	assert g.hasBeenReached();
 
 	if (state() == Goal.Status.RUNNING_RECURSIVE) {
@@ -49,15 +51,9 @@ public class TypeCheckFragmentGoal extends AbstractGoal_c {
 	}
 
 	try {
-	    Job job = v.job();
-	    Map<Node, Node> memo = job.nodeMemo();
-	    TypeSystem ts = v.typeSystem();
-	    NodeFactory nf = v.nodeFactory();
-	    DispatchedTypeChecker d = new DispatchedTypeChecker(job, ts, nf, memo);
+	    DispatchedTypeChecker d = new DispatchedTypeChecker(job, ts, nf);
 	    Node m = d.visit(n);
 //	    Node m = parent.visitChild(n, v);
-	    v.job().nodeMemo().put(n, m);
-	    v.job().nodeMemo().put(m, m);
 	    return mightFail || r.known();
 	}
 	catch (SchedulerException e) {
@@ -66,6 +62,6 @@ public class TypeCheckFragmentGoal extends AbstractGoal_c {
     }
     
     public String toString() {
-	return v.job() + ":" + v.job().extensionInfo() + ":" + name() + " (" + stateString() + ") " + parent + "->" + n;
+	return job + ":" + job.extensionInfo() + ":" + name() + " (" + stateString() + ") " + n;
     }
 }

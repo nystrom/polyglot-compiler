@@ -30,11 +30,6 @@ public class LocalAssign_c extends Assign_c implements LocalAssign
     }
 
     @Override
-    public Assign typeCheckLeft(ContextVisitor tc) throws SemanticException {
-	return this;
-    }
-
-    @Override
     public Assign visitLeft(NodeVisitor v) {
 	Local local = (Local) visitChild(this.local, v);
 	if (local != this.local) {

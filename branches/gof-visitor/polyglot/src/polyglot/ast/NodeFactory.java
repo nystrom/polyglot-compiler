@@ -21,12 +21,6 @@ import polyglot.util.Position;
  */
 public interface NodeFactory
 {
-
-    /**
-     * Returns a disambiguator for nodes from this factory.
-     */
-    Disamb disamb();
-    
     //////////////////////////////////////////////////////////////////
     // Factory Methods
     //////////////////////////////////////////////////////////////////

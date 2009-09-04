@@ -53,20 +53,6 @@ public class FloatLit_c extends Lit_c implements FloatLit
 	return n;
     }
 
-    /** Type check the expression. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-	if (kind == FLOAT) {
-	    return type(tc.typeSystem().Float());
-	}
-	else if (kind == DOUBLE) {
-	    return type(tc.typeSystem().Double());
-	}
-	else {
-	    throw new InternalCompilerError("Unrecognized FloatLit kind " +
-		kind);
-	}
-    }  
-
     public String toString() {
 	return Double.toString(value);
     }

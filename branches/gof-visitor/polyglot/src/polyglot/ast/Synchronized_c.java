@@ -75,19 +75,6 @@ public class Synchronized_c extends Stmt_c implements Synchronized
 	return reconstruct(expr, body);
     }
 
-    /** Type check the statement. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-	TypeSystem ts = tc.typeSystem();
-
-	if (! ts.isSubtype(expr.type(), ts.Object(), tc.context()) ) {
-	     throw new SemanticException(
-		 "Cannot synchronize on an expression of type \"" +
-		 expr.type() + "\".", expr.position());
-	}
-
-	return this;
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         TypeSystem ts = av.typeSystem();
 

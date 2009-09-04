@@ -236,32 +236,6 @@ public class MethodDecl_c extends Term_c implements MethodDecl
         return reconstruct(flags, returnType, name, formals, throwTypes, this.body);
     }
     
-    /** Type check the declaration. */
-    public Node typeCheckBody(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
-        MethodDecl_c n = this;
-        Block body = (Block) n.visitChild(n.body, childtc);
-        n = (MethodDecl_c) n.body(body);
-        return n;
-    }
-
-    /** Type check the method. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-        for (Iterator<TypeNode> i = throwTypes().iterator(); i.hasNext(); ) {
-            TypeNode tn = (TypeNode) i.next();
-            Type t = tn.type();
-            if (! t.isThrowable()) {
-                throw new SemanticException("Type \"" + t +
-                    "\" is not a subclass of \"" + ts.Throwable() + "\".",
-                    tn.position());
-            }
-        }
-
-
-	return this;
-    }
-    
     @Override
     public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
 	// Get the mi flags, not the node flags since the mi flags

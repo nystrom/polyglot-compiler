@@ -216,30 +216,6 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
         List<TypeNode> throwTypes = this.visitList(this.throwTypes, v);
         return reconstruct(flags, name, formals, throwTypes, this.body);
     }
-
-    /** Type check the declaration. */
-    public Node typeCheckBody(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
-        ConstructorDecl_c n = this;
-        Block body = (Block) n.visitChild(n.body, childtc);
-        n = (ConstructorDecl_c) n.body(body);
-        return n;
-    }
-
-    /** Type check the constructor. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-        for (TypeNode tn : throwTypes()) {
-            Type t = tn.type();
-            if (! t.isThrowable()) {
-                throw new SemanticException("Type \"" + t +
-                                            "\" is not a subclass of \"" + ts.Throwable() + "\".",
-                                            tn.position());
-            }
-        }
-
-        return this;
-    }
     
     public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
 	Context c = tc.context();

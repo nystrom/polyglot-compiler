@@ -35,9 +35,6 @@ public class Job
 
     /** The AST constructed from the source file. */
     protected Node ast;
-    
-    /** Map for memoizing nodes during type-checking. */
-    protected Map<Node,Node> nodeMemo;
 
     /** True if all passes run so far have been successful. */
     protected boolean status;
@@ -60,39 +57,6 @@ public class Job
         this.status = true;
         this.initialErrorCount = 0;
         this.reportedErrors = false;
-    }
-    
-    public Node findById(Node n) {
-	return findById(n.nodeId());
-    }
-    
-    public Node findById(final int id) {
-	if (ast == null)
-	    return null;
-	final Node[] result = new Node[1];
-	ast.visit(new NodeVisitor() {
-	    @Override
-	    public Node override(Node n) {
-		if (n.nodeId() == id)
-		    result[0] = n;
-		if (result[0] != null)
-		    return n;
-		else
-		    return null;
-	    }
-	});
-	return result[0];
-    }
-    
-    public Map<Node,Node> nodeMemo() {
-        if (nodeMemo == null) {
-            nodeMemo = new HashMap<Node,Node>();
-        }
-        return nodeMemo;
-    }
-    
-    public void setNodeMemo(Map<Node,Node> map) {
-        this.nodeMemo = map;
     }
     
     public JobExt ext() {

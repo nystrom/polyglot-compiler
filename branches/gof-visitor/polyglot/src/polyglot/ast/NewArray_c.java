@@ -117,27 +117,6 @@ public class NewArray_c extends Expr_c implements NewArray
 	return reconstruct(baseType, dims, init);
     }
 
-    /** Type check the expression. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-        for (Iterator<Expr> i = dims.iterator(); i.hasNext(); ) {
-            Expr expr = (Expr) i.next();
-            if (! ts.isImplicitCastValid(expr.type(), ts.Int(), tc.context())) {
-                throw new SemanticException("Array dimension must be an integer.",
-                        expr.position());
-            }
-        }
-
-        Type type = ts.arrayOf(baseType.type(), dims.size() + addDims);
-
-	if (init != null) {
-            init.typeCheckElements(tc, type);
-	}
-
-	return type(type);
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         if (child == init) {
             return this.type();

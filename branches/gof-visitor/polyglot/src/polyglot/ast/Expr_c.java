@@ -7,9 +7,11 @@
 
 package polyglot.ast;
 
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.HashMap;
+import java.util.Map;
 
 import polyglot.dispatch.ConstantValueVisitor;
+import polyglot.dispatch.DispatchedTypeChecker;
 import polyglot.frontend.Globals;
 import polyglot.frontend.Job;
 import polyglot.types.*;
@@ -23,10 +25,12 @@ import polyglot.visit.*;
  */
 public abstract class Expr_c extends Term_c implements Expr
 {
-	protected Type type;
+    protected Ref<Type> typeRef;
 
     public Expr_c(Position pos) {
 	super(pos);
+	TypeSystem ts = Globals.TS();
+	this.typeRef = Types.<Type>lazyRef(ts.unknownType(position()));
     }
 
     /**
@@ -34,25 +38,45 @@ public abstract class Expr_c extends Term_c implements Expr
      * <code>UnknownType</code> before type-checking, but should return the
      * correct type after type-checking.
      */
+    public Ref<Type> typeRef() {
+    	return this.typeRef;
+    }
+    
     public Type type() {
-    	return this.type;
+	return Types.get(this.typeRef);
     }
     
     /** Set the type of the expression. */
     public Expr type(Type type) {
-    	if (type == this.type) return this;
     	Expr_c n = (Expr_c) copy();
-    	n.type = type;
+    	n.typeRef.update(type);
     	return n;
+    }
+    
+    @Override
+    public Node buildTypes(TypeBuilder tb) throws SemanticException {
+	Expr_c n = (Expr_c) super.buildTypes(tb);
+	
+	final Job job = tb.job();
+	final TypeSystem ts = tb.typeSystem();
+	final NodeFactory nf = tb.nodeFactory();
+
+	((LazyRef<Type>) n.typeRef).setResolver(new Runnable() {
+	    public void run() {
+		new DispatchedTypeChecker(job, ts, nf).visit(Expr_c.this);
+	    } 
+	});
+
+	return n;
     }
 
     public void dump(CodeWriter w) {
         super.dump(w);
 
-	if (type != null) {
+	if (typeRef != null) {
 	    w.allowBreak(4, " ");
 	    w.begin(0);
-	    w.write("(type " + type + ")");
+	    w.write("(type " + typeRef + ")");
 	    w.end();
 	}
     }
@@ -114,10 +138,6 @@ public abstract class Expr_c extends Term_c implements Expr
 
     public double doubleValue() {
         return ((Double) constantValue()).doubleValue();
-    }
-
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        return type(tb.typeSystem().unknownType(position()));
     }
 
     /**

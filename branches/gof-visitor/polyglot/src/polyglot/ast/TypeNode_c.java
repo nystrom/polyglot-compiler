@@ -7,6 +7,7 @@
 
 package polyglot.ast;
 
+import java.util.HashMap;
 import java.util.List;
 
 import polyglot.frontend.SetResolverGoal;
@@ -59,20 +60,13 @@ public abstract class TypeNode_c extends Term_c implements TypeNode
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         if (type == null) {
             TypeSystem ts = tb.typeSystem();
-            return typeRef(Types.lazyRef(ts.unknownType(position()), new SetResolverGoal(tb.job())));
+            LazyRef<UnknownType> r = Types.lazyRef(ts.unknownType(position()));
+            r.setResolver(new TypeCheckTypeGoal(this, tb.job(), tb.typeSystem(), tb.nodeFactory(), r, false));
+	    return typeRef(r);
         }
         else {
             return this;
         }
-    }
-    
-    public void setResolver(Node parent, final TypeCheckPreparer v) {
-    	if (typeRef() instanceof LazyRef) {
-    		LazyRef<Type> r = (LazyRef<Type>) typeRef();
-    		TypeChecker tc = new TypeChecker(v.job(), v.typeSystem(), v.nodeFactory(), v.getMemo());
-    		tc = (TypeChecker) tc.context(v.context().freeze());
-    		r.setResolver(new TypeCheckTypeGoal(parent, this, tc, r, false));
-    	}
     }
 	
     public Term firstChild() {
