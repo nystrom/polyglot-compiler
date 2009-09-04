@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import polyglot.dispatch.ConstantValueVisitor;
-import polyglot.dispatch.DispatchedTypeChecker;
+import polyglot.dispatch.TypeChecker;
 import polyglot.frontend.Globals;
 import polyglot.frontend.Job;
 import polyglot.types.*;
@@ -63,7 +63,7 @@ public abstract class Expr_c extends Term_c implements Expr
 
 	((LazyRef<Type>) n.typeRef).setResolver(new Runnable() {
 	    public void run() {
-		new DispatchedTypeChecker(job, ts, nf).visit(Expr_c.this);
+		new TypeChecker(job, ts, nf).visit(Expr_c.this);
 	    } 
 	});
 

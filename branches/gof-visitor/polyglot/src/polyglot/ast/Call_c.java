@@ -10,7 +10,7 @@ package polyglot.ast;
 
 import java.util.*;
 
-import polyglot.dispatch.DispatchedTypeChecker;
+import polyglot.dispatch.TypeChecker;
 import polyglot.frontend.Globals;
 import polyglot.frontend.Job;
 import polyglot.types.*;
@@ -154,7 +154,7 @@ public class Call_c extends Expr_c implements Call
 
     ((LazyRef<MethodInstance>) n.mi).setResolver(new Runnable() {
 	public void run() {
-	    new DispatchedTypeChecker(job, ts, nf).visit(Call_c.this);
+	    new TypeChecker(job, ts, nf).visit(Call_c.this);
 	} 
     });
     

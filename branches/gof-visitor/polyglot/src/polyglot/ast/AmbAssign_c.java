@@ -8,10 +8,10 @@
 
 package polyglot.ast;
 
-import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.CFGBuilder;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>AmbAssign</code> represents a Java assignment expression to

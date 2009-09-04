@@ -16,7 +16,7 @@ package polyglot.frontend;
 import java.util.*;
 
 import polyglot.ast.*;
-import polyglot.dispatch.DispatchedTypeChecker;
+import polyglot.dispatch.TypeChecker;
 import polyglot.main.Version;
 import polyglot.types.*;
 import polyglot.util.ErrorInfo;

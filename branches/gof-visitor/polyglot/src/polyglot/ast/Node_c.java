@@ -96,11 +96,12 @@ public abstract class Node_c implements Node
 		    Job job = n.job;
 		    TypeSystem ts = Globals.TS();
 		    NodeFactory nf = Globals.NF();
-        	    DispatchedTypeChecker v = new DispatchedTypeChecker(job, ts, nf);
+        	    TypeChecker v = new TypeChecker(job, ts, nf);
         	    Node m = n.accept(v, n.context());
         	    n.checkedRef().update(m);
         	}
         	catch (PassthruError e) {
+        	    n.checkedRef().update(n);
         	    if (e.getCause() instanceof SemanticException) {
         		SemanticException x = (SemanticException) e.getCause();
         		Globals.Compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, x.getMessage(), x.position() != null ? x.position() : n.position());

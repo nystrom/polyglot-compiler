@@ -10,7 +10,7 @@ package polyglot.ast;
 
 import java.util.*;
 
-import polyglot.dispatch.DispatchedTypeChecker;
+import polyglot.dispatch.TypeChecker;
 import polyglot.frontend.*;
 import polyglot.types.*;
 import polyglot.util.*;
@@ -162,7 +162,7 @@ public class New_c extends Expr_c implements New
         
         ((LazyRef<ConstructorInstance>) n.ci).setResolver(new Runnable() {
             public void run() {
-        	new DispatchedTypeChecker(job, ts, nf).visit(New_c.this);
+        	new TypeChecker(job, ts, nf).visit(New_c.this);
             } 
         });
         

@@ -9,7 +9,7 @@ package polyglot.ast;
 
 import java.util.*;
 
-import polyglot.dispatch.DispatchedTypeChecker;
+import polyglot.dispatch.TypeChecker;
 import polyglot.frontend.Globals;
 import polyglot.frontend.Job;
 import polyglot.types.*;
@@ -51,7 +51,7 @@ public class FieldAssign_c extends Assign_c implements FieldAssign
 
 	((LazyRef<FieldInstance>) this.fi).setResolver(new Runnable() {
 	    public void run() {
-		new DispatchedTypeChecker(job, ts, nf).visit(FieldAssign_c.this);
+		new TypeChecker(job, ts, nf).visit(FieldAssign_c.this);
 	    } 
 	});
 

@@ -58,6 +58,7 @@ public abstract class Assign_c extends Expr_c implements Assign, Ambiguous
 
   /** Set the right operand of the expression. */
   public Assign right(Expr right) {
+      assert right != null;
       if (right == this.right) return this;
     Assign_c n = (Assign_c) copy();
     n.right = right;

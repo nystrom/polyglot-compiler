@@ -9,26 +9,48 @@ import polyglot.types.Package;
 import polyglot.util.*;
 import polyglot.visit.*;
 
-public class DispatchedTypeChecker {
+public class TypeChecker {
 
     Job job;
     TypeSystem ts;
     NodeFactory nf;
 
-    public DispatchedTypeChecker(Job job, TypeSystem ts, NodeFactory nf) {
+    public TypeChecker(Job job, TypeSystem ts, NodeFactory nf) {
 	this.job = job;
 	this.ts = ts;
 	this.nf = nf;
     }
 
     public Node visit(Node n) {
+	if (n == null)
+	    return n;
 	return n.checked();
+    }
+
+    Node accept(Node n) {
+	if (n == null)
+	    return null;
+	Node m = n.checked();
+//	return n.accept(DispatchedTypeChecker.this);
+	
+	assert m != null : "null checked for " + n;
+	
+	return m;
+    }
+
+    List<? extends Node> accept(List<? extends Node> l) {
+	List result = new ArrayList();
+	for (Node n : l) {
+	    Node n2 = accept(n);
+	    result.add(n2);
+	}
+	return result;
     }
 
     public Node acceptChildren(Node n) {
 	return n.visitChildren(new NodeVisitor() {
 	    public Node override(Node n) {
-		return DispatchedTypeChecker.this.visit(n);
+		return TypeChecker.this.visit(n);
 	    }
 	});
     }
@@ -1012,8 +1034,7 @@ public class DispatchedTypeChecker {
 		tn = (TypeNode) copyAttributesFrom(tn, n.objectType());
 	    }
 	    else {
-		throw new SemanticException("Only simply-named member classes may be instantiated by a qualified new expression.", n.objectType()
-		                            .position());
+		throw new SemanticException("Only simply-named member classes may be instantiated by a qualified new expression.", tn.position());
 	    }
 	}
 
@@ -1666,7 +1687,17 @@ public class DispatchedTypeChecker {
     }
 
     public Node visit(AmbAssign_c n, Context context) throws SemanticException {
+	assert n != null;
+	assert n.left() != null;
+	assert n.operator() != null;
+	assert n.right() != null;
+
 	n = (AmbAssign_c) acceptChildren(n);
+	
+	assert n != null;
+	assert n.left() != null;
+	assert n.operator() != null;
+	assert n.right() != null;
 
 	if (n.left() instanceof Local) {
 	    LocalAssign a = nf.LocalAssign(n.position(), (Local) n.left(), n.operator(), n.right());
@@ -1939,21 +1970,6 @@ public class DispatchedTypeChecker {
 	Node n2 = (ClassDecl_c) n1.body(body);
 
 	return n2;
-    }
-
-    Node accept(Node n) {
-	if (n == null)
-	    return null;
-	return n.accept(DispatchedTypeChecker.this);
-    }
-
-    List<? extends Node> accept(List<? extends Node> l) {
-	List result = new ArrayList();
-	for (Node n : l) {
-	    Node n2 = accept(n);
-	    result.add(n2);
-	}
-	return result;
     }
 
     private ClassDecl_c typeCheckSupers(Context context, ClassDecl_c n) throws SemanticException {
