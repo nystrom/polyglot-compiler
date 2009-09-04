@@ -10,7 +10,7 @@ package polyglot.ast;
 
 import java.util.*;
 
-import polyglot.dispatch.DispatchedTypeChecker;
+import polyglot.dispatch.TypeChecker;
 import polyglot.frontend.Globals;
 import polyglot.frontend.Job;
 import polyglot.types.*;
@@ -135,7 +135,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 
 	((LazyRef<ConstructorInstance>) n.ci).setResolver(new Runnable() {
 	    public void run() {
-		new DispatchedTypeChecker(job, ts, nf).visit(ConstructorCall_c.this);
+		new TypeChecker(job, ts, nf).visit(ConstructorCall_c.this);
 	    } 
 	});
 
