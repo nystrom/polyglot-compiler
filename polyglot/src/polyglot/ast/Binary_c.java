@@ -105,143 +105,6 @@ public class Binary_c extends Expr_c implements Binary
 	return reconstruct(left, right);
     }
     
-    /** Type check the expression. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        Type l = left.type();
-	Type r = right.type();
-
-	TypeSystem ts = tc.typeSystem();
-	Context context = tc.context();
-
-	if (op == GT || op == LT || op == GE || op == LE) {
-	    if (! l.isNumeric()) {
-		throw new SemanticException("The " + op +
-		    " operator must have numeric operands, not type " +
-                    l + ".", left.position());
-	    }
-
-            if (! r.isNumeric()) {
-		throw new SemanticException("The " + op +
-		    " operator must have numeric operands, not type " +
-                    r + ".", right.position());
-	    }
-
-	    return type(ts.Boolean());
-	}
-
-	if (op == EQ || op == NE) {
-            if (! ts.isCastValid(l, r, context) && ! ts.isCastValid(r, l, context)) {
-		throw new SemanticException("The " + op +
-		    " operator must have operands of similar type.",
-		    position());
-	    }
-
-	    return type(ts.Boolean());
-	}
-
-	if (op == COND_OR || op == COND_AND) {
-	    if (! l.isBoolean()) {
-		throw new SemanticException("The " + op +
-		    " operator must have boolean operands, not type " +
-                    l + ".", left.position());
-	    }
-
-	    if (! r.isBoolean()) {
-		throw new SemanticException("The " + op +
-		    " operator must have boolean operands, not type " +
-                    r + ".", right.position());
-	    }
-
-	    return type(ts.Boolean());
-	}
-
-	if (op == ADD) {
-	    if (ts.isSubtype(l, ts.String(), context) || ts.isSubtype(r, ts.String(), context)) {
-                if (!ts.canCoerceToString(r, tc.context())) {
-                    throw new SemanticException("Cannot coerce an expression " + 
-                                "of type " + r + " to a String.", 
-                                right.position());
-                }
-                if (!ts.canCoerceToString(l, tc.context())) {
-                    throw new SemanticException("Cannot coerce an expression " + 
-                                "of type " + l + " to a String.", 
-                                left.position());
-                }
-
-                return precedence(Precedence.STRING_ADD).type(ts.String());
-            }
-	}
-
-	if (op == BIT_AND || op == BIT_OR || op == BIT_XOR) {
-	    if (l.isBoolean() && r.isBoolean()) {
-		return type(ts.Boolean());
-	    }
-	}
-
-        if (op == ADD) {
-            if (! l.isNumeric()) {
-                throw new SemanticException("The " + op +
-                    " operator must have numeric or String operands, not type " +
-                    l + ".", left.position());
-            }
-
-            if (! r.isNumeric()) {
-                throw new SemanticException("The " + op +
-                    " operator must have numeric or String operands, not type " +
-                    r + ".", right.position());
-            }
-        }
-
-        if (op == BIT_AND || op == BIT_OR || op == BIT_XOR) {
-            if (! ts.isImplicitCastValid(l, ts.Long(), context)) {
-                throw new SemanticException("The " + op +
-                    " operator must have numeric or boolean operands, not type " +
-                    l + ".", left.position());
-            }
-
-            if (! ts.isImplicitCastValid(r, ts.Long(), context)) {
-                throw new SemanticException("The " + op +
-                    " operator must have numeric or boolean operands, not type " +
-                    r + ".", right.position());
-            }
-        }
-
-        if (op == SUB || op == MUL || op == DIV || op == MOD) {
-            if (! l.isNumeric()) {
-                throw new SemanticException("The " + op +
-                    " operator must have numeric operands, not type " +
-                    l + ".", left.position());
-            }
-
-            if (! r.isNumeric()) {
-                throw new SemanticException("The " + op +
-                    " operator must have numeric operands, not type " +
-                    r + ".", right.position());
-            }
-        }
-
-        if (op == SHL || op == SHR || op == USHR) {
-            if (! ts.isImplicitCastValid(l, ts.Long(), context)) {
-                throw new SemanticException("The " + op +
-                    " operator must have numeric operands, not type " +
-                    l + ".", left.position());
-            }
-
-            if (! ts.isImplicitCastValid(r, ts.Long(), context)) {
-                throw new SemanticException("The " + op +
-                    " operator must have numeric operands, not type " +
-                    r + ".", right.position());
-            }
-        }
-
-	if (op == SHL || op == SHR || op == USHR) {
-	    // For shift, only promote the left operand.
-	    return type(ts.promote(l));
-	}
-
-	return type(ts.promote(l, r));
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         Expr other;
 
@@ -377,10 +240,10 @@ public class Binary_c extends Expr_c implements Binary
   public void dump(CodeWriter w) {
     super.dump(w);
 
-    if (type != null) {
+    if (typeRef != null) {
       w.allowBreak(4, " ");
       w.begin(0);
-      w.write("(type " + type + ")");
+      w.write("(type " + typeRef + ")");
       w.end();
     }
 

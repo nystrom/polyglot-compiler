@@ -12,7 +12,6 @@ import java.util.List;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.visit.ContextVisitor;
-import polyglot.visit.TypeChecker;
 
 /**
  * An <code>ArrayInit</code> is an immutable representation of
@@ -33,14 +32,4 @@ public interface ArrayInit extends Expr
      * @param elements A list of {@link polyglot.ast.Expr Expr}.
      */
     ArrayInit elements(List<Expr> elements);
-
-    /**
-     * Type check the individual elements of the array initializer against the
-     * left-hand-side type.  Each element is checked to see if it can be
-     * assigned to a variable of type lhsType.
-     * @param tc TODO
-     * @param lhsType Type to compare against.
-     * @exception SemanticException if there is a type error.
-     */
-    void typeCheckElements(ContextVisitor tc, Type lhsType) throws SemanticException;
 }

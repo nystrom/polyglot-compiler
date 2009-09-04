@@ -47,7 +47,6 @@ public class JLScheduler extends Scheduler {
         goals.add(PreTypeCheck(job));
         goals.add(TypesInitializedForCommandLine());
         goals.add(TypeChecked(job));
-        goals.add(ReassembleAST(job));
         
         goals.add(ConformanceChecked(job));
         goals.add(ReachabilityChecked(job));
@@ -96,44 +95,7 @@ public class JLScheduler extends Scheduler {
     public Goal PreTypeCheck(Job job) {
     	TypeSystem ts = job.extensionInfo().typeSystem();
     	NodeFactory nf = job.extensionInfo().nodeFactory();
-        return new VisitorGoal("PreTypeCheck", job, new TypeCheckPreparer(job, ts, nf, job.nodeMemo()) {
-    	    @Override
-    	    public Node override(Node parent, Node n) {
-    		if (n instanceof SourceFile) {
-    		    ContextVisitor v = new ContextVisitor(job, ts, nf) {
-    			@Override
-    			protected Node leaveCall(Node n) throws SemanticException {
-    			    return n.context(context().freeze());
-    			}
-    		    };
-    		    v = v.context(ts.emptyContext());
-    		    n = n.visit(v);
-    		    
-    		    return visitEdgeNoOverride(parent, n);
-    		}
-    		
-    		return null;
-    	    }
-        }).intern(this);
-    }
-    
-    public Goal ReassembleAST(final Job job) {
-    	final Map<Node, Node> memo = job.nodeMemo();
-    	return new VisitorGoal("ReassembleAST", job, new NodeVisitor() {
-    		public Node leave(Node old, Node n, NodeVisitor v) {
-    			Node m = memo.get(old);
-    			
-    			if (old == job.ast()) {
-    				memo.clear();
-    			}
-
-    			if (m != null) {
-    				return m;
-    			}
-
-    			return n;
-    		}
-    	}).intern(this);
+        return new VisitorGoal("PreTypeCheck", job, new ContextSetter(job, ts, nf)).intern(this);
     }
     
     public Goal TypeChecked(final Job job) {
@@ -141,21 +103,9 @@ public class JLScheduler extends Scheduler {
     	final NodeFactory nf = job.extensionInfo().nodeFactory();
     	return new VisitorGoal("TypeChecked", job, new NodeVisitor() {
     	    @Override
-    	    public Node override(Node n) {
-    		if (n instanceof SourceFile) {
-    		    ContextVisitor v = new ContextVisitor(job, ts, nf) {
-    			@Override
-    			protected Node leaveCall(Node n) throws SemanticException {
-    			    return n.context(context().freeze());
-    			}
-    		    };
-    		    v = v.context(ts.emptyContext());
-    		    n = n.visit(v);
-
-    		    return n.accept(new DispatchedTypeChecker(job, ts, nf, job.nodeMemo()));
-    		}
-    		return null;
-    	    }    	    
+    	    public Node leave(Node parent, Node old, Node n, NodeVisitor v) {
+    		return n.checked();
+    	    }
     	}).intern(this);
     }
     

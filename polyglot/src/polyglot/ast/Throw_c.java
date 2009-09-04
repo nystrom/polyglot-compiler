@@ -59,17 +59,6 @@ public class Throw_c extends Stmt_c implements Throw
 	return reconstruct(expr);
     }
 
-    /** Type check the statement. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-    	if (! expr.type().isThrowable()) {
-	    throw new SemanticException(
-		"Can only throw subclasses of \"" +
-		tc.typeSystem().Throwable() + "\".", expr.position());
-	}
-
-	return this;
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         TypeSystem ts = av.typeSystem();
 

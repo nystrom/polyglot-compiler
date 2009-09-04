@@ -95,25 +95,6 @@ public class Local_c extends Expr_c implements Local
       return n.localInstance(li);
   }
 
-  /** Type check the local. */
-  public Node typeCheck(ContextVisitor tc) throws SemanticException {
-    Context c = tc.context();
-    LocalInstance li = c.findLocal(name.id());
-    
-    // if the local is defined in an outer class, then it must be final
-    if (!c.isLocal(li.name())) {
-        // this local is defined in an outer class
-        if (!li.flags().isFinal()) {
-            throw new SemanticException("Local variable \"" + li.name() + 
-                    "\" is accessed from an inner class, and must be declared " +
-                    "final.",
-                    this.position());                     
-        }
-    }
-    
-    return localInstance(li).type(li.type());
-  }
-
   public Term firstChild() {
       return null;
   }

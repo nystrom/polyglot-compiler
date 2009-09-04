@@ -60,29 +60,6 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
 	return reconstruct(elements);
     }
 
-    /** Type check the initializer. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-	Type type = null;
-
-	for (Expr e : elements) {
-	    if (type == null) {
-	        type = e.type();
-	    }
-	    else {
-	        type = ts.leastCommonAncestor(type, e.type(), tc.context());
-	    }
-	}
-
-	if (type == null) {
-	    return type(ts.Null());
-	}
-	else {
-	    return type(ts.arrayOf(type));
-	}
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
 		if (elements.isEmpty()) {
             return child.type();
@@ -113,35 +90,6 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
         }
 
         return child.type();
-    }
-
-    public void typeCheckElements(ContextVisitor tc, Type lhsType) throws SemanticException {
-    	TypeSystem ts = tc.typeSystem();
-
-        if (! lhsType.isArray()) {
-          throw new SemanticException("Cannot initialize " + lhsType +
-                                      " with " + type + ".", position());
-        }
-
-        // Check if we can assign each individual element.
-        Type t = lhsType.toArray().base();
-
-        for (Iterator<Expr> i = elements.iterator(); i.hasNext(); ) {
-            Expr e = (Expr) i.next();
-            Type s = e.type();
-
-            if (e instanceof ArrayInit) {
-                ((ArrayInit) e).typeCheckElements(tc, t);
-                continue;
-            }
-
-            if (! ts.isImplicitCastValid(s, t, tc.context()) &&
-                ! ts.typeEquals(s, t, tc.context()) &&
-                ! ts.numericConversionValid(t, e.constantValue(), tc.context())) {
-                throw new SemanticException("Cannot assign " + s +
-                                            " to " + t + ".", e.position());
-            }
-        }
     }
 
     public String toString() {

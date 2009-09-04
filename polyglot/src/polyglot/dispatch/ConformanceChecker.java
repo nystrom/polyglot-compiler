@@ -5,7 +5,6 @@ import java.util.Iterator;
 import polyglot.ast.*;
 import polyglot.frontend.Job;
 import polyglot.types.*;
-import polyglot.visit.ContextCache;
 import polyglot.visit.ContextVisitor;
 
 public class ConformanceChecker {
@@ -18,9 +17,8 @@ public class ConformanceChecker {
     }
 
     ContextVisitor cc(Node n) throws SemanticException {
-	Context c = new ContextCache(job, ts, nf).get(n);
 	ContextVisitor cc = new ContextVisitor(job, ts, nf);
-	cc = cc.context(c);
+	cc = cc.context(n.context());
 	return cc;
     }
 

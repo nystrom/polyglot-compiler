@@ -293,12 +293,15 @@ public class ClassDef_c extends Def_c implements ClassDef
     
         if (kind() == ANONYMOUS) {
             if (interfaces != null && ! interfaces.isEmpty()) {
-                return "<anonymous subtype of " + interfaces.get(0) + ">";
+                return "<anonymous subclass implementing " + interfaces.get(0) + ">";
             }
             if (superType != null) {
                 return "<anonymous subclass of " + superType + ">";
             }
+            return "<anonymous class>";
         }
+        
+        assert name != null : "null name for class; kind is " + kind();
     
         if (kind() == TOP_LEVEL) {
             Package p = Types.get(package_());
@@ -309,6 +312,8 @@ public class ClassDef_c extends Def_c implements ClassDef
             return (outer != null ? outer.toString() + "." : "") + name;
         }
         else {
+            if (name == null)
+        	assert false : "null name for class; kind is " + kind();
             return name.toString();
         }
     }

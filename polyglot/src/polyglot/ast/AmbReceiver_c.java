@@ -39,20 +39,4 @@ public class AmbReceiver_c extends AmbPrefix_c implements AmbReceiver
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         return type(tb.typeSystem().unknownType(position()));
     }
-
-    /** Disambiguate the receiver. */
-    public Node typeCheck(ContextVisitor ar) throws SemanticException {
-	Node n = super.typeCheck(ar);
-
-	if (n instanceof Receiver) {
-	    return n;
-	}
-
-	throw new SemanticException("Could not find type, field, or " +
-	    "local variable \"" + 
-            (prefix == null ? name.toString() : prefix.toString() + "." + name.toString()) +
-            "\".", position());
-    }
-    
-
 }

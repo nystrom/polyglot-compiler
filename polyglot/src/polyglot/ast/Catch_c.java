@@ -83,20 +83,6 @@ public class Catch_c extends Stmt_c implements Catch
         return c.pushBlock();
     }
 
-    /** Type check the catch block. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-	if (! catchType().isThrowable()) {
-	    throw new SemanticException(
-		"Can only throw subclasses of \"" +
-		ts.Throwable() + "\".", formal.position());
-
-	}
-
-	return this;
-    }
-
     public String toString() {
 	return "catch (" + formal + ") " + body;
     }

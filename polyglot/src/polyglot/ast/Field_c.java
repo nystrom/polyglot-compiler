@@ -8,9 +8,11 @@
 
 package polyglot.ast;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
+import polyglot.dispatch.DispatchedTypeChecker;
+import polyglot.frontend.Globals;
+import polyglot.frontend.Job;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -25,7 +27,7 @@ public class Field_c extends Expr_c implements Field
 {
   protected Receiver target;
   protected Id name;
-  protected FieldInstance fi;
+  protected Ref<FieldInstance> fi;
   protected boolean targetImplicit;
   
   public Field_c(Position pos, Receiver target, Id name) {
@@ -34,9 +36,11 @@ public class Field_c extends Expr_c implements Field
     this.target = target;
     this.name = name;
     this.targetImplicit = false;
-e = new Exception();
+
+    TypeSystem ts = Globals.TS();
+    FieldInstance fi = ts.createFieldInstance(position(), new ErrorRef_c<FieldDef>(ts, position(), "Cannot get FieldDef before type-checking field access."));
+    this.fi = Types.<FieldInstance>lazyRef(fi);
   }
-  Exception e;
 
   /** Get the precedence of the field. */
   public Precedence precedence() { 
@@ -69,17 +73,17 @@ e = new Exception();
 
   /** Return the access flags of the variable. */
   public Flags flags() {
-    return fi.flags();
+    return fieldInstance().flags();
   }
 
   /** Get the field instance of the field. */
   public VarInstance varInstance() {
-    return fi;
+      return fieldInstance();
   }
 
   /** Get the field instance of the field. */
   public FieldInstance fieldInstance() {
-    return fi;
+      return Types.get(fi);
   }
 
   /** Set the field instance of the field. */
@@ -87,7 +91,7 @@ e = new Exception();
     if (fi == this.fi) return this;
     Field_c n = (Field_c) copy();
     assert fi != null;
-    n.fi = fi;
+    n.fi.update(fi);
     return n;
   }
 
@@ -120,38 +124,27 @@ e = new Exception();
     return reconstruct(target, name);
   }
 
+  @Override
   public Node buildTypes(TypeBuilder tb) throws SemanticException {
       Field_c n = (Field_c) super.buildTypes(tb);
-
-      TypeSystem ts = tb.typeSystem();
-
-      FieldInstance fi = ts.createFieldInstance(position(), new ErrorRef_c<FieldDef>(ts, position(), "Cannot get FieldDef before type-checking field access.") {
-	  public String toString() { e.printStackTrace(); return super.toString(); } });
-      return n.fieldInstance(fi);
-  }
-  
-  /** Type check the field. */
-  public Node typeCheck(ContextVisitor tc) throws SemanticException {
-      Context c = tc.context();
-      TypeSystem ts = tc.typeSystem();
       
-      FieldInstance fi = ts.findField(target.type(), ts.FieldMatcher(target.type(), name.id(), c));
+      final Job job = tb.job();
+      final TypeSystem ts = tb.typeSystem();
+      final NodeFactory nf = tb.nodeFactory();
 
-      if (fi == null) {
-	  throw new InternalCompilerError("Cannot access field on node of type " +
-	                                  target.getClass().getName() + ".");
-      }
+      ((LazyRef<FieldInstance>) n.fi).setResolver(new Runnable() {
+	  public void run() {
+	      new DispatchedTypeChecker(job, ts, nf).visit(Field_c.this);
+	  } 
+      });
 
-      Field_c f = (Field_c) fieldInstance(fi).type(fi.type());  
-      f.checkConsistency(c);
-
-      return f; 
+      return n;
   }
   
   public Type childExpectedType(Expr child, AscriptionVisitor av)
   {
       if (child == target) {
-          return fi.container();
+          return fieldInstance().container();
       }
 
       return child.type();
@@ -237,6 +230,7 @@ e = new Exception();
               // perform the substitution
               // on the fi after lookup and some extensions modify lookup
               // itself to do the substitution.
+              FieldInstance fi = fieldInstance();
               if (c.typeSystem().equals(rfi.def(), fi.def())) {
                   // all is OK.
                   return;

@@ -1,14 +1,13 @@
 package polyglot.ast;
 
-import polyglot.types.LazyRef;
-import polyglot.types.UnknownType;
+import polyglot.frontend.Globals;
+import polyglot.frontend.Job;
+import polyglot.types.*;
 import polyglot.util.ErrorInfo;
-import polyglot.visit.TypeChecker;
 
 public class TypeCheckTypeGoal extends TypeCheckFragmentGoal {
-	public TypeCheckTypeGoal(Node parent, Node n, TypeChecker v, LazyRef r,
-			boolean mightFail) {
-		super(parent, n, v, r, mightFail);
+	public TypeCheckTypeGoal(Node n, Job job, TypeSystem ts, NodeFactory nf, LazyRef r, boolean mightFail) {
+		super(n, job, ts, nf, r, mightFail);
 	}
 
 	@Override
@@ -17,7 +16,7 @@ public class TypeCheckTypeGoal extends TypeCheckFragmentGoal {
 		if (result) {
 			if (r.getCached() instanceof UnknownType) {
 //			    assert false;
-			        v.errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, "Could not compute type.", n.position());
+			        Globals.Compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, "Could not compute type.", n.position());
 			        return false;
 			}
 		}

@@ -35,11 +35,6 @@ public class CharLit_c extends NumLit_c implements CharLit
 	return n;
     }
 
-    /** Type check the expression. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-	return type(tc.typeSystem().Char());
-    }  
-
     public String toString() {
         return "'" + StringUtil.escape((char) value) + "'";
     }

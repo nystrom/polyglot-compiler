@@ -359,68 +359,6 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         return cd;
     }
     
-    public Node typeCheckOverride(Node parent, ContextVisitor tc) throws SemanticException {
-    	ClassDecl_c n = this;
-    	
-    	NodeVisitor v = tc.enter(parent, n);
-    	
-    	if (v instanceof PruningVisitor) {
-    		return this;
-    	}
-    	
-    	TypeChecker childtc = (TypeChecker) v;
-    	n = (ClassDecl_c) n.typeCheckSupers(tc, childtc);
-    	n = (ClassDecl_c) n.typeCheckBody(parent, tc, childtc);
-    	
-    	return n;
-    }
-    
-    public Node typeCheckSupers(ContextVisitor tc, TypeChecker childtc) throws SemanticException {
-        ClassDecl_c n = this;
-
-        // ### This should be done somewhere else, but before entering the body.
-        Context c = tc.context();
-        type.inStaticContext(c.inStaticContext());
-
-        FlagsNode flags = n.flags;
-        Id name = n.name;
-        TypeNode superClass = n.superClass;
-        List<TypeNode> interfaces = n.interfaces;
-        ClassBody body = n.body;
-
-        flags = (FlagsNode) visitChild(n.flags, childtc);
-        name = (Id) visitChild(n.name, childtc);
-        superClass = (TypeNode) n.visitChild(n.superClass, childtc);
-        interfaces = n.visitList(n.interfaces, childtc);
-        
-        if (n.superClass() != null)
-            assert type.superType() == n.superClass().typeRef();
-        
-        n = n.reconstruct(flags, name, superClass, interfaces, body);
-        n.checkSupertypeCycles(tc.typeSystem());
-
-        return n;
-    }
-    
-    public Node typeCheckBody(Node parent, ContextVisitor tc, TypeChecker childtc) throws SemanticException {
-        ClassDecl_c old = this;
-
-        ClassDecl_c n = this;
-
-        FlagsNode flags = n.flags;
-        Id name = n.name;
-        TypeNode superClass = n.superClass;
-        List<TypeNode> interfaces = n.interfaces;
-        ClassBody body = n.body;
-
-        body = (ClassBody) n.visitChild(body, childtc);
-
-        n = n.reconstruct(flags, name, superClass, interfaces, body);
-        n = (ClassDecl_c) tc.leave(parent, old, n, childtc);
-
-        return n;
-    }
-    
     public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
 

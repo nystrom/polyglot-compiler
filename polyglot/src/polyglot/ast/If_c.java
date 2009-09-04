@@ -95,19 +95,6 @@ public class If_c extends Stmt_c implements If
 	return reconstruct(cond, (Stmt) consequent, (Stmt) alternative);
     }
 
-    /** Type check the statement. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-	if (! ts.typeEquals(cond.type(), ts.Boolean(), tc.context())) {
-	    throw new SemanticException(
-		"Condition of if statement must have boolean type.",
-		cond.position());
-	}
-
-	return this;
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         TypeSystem ts = av.typeSystem();
 

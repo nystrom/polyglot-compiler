@@ -74,62 +74,6 @@ public class Unary_c extends Expr_c implements Unary
 	return reconstruct(expr);
     }
 
-    /** Type check the expression. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-	if (op == POST_INC || op == POST_DEC ||
-	    op == PRE_INC || op == PRE_DEC) {
-
-	    if (! expr.type().isNumeric()) {
-		throw new SemanticException("Operand of " + op +
-		    " operator must be numeric.", expr.position());
-	    }
-
-            if (! (expr instanceof Variable)) {
-		throw new SemanticException("Operand of " + op +
-		    " operator must be a variable.", expr.position());
-            }
-            
-            if (((Variable) expr).flags().isFinal()) {
-		throw new SemanticException("Operand of " + op +
-		    " operator must be a non-final variable.",
-                    expr.position());
-            }
-
-	    return type(expr.type());
-	}
-
-	if (op == BIT_NOT) {
-	    if (! ts.isImplicitCastValid(expr.type(), ts.Long(), tc.context())) {
-		throw new SemanticException("Operand of " + op +
-		    " operator must be numeric.", expr.position());
-	    }
-
-	    return type(ts.promote(expr.type()));
-	}
-
-	if (op == NEG || op == POS) {
-	    if (! expr.type().isNumeric()) {
-		throw new SemanticException("Operand of " + op +
-		    " operator must be numeric.", expr.position());
-	    }
-
-	    return type(ts.promote(expr.type()));
-	}
-
-	if (op == NOT) {
-	    if (! expr.type().isBoolean()) {
-		throw new SemanticException("Operand of " + op +
-		    " operator must be boolean.", expr.position());
-	    }
-
-	    return type(expr.type());
-	}
-
-	return this;
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         TypeSystem ts = av.typeSystem();
         Context context = av.context();

@@ -83,23 +83,6 @@ public class ArrayAccess_c extends Expr_c implements ArrayAccess
 	return reconstruct(array, index);
     }
 
-    /** Type check the expression. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-	if (! array.type().isArray()) {
-	    throw new SemanticException(
-		"Subscript can only follow an array type.", position());
-	}
-
-	if (! ts.isImplicitCastValid(index.type(), ts.Int(), tc.context())) {
-	    throw new SemanticException(
-		"Array subscript must be an integer.", position());
-	}
-
-	return type(array.type().toArray().base());
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         TypeSystem ts = av.typeSystem();
 
@@ -108,7 +91,7 @@ public class ArrayAccess_c extends Expr_c implements ArrayAccess
         }
 
         if (child == array) {
-            return ts.arrayOf(this.type);
+            return ts.arrayOf(this.type());
         }
 
         return child.type();

@@ -164,7 +164,8 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
     }
 
     public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
-        TypeSystem ts = tb.typeSystem();
+	
+	TypeSystem ts = tb.typeSystem();
 
         ClassDef ct = tb.currentClass();
         assert ct != null;
@@ -211,6 +212,33 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
 
         n = (FieldDecl_c) n.flags(n.flags.flags(flags));
 
+        final Node xx = n;
+	    
+    	final FieldDef def = n.fieldDef();
+    	Ref<ConstantValue> r = def.constantValueRef();
+    	if (r instanceof LazyRef) {
+    	    ((LazyRef<ConstantValue>) r).setResolver(new AbstractGoal_c("ConstantValue") {
+    		public boolean runTask() {
+    		    if (state() == Goal.Status.RUNNING_RECURSIVE || state() == Goal.Status.RUNNING_WILL_FAIL) {
+    			// The field is not constant if the initializer is recursive.
+    			//
+    			// But, we could be checking if the field is constant for another
+    			// reference in the same file:
+    			//
+    			// m() { use x; }
+    			// final int x = 1;
+    			//
+    			// So this is incorrect.  The goal below needs to be refined to only visit the initializer.
+    			def.setNotConstant();
+    		    }
+    		    else {
+    			xx.checked();
+    		    }
+    		    return true;
+    		}
+    	    });
+    	}
+
         return n;
     }
 
@@ -231,85 +259,12 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         }
         return c;
     }
-    
-    @Override
-    public void setResolver(final Node parent, TypeCheckPreparer v) {
-    	final FieldDef def = fieldDef();
-    	Ref<ConstantValue> rx = def.constantValueRef();
-    	if (rx instanceof LazyRef) {
-    		LazyRef<ConstantValue> r = (LazyRef<ConstantValue>) rx;
-    		  TypeChecker tc0 = new TypeChecker(v.job(), v.typeSystem(), v.nodeFactory(), v.getMemo());
-    		  final TypeChecker tc = (TypeChecker) tc0.context(v.context().freeze());
-    		  final Node n = this;
-    		  r.setResolver(new AbstractGoal_c("ConstantValue") {
-    			  public boolean runTask() {
-    				  if (state() == Goal.Status.RUNNING_RECURSIVE || state() == Goal.Status.RUNNING_WILL_FAIL) {
-    					  // The field is not constant if the initializer is recursive.
-    					  //
-    					  // But, we could be checking if the field is constant for another
-    					  // reference in the same file:
-    					  //
-    					  // m() { use x; }
-    					  // final int x = 1;
-    					  //
-    					  // So this is incorrect.  The goal below needs to be refined to only visit the initializer.
-    					  def.setNotConstant();
-    				  }
-    				  else {
-    					  Node m = parent.visitChild(n, tc);
-    					  tc.job().nodeMemo().put(n, m);
-    					  tc.job().nodeMemo().put(m, m);
-    				  }
-    				  return true;
-    			  }
-    		  });
-    	}
-    }
 
     public Node visitSignature(NodeVisitor v) {
 	FlagsNode flags = (FlagsNode) this.visitChild(this.flags, v);
         TypeNode type = (TypeNode) this.visitChild(this.type, v);
         Id name = (Id) this.visitChild(this.name, v);
         return reconstruct(flags, type, name, this.init);
-    }
-
-    public Node typeCheckBody(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
-        FieldDecl_c n = this;
-        Expr init = (Expr) n.visitChild(n.init, childtc);
-        n = (FieldDecl_c) n.init(init);
-        return n.checkConstants(tc);
-    }
-    
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-	TypeSystem ts = tc.typeSystem();
-	
-	if (init != null && ! (init.type() instanceof UnknownType)) {
-	    if (init instanceof ArrayInit) {
-		((ArrayInit) init).typeCheckElements(tc, type.type());
-	    }
-	    else {
-		if (! ts.isImplicitCastValid(init.type(), type.type(), tc.context()) &&
-			! ts.typeEquals(init.type(), type.type(), tc.context()) &&
-			! ts.numericConversionValid(type.type(), init.constantValue(), tc.context())) {
-		    
-		    throw new SemanticException("The type of the variable " +
-		                                "initializer \"" + init.type() +
-		                                "\" does not match that of " +
-		                                "the declaration \"" +
-		                                type.type() + "\".",
-		                                init.position());
-		}
-	    }
-	}
-	
-	if (init == null || ! init.isConstant() || ! fi.flags().isFinal()) {
-	    fi.setNotConstant();
-	}
-	else {
-	    fi.setConstantValue(init.constantValue());
-	}
-	
-	return this;
     }
 
     public Node conformanceCheck(ContextVisitor tc) throws SemanticException {

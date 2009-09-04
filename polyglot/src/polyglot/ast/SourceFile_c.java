@@ -167,36 +167,6 @@ public class SourceFile_c extends Node_c implements SourceFile
         return c.pushSource(importTable);
     }
 
-    /** Type check the source file. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-	Set<Name> names = new HashSet<Name>();
-	boolean hasPublic = false;
-
-	for (Iterator i = decls.iterator(); i.hasNext();) {
-	    TopLevelDecl d = (TopLevelDecl) i.next();
-	    Name s = d.name().id();
-
-	    if (names.contains(s)) {
-		throw new SemanticException("Duplicate declaration: \"" + s + 
-		    "\".", d.position());
-	    }
-
-	    names.add(s);
-
-	    if (d.flags().flags().isPublic()) {
-		if (hasPublic) {
-		    throw new SemanticException(
-			"The source contains more than one public declaration.",
-			d.position());
-		}
-
-		hasPublic = true;
-	    }
-	}
-     
-	return this;
-    }
-
     public String toString() {
         return "<<<< " + source + " >>>>";
     }

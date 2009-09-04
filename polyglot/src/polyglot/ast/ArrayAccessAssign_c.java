@@ -55,18 +55,6 @@ public class ArrayAccessAssign_c extends Assign_c implements ArrayAccessAssign
       return n;
   }
 
-  @Override
-  public Assign typeCheckLeft(ContextVisitor tc) throws SemanticException {
-      Type at = array.type();
-      if (!at.isArray())
-	  throw new SemanticException("Target of array assignment is not an array element.", array.position());
-      Type it = index.type();
-      if (!it.isInt())
-	  throw new SemanticException("Array element must be indexed by an int.", index.position());
-      return this;
-  }
-
-
   public Type leftType() {
       Type at = array.type();
       if (at.isArray())
@@ -76,8 +64,8 @@ public class ArrayAccessAssign_c extends Assign_c implements ArrayAccessAssign
   
   public Expr left(NodeFactory nf) {
       ArrayAccess aa = nf.ArrayAccess(position(), array, index);
-      if (type != null)
-            return aa.type(type);
+      if (type() != null)
+            return aa.type(type());
       else
             return aa;
   }

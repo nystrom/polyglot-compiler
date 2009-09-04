@@ -72,35 +72,6 @@ public class Import_c extends Node_c implements Import
     }
      */
 
-    /** Check that imported classes and packages exist. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-        // Make sure the imported name exists.
-        if (kind == PACKAGE && ts.systemResolver().packageExists(name))
-            return this;
-        
-        Named n;
-        try {
-            n = ts.systemResolver().find(name);
-        }
-        catch (SemanticException e) {
-            throw new SemanticException("Package or class " + name + " not found.");
-        }
-
-        if (n instanceof Type) {
-            Type t = (Type) n;
-            if (t.isClass()) {
-        	ClassType ct = t.toClass();
-        	if (! ts.classAccessibleFromPackage(ct.def(), tc.context().package_())) {
-        	    throw new SemanticException("Class " + ct + " is not accessible.");
-        	}
-            }
-        }
-
-	return this;
-    }
-
     public String toString() {
 	return "import " + name + (kind == PACKAGE ? ".*" : "");
     }

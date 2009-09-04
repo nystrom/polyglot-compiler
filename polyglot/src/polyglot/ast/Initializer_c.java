@@ -161,43 +161,6 @@ public class Initializer_c extends Term_c implements Initializer
         return this;
     }
 
-    /** Type check the declaration. */
-    public Node typeCheckBody(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-        Initializer_c n;
-        Block body = this.body;
-        body = (Block) this.visitChild(this.body, childtc);
-        n = reconstruct(this.flags, body);
-        n = (Initializer_c) tc.leave(parent, this, n, childtc);
-
-        return n;
-    }
-
-    /** Type check the initializer. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-	TypeSystem ts = tc.typeSystem();
-
-	Flags flags = this.flags.flags();
-
-	try {
-	    ts.checkInitializerFlags(flags);
-	}
-	catch (SemanticException e) {
-	    throw new SemanticException(e.getMessage(), position());
-	}
-
-        // check that inner classes do not declare static initializers
-        if (flags.isStatic() &&
-              initializerDef().container().get().toClass().isInnerClass()) {
-            // it's a static initializer in an inner class.
-            throw new SemanticException("Inner classes cannot declare " + 
-                    "static initializers.", this.position());             
-        }
-
-	return this;
-    }
-
     public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
         if (initializerDef().flags().isStatic()) {
             return ec.push(new ExceptionChecker.CodeTypeReporter("A static initializer block"));

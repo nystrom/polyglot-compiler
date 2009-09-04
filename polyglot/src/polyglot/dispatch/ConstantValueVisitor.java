@@ -1,10 +1,8 @@
 package polyglot.dispatch;
 
 import polyglot.ast.*;
-import polyglot.frontend.Globals;
 import polyglot.frontend.Job;
 import polyglot.types.*;
-import polyglot.visit.ContextCache;
 
 public class ConstantValueVisitor {
     Job job;

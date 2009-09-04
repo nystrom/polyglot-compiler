@@ -28,24 +28,6 @@ public class CanonicalTypeNode_c extends TypeNode_c implements CanonicalTypeNode
       return (CanonicalTypeNode) super.typeRef(type);
   }
   
-  /** Type check the type node.  Check accessibility of class types. */
-  public Node typeCheck(ContextVisitor tc) throws SemanticException {
-      TypeSystem ts = tc.typeSystem();
-
-      if (type.get().isClass()) {
-          ClassType ct = type.get().toClass();
-          if (ct.isTopLevel() || ct.isMember()) {
-              if (! ts.classAccessible(ct.def(), tc.context())) {
-                  throw new SemanticException("Cannot access class \"" +
-                      ct + "\" from the body of \"" +
-                      tc.context().currentClass() + "\".", position());
-              }
-          }
-      }
-
-      return this;
-  }
-  
   public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
     if (type == null) {
         w.write("<unknown-type>");

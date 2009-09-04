@@ -9,8 +9,7 @@ package polyglot.ast;
 
 import java.util.List;
 
-import polyglot.types.Context;
-import polyglot.types.Type;
+import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.AscriptionVisitor;
 import polyglot.visit.NodeVisitor;
@@ -137,9 +136,8 @@ public interface Node extends JL, Copy
      */
     void dump(CodeWriter w);
    
-    /** Identifier for this node. */
-    public int nodeId();
-    public Node copyIdFrom(Node from);
+    public Node checked();
+    public Ref<Node> checkedRef();
     
     public Node context(Context c);    
     public Context context();

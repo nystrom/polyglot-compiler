@@ -79,25 +79,6 @@ public class Instanceof_c extends Expr_c implements Instanceof
 	return reconstruct(expr, compareType);
     }
 
-    /** Type check the expression. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-        if (! compareType.type().isReference()) {
-	    throw new SemanticException(
-		"Type operand " + compareType.type() + " must be a reference type.",
-		compareType.position());
-	}
-
-	if (! ts.isCastValid(expr.type(), compareType.type(), tc.context())) {
-	    throw new SemanticException(
-		"Expression operand type " + expr.type() + " incompatible with type operand " + compareType.type() + ".",
-		expr.position());
-	}
-
-	return type(ts.Boolean());
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         TypeSystem ts = av.typeSystem();
 

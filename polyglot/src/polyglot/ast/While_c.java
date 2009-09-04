@@ -76,19 +76,6 @@ public class While_c extends Loop_c implements While
 	return reconstruct(cond, (Stmt) body);
     }
 
-    /** Type check the statement. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-	TypeSystem ts = tc.typeSystem();
-	
-	if (! ts.typeEquals(cond.type(), ts.Boolean(), tc.context())) {
-	    throw new SemanticException(
-		"Condition of while statement must have boolean type.",
-		cond.position());
-	}
-	
-	return this;
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         TypeSystem ts = av.typeSystem();
 
