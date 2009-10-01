@@ -8,13 +8,26 @@ import polyglot.util.InternalCompilerError;
 public class Type {
 
     private Type(String d) {
-        assert ! d.equals("L");
+        assert !d.equals("L");
         desc = d;
+    }
+    
+    @Override
+    public int hashCode() {
+        return desc.hashCode();
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof Type && ((Type) o).desc.equals(desc);
     }
 
     public String className() {
-        assert isObject() : desc + " is not a class";
-        return desc.substring(1, desc.length()-1);
+        if (isObject())
+            return desc.substring(1, desc.length() - 1);
+        if (isArray())
+            return desc;
+        throw new InternalCompilerError("Cannot get class name of type " + desc);
     }
 
     public String desc() {
@@ -142,12 +155,15 @@ public class Type {
             return Type.NULL;
         throw new InternalCompilerError("Unknown type " + t);
     }
+
     public static Type typeFromDescriptor(String desc) {
         return new Type(desc);
     }
+
     public static Type typeFromClassName(String desc) {
         return new Type("L" + desc.replace('.', '/') + ";");
     }
+
     public static Type array(Type base) {
         return new Type("[" + base.desc());
     }

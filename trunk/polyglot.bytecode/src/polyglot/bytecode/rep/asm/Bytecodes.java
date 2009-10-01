@@ -452,7 +452,7 @@ public class Bytecodes implements IOpcodes {
      */
     public ILabel CHECKCAST(final Type type, final Position pos) {
         final ILabel h = preAppend(pos);
-        mn.instructions.add(new TypeInsnNode(Opcodes.CHECKCAST, type.desc()));
+        mn.instructions.add(new TypeInsnNode(Opcodes.CHECKCAST, type.className()));
         assert isReachable();
         uncheckedCoerce(type);
         return postAppend(pos, h);

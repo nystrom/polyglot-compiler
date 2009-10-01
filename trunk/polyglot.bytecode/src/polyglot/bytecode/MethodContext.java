@@ -6,18 +6,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import polyglot.ast.For;
 import polyglot.ast.Id;
 import polyglot.ast.Labeled;
-import polyglot.ast.Loop;
 import polyglot.ast.Stmt;
-import polyglot.bytecode.rep.AsmFactory;
 import polyglot.bytecode.rep.IClassGen;
 import polyglot.bytecode.rep.ILabel;
 import polyglot.bytecode.rep.IMethodGen;
 import polyglot.bytecode.rep.IOpcodes;
-import polyglot.bytecode.types.StackType;
 import polyglot.bytecode.types.NonEmpty;
+import polyglot.bytecode.types.StackType;
 import polyglot.bytecode.types.Type;
 import polyglot.types.ClassDef;
 import polyglot.types.CodeDef;
@@ -28,9 +25,6 @@ import polyglot.util.Copy;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 
-/**
- * This class produces bytecode for a single Thorn method.  It uses an ExpTranslator for generating the actual code.
- */
 public class MethodContext implements BytecodeConstants, Copy {
     MethodContext containingExp;
     CodeDef theMethod;

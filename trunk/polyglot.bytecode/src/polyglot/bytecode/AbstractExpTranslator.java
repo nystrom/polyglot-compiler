@@ -62,9 +62,13 @@ public class AbstractExpTranslator extends AbstractTranslator {
         visitChild(e, new BranchTranslator(job, ts, nf, bc, context, target, branchOnTrue));
     }
 
+    public void visitExpr(Expr n) {
+        visitChild(n, new ExprTranslator(job, ts, nf, bc, context));
+    }
+
     public void visitChild(final Expr e, final Type newTop) {
         final StackType oldStack = il.currentStack();
-        visitChild(e, new ExprTranslator(job, ts, nf, bc, context));
+        visitExpr(e);
     
         if (il.currentStack() instanceof Unreachable)
             return;
