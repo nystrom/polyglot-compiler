@@ -394,6 +394,8 @@ public class Call_c extends Expr_c implements Call
   public List<Type> throwTypes(TypeSystem ts) {
     List<Type> l = new ArrayList<Type>();
 
+    assert mi != null : "null mi for " + this;
+    
     l.addAll(mi.throwTypes());
     l.addAll(ts.uncheckedExceptions());
 
