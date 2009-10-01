@@ -203,7 +203,7 @@ public class ExprTranslator extends AbstractExpTranslator {
 
     public void visit(final Cast n) {
         visitChild(n.expr());
-        il.CHECKCAST(typeof(n.castType()), n.position());
+        coerce(typeof(n.expr().type()), typeof(n.castType().type()), n.position());
     }
 
     public void visit(final Instanceof n) {

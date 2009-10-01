@@ -7,15 +7,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Attribute;
-import org.objectweb.asm.ClassAdapter;
-import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import polyglot.bytecode.rep.IClassGen;
@@ -38,8 +33,7 @@ public class ClassGen implements IClassGen {
     }
     
     public byte[] bytes() {
-//        ClassNode cn = new ClassNode();
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         String[] interfaceNames = new String[interfaces.size()];
         for (int i = 0; i < interfaces.size(); i++) {
             interfaceNames[i] = interfaces.get(i).className();
