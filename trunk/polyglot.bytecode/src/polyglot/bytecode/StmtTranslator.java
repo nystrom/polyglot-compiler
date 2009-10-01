@@ -434,8 +434,6 @@ public class StmtTranslator extends AbstractExpTranslator {
         else
             il.LOOKUPSWITCH(cases, labels, defaultLabel, n.position());
        
-        StackType breakStack = il.currentStack();
-        
         i = 0;
         for (Stmt s : n.elements()) {
             if (s instanceof Case) {
@@ -452,11 +450,11 @@ public class StmtTranslator extends AbstractExpTranslator {
             }
             else {
                 if (il.isReachable())
-                    visitChild(s, context(context.pushBreak(null, endLabel, breakStack)));
+                    visitChild(s, context(context.pushBreak(null, endLabel, caseStack)));
             }
         }
 
-        il.setStack(breakStack);
+        il.setStack(caseStack);
         il.addLabel(endLabel);
     }
     

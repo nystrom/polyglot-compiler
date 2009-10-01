@@ -254,7 +254,7 @@ public class MethodContext implements BytecodeConstants, Copy {
             assert v == index;
         }
         
-        if (nextVar < index)
+        if (nextVar <= index)
             nextVar = index + (key.type.isWide() ? 2 : 1);
 
         return index;
