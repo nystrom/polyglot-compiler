@@ -363,14 +363,17 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
             final List<LocalDef> declared = new ArrayList<LocalDef>();
             
             // Create local variables for the formals.
-            for (int i = 0; i < formals.size(); i++) {
+            for (int i = 0, j = offset; i < formals.size(); i++) {
                 final Formal v = formals.get(i);
 
                 final LocalDef sym = v.localDef();
                 declared.add(sym);
 
-                final int index = c.addFormal(sym, i + offset);
-                assert index == i + offset;
+                final int index = c.addFormal(sym, j);
+                assert index == j;
+                j++;
+                if (typeof(sym.type()).isWide())
+                    j++;
             }
             
             body.visit(new NodeVisitor() {

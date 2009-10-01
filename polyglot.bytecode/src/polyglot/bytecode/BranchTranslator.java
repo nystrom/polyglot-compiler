@@ -44,8 +44,7 @@ public class BranchTranslator extends AbstractExpTranslator {
         if (optimizeCall(n))
             return;
         
-        visitChild(n);
-        // n.accept(new ExpTranslator(context, Type.BOOLEAN));
+        visitChild(n, new ExprTranslator(job, ts, nf, bc, context));
 
         if (unreachable())
             return;

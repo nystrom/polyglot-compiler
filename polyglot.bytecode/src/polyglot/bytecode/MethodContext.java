@@ -207,14 +207,6 @@ public class MethodContext implements BytecodeConstants, Copy {
     int nextVar = 0;
     InstructionSequence finallyBlock;
     
-    protected int reserveFormal(LocalDef def, Type type, int index) {
-        LocalVar v = new LocalVar(def, type);
-        if (nextVar < index)
-            nextVar = index + (type.isWide() ? 2 : 1);
-        varMap.put(v, index);
-        return index;
-    }
-    
     int addLocal(Var v) {
         Integer i = varMap.get(v);
         assert i == null : "local already allocated for " + v;
@@ -261,6 +253,9 @@ public class MethodContext implements BytecodeConstants, Copy {
         else {
             assert v == index;
         }
+        
+        if (nextVar < index)
+            nextVar = index + (key.type.isWide() ? 2 : 1);
 
         return index;
     }

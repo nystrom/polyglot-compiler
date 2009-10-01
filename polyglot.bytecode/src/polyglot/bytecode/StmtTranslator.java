@@ -158,6 +158,8 @@ public class StmtTranslator extends AbstractExpTranslator {
         
         if (il.isReachable())
             visitChild(n.consequent());
+
+        StackType thenStack = il.currentStack();
         
         if (n.alternative() != null) {
             ILabel END;
@@ -165,14 +167,15 @@ public class StmtTranslator extends AbstractExpTranslator {
             if (il.isReachable())
                 il.GOTO(END, n.position());
             
-            il.setStack(endStack);
             il.addLabel(ELSE);
+            il.setStack(thenStack.merge(endStack));
             visitChild(n.alternative());
             il.addLabel(END);
-            il.setStack(il.currentStack().merge(endStack));
+            il.setStack(il.currentStack().merge(thenStack));
         }
         else {
             il.addLabel(ELSE);
+            il.setStack(thenStack.merge(endStack));
         }
     }
     public void visit(Labeled n) {

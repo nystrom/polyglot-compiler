@@ -387,7 +387,7 @@ public class ExprTranslator extends AbstractExpTranslator {
 
             stringify(n.left());
             stringify(n.right());
-            il.INVOKEVIRTUAL(Type.STRING, "append", new Type[] { Type.STRING }, Type.STRING, n.position());
+            il.INVOKEVIRTUAL(Type.STRING, "concat", new Type[] { Type.STRING }, Type.STRING, n.position());
             return true;
         }
     }
