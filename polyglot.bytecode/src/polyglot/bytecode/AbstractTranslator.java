@@ -79,6 +79,10 @@ public abstract class AbstractTranslator implements Copy {
     protected static void box(IOpcodes il, final Type top, final Position pos) {
         if (top.isRef())
             return;
+        else if (top.isBoolean()) {
+            Type Boolean = Type.typeFromDescriptor("Ljava/lang/Boolean;");
+            il.INVOKESTATIC(Boolean, "valueOf", new Type[] { top }, Boolean, pos);
+        }
         else if (top.isChar()) {
             Type Char = Type.typeFromDescriptor("Ljava/lang/Character;");
             il.INVOKESTATIC(Char, "valueOf", new Type[] { top }, Char, pos);
@@ -90,10 +94,6 @@ public abstract class AbstractTranslator implements Copy {
         else if (top.isByte()) {
             Type Byte = Type.typeFromDescriptor("Ljava/lang/Byte;");
             il.INVOKESTATIC(Byte, "valueOf", new Type[] { top }, Byte, pos);
-        }
-        else if (top.isBoolean()) {
-            Type Boolean = Type.typeFromDescriptor("Ljava/lang/Boolean;");
-            il.INVOKESTATIC(Boolean, "valueOf", new Type[] { top }, Boolean, pos);
         }
         else if (top.isLong()) {
             Type Long = Type.typeFromDescriptor("Ljava/lang/Long;");
@@ -118,22 +118,46 @@ public abstract class AbstractTranslator implements Copy {
     protected static void unbox(final IOpcodes il, final Type top, final Position pos) {
         if (top.isRef())
             return;
-        else if (top.isChar())
-            il.INVOKEVIRTUAL(Type.typeFromDescriptor("Ljava/lang/Character;"), "charValue", new Type[0], top, pos);
-        else if (top.isShort())
-            il.INVOKEVIRTUAL(Type.typeFromDescriptor("Ljava/lang/Short;"), "shortValue", new Type[0], top, pos);
-        else if (top.isByte())
-            il.INVOKEVIRTUAL(Type.typeFromDescriptor("Ljava/lang/Byte;"), "byteValue", new Type[0], top, pos);
-        else if (top.isBoolean())
-            il.INVOKEVIRTUAL(Type.typeFromDescriptor("Ljava/lang/Boolean;"), "booleanValue", new Type[0], top, pos);
-        else if (top.isLong())
-            il.INVOKEVIRTUAL(Type.typeFromDescriptor("Ljava/lang/Long;"), "longValue", new Type[0], top, pos);
-        else if (top.isFloat())
-            il.INVOKEVIRTUAL(Type.typeFromDescriptor("Ljava/lang/Float;"), "floatValue", new Type[0], top, pos);
-        else if (top.isDouble())
-            il.INVOKEVIRTUAL(Type.typeFromDescriptor("Ljava/lang/Double;"), "doubleValue", new Type[0], top, pos);
-        else if (top.isInt())
-            il.INVOKEVIRTUAL(Type.typeFromDescriptor("Ljava/lang/Integer;"), "intValue", new Type[0], top, pos);
+        else if (top.isBoolean()) {
+            Type Boolean = Type.typeFromDescriptor("Ljava/lang/Boolean;");
+            il.CHECKCAST(Boolean, pos);
+            il.INVOKEVIRTUAL(Boolean, "booleanValue", new Type[0], top, pos);
+        }
+        else if (top.isChar()) {
+            Type Char = Type.typeFromDescriptor("Ljava/lang/Character;");
+            il.CHECKCAST(Char, pos);
+            il.INVOKEVIRTUAL(Char, "charValue", new Type[0], top, pos);
+        }
+        else if (top.isByte()) {
+            Type Byte = Type.typeFromDescriptor("Ljava/lang/Byte;");
+            il.CHECKCAST(Byte, pos);
+            il.INVOKEVIRTUAL(Byte, "byteValue", new Type[0], top, pos);
+        }
+        else if (top.isShort()) {
+            Type Short = Type.typeFromDescriptor("Ljava/lang/Short;");
+            il.CHECKCAST(Short, pos);
+            il.INVOKEVIRTUAL(Short, "shortValue", new Type[0], top, pos);
+        }
+        else if (top.isInt()) {
+            Type Int = Type.typeFromDescriptor("Ljava/lang/Integer;");
+            il.CHECKCAST(Int, pos);
+            il.INVOKEVIRTUAL(Int, "intValue", new Type[0], top, pos);
+        }
+        else if (top.isLong()) {
+            Type Long = Type.typeFromDescriptor("Ljava/lang/Long;");
+            il.CHECKCAST(Long, pos);
+            il.INVOKEVIRTUAL(Long, "longValue", new Type[0], top, pos);
+        }
+        else if (top.isFloat()) {
+            Type Float = Type.typeFromDescriptor("Ljava/lang/Float;");
+            il.CHECKCAST(Float, pos);
+            il.INVOKEVIRTUAL(Float, "floatValue", new Type[0], top, pos);
+        }
+        else if (top.isDouble()) {
+            Type Double = Type.typeFromDescriptor("Ljava/lang/Double;");
+            il.CHECKCAST(Double, pos);
+            il.INVOKEVIRTUAL(Double, "doubleValue", new Type[0], top, pos);
+        }
         else
             assert false;
     }
@@ -141,14 +165,17 @@ public abstract class AbstractTranslator implements Copy {
     protected static void coerce(IOpcodes il, final Type currentTop, final Type newTop, final Position pos) {
         if (currentTop == newTop)
             return;
-        if (currentTop.isRef() && newTop.isRef())
+        if (currentTop.isRef() && newTop.isRef()) {
+            il.CHECKCAST(newTop, pos);
             return;
+        }
         if (currentTop.isRef() && !newTop.isRef()) {
             unbox(il, newTop, pos);
             return;
         }
         if (!currentTop.isRef() && newTop.isRef()) {
-            box(il, newTop, pos);
+            box(il, currentTop, pos);
+            il.CHECKCAST(newTop, pos);
             return;
         }
         if (currentTop.isIType() && newTop.isBoolean()) {

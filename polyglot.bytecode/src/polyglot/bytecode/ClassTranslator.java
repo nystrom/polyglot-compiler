@@ -229,7 +229,8 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
     // }
 
     protected Type getSuperklass(final ClassDef sym) {
-        polyglot.types.Type t = Types.get(sym.superType());
+        polyglot.types.ClassType t = (ClassType) Types.get(sym.superType());
+        assert ! t.flags().isInterface();
         return Type.typeFromPolyglotType(t);
     }
 
@@ -237,7 +238,8 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
         Type[] ifaces = new Type[sym.interfaces().size()];
         for (int i = 0; i < sym.interfaces().size(); i++) {
             Ref<? extends polyglot.types.Type> ref = sym.interfaces().get(i);
-            polyglot.types.Type t = Types.get(ref);
+            polyglot.types.ClassType t = (ClassType) Types.get(ref);
+            assert t.flags().isInterface();
             ifaces[i] = Type.typeFromPolyglotType(t);
         }
         return ifaces;
@@ -258,7 +260,8 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
         TypeSystem ts = Globals.TS();
         int result = 0;
         for (int bit = 1; bit != 0; bit <<= 1) {
-            if (flags.contains(ts.flagsForBits(bit)))
+            Flags b = ts.flagsForBits(bit);
+            if (! b.equals(Flags.NONE) && flags.contains(b))
                 result |= bit;
         }
         if (flags.isInterface())
@@ -268,11 +271,11 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
 
     public void visit(final ConstructorDecl n) {
         TypeSystem ts = Globals.TS();
-        genMethod(n.flags().flags(), n.constructorDef(), "<init>", n.formals(), ts.Void(), n.throwTypes(), n.body());
+        genMethod(n.constructorDef().flags(), n.constructorDef(), "<init>", n.formals(), ts.Void(), n.throwTypes(), n.body());
     }
 
     public void visit(final MethodDecl n) {
-        genMethod(n.flags().flags(), n.methodDef(), n.methodDef().name().toString(), n.formals(), Types.get(n.methodDef().returnType()), n.throwTypes(),
+        genMethod(n.methodDef().flags(), n.methodDef(), n.methodDef().name().toString(), n.formals(), Types.get(n.methodDef().returnType()), n.throwTypes(),
                   n.body());
     }
 
@@ -286,10 +289,11 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
 
         for (int i = 0; i < names.length; i++)
             names[i] = formals.get(i).name().id();
-        for (int i = 0; i < types.length; i++)
-            types[i] = ExprTranslator.typeof(formals.get(i).type());
         for (int i = 0; i < names.length; i++)
             nameStrings[i] = names[i].toString();
+
+        for (int i = 0; i < types.length; i++)
+            types[i] = ExprTranslator.typeof(formals.get(i).type());
         for (int i = 0; i < ttypes.length; i++) {
             ttypes[i] = ExprTranslator.typeof(throwTypes.get(i));
         }
