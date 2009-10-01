@@ -163,7 +163,7 @@ public abstract class AbstractTranslator implements Copy {
     }
 
     protected static void coerce(IOpcodes il, final Type currentTop, final Type newTop, final Position pos) {
-        if (currentTop == newTop)
+        if (currentTop.equals(newTop))
             return;
         if (currentTop.isRef() && newTop.isRef()) {
             il.CHECKCAST(newTop, pos);
@@ -175,7 +175,8 @@ public abstract class AbstractTranslator implements Copy {
         }
         if (!currentTop.isRef() && newTop.isRef()) {
             box(il, currentTop, pos);
-            il.CHECKCAST(newTop, pos);
+            if (! currentTop.equals(newTop))
+                il.CHECKCAST(newTop, pos);
             return;
         }
         if (currentTop.isIType() && newTop.isBoolean()) {
@@ -268,9 +269,8 @@ public abstract class AbstractTranslator implements Copy {
     }
 
     public void visitChild(Node n) {
-        new Dispatch.Dispatcher("visit").invoke(this, n);
+        visitChild(n, this);
     }
-
     public void visitChild(Node s, AbstractTranslator t) {
         new Dispatch.Dispatcher("visit").invoke(t, s);
     }
