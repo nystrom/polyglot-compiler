@@ -142,13 +142,13 @@ public abstract class Scheduler {
     }
     
     protected Goal PostCompiled() {
-	if (EndAll == null)
-	    EndAll = new PostCompiled(extInfo);
-	return EndAll;
+	return new PostCompiled(extInfo).intern(this);
     }
 
     protected Goal EndAll() {
-	return PostCompiled();
+	if (EndAll == null)
+	    EndAll = PostCompiled();
+	return EndAll;
     }
 
     protected Goal EndCommandLine() {
@@ -494,7 +494,7 @@ public abstract class Scheduler {
         
         if (compile) {
             shouldCompile.add(job);
-//            EndAll().addPrereq(prev);
+            EndAll().addPrereq(prev);
         }
     }
 
