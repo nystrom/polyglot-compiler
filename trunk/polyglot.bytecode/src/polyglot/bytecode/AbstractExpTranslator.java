@@ -46,8 +46,8 @@ public class AbstractExpTranslator extends AbstractTranslator {
 
     public AbstractTranslator context(MethodContext c) {
         AbstractExpTranslator t = copy();
-        t.context = context;
-        t.il = context.il;
+        t.context = c;
+        t.il = c.il;
         return t;
     }
 
