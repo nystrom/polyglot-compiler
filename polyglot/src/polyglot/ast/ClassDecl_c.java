@@ -29,7 +29,6 @@ public class ClassDecl_c extends Term_c implements ClassDecl
     protected List<TypeNode> interfaces;
     protected ClassBody body;
     protected ConstructorDef defaultCI;
-
     protected ClassDef type;
 
     public ClassDecl_c(Position pos, FlagsNode flags, Id name,
