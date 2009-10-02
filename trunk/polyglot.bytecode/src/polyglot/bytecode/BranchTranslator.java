@@ -220,37 +220,54 @@ public class BranchTranslator extends AbstractExpTranslator {
                 return false;
 
             if (op == Binary.COND_OR && BranchTranslator.this.branchOnTrue) {
+                // if left goto T
                 visitBranch(n.left(), BranchTranslator.this.branchTarget, true);
                 if (il.isUnreachable())
                     return true;
+                // left is false
+                // if right goto T
                 visitBranch(n.right(), BranchTranslator.this.branchTarget, true);
+                // left and right are false
                 return true;
             }
 
             if (op == Binary.COND_OR && !BranchTranslator.this.branchOnTrue) {
-                visitBranch(n.left(), BranchTranslator.this.branchTarget, false);
+                ILabel L = il.makeLabel(pos);
+                // if left goto L
+                visitBranch(n.left(), L, true);
                 if (il.isUnreachable())
                     return true;
+                // left is false
+                // if !right goto T
                 visitBranch(n.right(), BranchTranslator.this.branchTarget, false);
+                // left or right is true
+                il.addLabel(L);
+                return true;
             }
 
             if (op == Binary.COND_AND && BranchTranslator.this.branchOnTrue) {
                 ILabel L = il.makeLabel(pos);
+                // if !left goto L
                 visitBranch(n.left(), L, false);
                 if (il.isUnreachable())
                     return true;
+                // left is true
+                // if right goto T
                 visitBranch(n.right(), BranchTranslator.this.branchTarget, true);
+                // left is false or right is false
                 il.addLabel(L);
                 return true;
             }
 
             if (op == Binary.COND_AND && !BranchTranslator.this.branchOnTrue) {
-                ILabel L = il.makeLabel(pos);
-                visitBranch(n.left(), L, false);
+                // if !left goto T
+                visitBranch(n.left(), BranchTranslator.this.branchTarget, false);
                 if (il.isUnreachable())
                     return true;
+                // left is true
+                // if !right goto T
                 visitBranch(n.right(), BranchTranslator.this.branchTarget, false);
-                il.addLabel(L);
+                // left and right are true
                 return true;
             }
 

@@ -49,7 +49,7 @@ public class StmtTranslator extends AbstractExpTranslator {
         visitChild(s, this);
     }
     public void visitChild(Expr s) {
-        visitChild(s, new ExprTranslator(job, ts, nf, bc, context));
+        visitExpr(s);
     }
     public void visit(Stmt n) {
         assert false;
@@ -63,19 +63,26 @@ public class StmtTranslator extends AbstractExpTranslator {
     }
 
     public void visit(Assert n) throws SemanticException {
-        assert il.currentStack().isEmpty();
         ILabel L = il.makeLabel(n.position());
         visitBranch(n.cond(), L, true);
-        ClassType a = (ClassType) ts.systemResolver().find(QName.make("java.lang.AssertionError"));
-        Expr e;
+        
+        StackType st = il.currentStack();
+        
+        if (il.isReachable()) {
+            ClassType a = (ClassType) ts.systemResolver().find(QName.make("java.lang.AssertionError"));
+            Expr e;
 
-        if (n.errorMessage() != null) {
-            e = n.errorMessage();
+            if (n.errorMessage() != null) {
+                e = n.errorMessage();
+            }
+            else {
+                e = nf.StringLit(n.position(), "Assertion failure: " + n.cond());
+            }
+            alloc(a, Collections.singletonList(e), n.position());
+            il.ATHROW(n.position());
         }
-        else {
-            e = nf.StringLit(n.position(), "Assertion failure: " + n.cond());
-        }
-        alloc(a, Collections.singletonList(e), n.position());
+        
+        il.setStack(st);
         il.addLabel(L);
     }
     public void visit(Branch n) {

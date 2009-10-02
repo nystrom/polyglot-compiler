@@ -413,6 +413,8 @@ public class ExprTranslator extends AbstractExpTranslator {
             F = il.makeLabel(n.position());
             J = il.makeLabel(n.position());
 
+            StackType st = il.currentStack();
+            
             visitBranch(n, F, false);
 
             // If not unreachable, generate the body.
@@ -423,7 +425,8 @@ public class ExprTranslator extends AbstractExpTranslator {
 
             // false target
             il.addLabel(F);
-
+            il.setStack(st);
+            
             False(n.position());
 
             // boolean on stack
