@@ -58,7 +58,7 @@
 	</target>
 
 	<target name="jar" depends="compile">
-		<delete file="${lib}/polyglot.jar" failonerror="false" />
+		<delete file="${lib}/polyglot-bytecode.jar" failonerror="false" />
 		<jar destfile="${lib}/polyglot-bytecode.jar" basedir="${classes}" includes="polyglot/**" />
 	</target>
 

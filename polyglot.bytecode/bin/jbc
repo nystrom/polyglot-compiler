@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 prg=`basename "$0"`
 dir=`dirname "$0"`/..
@@ -47,6 +47,10 @@ while true; do
             verbose=1
             shift
             ;;
+        -serial)
+            serial=1
+            shift
+            ;;
         -classpath)
             shift
             extra_cp="$extra_cp:$1"
@@ -74,7 +78,7 @@ while true; do
 done
 
 
-classpath="$dir/classes:$dir/../polyglot/classes:$dir/lib/java_cup.jar"
+classpath="$dir/classes:$dir/lib/polyglot.jar:${POLYGLOT_LOCATION:-$dir/../polyglot}/classes:$dir/lib/java_cup.jar"
 if [ -n "$ext" ]; then
   classpath="$classpath:$dir/lib/$ext.jar"
 fi
@@ -83,6 +87,9 @@ classpath="$classpath:$extra_cp"
 classpath=`fixclasspath "$classpath"`
 
 args="$args -classpath '$classpath'"
+if [ "$serial" != 1 ]; then
+  args="$args -noserial"
+fi
 vmargs="$vmargs -ea"
 
 if [ "$usage" = 1 ]; then
