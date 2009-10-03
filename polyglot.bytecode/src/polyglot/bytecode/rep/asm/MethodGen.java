@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 
 import polyglot.bytecode.rep.IMethodGen;
 import polyglot.bytecode.rep.IOpcodes;
@@ -23,18 +24,21 @@ public class MethodGen implements IMethodGen {
         this.throwTypes = Arrays.asList(throwTypes);
         this.code = null;
         this.handlers = new ArrayList<CodeExceptionGen>();
-        String[] throwTypeStrings = new String[throwTypes.length];
-        for (int i = 0; i < throwTypes.length; i++)
-            throwTypeStrings[i] = throwTypes[i].desc();
-        this.mn = new MethodNode(flags, name, Bytecodes.methodSignature(argTypes, returnType), null, throwTypeStrings);
     }
     
     MethodNode mn() {
+        String[] throwTypeStrings = new String[throwTypes.size()];
+        for (int i = 0; i < throwTypes.size(); i++)
+            throwTypeStrings[i] = throwTypes.get(i).desc();
+        MethodNode mn = new MethodNode(flags, name, Bytecodes.methodSignature(argTypes.toArray(new Type[0]), returnType), null, throwTypeStrings);
+        mn.instructions = code.instructions;
+        mn.exceptions = new ArrayList();
+        for (CodeExceptionGen h : handlers) {
+            mn.exceptions.add(new TryCatchBlockNode(Bytecodes.asmLabel(h.startPC),Bytecodes. asmLabel(h.endPC), Bytecodes. asmLabel(h.handlerPC), h.catchType.desc()));
+        }
         return mn;
     }
 
-
-    MethodNode mn;
     int flags;
     String name;
     Type returnType;

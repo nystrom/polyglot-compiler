@@ -1,5 +1,7 @@
 package polyglot.bytecode.rep.asm;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +10,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.IincInsnNode;
+import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
@@ -16,7 +19,6 @@ import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
 import org.objectweb.asm.tree.TryCatchBlockNode;
@@ -35,12 +37,12 @@ import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 
 public class Bytecodes implements IOpcodes {
-    MethodNode mn;
-    
+    InsnList instructions;
+    Bytecodes mn;
     int maxStack;
     int maxLocals;
     
-    private LabelNode asmLabel(ILabel L) {
+    static LabelNode asmLabel(ILabel L) {
         assert L != null;
         return new LabelNode(((MyLabel) L).L);
     }
@@ -88,10 +90,10 @@ public class Bytecodes implements IOpcodes {
 
     public Bytecodes(final MethodGen mg, StackType st) {
         assert mg != null;
-        assert mg.mn != null;
-        this.mn = mg.mn;
         this.setStack(st);
         this.maxStack = st.size();
+        this.instructions = new InsnList();
+        this.mn = this;
     }
 
     public Bytecodes(final MethodGen mg) {
@@ -100,11 +102,51 @@ public class Bytecodes implements IOpcodes {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        for (AbstractInsnNode i : (List<AbstractInsnNode>) mn.instructions) {
-            sb.append(i);
+        if (mn == null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("null MethodNode");
+            return sb.toString();
         }
-        return sb.toString();
+        return insnListToString(mn.instructions);
+    }
+
+    public static String insnListToString(InsnList instructions) {
+        StringBuilder sb = new StringBuilder();
+        for (AbstractInsnNode i = instructions.getFirst(); i != null; i = i.getNext()) {
+            if (i.getType() == InsnNode.LABEL)
+                sb.append("L" + i.hashCode());
+            else                if (i.getType() == InsnNode.LINE)
+                sb.append("Line");
+            else
+            try {
+                Class c = Opcodes.class;
+                Field[] f = c.getFields();
+                boolean on = false;
+                for (int k = 0; k < f.length; k++) {
+                    if (! on)
+                        if (f[k].getName().equals("NOP"))
+                            on = true;
+                    if (! on)
+                        continue;
+                    if ((f[k].getModifiers() & Modifier.STATIC) != 0)
+                            try {
+                                if (f[k].getInt(null) == i.getOpcode()) {
+                                    sb.append(f[k].getName());
+                                    break;
+                                }
+                            }
+                            catch (IllegalArgumentException e) {
+                            }
+                            catch (IllegalAccessException e) {
+                            }
+                }
+            }
+            catch (NullPointerException e) {
+                sb.append("NPE");
+            }
+            sb.append("\n");
+        }
+      return sb.toString();
     }
 
     /* (non-Javadoc)
@@ -120,7 +162,6 @@ public class Bytecodes implements IOpcodes {
      * @see polyglot.bytecode.rep.Opcodes#addExceptionHandler(polyglot.bytecode.rep.ILabel, polyglot.bytecode.rep.ILabel, polyglot.bytecode.rep.ILabel, polyglot.bytecode.types.Type)
      */
     public IExceptionHandler addExceptionHandler(final ILabel start_pc, final ILabel end_pc, final ILabel handler_pc, final Type catch_type) {
-        mn.exceptions.add(new TryCatchBlockNode(asmLabel(start_pc), asmLabel(end_pc), asmLabel(handler_pc), catch_type.desc()));
         CodeExceptionGen e = new CodeExceptionGen(start_pc, end_pc, handler_pc, catch_type);
         if (handlers == null)
             handlers = new ArrayList<CodeExceptionGen>();

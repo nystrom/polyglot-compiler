@@ -292,18 +292,6 @@ public class ExprTranslator extends AbstractExpTranslator {
         visitChild(n);
         coerce(typeof(n), typeof(t), n.position());
     }
-    boolean isI(Type t) {
-        return t.isIType();
-    }
-    boolean isJ(Type t) {
-        return t.isIType() || t.isLong();
-    }
-    boolean isF(Type t) {
-        return t.isIType() || t.isLong() || t.isFloat();
-    }
-    boolean isD(Type t) {
-        return t.isIType() || t.isLong() || t.isFloat() || t.isDouble();
-    }
     
     abstract class Op implements Optimization {
         Binary.Operator op;
@@ -612,22 +600,25 @@ public class ExprTranslator extends AbstractExpTranslator {
 
                                                   new Op(Binary.BIT_AND, Type.BOOLEAN, Type.BOOLEAN, Type.BOOLEAN, true) {
                                                       void instruction() {
-                                                          il.currentStack().pop(Type.BOOLEAN).pop(Type.BOOLEAN).push(Type.INT).push(Type.INT);
+                                                          il.setStack(il.currentStack().pop(Type.BOOLEAN).pop(Type.BOOLEAN).push(Type.INT).push(Type.INT));
                                                           il.IAND(n.position());
+                                                          il.setStack(     il.currentStack().pop(Type.INT).push(Type.BOOLEAN));
                                                           il.uncheckedCoerce(Type.BOOLEAN);
                                                       }
                                                   },
                                                   new Op(Binary.BIT_OR, Type.BOOLEAN, Type.BOOLEAN, Type.BOOLEAN, true) {
                                                       void instruction() {
-                                                          il.currentStack().pop(Type.BOOLEAN).pop(Type.BOOLEAN).push(Type.INT).push(Type.INT);
+                                                          il.setStack(       il.currentStack().pop(Type.BOOLEAN).pop(Type.BOOLEAN).push(Type.INT).push(Type.INT));
                                                           il.IOR(n.position());
+                                                          il.setStack(     il.currentStack().pop(Type.INT).push(Type.BOOLEAN));
                                                           il.uncheckedCoerce(Type.BOOLEAN);
                                                       }
                                                   },
                                                   new Op(Binary.BIT_XOR, Type.BOOLEAN, Type.BOOLEAN, Type.BOOLEAN, true) {
                                                       void instruction() {
-                                                          il.currentStack().pop(Type.BOOLEAN).pop(Type.BOOLEAN).push(Type.INT).push(Type.INT);
+                                                          il.setStack(   il.currentStack().pop(Type.BOOLEAN).pop(Type.BOOLEAN).push(Type.INT).push(Type.INT));
                                                           il.IXOR(n.position());
+                                                          il.setStack(   il.currentStack().pop(Type.INT).push(Type.BOOLEAN));
                                                           il.uncheckedCoerce(Type.BOOLEAN);
                                                       }
                                                   },
@@ -640,6 +631,8 @@ public class ExprTranslator extends AbstractExpTranslator {
             if (result)
                 return;
         }
+        
+        System.out.println("no op for " + n);
 
         assert false : "no op for " + n;
 

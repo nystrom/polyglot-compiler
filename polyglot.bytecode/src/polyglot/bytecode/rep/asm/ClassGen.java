@@ -33,7 +33,7 @@ public class ClassGen implements IClassGen {
     }
     
     public byte[] bytes() {
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         String[] interfaceNames = new String[interfaces.size()];
         for (int i = 0; i < interfaces.size(); i++) {
             interfaceNames[i] = interfaces.get(i).className();
@@ -69,15 +69,9 @@ public class ClassGen implements IClassGen {
         }
         for (IMethodGen mg : methods) {
             MethodGen m = (MethodGen) mg;
-            MethodGen f = m;
-            String[] throwTypeStrings = new String[f.throwTypes.size()];
-            for (int i = 0; i < f.throwTypes.size(); i++)
-                throwTypeStrings[i] = f.throwTypes.get(i).desc();
-            MethodVisitor w = cw.visitMethod(f.flags, f.getName(), Bytecodes.methodSignature(f.argTypes.toArray(new Type[0]), f.returnType), null,
-                                             throwTypeStrings);
             MethodNode mn = m.mn();
-            mn.accept(w);
-            w.visitEnd();
+            String s = Bytecodes.insnListToString(mn.instructions);
+            mn.accept(cw);
         }
         cw.visitEnd();
         return cw.toByteArray();

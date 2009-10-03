@@ -274,4 +274,29 @@ public abstract class AbstractTranslator implements Copy {
     public void visitChild(Node s, AbstractTranslator t) {
         new Dispatch.Dispatcher("visit").invoke(t, s);
     }
+    static
+    boolean isI(Type t) {
+        if (t.isBoolean())
+            return false;
+        return t.isIType();
+    }
+    static
+    boolean isJ(Type t) {
+        if (t.isBoolean())
+            return false;
+        return t.isIType() || t.isLong();
+    }
+    static
+    boolean isF(Type t) {
+        if (t.isBoolean())
+            return false;
+        return t.isIType() || t.isLong() || t.isFloat();
+    }
+    static
+    boolean isD(Type t) {
+        if (t.isBoolean())
+            return false;
+        return t.isIType() || t.isLong() || t.isFloat() || t.isDouble();
+    }
+
 }
