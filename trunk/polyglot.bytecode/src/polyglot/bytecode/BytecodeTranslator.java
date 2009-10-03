@@ -9,24 +9,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.objectweb.asm.commons.StaticInitMerger;
-
 import polyglot.ast.ClassDecl;
 import polyglot.ast.NodeFactory;
 import polyglot.ast.SourceFile;
-import polyglot.ast.SourceFile_c;
 import polyglot.ast.TopLevelDecl;
 import polyglot.bytecode.rep.IClassGen;
 import polyglot.dispatch.Dispatch;
 import polyglot.frontend.Job;
 import polyglot.types.ClassDef;
-import polyglot.types.Name;
-import polyglot.types.Package;
-import polyglot.types.QName;
 import polyglot.types.TypeSystem;
 import polyglot.types.Types;
 import polyglot.util.ErrorInfo;
-import polyglot.visit.ContextVisitor;
 import polyglot.visit.InnerClassRemover;
 import polyglot.visit.LocalClassRemover;
 
@@ -77,6 +70,9 @@ public class BytecodeTranslator {
                 polyglot.types.Package p = Types.get(def.package_());
                 File f = ts.extensionInfo().targetFactory().outputFile(a.cg.fullName().qualifier(), a.cg.fullName().name(), n.source());
                 try {
+                    if (! f.getParentFile().exists())
+                        // Create the parent directory.  Don't bother checking if successful, the file open below will fail if not.
+                        f.getParentFile().mkdirs();
                     FileOutputStream out = new FileOutputStream(f);
                     out.write(b);
                     out.close();

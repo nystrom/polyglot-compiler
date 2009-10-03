@@ -271,7 +271,7 @@ public class MethodContext implements BytecodeConstants, Copy {
     }
 
     public String toString() {
-        return theMethod + "\n" + il.toString();
+        return theMethod + "\n" + (il == null ? "null" : il.toString());
     }
 
     Name label(Id target) {

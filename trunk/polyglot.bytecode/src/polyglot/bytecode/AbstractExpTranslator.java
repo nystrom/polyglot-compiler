@@ -265,6 +265,11 @@ public class AbstractExpTranslator extends AbstractTranslator {
         }
 
         Map<Pair<Operator, Type>, Apply> m = new HashMap<Pair<Binary.Operator, Type>, Apply>();
+        m.put(new Pair(Binary.ADD, Type.BYTE), new Apply() {
+            void apply() {
+                il.IADD(pos);
+            }
+        });
         m.put(new Pair(Binary.ADD, Type.INT), new Apply() {
             void apply() {
                 il.IADD(pos);
@@ -380,6 +385,13 @@ public class AbstractExpTranslator extends AbstractTranslator {
                 il.LAND(pos);
             }
         });
+        m.put(new Pair(Binary.BIT_AND, Type.BOOLEAN), new Apply() {
+            void apply() {
+                il.setStack(il.currentStack().pop(Type.BOOLEAN).pop(Type.BOOLEAN).push(Type.INT).push(Type.INT));
+                il.IAND(pos);
+                il.setStack(il.currentStack().pop(Type.INT).push(Type.BOOLEAN));
+            }
+        });
 
         m.put(new Pair(Binary.BIT_OR, Type.INT), new Apply() {
             void apply() {
@@ -391,6 +403,13 @@ public class AbstractExpTranslator extends AbstractTranslator {
                 il.LOR(pos);
             }
         });
+        m.put(new Pair(Binary.BIT_OR, Type.BOOLEAN), new Apply() {
+            void apply() {
+                il.setStack(il.currentStack().pop(Type.BOOLEAN).pop(Type.BOOLEAN).push(Type.INT).push(Type.INT));
+                il.IOR(pos);
+                il.setStack(il.currentStack().pop(Type.INT).push(Type.BOOLEAN));
+            }
+        });
 
         m.put(new Pair(Binary.BIT_XOR, Type.INT), new Apply() {
             void apply() {
@@ -400,6 +419,13 @@ public class AbstractExpTranslator extends AbstractTranslator {
         m.put(new Pair(Binary.BIT_XOR, Type.LONG), new Apply() {
             void apply() {
                 il.LXOR(pos);
+            }
+        });
+        m.put(new Pair(Binary.BIT_XOR, Type.BOOLEAN), new Apply() {
+            void apply() {
+                il.setStack(il.currentStack().pop(Type.BOOLEAN).pop(Type.BOOLEAN).push(Type.INT).push(Type.INT));
+                il.IXOR(pos);
+                il.setStack(il.currentStack().pop(Type.INT).push(Type.BOOLEAN));
             }
         });
 

@@ -470,6 +470,8 @@ public class StmtTranslator extends AbstractExpTranslator {
         ILabel END = il.makeLabel(n.position());
         ILabel POST = il.makeLabel(n.position());
        
+        StackType st = il.currentStack();
+        
         il.addLabel(START);
         
         MethodContext.InstructionSequence post = new MethodContext.InstructionSequence() {
@@ -481,9 +483,11 @@ public class StmtTranslator extends AbstractExpTranslator {
         if (n.finallyBlock() != null)
             visitChild(n.tryBlock(), context(context.pushFinally(post)));
         else
-            visitChild(n.tryBlock(), this);
+            visitChild(n.tryBlock());
         il.addLabel(END);
         
+        String s = il.toString();
+
         if (il.isReachable()) {
             il.GOTO(POST, n.position());
         }
@@ -492,8 +496,11 @@ public class StmtTranslator extends AbstractExpTranslator {
             int index = context.addLocal(c.formal().localDef());
             
             ILabel HANDLER = il.makeLabel(n.position());
-            il.addLabel(HANDLER);
+
+            il.addExceptionHandler(START, END, HANDLER, typeof(c.formal().type()));
+            
             il.setStack(polyglot.bytecode.types.Empty.it.push(Type.OBJECT));
+            il.addLabel(HANDLER);
             il.ASTORE(index, n.position());
             
             if (n.finallyBlock() != null)
@@ -501,11 +508,14 @@ public class StmtTranslator extends AbstractExpTranslator {
             else
                 visitChild(c.body(), this);
             
-            if (il.isReachable()) {
-                visitChild(n.finallyBlock());
+            s = il.toString();
+            
+            if (n.finallyBlock() != null)
                 if (il.isReachable())
-                    il.GOTO(POST, n.position());
-            }
+                    visitChild(n.finallyBlock());
+
+            if (il.isReachable())
+                il.GOTO(POST, n.position());
         }
 
         if (n.finallyBlock() != null) {
@@ -516,10 +526,12 @@ public class StmtTranslator extends AbstractExpTranslator {
             il.addLabel(HANDLER);
             
             post.appendInstructions(il, context);
+            
             if (il.isReachable())
                 il.ATHROW(n.position());
         }
 
         il.addLabel(POST);
+        il.setStack(st);
     }
 }
