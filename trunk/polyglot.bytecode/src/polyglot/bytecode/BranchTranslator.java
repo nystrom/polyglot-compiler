@@ -100,6 +100,27 @@ public class BranchTranslator extends AbstractExpTranslator {
             void instruction() {
                 il.IF_ACMPEQ(branchTarget, pos);
             }
+
+        }, new CompareOpt(Binary.EQ, true, Type.BOOLEAN, Type.BOOLEAN) {
+            void instruction() {
+                il.setStack(il.currentStack().pop(Type.BOOLEAN).pop(Type.BOOLEAN).push(Type.INT).push(Type.INT));
+                il.IF_ICMPEQ(branchTarget, pos);
+            }
+        }, new CompareOpt(Binary.NE, true, Type.BOOLEAN, Type.BOOLEAN) {
+            void instruction() {
+                il.setStack(il.currentStack().pop(Type.BOOLEAN).pop(Type.BOOLEAN).push(Type.INT).push(Type.INT));
+                il.IF_ICMPNE(branchTarget, pos);
+            }
+        }, new CompareOpt(Binary.EQ, false, Type.BOOLEAN, Type.BOOLEAN) {
+            void instruction() {
+                il.setStack(il.currentStack().pop(Type.BOOLEAN).pop(Type.BOOLEAN).push(Type.INT).push(Type.INT));
+                il.IF_ICMPNE(branchTarget, pos);
+            }
+        }, new CompareOpt(Binary.NE, false, Type.BOOLEAN, Type.BOOLEAN) {
+            void instruction() {
+                il.setStack(il.currentStack().pop(Type.BOOLEAN).pop(Type.BOOLEAN).push(Type.INT).push(Type.INT));
+                il.IF_ICMPEQ(branchTarget, pos);
+            }
         
         }, new CompareOpt(Binary.GT, true, Type.INT, Type.BOOLEAN) {
             void instruction() {
@@ -351,21 +372,21 @@ public class BranchTranslator extends AbstractExpTranslator {
         }
 
         if (n.operator() == Binary.EQ)
-            assert false;
+            assert false : n;
         if (n.operator() == Binary.NE)
-            assert false;
+            assert false : n;
         if (n.operator() == Binary.LT)
-            assert false;
+            assert false : n;
         if (n.operator() == Binary.LE)
-            assert false;
+            assert false : n;
         if (n.operator() == Binary.GT)
-            assert false;
+            assert false : n;
         if (n.operator() == Binary.GE)
-            assert false;
+            assert false : n;
         if (n.operator() == Binary.COND_AND)
-            assert false;
+            assert false : n;
         if (n.operator() == Binary.COND_OR)
-            assert false;
+            assert false : n;
 
         visit((Expr) n);
     }
