@@ -21,7 +21,6 @@ import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
-import org.objectweb.asm.tree.TryCatchBlockNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
@@ -387,6 +386,8 @@ public class Bytecodes implements IOpcodes {
         assert isReachable();
 
         setStack(currentStack.pop(Type.OBJECT));
+        setStack(Unreachable.it);
+
         return postAppend(pos, h);
     }
 
