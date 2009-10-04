@@ -418,7 +418,7 @@ public class StmtTranslator extends AbstractExpTranslator {
                     defaultLabel = il.makeLabel(c.position());
                 else {
                     labels[i] = il.makeLabel(c.position());
-                    cases[i] = (Integer) c.expr().constantValue();
+                    cases[i] = ((Number) c.expr().constantValue()).intValue();
                     i++;
                 }
             }
