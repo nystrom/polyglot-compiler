@@ -474,8 +474,11 @@ public class StmtTranslator extends AbstractExpTranslator {
         
         il.addLabel(START);
         
+        final MethodContext context = this.context;
+        
         MethodContext.InstructionSequence post = new MethodContext.InstructionSequence() {
-            public void appendInstructions(IOpcodes il, MethodContext context) {
+            public void appendInstructions(IOpcodes il, MethodContext c) {
+                // visit the finally block, but pop the context so we don't recurse.
                 visitChild(n.finallyBlock(), new StmtTranslator(job, ts, nf, bc, context));
             }
         };
