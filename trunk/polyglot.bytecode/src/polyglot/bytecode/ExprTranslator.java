@@ -836,6 +836,7 @@ public class ExprTranslator extends AbstractExpTranslator {
         try {
             TypeSystem ts = n.type().typeSystem();
             MethodInstance mi = ts.findMethod(ts.String(), ts.MethodMatcher(ts.String(), Name.make("valueOf"), Collections.singletonList(n.type()), ts.emptyContext()));
+            coerce(typeof(n.type()), typeof(mi.formalTypes().get(0)), n.position());
             il.INVOKESTATIC(typeof(mi.container()), mi.name().toString(), typeofTypes(mi.formalTypes()), typeof(mi.returnType()), n.position());
         }
         catch (SemanticException e) {
@@ -862,7 +863,7 @@ public class ExprTranslator extends AbstractExpTranslator {
         // generate the then case.
         if (!il.isUnreachable()) {
             visitChild(n.consequent());
-            il.uncheckedCoerce(typeof(n.type()));
+            coerce(il.currentStack().top(), typeof(n.type()), n.consequent().position());
             final StackType thenStack = il.currentStack();
 
             if (!il.isUnreachable()) {
@@ -879,7 +880,7 @@ public class ExprTranslator extends AbstractExpTranslator {
                 il.setStack(thenStack);
             }
             else {
-                il.uncheckedCoerce(typeof(n.type()));
+                coerce(il.currentStack().top(), typeof(n.type()), n.consequent().position());
                 il.setStack(il.currentStack().merge(thenStack));
             }
 
