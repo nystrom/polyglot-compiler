@@ -67,17 +67,15 @@ public class Assert_c extends Stmt_c implements Assert
     }
 
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
         if (! cond.type().isBoolean()) {
             throw new SemanticException("Condition of assert statement " +
                                         "must have boolean type.",
                                         cond.position());
         }
 
-        if (errorMessage != null && ts.typeEquals(errorMessage.type(), ts.Void(), tc.context())) {
+        if (errorMessage != null && errorMessage.type().isVoid()) {
             throw new SemanticException("Error message in assert statement " +
-                                        "must have a value.",
+                                        "cannot be void.",
                                         errorMessage.position());
         }
 
