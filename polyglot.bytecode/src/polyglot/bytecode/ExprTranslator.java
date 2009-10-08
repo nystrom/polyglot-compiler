@@ -35,7 +35,6 @@ import polyglot.bytecode.types.Type;
 import polyglot.bytecode.types.Unreachable;
 import polyglot.frontend.Job;
 import polyglot.types.ClassType;
-import polyglot.types.ConstructorInstance;
 import polyglot.types.FieldInstance;
 import polyglot.types.LocalDef;
 import polyglot.types.MethodInstance;
@@ -56,30 +55,30 @@ public class ExprTranslator extends AbstractExpTranslator {
 
     public void visit(final FieldAssign n) {
         if (n.target() instanceof Expr) {
-        if (n.operator() != Assign.ASSIGN) {
-            visitChild(n.target());
-            il.DUP(n.position());
-            il.GETFIELD(typeof(n.fieldInstance().container()), n.fieldInstance().name().toString(), typeof(n.fieldInstance().type()), n.position());    
-            il.uncheckedCoerce(typeof(n));
-            promote(n.right(), n.type());
-            binaryOp(n.operator(), typeof(n), n.position()); // S e v
-            if (il.currentStack().top().isWide())
-                il.DUP2_X1(n.position()); // S v e v  3(21) -> (21)3(21)
-            else
-                il.DUP_X1(n.position());  // S v e v  21 -> 121
-            coerce(il, typeof(n), typeof(n.fieldInstance().type()), n.position());
-            il.PUTFIELD(typeof(n.fieldInstance().container()), n.fieldInstance().name().toString(), typeof(n.fieldInstance().type()), n.position());    
-        }
-        else {
-            visitChild(n.target());
-            visitChild(n.right()); // S e v
-            if (il.currentStack().top().isWide())
-                il.DUP2_X1(n.position()); // S v e v  3(21) -> (21)3(21)
-            else
-                il.DUP_X1(n.position());  // S v e v  21 -> 121
-            coerce(il, typeof(n.right()), typeof(n.fieldInstance().type()), n.position());
-            il.PUTFIELD(typeof(n.fieldInstance().container()), n.fieldInstance().name().toString(), typeof(n.fieldInstance().type()), n.position());    
-        }
+            if (n.operator() != Assign.ASSIGN) {
+                visitChild(n.target());
+                il.DUP(n.position());
+                il.GETFIELD(typeof(n.fieldInstance().container()), n.fieldInstance().name().toString(), typeof(n.fieldInstance().type()), n.position());    
+                il.uncheckedCoerce(typeof(n));
+                promote(n.right(), n.type());
+                binaryOp(n.operator(), typeof(n), n.position()); // S e v
+                if (il.currentStack().top().isWide())
+                    il.DUP2_X1(n.position()); // S v e v  3(21) -> (21)3(21)
+                else
+                    il.DUP_X1(n.position());  // S v e v  21 -> 121
+                coerce(il, typeof(n), typeof(n.fieldInstance().type()), n.position());
+                il.PUTFIELD(typeof(n.fieldInstance().container()), n.fieldInstance().name().toString(), typeof(n.fieldInstance().type()), n.position());    
+            }
+            else {
+                visitChild(n.target());
+                visitChild(n.right()); // S e v
+                if (il.currentStack().top().isWide())
+                    il.DUP2_X1(n.position()); // S v e v  3(21) -> (21)3(21)
+                else
+                    il.DUP_X1(n.position());  // S v e v  21 -> 121
+                coerce(il, typeof(n.right()), typeof(n.fieldInstance().type()), n.position());
+                il.PUTFIELD(typeof(n.fieldInstance().container()), n.fieldInstance().name().toString(), typeof(n.fieldInstance().type()), n.position());    
+            }
         }
         else {
             if (n.operator() != Assign.ASSIGN) {
@@ -292,7 +291,7 @@ public class ExprTranslator extends AbstractExpTranslator {
         visitChild(n);
         coerce(typeof(n), typeof(t), n.position());
     }
-    
+
     abstract class Op implements Optimization {
         Binary.Operator op;
         Type leftType;
@@ -325,10 +324,10 @@ public class ExprTranslator extends AbstractExpTranslator {
             if (isD(resultType))
                 if (!n.left().type().isNumeric() || !n.right().type().isNumeric())
                     return false;
-            
+
             Type lt = typeof(n.left());
             Type rt = typeof(n.right());
-          
+
             if (promote) {
                 if (resultType.isInt() && (! isI(lt) || ! isI(rt)))
                     return false;
@@ -402,7 +401,7 @@ public class ExprTranslator extends AbstractExpTranslator {
             J = il.makeLabel(n.position());
 
             StackType st = il.currentStack();
-            
+
             visitBranch(n, F, false);
 
             // If not unreachable, generate the body.
@@ -414,7 +413,7 @@ public class ExprTranslator extends AbstractExpTranslator {
             // false target
             il.addLabel(F);
             il.setStack(st);
-            
+
             False(n.position());
 
             // boolean on stack
@@ -631,7 +630,7 @@ public class ExprTranslator extends AbstractExpTranslator {
             if (result)
                 return;
         }
-        
+
         System.out.println("no op for " + n);
 
         assert false : "no op for " + n;

@@ -12,7 +12,7 @@ public interface IOpcodes {
 
     void setStack(StackType st);
 
-    IExceptionHandler addExceptionHandler(final ILabel start_pc, final ILabel end_pc, final ILabel handler_pc, final Type catch_type);
+    void addExceptionHandler(final ILabel start_pc, final ILabel end_pc, final ILabel handler_pc, final Type catch_type);
 
     ILabel makeLabel(final Position pos);
 

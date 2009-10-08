@@ -23,7 +23,6 @@ public class MethodGen implements IMethodGen {
         this.name = name;
         this.throwTypes = Arrays.asList(throwTypes);
         this.code = null;
-        this.handlers = new ArrayList<CodeExceptionGen>();
     }
     
     MethodNode mn() {
@@ -32,10 +31,7 @@ public class MethodGen implements IMethodGen {
             throwTypeStrings[i] = throwTypes.get(i).desc();
         MethodNode mn = new MethodNode(flags, name, Bytecodes.methodSignature(argTypes.toArray(new Type[0]), returnType), null, throwTypeStrings);
         mn.instructions = code.instructions;
-        mn.exceptions = new ArrayList();
-        for (CodeExceptionGen h : handlers) {
-            mn.exceptions.add(new TryCatchBlockNode(Bytecodes.asmLabel(h.startPC),Bytecodes. asmLabel(h.endPC), Bytecodes. asmLabel(h.handlerPC), h.catchType.desc()));
-        }
+        mn.tryCatchBlocks = code.tryCatchBlocks;
         return mn;
     }
 
@@ -46,7 +42,6 @@ public class MethodGen implements IMethodGen {
     List<Type> argTypes;
     List<Type> throwTypes;
     Bytecodes code;
-    List<CodeExceptionGen> handlers;
     
     public void setCode(IOpcodes code) {
         this.code = (Bytecodes) code;
@@ -102,14 +97,6 @@ public class MethodGen implements IMethodGen {
 
     public void setThrowTypes(List<Type> throwTypes) {
         this.throwTypes = throwTypes;
-    }
-
-    public List<CodeExceptionGen> getHandlers() {
-        return handlers;
-    }
-
-    public void setHandlers(List<CodeExceptionGen> handlers) {
-        this.handlers = handlers;
     }
 
     public IOpcodes getCode() {
