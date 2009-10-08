@@ -102,7 +102,6 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
     protected String translateClass(final Node n, final ClassDef sym, final ClassBody body) {
         String generatedClassName = classNameOfSymbol(sym);
 
-        // Get a getter method interface for each field.
         final Type superklass = getSuperklass(sym);
         final Type[] interfaces = getInterfaces(sym);
 
@@ -123,8 +122,8 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
             final Type frameClass = et.frameClass;
 
             if (frameClass != null) {
-                // Only anonymous classes can have frame fields.
-                assert sym.isAnonymous();
+                // Only inner classes can have frame fields.
+                assert sym.isInnerClass();
 
                 final String fieldName = Name.makeFresh("frame").toString();
                 final IFieldGen fg = AsmFactory.makeField(ACC_PUBLIC | ACC_FINAL, frameClass, fieldName, null);

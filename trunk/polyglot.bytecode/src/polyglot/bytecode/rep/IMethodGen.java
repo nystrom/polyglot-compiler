@@ -34,9 +34,5 @@ public interface IMethodGen {
 
     public void setThrowTypes(List<Type> throwTypes);
 
-    public List<CodeExceptionGen> getHandlers();
-
-    public void setHandlers(List<CodeExceptionGen> handlers);
-
     public IOpcodes getCode();
 }

@@ -21,6 +21,7 @@ import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
@@ -37,6 +38,7 @@ import polyglot.util.Position;
 
 public class Bytecodes implements IOpcodes {
     InsnList instructions;
+    List<TryCatchBlockNode> tryCatchBlocks;
     Bytecodes mn;
     int maxStack;
     int maxLocals;
@@ -92,6 +94,7 @@ public class Bytecodes implements IOpcodes {
         this.setStack(st);
         this.maxStack = st.size();
         this.instructions = new InsnList();
+        this.tryCatchBlocks = new ArrayList<TryCatchBlockNode>();
         this.mn = this;
     }
 
@@ -155,17 +158,11 @@ public class Bytecodes implements IOpcodes {
         return h;
     }
 
-    List<CodeExceptionGen> handlers;
-
     /* (non-Javadoc)
      * @see polyglot.bytecode.rep.Opcodes#addExceptionHandler(polyglot.bytecode.rep.ILabel, polyglot.bytecode.rep.ILabel, polyglot.bytecode.rep.ILabel, polyglot.bytecode.types.Type)
      */
-    public IExceptionHandler addExceptionHandler(final ILabel start_pc, final ILabel end_pc, final ILabel handler_pc, final Type catch_type) {
-        CodeExceptionGen e = new CodeExceptionGen(start_pc, end_pc, handler_pc, catch_type);
-        if (handlers == null)
-            handlers = new ArrayList<CodeExceptionGen>();
-        handlers.add(e);
-        return e;
+    public void addExceptionHandler(final ILabel start_pc, final ILabel end_pc, final ILabel handler_pc, final Type catch_type) {
+        tryCatchBlocks.add(new TryCatchBlockNode(Bytecodes.asmLabel(start_pc),Bytecodes. asmLabel(end_pc), Bytecodes. asmLabel(handler_pc), catch_type.desc()));
     }
 
     /* (non-Javadoc)
