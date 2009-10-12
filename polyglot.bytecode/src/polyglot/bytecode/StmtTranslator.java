@@ -2,6 +2,7 @@ package polyglot.bytecode;
 
 import java.util.Collections;
 
+import polyglot.ast.ArrayInit;
 import polyglot.ast.Assert;
 import polyglot.ast.Block;
 import polyglot.ast.Branch;
@@ -207,7 +208,10 @@ public class StmtTranslator extends AbstractExpTranslator {
     public void visit(LocalDecl n) {
         int index = context.addLocal(n.localDef());
         if (n.init() != null) {
-            visitChild(n.init());
+            if (n.init() instanceof ArrayInit)
+                visitChild(n.init().type(Types.get(n.localDef().type())));
+            else
+                visitChild(n.init());
             coerce(il, typeof(n.init()), typeof(n.localDef().type()), n.position());
             il.store(index, typeof(n.localDef().type()), n.position());
         }

@@ -950,22 +950,7 @@ public class ExprTranslator extends AbstractExpTranslator {
         }
 
         if (n.init() != null) {
-            il.DUP(n.position());
-            ArrayInit init = n.init();
-            int i = 0;
-            for (final Expr e : init.elements()) {
-                il.DUP(e.position());
-                il.LDC(i, e.position());
-                i++;
-                visitChild(e);
-                coerce(il.currentStack().top(), base, e.position());
-                arrayStore(baseType, e.position());
-                if (il.isUnreachable())
-                    return;
-            }
-
-            // Force the initializer type to be the same type.
-            visitChild(n.init().type(n.type()));
+            initArray((ArrayInit) n.init().type(n.type()), baseType);
         }
     }
 
@@ -976,20 +961,31 @@ public class ExprTranslator extends AbstractExpTranslator {
             il.ANEWARRAY(typeof(baseType), n.position());
         else
             il.NEWARRAY(typeof(baseType), n.position());
+        initArray(n, baseType);
+    }
+
+    /** Initialize an array.  Requires that the array be on the stack. */
+    private void initArray(final ArrayInit n, polyglot.types.Type baseType) {
+        // stack = A
         int i = 0;
         for (final Expr e : n.elements()) {
             il.DUP(e.position());
+            // stack = A A
             il.LDC(i, e.position());
+            // stack = A A i
             i++;
             if (e instanceof ArrayInit)
                 visitChild(e.type(baseType));
             else
                 visitChild(e);
+            // stack = A A i e
             coerce(il.currentStack().top(), typeof(baseType), e.position());
             arrayStore(baseType, e.position());
             if (il.isUnreachable())
                 return;
+            // stack = A
         }
+        // stack = A
     }
 
 }
