@@ -157,7 +157,7 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
             }
             if (member instanceof Initializer) {
                 Initializer i = (Initializer) member;
-                if (! i.initializerDef().flags().isStatic()) {
+                if (i.initializerDef().flags().isStatic()) {
                     MethodContext context = new MethodContext(i.initializerDef(), staticInit, this, Empty.it);
                     visitChild(i.body(), new StmtTranslator(job, ts, nf, bc, context));
                     if (staticInitIL.isUnreachable())
