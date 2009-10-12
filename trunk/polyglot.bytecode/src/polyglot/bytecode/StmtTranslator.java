@@ -222,10 +222,6 @@ public class StmtTranslator extends AbstractExpTranslator {
         TOP = il.makeLabel(n.position());
         END = il.makeLabel(n.position());
         
-        // HACK to avoid unreachable code
-        il.LDC(1, n.position());
-        il.IFEQ(END, n.position());
-
         final StackType endStack = il.currentStack();
 
         if (context.continueLabel(n) != null)
@@ -255,10 +251,6 @@ public class StmtTranslator extends AbstractExpTranslator {
         TOP = il.makeLabel(n.position());
         END = il.makeLabel(n.position());
         
-        // HACK to avoid unreachable code
-        il.LDC(1, n.position());
-        il.IFEQ(END, n.position());
-
         final StackType endStack = il.currentStack();
 
         for (ForInit i : n.inits()) {
@@ -294,10 +286,6 @@ public class StmtTranslator extends AbstractExpTranslator {
         TOP = il.makeLabel(n.position());
         END = il.makeLabel(n.position());
         
-        // HACK to avoid unreachable code
-        il.LDC(1, n.position());
-        il.IFEQ(END, n.position());
-
         final StackType endStack = il.currentStack();
 
         if (context.continueLabel(n) != null)
