@@ -162,7 +162,8 @@ public class Bytecodes implements IOpcodes {
      * @see polyglot.bytecode.rep.Opcodes#addExceptionHandler(polyglot.bytecode.rep.ILabel, polyglot.bytecode.rep.ILabel, polyglot.bytecode.rep.ILabel, polyglot.bytecode.types.Type)
      */
     public void addExceptionHandler(final ILabel start_pc, final ILabel end_pc, final ILabel handler_pc, final Type catch_type) {
-        tryCatchBlocks.add(new TryCatchBlockNode(Bytecodes.asmLabel(start_pc),Bytecodes. asmLabel(end_pc), Bytecodes. asmLabel(handler_pc), catch_type.desc()));
+        tryCatchBlocks.add(new TryCatchBlockNode(Bytecodes.asmLabel(start_pc),Bytecodes. asmLabel(end_pc), Bytecodes.asmLabel(handler_pc),
+                                                 catch_type != null ? catch_type.desc() : null));
     }
 
     /* (non-Javadoc)
