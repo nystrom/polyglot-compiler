@@ -33,7 +33,6 @@ import polyglot.bytecode.rep.IOpcodes;
 import polyglot.bytecode.types.StackType;
 import polyglot.bytecode.types.Type;
 import polyglot.frontend.Job;
-import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
 import polyglot.types.QName;
 import polyglot.types.SemanticException;
@@ -354,17 +353,22 @@ public class StmtTranslator extends AbstractExpTranslator {
         
         MethodContext.InstructionSequence post = new MethodContext.InstructionSequence() {
             public void appendInstructions(IOpcodes il, MethodContext context) {
-                il.ALOAD(index, Type.OBJECT, n.position());
-                il.MONITOREXIT(n.position());
+                if (il.isReachable()) {
+                    il.ALOAD(index, Type.OBJECT, n.position());
+                    il.MONITOREXIT(n.position());
+                }
             }
         };
 
         visitChild(n.body(), context(context.pushFinally(post)));
         il.addLabel(END);
         
+        StackType st = null;
+        
         if (il.isReachable()) {
             il.ALOAD(index, Type.OBJECT, n.position());
             il.MONITOREXIT(n.position());
+            st = il.currentStack();
             il.GOTO(POST, n.position());
         }
 
@@ -372,10 +376,16 @@ public class StmtTranslator extends AbstractExpTranslator {
         il.addLabel(HANDLER);
         il.setStack(polyglot.bytecode.types.Empty.it.push(Type.OBJECT));
         post.appendInstructions(il, context);
-        il.ATHROW(n.position());
-        il.addLabel(POST);
+        if (il.isReachable()) {
+            il.ATHROW(n.position());
+        }
 
+        il.addLabel(POST);
         il.addExceptionHandler(START, END, HANDLER, null);
+
+        if (st != null)
+            il.setStack(st);
+        
     }
     public void visit(Throw n) {
         visitChild(n.expr());
@@ -471,7 +481,9 @@ public class StmtTranslator extends AbstractExpTranslator {
         MethodContext.InstructionSequence post = new MethodContext.InstructionSequence() {
             public void appendInstructions(IOpcodes il, MethodContext c) {
                 // visit the finally block, but pop the context so we don't recurse.
-                visitChild(n.finallyBlock(), new StmtTranslator(job, ts, nf, bc, context));
+                if (il.isReachable()) {
+                    visitChild(n.finallyBlock(), new StmtTranslator(job, ts, nf, bc, context));
+                }
             }
         };
 
