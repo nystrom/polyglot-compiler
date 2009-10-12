@@ -769,7 +769,7 @@ public class Bytecodes implements IOpcodes {
      */
     public ILabel DUP2_X2(final Position pos) {
         final ILabel h = preAppend(pos);
-        mn.instructions.add(new InsnNode(Opcodes.DUP2_X1));
+        mn.instructions.add(new InsnNode(Opcodes.DUP2_X2));
         assert isReachable();
 
         Type t1 = currentStack.top();
