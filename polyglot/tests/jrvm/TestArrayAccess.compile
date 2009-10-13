@@ -1,0 +1,18 @@
+/Users/mergen/x10/polyglot/tests/jrvm/TestArrayAccess.java:138: Method null(java.lang.String, <unknown class>[]) in java.io.PrintStream cannot be called with arguments (java.lang.String, int); Cannot invoke method public transient <unknown class> java.io.PrintStream.printf(java.lang.String, <unknown class>[]) on printf(java.lang.String, int).
+          System.out.printf(" %4d", ary[i][j][k]);
+          ^-------------------------------------^
+
+/Users/mergen/x10/polyglot/tests/jrvm/TestArrayAccess.java:159: Cannot assign int to java.lang.Integer.
+          ary[i][j][k] = n++;
+          ^----------------^
+
+/Users/mergen/x10/polyglot/tests/jrvm/TestArrayAccess.java:165: Method null(java.lang.String, <unknown class>[]) in java.io.PrintStream cannot be called with arguments (java.lang.String, java.lang.Integer); Cannot invoke method public transient <unknown class> java.io.PrintStream.printf(java.lang.String, <unknown class>[]) on printf(java.lang.String, java.lang.Integer).
+          System.out.printf(" %4d", ary[i][j][k]);
+          ^-------------------------------------^
+
+/Users/mergen/x10/polyglot/tests/jrvm/TestArrayAccess.java:184: Method null(java.lang.String, <unknown class>[]) in java.io.PrintStream cannot be called with arguments (java.lang.String, java.lang.String); Cannot invoke method public transient <unknown class> java.io.PrintStream.printf(java.lang.String, <unknown class>[]) on printf(java.lang.String, java.lang.String).
+        System.out.printf(" %5s", String.valueOf(ary[i][j]));
+        ^--------------------------------------------------^
+
+4 errors.
+null
