@@ -299,4 +299,5 @@ public abstract class AbstractTranslator implements Copy {
         return t.isIType() || t.isLong() || t.isFloat() || t.isDouble();
     }
 
+
 }

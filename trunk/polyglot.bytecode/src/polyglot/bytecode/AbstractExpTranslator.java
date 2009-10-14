@@ -533,15 +533,26 @@ public class AbstractExpTranslator extends AbstractTranslator {
         il.uncheckedCoerce(Type.INT, Type.BOOLEAN);
     }
 
-    public void alloc(final ClassType type, final List<Expr> args, final Position pos) {
+
+    void promote(Expr n, polyglot.types.Type t) {
+        visitChild(n);
+        coerce(typeof(n), typeof(t), n.position());
+    }
+
+    void pushArguments(List<polyglot.types.Type> formalTypes, List<Expr> args) {
+        assert formalTypes.size() == args.size();
+        for (int i = 0; i < args.size(); i++) {
+            polyglot.types.Type t = formalTypes.get(i);
+            Expr arg = args.get(i);
+            promote(arg, t);
+        }
+    }
+
+    public void alloc(final ClassType type, final List<polyglot.types.Type> formalTypes, final List<Expr> args, final Position pos) {
         il.NEW(typeof(type), pos);
         il.DUP(pos);
 
-        for (final Expr e : args) {
-            visitChild(e);
-            if (il.isUnreachable())
-                return;
-        }
+        pushArguments(formalTypes, args);
 
         final Type[] tys = new Type[args.size()];
         for (int i = 0; i < args.size(); i++)
