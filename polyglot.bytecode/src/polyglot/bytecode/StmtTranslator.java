@@ -78,7 +78,8 @@ public class StmtTranslator extends AbstractExpTranslator {
             else {
                 e = nf.StringLit(n.position(), "Assertion failure: " + n.cond());
             }
-            alloc(a, Collections.singletonList(e), n.position());
+            polyglot.types.Type t = e.type().isReference() ? ts.Object() : (e.type().isByte() || e.type().isShort() ? ts.Int() : e.type());
+            alloc(a, Collections.singletonList(t), Collections.singletonList(e), n.position());
             il.ATHROW(n.position());
         }
         
@@ -136,11 +137,7 @@ public class StmtTranslator extends AbstractExpTranslator {
         // Call superclass constructors.
         il.ALOAD(thisIndex, context.localType(thisIndex), n.position());
 
-        for (final Expr arg : n.arguments()) {
-            visitChild(arg);
-            if (il.isUnreachable())
-                return;
-        }
+        pushArguments(n.constructorInstance().formalTypes(), n.arguments());
 
         if (n.kind() == ConstructorCall.THIS) {
             il.INVOKESPECIAL(Type.typeFromPolyglotType(context.currentClass.asType()), "<init>", typeof(n.arguments()), Type.VOID, n.position());

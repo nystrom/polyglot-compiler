@@ -506,10 +506,16 @@ public class BranchTranslator extends AbstractExpTranslator {
                     return false;
             }
             else {
-                if (!lt.equals(operandType))
-                    return false;
-                if (!rt.equals(operandType))
-                    return false;
+                if (operandType.isRef()) {
+                    if (! lt.isRef() || ! rt.isRef())
+                        return false;
+                }
+                else {
+                    if (!lt.equals(operandType))
+                        return false;
+                    if (!rt.equals(operandType))
+                        return false;
+                }
             }
 
             visitChild(n.left(), lt);

@@ -1,6 +1,7 @@
 package polyglot.bytecode;
 
 import java.util.Collections;
+import java.util.List;
 
 import polyglot.ast.ArrayAccess;
 import polyglot.ast.ArrayAccessAssign;
@@ -163,7 +164,7 @@ public class ExprTranslator extends AbstractExpTranslator {
             new ClassTranslator(job, ts, nf, bc, n.anonType(), context).translateClass(n, n.anonType(), n.body());
         }
 
-        alloc((ClassType) n.type(), n.arguments(), n.position());
+        alloc((ClassType) n.type(), n.constructorInstance().formalTypes(),      n.arguments(), n.position());
     }
 
     Type IObject = Type.OBJECT;
@@ -267,11 +268,9 @@ public class ExprTranslator extends AbstractExpTranslator {
             visitChild(n.target());
         }
 
-        for (Expr arg : n.arguments()) {
-            visitChild(arg);
-        }
-
         MethodInstance mi = n.methodInstance();
+        
+        pushArguments(mi.formalTypes(), n.arguments());
 
         if (n.target() instanceof Special && ((Special) n.target()).kind() == Special.SUPER) {
             il.INVOKESPECIAL(typeof(mi.container()), mi.name().toString(), typeofTypes(mi.formalTypes()), typeof(mi.returnType()), n.position());
@@ -285,11 +284,6 @@ public class ExprTranslator extends AbstractExpTranslator {
         else {
             il.INVOKEVIRTUAL(typeof(mi.container()), mi.name().toString(), typeofTypes(mi.formalTypes()), typeof(mi.returnType()), n.position());
         }
-    }
-
-    void promote(Expr n, polyglot.types.Type t) {
-        visitChild(n);
-        coerce(typeof(n), typeof(t), n.position());
     }
 
     abstract class Op implements Optimization {
@@ -339,10 +333,22 @@ public class ExprTranslator extends AbstractExpTranslator {
                     return false;
             }
             else {
-                if (!lt.equals(leftType))
-                    return false;
-                if (!rt.equals(rightType))
-                    return false;
+                if (leftType.isRef()) {
+                    if (!lt.isRef())
+                        return false;
+                }
+                else {
+                    if (!lt.equals(leftType))
+                        return false;
+                }
+                if (rightType.isRef()) {
+                    if (!rt.isRef())
+                        return false;
+                }
+                else {
+                    if (!rt.equals(rightType))
+                        return false;
+                }
             }
 
             visitChild(n.left(), lt);
@@ -638,6 +644,12 @@ public class ExprTranslator extends AbstractExpTranslator {
     }
 
     public void visit(Unary n) {
+        if (n.operator() == Unary.POS) {
+            visitChild(n.expr());
+            if (n.type().isInt()) {
+                il.uncheckedCoerce(Type.INT);
+            }
+        }
         if (n.operator() == Unary.NEG) {
             visitChild(n.expr());
             if (il.isUnreachable())
