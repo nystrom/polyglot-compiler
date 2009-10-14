@@ -90,6 +90,7 @@ args="$args -classpath '$classpath'"
 if [ "$serial" != 1 ]; then
   args="$args -noserial"
 fi
+args="$args -sx java -sx jl"
 vmargs="$vmargs -ea"
 
 if [ "$usage" = 1 ]; then
