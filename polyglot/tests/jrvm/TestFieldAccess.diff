@@ -1,8 +1,0 @@
-9c9
-< Instance of TestFieldAccess
----
-> Instance of test.org.jikesrvm.basic.core.bytecode.TestFieldAccess
-18c18
-< Instance of TestFieldAccess
----
-> Instance of test.org.jikesrvm.basic.core.bytecode.TestFieldAccess
