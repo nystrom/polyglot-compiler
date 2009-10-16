@@ -1,10 +1,10 @@
 package ibex.ast;
 
-import java.util.ArrayList;
+import ibex.types.IbexTypeSystem;
+
 import java.util.Iterator;
 import java.util.List;
 
-import polyglot.ast.Expr;
 import polyglot.ast.Node;
 import polyglot.ast.Term;
 import polyglot.types.Context;
@@ -45,9 +45,8 @@ public class RhsSequence_c extends RhsExpr_c implements RhsSequence {
 
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
+        IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
         Context context = tc.context();
-        
         
         if (terms.isEmpty()) {
             return type(ts.Null());
@@ -98,12 +97,12 @@ public class RhsSequence_c extends RhsExpr_c implements RhsSequence {
                 else if (t2.isNull() && t1.isReference()) ; // ok
                 
                 else if (t1.isPrimitive() && t2.isReference()) {
-                    Type r1 = RhsOption_c.nullable(t1);
+                    Type r1 = ts.nullable(t1);
                     Type p = ts.leastCommonAncestor(r1, t2, context);
                     t1 = p;
                 }
                 else if (t1.isReference() && t2.isPrimitive()) {
-                    Type r2 = RhsOption_c.nullable(t2);
+                    Type r2 = ts.nullable(t2);
                     Type p = ts.leastCommonAncestor(t1, r2, context);
                     t1 = p;
                 }
@@ -145,7 +144,11 @@ public class RhsSequence_c extends RhsExpr_c implements RhsSequence {
         for (Iterator<RhsExpr> i = terms.iterator(); i.hasNext(); ) {
             RhsExpr e = i.next();
 
+            if (e instanceof RhsBinary_c)
+                sb.append("(");
             sb.append(e);
+            if (e instanceof RhsBinary_c)
+                sb.append(")");
             
             if (i.hasNext()) {
                 sb.append(" ");

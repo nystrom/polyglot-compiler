@@ -24,11 +24,19 @@ terminal Token COLONCOLONEQ;
 
 non terminal RuleDecl rule_declaration;
 non terminal RhsExpr rhs;
+non terminal RhsExpr rhs_ordered_cases;
 non terminal RhsExpr rhs_cases;
 non terminal RhsExpr rhs_case;
+non terminal RhsExpr rhs_seq;
+non terminal RhsExpr rhs_seq_block;
 non terminal RhsExpr rhs_term;
 non terminal RhsExpr rhs_iterator;
 non terminal RhsExpr rhs_primary;
+non terminal RhsExpr inner;
+non terminal Expr rhs_expr;
+non terminal Expr restricted_primary;
+non terminal Expr restricted_field_access;
+non terminal Expr restricted_method_invocation;
 
 start with goal;
 
@@ -45,41 +53,54 @@ rule_declaration ::=
                                           a,
                                           b,
                                           c,
-                                          d); :}
+                                          Collections.singletonList(d)); :}
+      | modifiers_opt:a VOID:b identifier:c COLONCOLONEQ:x rhs:d SEMICOLON
+          {: RESULT = parser.nf.RuleDecl(parser.pos(b,c),
+                                          a,
+                                          parser.nf.CanonicalTypeNode(parser.pos(b), parser.ts.Void()),
+                                          c,
+                                          Collections.singletonList(d)); :}
       ;
 
          
-rhs ::= rhs_cases:a
+rhs ::= rhs_ordered_cases:a
           {: RESULT = a; :}
       ;
 
+rhs_ordered_cases ::=
+        rhs_ordered_cases:a DIV rhs_cases:b
+          {: RESULT = parser.nf.RhsOrdered(parser.pos(a,b), a, b); :}
+      | rhs_cases:a
+          {: RESULT = a; :}
+      ;
+      
 rhs_cases ::=
-        rhs_cases:a DIV rhs_case:b
-          {: List l = new ArrayList();
-             if (a instanceof RhsCase)
-                 l.addAll(((RhsCase) a).cases());
-             else
-                 l.add(a);
-             l.add(b);
-             RESULT = parser.nf.RhsCase(parser.pos(a,b), l); :}
+        rhs_cases:a OR rhs_case:b
+          {: RESULT = parser.nf.RhsOr(parser.pos(a,b), a, b); :}
       | rhs_case:a
           {: RESULT = a; :}
-      | rhs_cases:a DIV rhs_case:b block:c
-          {: List l = new ArrayList();
-             if (a instanceof RhsCase)
-                 l.addAll(((RhsCase) a).cases());
-             else
-                 l.add(a);
-             l.add(parser.nf.RhsAction(parser.pos(b,c), b, c));
-             RESULT = parser.nf.RhsCase(parser.pos(a,c), l); :}
-      | rhs_case:a block:b
-          {: RESULT = parser.nf.RhsAction(parser.pos(a,b), a, b); :}
       ;
       
 rhs_case ::=
+        rhs_case:a AND rhs_seq_block:b
+          {: RESULT = parser.nf.RhsAnd(parser.pos(a,b), a, b); :}
+      | rhs_case:a MINUS rhs_seq_block:b
+          {: RESULT = parser.nf.RhsMinus(parser.pos(a,b), a, b); :}
+      | rhs_seq_block:a
+          {: RESULT = a; :}
+      ;
+            
+rhs_seq_block ::= 
+        rhs_seq:a
+          {: RESULT = a; :}
+      | rhs_seq:a block:b
+          {: RESULT = parser.nf.RhsAction(parser.pos(a,b), a, b); :}
+      ;
+
+rhs_seq ::=
         /* empty */
           {: RESULT = parser.nf.RhsSequence(Position.COMPILER_GENERATED, Collections.EMPTY_LIST); :}
-      | rhs_case:a rhs_term:b
+      | rhs_seq:a rhs_term:b
           {: List l = new ArrayList();
              if (a instanceof RhsSequence)
                  l.addAll(((RhsSequence) a).terms());
@@ -95,10 +116,6 @@ rhs_case ::=
 rhs_term ::=
           rhs_iterator:a
           {: RESULT = a; :}
-        | NOT:a rhs_primary:b
-          {: RESULT = parser.nf.RhsNegLookahead(parser.pos(a,b), b); :}
-        | AND:a rhs_primary:b
-          {: RESULT = parser.nf.RhsPosLookahead(parser.pos(a,b), b); :}
         ;
 
 rhs_iterator ::=
@@ -116,33 +133,77 @@ rhs_iterator ::=
           {: RESULT = a; :}
         ;
 
+rhs_expr ::=
+    restricted_primary:a {: RESULT = a; :}
+ |  name:a {:  RESULT = a.toExpr();  :}
+  ;
+
+restricted_field_access ::=
+    restricted_primary:a DOT identifier:b {:
+                               RESULT = parser.nf.Field(parser.pos(a, b, b), a,
+                b); 
+                               :}
+ |  SUPER:n DOT identifier:a {:
+                             RESULT = parser.nf.Field(parser.pos(a),
+                parser.nf.Super(parser.pos(n)),
+                a); 
+                             :}
+ |  name:a DOT SUPER:n DOT identifier:b {:
+                                        RESULT = parser.nf.Field(parser.pos(b),
+                parser.nf.Super(parser.pos(n), a.toType()),
+                b); 
+                                        :};
+ 
+restricted_method_invocation ::=
+    name:a LPAREN argument_list_opt:b RPAREN:d {:
+                                               RESULT = parser.nf.Call(parser.pos(a,d),
+                a.prefix == null ? null : a.prefix.toReceiver(),
+                a.name, b); 
+                                               :}
+ |  restricted_primary:a DOT identifier:b LPAREN argument_list_opt:c RPAREN:d {:
+                                                                   RESULT = parser.nf.Call(parser.pos(b,d), a,
+                b, c); 
+                                                                   :}
+ |  SUPER:a DOT identifier:b LPAREN argument_list_opt:c RPAREN:d {:
+                                                                 RESULT = parser.nf.Call(parser.pos(a,d, b),
+                parser.nf.Super(parser.pos(a)),
+                b, c); 
+                                                                 :}
+ |  name:a DOT SUPER:n DOT identifier:b LPAREN argument_list_opt:c RPAREN:d {:
+                                                                            RESULT = parser.nf.Call(parser.pos(b,d),
+                parser.nf.Super(parser.pos(n), a.toType()),
+                b, c); 
+                :}
+                ;
+ 
+restricted_primary ::=
+    literal:a {:  RESULT = a;  :}
+ |  restricted_field_access:a {:  RESULT = a;  :}
+ // |  restricted_method_invocation:a {:  RESULT = a;  :}
+ ;
+ 
 rhs_primary ::=
-   STRING_LITERAL:a
-          {: RESULT = parser.nf.RhsLit(parser.pos(a), parser.nf.StringLit(parser.pos(a), a.getValue()));  :}
- | CHARACTER_LITERAL:a
-          {: RESULT = parser.nf.RhsLit(parser.pos(a), parser.nf.CharLit(parser.pos(a), a.getValue().charValue()));  :}
- | name:a
-          {:
-                if (a.prefix == null && a.name.toString().equals("_"))
-                RESULT = parser.nf.RhsAnyChar(parser.pos(a));
-                else
-          RESULT = parser.nf.RhsSymbol(parser.pos(a), parser.nf.Call(parser.pos(a), a.prefix != null ? a.prefix.toReceiver() : null, a.name, parser.nf.MatchContext(parser.pos(a)))); :}
- | SUPER:a DOT identifier:b
-          {:  RESULT = parser.nf.RhsSymbol(parser.pos(a,b), parser.nf.Call(parser.pos(a,b), parser.nf.Super(parser.pos(a)), b, parser.nf.MatchContext(parser.pos(a,b))));  :}
- | THIS:a DOT identifier:b
-          {:  RESULT = parser.nf.RhsSymbol(parser.pos(a,b), parser.nf.Call(parser.pos(a,b), parser.nf.This(parser.pos(a)), b, parser.nf.MatchContext(parser.pos(a,b))));  :}
- | CHARACTER_LITERAL:a DOTDOT CHARACTER_LITERAL:b
-          {:  RESULT = parser.nf.RhsRange(parser.pos(a, b),
-              parser.nf.CharLit(parser.pos(a), a.getValue().charValue()),
-              parser.nf.CharLit(parser.pos(b), b.getValue().charValue()));  :}
- | LPAREN rhs_cases:a RPAREN
-          {: RESULT = a;  :}
- | LPAREN:a RPAREN:b
-          {: RESULT = parser.nf.RhsSequence(parser.pos(a,b), Collections.EMPTY_LIST); :}
-      | LBRACK formal_parameter:a EQ rhs_cases:b RBRACK
-          {: RESULT = parser.nf.RhsBind(parser.pos(a,b), parser.nf.LocalDecl(parser.pos(a,b), a.flags(), a.type(), a.name(), b));
-             :}
+   rhs_expr:a {: if (a instanceof AmbExpr &&((AmbExpr) a).name().id() == polyglot.types.Name.make("_")) {
+                          RESULT = parser.nf.RhsAnyChar(parser.pos(a));
+                  } else {
+                     RESULT = parser.nf.RhsLit(parser.pos(a), a);
+                  }
+                  :}
+ | rhs_expr:a DOTDOT rhs_expr:b
+          {:  RESULT = parser.nf.RhsRange(parser.pos(a, b), a, b); :}
+ | LPAREN:a inner:c RPAREN:b
+          {: RESULT = (RhsExpr) c.position(parser.pos(a,b)); :}
+ | LBRACK:x rhs:a RBRACK:y
+          {: RESULT = parser.nf.RhsPosLookahead(parser.pos(x,y), a); :}
+ | NOT LBRACK:x rhs:a RBRACK:y
+          {: RESULT = parser.nf.RhsNegLookahead(parser.pos(x,y), a); :}
         ;
 
-
+inner ::=
+   FINAL:a type:c simple_name:d EQ rhs:b
+          {: RESULT = parser.nf.RhsBind(parser.pos(a,b), parser.nf.LocalDecl(parser.pos(a,b), parser.nf.FlagsNode(parser.pos(a), Flags.FINAL), c, d.name, b));
+             :}
+ | rhs:a
+          {: RESULT = a; :}
+ ;
       

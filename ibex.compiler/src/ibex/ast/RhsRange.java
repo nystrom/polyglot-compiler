@@ -4,11 +4,11 @@ import polyglot.ast.Expr;
 
 public interface RhsRange extends RhsExpr {
 
-    Expr from();
-    RhsRange from(Expr from);
+    Expr lo();
+    RhsRange lo(Expr from);
     
-    Expr to();
-    RhsRange to(Expr to);
+    Expr hi();
+    RhsRange hi(Expr to);
 
 
 }

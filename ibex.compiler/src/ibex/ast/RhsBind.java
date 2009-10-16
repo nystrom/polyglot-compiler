@@ -6,4 +6,6 @@ public interface RhsBind extends RhsExpr {
     
     LocalDecl decl();
     RhsBind decl(LocalDecl decl);
+    
+    RhsExpr item();
 }

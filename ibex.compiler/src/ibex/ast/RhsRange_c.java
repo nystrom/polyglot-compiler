@@ -17,84 +17,83 @@ import polyglot.visit.PrettyPrinter;
 
 
 public class RhsRange_c extends RhsExpr_c implements RhsRange {
-    private Expr from;
-    private Expr to;
+    private Expr lo;
+    private Expr hi;
 
-    public RhsRange_c(Position pos, Expr from, Expr to) {
+    public RhsRange_c(Position pos, Expr lo, Expr hi) {
         super(pos);
-        this.from = from;
-        this.to = to;
+        this.lo = lo;
+        this.hi = hi;
     }
 
-    public Expr from() { return from; }
-    public RhsRange from(Expr from) {
+    public Expr lo() { return lo; }
+    public RhsRange lo(Expr lo) {
         RhsRange_c n = (RhsRange_c) copy();
-        n.from = from;
+        n.lo = lo;
         return n;
     }
 
-    public Expr to() { return to; }
-    public RhsRange to(Expr to) {
+    public Expr hi() { return hi; }
+    public RhsRange hi(Expr hi) {
         RhsRange_c n = (RhsRange_c) copy();
-        n.to = to;
+        n.hi = hi;
         return n;
     }
 
     @Override
     public Node visitChildren(NodeVisitor v) {
-        Expr from = (Expr) visitChild(this.from, v);
-        Expr to = (Expr) visitChild(this.to, v);
-        return from(from).to(to);
+        Expr lo = (Expr) visitChild(this.lo, v);
+        Expr hi = (Expr) visitChild(this.hi, v);
+        return lo(lo).hi(hi);
     }
 
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        Expr left = from;
-        Expr right = to;
+        Type l = lo.type();
+        Type r = hi.type();
         
-        Type l = from.type();
-        Type r = right.type();
-        
-        if (! l.isChar() || ! left.isConstant()) {
-            throw new SemanticException("A range must have constant char operands.", left.position());
+        if (! l.isChar() || ! lo.isConstant()) {
+            throw new SemanticException("A range must have constant char operands.", lo.position());
         }
 
-        if (! r.isChar() || ! right.isConstant()) {
-            throw new SemanticException("A range must have constant char operands.", right.position());
+        if (! r.isChar() || ! hi.isConstant()) {
+            throw new SemanticException("A range must have constant char operands.", hi.position());
         }
         
-        Object lv = left.constantValue();
-        Object rv = right.constantValue();
+        char lv = (Character) lo.constantValue();
+        char rv = (Character) hi.constantValue();
         
-        char lo = (Character) lv;
-        char hi = (Character) rv;
+        if (lv == rv) {
+            IbexNodeFactory nf = (IbexNodeFactory) tc.nodeFactory();
+            return nf.RhsLit(position(), lo).type(l);
+        }
         
-        if (lo > hi)
+        if (lv > rv)
             throw new SemanticException("The low end of a character range must be <= the high end.", position());
         
         TypeSystem ts = tc.typeSystem();
-        return type(ts.Char());
+        return isRegular(true).type(ts.Char());
     }
 
     /** Write the expression to an output file. */
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-        printSubExpr(from, true, w, tr);
+        printSubExpr(lo, true, w, tr);
         w.write("..");
         w.allowBreak(type() == null || type().isPrimitive() ? 2 : 0, "");
-        printSubExpr(to, false, w, tr);
+        printSubExpr(hi, false, w, tr);
     }
 
     public String toString() {
-        return from + ".." + to;
+        return lo + ".." + hi;
     }
     
     public Term firstChild() {
-        return from;
+        return lo;
     }
 
     public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        v.visitCFG(from, to, ENTRY);
-        v.visitCFG(to, this, EXIT);
+        v.visitCFG(lo, hi, ENTRY);
+        v.visitCFG(hi, this, EXIT);
         return succs;
     }
 }

@@ -1,10 +1,22 @@
 package ibex.ast;
 
+import ibex.types.IbexClassType;
+import ibex.types.IbexTypeSystem;
+import ibex.types.Nonterminal;
+import ibex.types.Nonterminal_c;
+import ibex.types.RuleInstance;
+import ibex.visit.GrammarNormalizer;
+
 import java.util.List;
 
+import polyglot.ast.AmbExpr;
+import polyglot.ast.Call;
 import polyglot.ast.Expr;
+import polyglot.ast.Field;
 import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
 import polyglot.ast.Term;
+import polyglot.types.MethodInstance;
 import polyglot.types.SemanticException;
 import polyglot.types.TypeSystem;
 import polyglot.util.CodeWriter;
@@ -41,9 +53,66 @@ public class RhsLit_c extends RhsExpr_c implements RhsLit {
     }
     
     @Override
+    public Node typeCheckOverride(Node parent, ContextVisitor tc) throws SemanticException {
+        NodeFactory nf = tc.nodeFactory();
+        Position pos = position();
+        
+        // Check if the lit is actually a call to a nonterminal.
+        Call c = null;
+        if (lit instanceof Field) {
+            Field f = (Field) lit;
+            c = nf.Call(pos, f.target(), f.name());
+        }
+        if (lit instanceof AmbExpr) {
+            AmbExpr a = (AmbExpr) lit;
+            c = nf.Call(pos, a.name());
+        }
+        if (c != null) {
+            NodeVisitor v = tc.enter(parent, c);
+            c = (Call) c.visitChildren(v);
+            try {
+                return GrammarNormalizer.check(lit(GrammarNormalizer.check(c, tc)), tc);
+            }
+            catch (SemanticException e) {
+                // Ignore
+                if (lit instanceof Field) {
+                    Field f = (Field) lit;
+                    f = f.target(c.target());
+                    return GrammarNormalizer.check(lit(GrammarNormalizer.check(f, tc)), tc);
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
-        return type(lit.type());
+        
+        if (lit instanceof Call) {
+            Call call = (Call) lit;
+            
+            Nonterminal sym = null;
+            
+            MethodInstance mi = call.methodInstance();
+            IbexClassType ct = (IbexClassType) mi.container();
+            for (RuleInstance rule : ct.rules()) {
+                if (rule.name() == mi.name())
+                    sym = rule.def().asNonterminal();
+            }
+            
+            if (sym == null)
+                throw new SemanticException("Cannot find rule for " + mi);
+            
+            IbexNodeFactory nf = (IbexNodeFactory) tc.nodeFactory();
+            return nf.RhsInvoke(position(), call).symbol(sym).type(call.type());
+        }
+        
+        if (lit.isConstant() && lit.type().isChar() || lit.type().isSubtype(ts.String(), tc.context()))
+            return isRegular(true).type(lit.type());
+        
+        throw new SemanticException("Rule item is neither a constant char nor a constant String nor a nonterminal.", position());
     }
 
     public Term firstChild() {
