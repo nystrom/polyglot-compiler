@@ -206,22 +206,22 @@ public class BranchTranslator extends AbstractExpTranslator {
         }, new CompareOpt(Binary.GT, false, Type.LONG, Type.BOOLEAN) {
             void instruction() {
                 il.LCMP(pos);
-                il.IFLT(branchTarget, pos);
+                il.IFLE(branchTarget, pos);
             }
         }, new CompareOpt(Binary.LT, false, Type.LONG, Type.BOOLEAN) {
             void instruction() {
                 il.LCMP(pos);
-                il.IFGT(branchTarget, pos);
+                il.IFGE(branchTarget, pos);
             }
         }, new CompareOpt(Binary.GE, false, Type.LONG, Type.BOOLEAN) {
             void instruction() {
                 il.LCMP(pos);
-                il.IFLE(branchTarget, pos);
+                il.IFLT(branchTarget, pos);
             }
         }, new CompareOpt(Binary.LE, false, Type.LONG, Type.BOOLEAN) {
             void instruction() {
                 il.LCMP(pos);
-                il.IFGE(branchTarget, pos);
+                il.IFGT(branchTarget, pos);
             }
         }, new CompareOpt(Binary.EQ, false, Type.LONG, Type.BOOLEAN) {
             void instruction() {
@@ -270,22 +270,22 @@ public class BranchTranslator extends AbstractExpTranslator {
         }, new CompareOpt(Binary.GT, false, Type.FLOAT, Type.BOOLEAN) {
             void instruction() {
                 il.FCMPL(pos);
-                il.IFLT(branchTarget, pos);
+                il.IFLE(branchTarget, pos);
             }
         }, new CompareOpt(Binary.LT, false, Type.FLOAT, Type.BOOLEAN) {
             void instruction() {
                 il.FCMPG(pos);
-                il.IFGT(branchTarget, pos);
+                il.IFGE(branchTarget, pos);
             }
         }, new CompareOpt(Binary.GE, false, Type.FLOAT, Type.BOOLEAN) {
             void instruction() {
                 il.FCMPL(pos);
-                il.IFLE(branchTarget, pos);
+                il.IFLT(branchTarget, pos);
             }
         }, new CompareOpt(Binary.LE, false, Type.FLOAT, Type.BOOLEAN) {
             void instruction() {
                 il.FCMPG(pos);
-                il.IFGE(branchTarget, pos);
+                il.IFGT(branchTarget, pos);
             }
         }, new CompareOpt(Binary.EQ, false, Type.FLOAT, Type.BOOLEAN) {
             void instruction() {
@@ -332,22 +332,22 @@ public class BranchTranslator extends AbstractExpTranslator {
         }, new CompareOpt(Binary.GT, false, Type.DOUBLE, Type.BOOLEAN) {
             void instruction() {
                 il.DCMPL(pos);
-                il.IFLT(branchTarget, pos);
+                il.IFLE(branchTarget, pos);
             }
         }, new CompareOpt(Binary.LT, false, Type.DOUBLE, Type.BOOLEAN) {
             void instruction() {
                 il.DCMPG(pos);
-                il.IFGT(branchTarget, pos);
+                il.IFGE(branchTarget, pos);
             }
         }, new CompareOpt(Binary.GE, false, Type.DOUBLE, Type.BOOLEAN) {
             void instruction() {
                 il.DCMPL(pos);
-                il.IFLE(branchTarget, pos);
+                il.IFLT(branchTarget, pos);
             }
         }, new CompareOpt(Binary.LE, false, Type.DOUBLE, Type.BOOLEAN) {
             void instruction() {
                 il.DCMPG(pos);
-                il.IFGE(branchTarget, pos);
+                il.IFGT(branchTarget, pos);
             }
         }, new CompareOpt(Binary.EQ, false, Type.DOUBLE, Type.BOOLEAN) {
             void instruction() {
@@ -721,22 +721,22 @@ public class BranchTranslator extends AbstractExpTranslator {
         }, new CompareOpt(Binary.GT, false, Type.LONG, Type.BOOLEAN) {
             void instruction() {
                 il.LCMP(pos);
-                il.IFLT(branchTarget, pos);
+                il.IFLE(branchTarget, pos);
             }
         }, new CompareOpt(Binary.LT, false, Type.LONG, Type.BOOLEAN) {
             void instruction() {
                 il.LCMP(pos);
-                il.IFGT(branchTarget, pos);
+                il.IFGE(branchTarget, pos);
             }
         }, new CompareOpt(Binary.GE, false, Type.LONG, Type.BOOLEAN) {
             void instruction() {
                 il.LCMP(pos);
-                il.IFLE(branchTarget, pos);
+                il.IFLT(branchTarget, pos);
             }
         }, new CompareOpt(Binary.LE, false, Type.LONG, Type.BOOLEAN) {
             void instruction() {
                 il.LCMP(pos);
-                il.IFGE(branchTarget, pos);
+                il.IFGT(branchTarget, pos);
             }
         }, new CompareOpt(Binary.EQ, false, Type.LONG, Type.BOOLEAN) {
             void instruction() {
@@ -788,22 +788,22 @@ public class BranchTranslator extends AbstractExpTranslator {
         }, new CompareOpt(Binary.GT, false, Type.FLOAT, Type.BOOLEAN) {
             void instruction() {
                 il.FCMPL(pos);
-                il.IFLT(branchTarget, pos);
+                il.IFLE(branchTarget, pos);
             }
         }, new CompareOpt(Binary.LT, false, Type.FLOAT, Type.BOOLEAN) {
             void instruction() {
                 il.FCMPG(pos);
-                il.IFGT(branchTarget, pos);
+                il.IFGE(branchTarget, pos);
             }
         }, new CompareOpt(Binary.GE, false, Type.FLOAT, Type.BOOLEAN) {
             void instruction() {
                 il.FCMPL(pos);
-                il.IFLE(branchTarget, pos);
+                il.IFLT(branchTarget, pos);
             }
         }, new CompareOpt(Binary.LE, false, Type.FLOAT, Type.BOOLEAN) {
             void instruction() {
                 il.FCMPG(pos);
-                il.IFGE(branchTarget, pos);
+                il.IFGT(branchTarget, pos);
             }
         }, new CompareOpt(Binary.EQ, false, Type.FLOAT, Type.BOOLEAN) {
             void instruction() {
@@ -850,22 +850,22 @@ public class BranchTranslator extends AbstractExpTranslator {
         }, new CompareOpt(Binary.GT, false, Type.DOUBLE, Type.BOOLEAN) {
             void instruction() {
                 il.DCMPL(pos);
-                il.IFLT(branchTarget, pos);
+                il.IFLE(branchTarget, pos);
             }
         }, new CompareOpt(Binary.LT, false, Type.DOUBLE, Type.BOOLEAN) {
             void instruction() {
                 il.DCMPG(pos);
-                il.IFGT(branchTarget, pos);
+                il.IFGE(branchTarget, pos);
             }
         }, new CompareOpt(Binary.GE, false, Type.DOUBLE, Type.BOOLEAN) {
             void instruction() {
                 il.DCMPL(pos);
-                il.IFLE(branchTarget, pos);
+                il.IFLT(branchTarget, pos);
             }
         }, new CompareOpt(Binary.LE, false, Type.DOUBLE, Type.BOOLEAN) {
             void instruction() {
                 il.DCMPG(pos);
-                il.IFGE(branchTarget, pos);
+                il.IFGT(branchTarget, pos);
             }
         }, new CompareOpt(Binary.EQ, false, Type.DOUBLE, Type.BOOLEAN) {
             void instruction() {
