@@ -1,8 +1,0 @@
-3,5c3,5
-< l_cmp Expected: 100010001 Actual: 100111001
-< f_cmp Expected: 100010001 Actual: 100111001
-< d_cmp Expected: 100010001 Actual: 100111001
----
-> l_cmp Expected: 100010001 Actual: 100010001
-> f_cmp Expected: 100010001 Actual: 100010001
-> d_cmp Expected: 100010001 Actual: 100010001
