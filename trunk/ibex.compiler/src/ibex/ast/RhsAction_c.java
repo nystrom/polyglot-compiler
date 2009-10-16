@@ -8,6 +8,7 @@ import polyglot.ast.Node;
 import polyglot.ast.Return;
 import polyglot.ast.Stmt;
 import polyglot.ast.Term;
+import polyglot.types.Context;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
@@ -41,7 +42,7 @@ public class RhsAction_c extends RhsExpr_c implements RhsAction {
     public Block body() {
         return this.body;
     }
-
+    
     public RhsAction body(Block stmt) {
         RhsAction_c n = (RhsAction_c) copy();
         n.body = stmt;
@@ -54,6 +55,11 @@ public class RhsAction_c extends RhsExpr_c implements RhsAction {
         Block stmt = (Block) visitChild(this.body, v);
         return item(item).body(stmt);
     }
+    
+    @Override
+    public Context enterScope(Context c) {
+        return c.pushBlock();
+    }
 
     @Override
     public Term firstChild() {
@@ -63,6 +69,7 @@ public class RhsAction_c extends RhsExpr_c implements RhsAction {
     @Override
     public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
         v.visitCFG(item, body, ENTRY);
+        v.visitCFG(item, this, EXIT); // hack to make this reachable
         v.visitCFG(body, this, EXIT);
         return succs;
     }

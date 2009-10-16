@@ -28,7 +28,7 @@ public class RhsAnyChar_c extends RhsExpr_c implements RhsAnyChar {
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
-        return type(ts.Char());
+        return isRegular(true).type(ts.Char());
     }
 
     public Term firstChild() {

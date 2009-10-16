@@ -2,10 +2,13 @@ package ibex.ast;
 
 import java.util.List;
 
+import com.sun.tools.javac.code.Flags;
+
 import polyglot.ast.LocalDecl;
 import polyglot.ast.Node;
 import polyglot.ast.Term;
 import polyglot.types.Context;
+import polyglot.types.LocalDef;
 import polyglot.types.SemanticException;
 import polyglot.types.TypeSystem;
 import polyglot.util.CodeWriter;
@@ -14,6 +17,7 @@ import polyglot.visit.CFGBuilder;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
+import polyglot.visit.TypeBuilder;
 
 public class RhsBind_c extends RhsExpr_c implements RhsBind {
 
@@ -22,6 +26,10 @@ public class RhsBind_c extends RhsExpr_c implements RhsBind {
     public RhsBind_c(Position pos, LocalDecl decl) {
         super(pos);
         this.decl = decl;
+    }
+    
+    public RhsExpr item() {
+        return (RhsExpr) decl().init();
     }
     
     public LocalDecl decl() { return decl; }
@@ -41,7 +49,7 @@ public class RhsBind_c extends RhsExpr_c implements RhsBind {
     public Context enterChildScope(Node child, Context c) {
         return c.pushBlock();
     }
-    
+
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeSystem ts = tc.typeSystem();
