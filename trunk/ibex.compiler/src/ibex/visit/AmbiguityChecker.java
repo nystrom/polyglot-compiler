@@ -110,66 +110,8 @@ public class AmbiguityChecker extends ContextVisitor
     public void checkAmbiguities(GLR glr, Nonterminal nonterminal)
         throws SemanticException
     {
-        ClassType mergeable = ts.runtimeMergeableType();
-
-        // Check that any merge actions are actually needed.
-        {
-            // Get the merge pairs.
-            Collection groups = new ArrayList();
-            groups.addAll(glr.mergeRulesForNonterminal(nonterminal));
-            groups.addAll(glr.possibleMergeRulesForNonterminal(nonterminal));
-
-            // Check for groups that are not covered by a merge action.
-            // Remove from the collection any covered groups.
-
-            for (Iterator<Rhs> j = nonterminal.rule().choices().iterator(); j.hasNext(); ) {
-                Rhs rhs = j.next();
-
-                if (rhs instanceof RAnd) {
-                    RAnd a = (RAnd) rhs;
-                    
-                    Rhs case1 = a.choice1();
-                    Rhs case2 = a.choice2();
-
-                    boolean found = false;
-
-                    for (Iterator i = groups.iterator(); i.hasNext(); ) {
-                        Collection group = (Collection) i.next();
-
-                        boolean found1 = false;
-                        boolean found2 = false;
-
-                        for (Iterator k = group.iterator(); k.hasNext(); ) {
-                            RSeq rhsk = (RSeq) k.next();
-
-                            if (rhsk.matches(case1)) {
-                                found1 = true;
-                            }
-                            if (rhsk.matches(case2)) {
-                                found2 = true;
-                            }
-
-                            if (found1 && found2) {
-                                break;
-                            }
-                        }
-
-                        if (found1 && found2) {
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (! found) {
-                        throw new SemanticException("Unnecessary merge action; rules are (probably) not ambiguous.", rhs.position());
-                    }
-                }
-            }
-        }
-
         // Check that there is a merge action, if needed.
-        if (! nonterminal.type().isSubtype(mergeable, context) &&
-            ! nonterminal.type().isVoid()) {
+        if (! nonterminal.type().isVoid()) {
           {
             // Get the merge pairs.
             Collection<Collection<Rhs>> groups = glr.mergeRulesForNonterminal(nonterminal);
@@ -221,7 +163,7 @@ public class AmbiguityChecker extends ContextVisitor
 
             // Now check that all groups were covered.
             if (groups.size() > 0) {
-                String message = "The following pairs of rules for nonterminal \"" + nonterminal + "\" are ambiguous and require either a merge action, or the semantic action return type \"" + nonterminal.type() + "\" must implement \"" + mergeable + "\" or be void:\n";
+                String message = "The following pairs of rules for nonterminal \"" + nonterminal + "\" are ambiguous and require a merge action, or the semantic action return type must be void:\n";
 
                 for (Iterator i = groups.iterator(); i.hasNext(); ) {
                     Collection group = (Collection) i.next();
@@ -288,7 +230,7 @@ public class AmbiguityChecker extends ContextVisitor
 
             // Now check that all groups were covered.
             if (groups.size() > 0) {
-                String message = "The following pairs of rules for nonterminal \"" + nonterminal + "\" are possibly ambiguous and may require either a merge action, or the semantic action return type \"" + nonterminal.type() + "\" must implement \"" + mergeable + "\" or be void:\n";
+                String message = "The following pairs of rules for nonterminal \"" + nonterminal + "\" are possibly ambiguous and may require either a merge action, or the semantic action return type must be void:\n";
 
                 for (Iterator i = groups.iterator(); i.hasNext(); ) {
                     Collection group = (Collection) i.next();
