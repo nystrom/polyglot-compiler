@@ -1,9 +1,7 @@
 package ibex.ast;
 
 import ibex.types.IbexClassType;
-import ibex.types.IbexTypeSystem;
 import ibex.types.Nonterminal;
-import ibex.types.Nonterminal_c;
 import ibex.types.RuleInstance;
 
 import java.util.List;
@@ -64,12 +62,19 @@ public class RhsInvoke_c extends RhsExpr_c implements RhsInvoke {
         if (sym == null)
             throw new SemanticException("Cannot find rule for " + mi);
         
-        TypeSystem ts = tc.typeSystem();
-        LocalDef li = ts.localDef(position(), Flags.FINAL, Types.ref(call.type()), call.name().id());
-        // Formal parameters are never compile-time constants.
-        li.setNotConstant();
         
-        return symbol(sym).localDef(li).type(call.type());
+        RhsInvoke n = symbol(sym);
+        n = (RhsInvoke) n.type(call.type());
+        
+        if (! call.type().isVoid()) {
+            TypeSystem ts = tc.typeSystem();
+            LocalDef li = ts.localDef(position(), Flags.FINAL, Types.ref(call.type()), call.name().id());
+            // Formal parameters are never compile-time constants.
+            li.setNotConstant();
+            n = (RhsInvoke) n.localDef(li);
+        }
+        
+        return n;
     }
 
     public Term firstChild() {
