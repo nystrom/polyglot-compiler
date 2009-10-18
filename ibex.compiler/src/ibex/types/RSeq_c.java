@@ -47,4 +47,15 @@ public class RSeq_c extends TypeObject_c implements RSeq {
         return items;
     }
 
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        String sep = "";
+        for (Rhs e : items) {
+            sb.append(sep);
+            sep = " ";
+            sb.append(e);
+        }
+        return sb.toString();
+    }
+
 }
