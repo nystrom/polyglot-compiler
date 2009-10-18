@@ -4,7 +4,7 @@ import polyglot.types.Type;
 import polyglot.types.TypeObject_c;
 import polyglot.util.Position;
 
-public class RSub_c extends TypeObject_c implements RAnd {
+public class RSub_c extends TypeObject_c implements RSub {
 
     private Rhs choice1;
     private Rhs choice2;
@@ -14,7 +14,7 @@ public class RSub_c extends TypeObject_c implements RAnd {
         this.choice1 = choice1;
         this.choice2 = choice2;
     }
-    
+
     public Type type() {
         return ts.Void();
     }
@@ -33,12 +33,17 @@ public class RSub_c extends TypeObject_c implements RAnd {
 
             if (choice1().matches(m.choice1()) && choice2().matches(m.choice2()))
                 return true;
-            
+
             if (choice2().matches(m.choice1()) && choice1().matches(m.choice2()))
                 return true;
         }
-        
+
         return false;
     }
 
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        String sep = "";
+        return choice1 + " - " + choice2;
+    }
 }

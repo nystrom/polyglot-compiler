@@ -34,4 +34,9 @@ public class RLookahead_c extends TypeObject_c implements RLookahead {
         }
         return false;
     }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        return (neg ? "!" : "") + "[" + item + "]";
+    }
 }

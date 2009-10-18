@@ -102,4 +102,16 @@ public class RuleDef_c extends Def_c implements RuleDef {
         this.type = type;
         asInstance = null;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        String sep = "";
+        for (Rhs r : choices) {
+            sb.append(sep);
+            sep = " | ";
+            sb.append(r);
+        }
+        return flags.translate() + type + " " + name + " ::= " + sb;
+    }
 }

@@ -41,4 +41,10 @@ public class RAnd_c extends TypeObject_c implements RAnd {
         return false;
     }
 
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        String sep = "";
+        return choice1 + " & " + choice2;
+    }
 }
