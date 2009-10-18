@@ -3,10 +3,9 @@ package ibex.types;
 import ibex.lr.GLR;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -35,25 +34,31 @@ public class IbexClassDef_c extends ClassDef_c implements IbexClassDef {
         for (RuleDef rule : rules()) {
             if (p.isTrue(rule.asNonterminal()))
                 l.add(rule.asNonterminal());
-            for (Rhs rhs : rule.choices()) {
+            
+            LinkedList<Rhs> q = new LinkedList<Rhs>();
+            q.addAll(rule.choices());
+            
+            while (! q.isEmpty()) {
+                Rhs rhs = q.removeFirst();
+                if (p.isTrue(rhs))
+                    l.add(rhs);
                 if (rhs instanceof RSeq) {
                     RSeq choice = (RSeq) rhs;
-                    for (Rhs sym : choice.items()) {
-                        if (p.isTrue(sym))
-                            l.add(sym);
-                    }
+                    q.addAll(choice.items());
                 }
                 if (rhs instanceof RAnd) {
                     RAnd choice = (RAnd) rhs;
-                    addSymbols(Arrays.asList(choice.choice1(), choice.choice2()), p);
+                    q.add(choice.choice1());
+                    q.add(choice.choice2());
                 }
                 if (rhs instanceof RSub) {
                     RSub choice = (RSub) rhs;
-                    addSymbols(Arrays.asList(choice.choice1(), choice.choice2()), p);
+                    q.add(choice.choice1());
+                    q.add(choice.choice2());
                 }
                 if (rhs instanceof RLookahead) {
                     RLookahead choice = (RLookahead) rhs;
-                    addSymbols(Arrays.asList(choice.item()), p);
+                    q.add(choice.item());
                 }
             }
         }
