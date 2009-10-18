@@ -7,48 +7,30 @@ import ibex.ast.RhsExpr;
 import ibex.ast.RhsOr;
 import ibex.ast.RhsSequence;
 import ibex.ast.RuleDecl;
-import ibex.ast.RuleDecl_c;
 import ibex.lr.GLR;
-import ibex.types.RSeq;
 import ibex.types.IbexClassDef;
-import ibex.types.IbexTypeSystem;
-import ibex.types.RAnd;
-import ibex.types.Nonterminal;
-import ibex.types.Nonterminal_c;
 import ibex.types.IbexClassType;
-import ibex.types.Rhs;
+import ibex.types.IbexTypeSystem;
+import ibex.types.Nonterminal;
 import ibex.types.RuleDef;
-import ibex.types.RuleInstance;
-import ibex.types.Symbol;
-import ibex.types.Terminal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
-import polyglot.ast.ArrayAccess;
 import polyglot.ast.ArrayInit;
-import polyglot.ast.Binary;
 import polyglot.ast.Block;
 import polyglot.ast.Call;
-import polyglot.ast.Case;
 import polyglot.ast.Cast;
 import polyglot.ast.ClassBody;
 import polyglot.ast.ClassDecl;
 import polyglot.ast.ClassMember;
-import polyglot.ast.Eval;
 import polyglot.ast.Expr;
 import polyglot.ast.Field;
 import polyglot.ast.FieldDecl;
 import polyglot.ast.Formal;
 import polyglot.ast.IntLit;
-import polyglot.ast.Local;
-import polyglot.ast.LocalDecl;
 import polyglot.ast.MethodDecl;
 import polyglot.ast.New;
 import polyglot.ast.Node;
@@ -57,8 +39,6 @@ import polyglot.ast.Return;
 import polyglot.ast.Special;
 import polyglot.ast.Stmt;
 import polyglot.ast.StringLit;
-import polyglot.ast.Switch;
-import polyglot.ast.SwitchBlock;
 import polyglot.ast.TypeNode;
 import polyglot.frontend.Job;
 import polyglot.types.ClassType;
@@ -68,7 +48,6 @@ import polyglot.types.FieldDef;
 import polyglot.types.FieldInstance;
 import polyglot.types.Flags;
 import polyglot.types.LocalDef;
-import polyglot.types.LocalInstance;
 import polyglot.types.MethodDef;
 import polyglot.types.MethodInstance;
 import polyglot.types.Name;
@@ -171,7 +150,7 @@ public class Rewriter extends ContextVisitor
             
             List<ClassMember> members = new ArrayList<ClassMember>();
             
-            // Add semantic action methods.
+//          Add non-rule members.
             for (ClassMember m : cb.members()) {
                 if (!(m instanceof RuleDecl)) {
                     members.add(m);
@@ -198,6 +177,8 @@ public class Rewriter extends ContextVisitor
             members.addAll(addGlrTableMembers(def, glr));
 //            addGlrSemanticActions(def, glr);
             
+            members.add(eofMethod(def));
+            members.add(mapField(def));
             members.add(scanMethod(def));
             members.add(semanticActionDispatcher(def));
             
@@ -245,6 +226,47 @@ public class Rewriter extends ContextVisitor
         return mdl;
     }
     
+    
+    MethodDecl eofMethod(IbexClassDef def) throws SemanticException {
+        Position pos = def.position();
+        Name name = Name.make("eofSymbol");
+        
+        List<Formal> formals = Collections.EMPTY_LIST;
+        List<Ref<? extends Type>> argTypes = argTypesOfFormals(formals);
+        
+        Block body = nf.Block(pos, nf.Return(pos, nf.IntLit(pos, IntLit.INT, glr.eofSymbolNumber()).type(ts.Int())));
+        
+        MethodDef md = ts.methodDef(pos, Types.ref(def.asType()), Flags.PUBLIC, Types.ref(ts.Int()), name, argTypes, Collections.EMPTY_LIST);
+        MethodDecl mdl = nf.MethodDecl(pos, nf.FlagsNode(pos, md.flags()), nf.CanonicalTypeNode(pos, md.returnType()), nf.Id(pos, md.name()), formals, Collections.EMPTY_LIST, body);
+        mdl = mdl.methodDef(md);
+        def.addMethod(md);
+        return mdl;
+    }
+    
+    FieldDecl mapField(IbexClassDef def) throws SemanticException {
+        Position pos = def.position();
+        Name name = Name.make("terminalTable");
+
+        Type Util = (Type) ts.systemResolver().find(QName.make("ibex.runtime.Util"));
+
+        MethodInstance
+        mi = ts.findMethod(Util, ts.MethodMatcher(Util, Name.make("decodeTerminalTable"), Arrays.<Type> asList(def.asType()), context));
+
+        Special this_ = (Special) nf.This(pos).type(def.asType());
+
+        Call map = nf.Call(pos, nf.CanonicalTypeNode(pos, Util), nf.Id(pos, mi.name()), this_);
+        map = map.methodInstance(mi);
+        map = (Call) map.type(mi.returnType());
+        
+        FieldDef md = ts.fieldDef(pos, Types.ref(def.asType()), Flags.PUBLIC, Types.ref(ts.Int().arrayOf()), name);
+        FieldDecl mdl = nf.FieldDecl(pos, nf.FlagsNode(pos, md.flags()), nf.CanonicalTypeNode(pos, md.type()), nf.Id(pos, md.name()), map);
+        mdl = mdl.fieldDef(md);
+        def.addField(md);
+        return mdl;
+    }
+    
+
+    
     MethodDecl scanMethod(IbexClassDef def) throws SemanticException {
         Position pos = def.position();
         Name name = Name.make("scanTerminal");
@@ -255,14 +277,32 @@ public class Rewriter extends ContextVisitor
         Type Terminal = (Type) ts.systemResolver().find(QName.make("ibex.runtime.Terminal"));
         Type IOE = (Type) ts.systemResolver().find(QName.make("java.io.IOException"));
         Type Util = (Type) ts.systemResolver().find(QName.make("ibex.runtime.Util"));
+        Type ByteParser = (Type) ts.systemResolver().find(QName.make("ibex.runtime.IByteParser"));
+        Type CharParser = (Type) ts.systemResolver().find(QName.make("ibex.runtime.ICharParser"));
         
         Special this_ = (Special) nf.This(pos).type(def.asType());
+
+        FieldInstance fi = ts.findField(def.asType(), ts.FieldMatcher(def.asType(), Name.make("terminalTable"), context));
         
-        MethodInstance mi = ts.findMethod(Util, ts.MethodMatcher(Util, Name.make("scanChar"), Collections.<Type>singletonList(def.asType()), context));
-        Call scan = nf.Call(pos, nf.CanonicalTypeNode(pos, Util), nf.Id(pos, mi.name()), this_);
+        Field map = nf.Field(pos, this_, nf.Id(pos, fi.name()));
+        map = map.fieldInstance(fi);
+        map = (Field) map.type(fi.type());
+
+        MethodInstance mi;
+        
+        if (ts.isSubtype(def.asType(), ByteParser, context)) {
+            mi = ts.findMethod(Util, ts.MethodMatcher(Util, Name.make("scanByte"), Arrays.<Type> asList(def.asType(), ts.Int().arrayOf()), context));
+        }
+        else if (ts.isSubtype(def.asType(), CharParser, context)) {
+            mi = ts.findMethod(Util, ts.MethodMatcher(Util, Name.make("scanChar"), Arrays.<Type> asList(def.asType(), ts.Int().arrayOf()), context));
+        }
+        else {
+            throw new SemanticException("Parser class must implement either IByteParser or ICharParser", pos);
+        }
+
+        Call scan = nf.Call(pos, nf.CanonicalTypeNode(pos, Util), nf.Id(pos, mi.name()), this_, map);
         scan = scan.methodInstance(mi);
         scan = (Call) scan.type(mi.returnType());
-        
         Block body = nf.Block(pos, nf.Return(pos, scan));
         
         MethodDef md = ts.methodDef(pos, Types.ref(def.asType()), Flags.PUBLIC, Types.ref(Terminal), name, argTypes, Collections.<Ref<? extends Type>>singletonList(Types.ref(IOE)));
@@ -1000,7 +1040,8 @@ public class Rewriter extends ContextVisitor
                                     "encodedOverflowTable",
                                     "encodedGotoTable",
                                     "encodedRuleTable",
-                                    "encodedMergeTable" };
+                                    "encodedMergeTable",
+                                    "encodedTerminalTable"};
 
         List<String[]> tables = new ArrayList<String[]>();
 
@@ -1009,6 +1050,7 @@ public class Rewriter extends ContextVisitor
         tables.add(glr.encodedGotoTable());
         tables.add(glr.encodedRuleTable());
         tables.add(glr.encodedMergeTable());
+        tables.add(glr.encodedTerminalTable());
         
         List<ClassMember> ms = new ArrayList<ClassMember>();
 
