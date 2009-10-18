@@ -1,27 +1,46 @@
 package ibex.lr;
 
+import ibex.types.ByteTerminal;
+import ibex.types.ByteTerminal_c;
+import ibex.types.CharTerminal;
+import ibex.types.CharTerminal_c;
+import ibex.types.IbexClassDef;
+import ibex.types.IbexTypeSystem;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import polyglot.ast.ArrayInit;
+import polyglot.ast.Expr;
+import polyglot.ast.IntLit;
 import polyglot.main.Report;
+import polyglot.types.Context;
+import polyglot.types.QName;
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
+import polyglot.types.TypeSystem;
 import polyglot.util.InternalCompilerError;
+import polyglot.util.Position;
 
 public class LREncoding {
     Grammar g;
     LRConstruction lrc;
+    IbexClassDef def;
 
     int[][] outputActionTable;
     int[][] outputGotoTable;
     int[]   outputOverflowTable;
     int[]   outputRuleTable;
     int[]   outputMergeTable;
+    int[]   outputTerminalTable;
 
-    public LREncoding(Grammar g, LRConstruction lrc) {
+    public LREncoding(Grammar g, LRConstruction lrc, IbexClassDef def) {
         this.g = g;
         this.lrc = lrc;
+        this.def = def;
         encodeOutputTables();
     }
 
@@ -75,16 +94,61 @@ public class LREncoding {
             GLRNormalRule r = rules.get(j);
             outputRuleTable[j] = r.encode();
         }
-        
+
         List<GLRMergeRule> merges = g.merges();
-        
+
         outputMergeTable = new int[rules.size()];
-        
+
         for (int j = 0; j < merges.size(); j++) {
             GLRMergeRule r = merges.get(j);
-            outputMergeTable[r.left.index] = r.encode(0);
-            outputMergeTable[r.right.index] = r.encode(1);
+            outputMergeTable[r.left.index] = r.encodeLeft();
+            outputMergeTable[r.right.index] = r.encodeRight();
+            
+            assert (outputMergeTable[r.left.index] >>> 3) == r.right.index;
+            assert (outputMergeTable[r.right.index] >>> 3) == r.left.index;
         }
+
+        IbexTypeSystem ts = (IbexTypeSystem) this.def.typeSystem();
+        Context context = ts.emptyContext();
+        try {
+            Type ByteParser = (Type) ts.systemResolver().find(QName.make("ibex.runtime.IByteParser"));
+            Type CharParser = (Type) ts.systemResolver().find(QName.make("ibex.runtime.ICharParser"));
+            GLR glr = def.glr();
+            Position pos = def.position();
+            if (ts.isSubtype(def.asType(), ByteParser, ts.emptyContext())) {
+                outputTerminalTable = new int[Byte.MAX_VALUE-Byte.MIN_VALUE+1];
+                for (int i = Byte.MIN_VALUE, j = 0; i <= Byte.MAX_VALUE; i++) {
+                    ByteTerminal t = new ByteTerminal_c(ts, pos, (byte) (i - Byte.MIN_VALUE));
+                    if (glr.isReachable(t)) {
+                        int n = glr.terminalNumber(t);
+                        outputTerminalTable[j++] = n;
+                    }
+                    else {
+                        outputTerminalTable[j++] = glr.eofSymbolNumber();
+                    }
+                }
+            }
+            else if (ts.isSubtype(def.asType(), CharParser, context)) {
+                outputTerminalTable = new int[Character.MAX_VALUE-Character.MIN_VALUE+1];
+                for (int i = Character.MIN_VALUE, j = 0; i <= Character.MAX_VALUE; i++) {
+                    CharTerminal t = new CharTerminal_c((IbexTypeSystem) ts, pos, (char) (i - Character.MIN_VALUE));
+                    if (glr.isReachable(t)) {
+                        int n = glr.terminalNumber(t);
+                        outputTerminalTable[j++] = n;
+                    }
+                    else {
+                        outputTerminalTable[j++] = glr.eofSymbolNumber();
+                    }
+                }
+            }
+            else {
+                throw new SemanticException("Parser class must implement either IByteParser or ICharParser", pos);
+            }
+        }
+        catch (SemanticException e) {
+            throw new InternalCompilerError(e);
+        }
+
     }
 
     public String[] encodedActionTable() {
@@ -114,12 +178,19 @@ public class LREncoding {
         }
         return new Encoder().encode(outputRuleTable);
     }
-    
+
     public String[] encodedMergeTable() {
         if (outputMergeTable == null) {
             throw new InternalCompilerError("tables not yet encoded");
         }
         return new Encoder().encode(outputMergeTable);
+    }
+
+    public String[] encodedTerminalTable() {
+        if (outputTerminalTable == null) {
+            throw new InternalCompilerError("tables not yet encoded");
+        }
+        return new Encoder().encode(outputTerminalTable);
     }
 
     static Collection<String> TOPICS = Arrays.asList( new String[] { "lr", "ibex" });

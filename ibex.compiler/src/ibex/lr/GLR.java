@@ -2,6 +2,8 @@ package ibex.lr;
 
 import ibex.ExtensionInfo;
 import ibex.lr.GLRRule.Kind;
+import ibex.types.ByteTerminal;
+import ibex.types.ByteTerminal_c;
 import ibex.types.CharTerminal;
 import ibex.types.CharTerminal_c;
 import ibex.types.IbexClassDef;
@@ -27,6 +29,9 @@ import java.util.Map;
 
 import polyglot.main.Report;
 import polyglot.types.Name;
+import polyglot.types.QName;
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 
@@ -47,9 +52,12 @@ public class GLR {
 
     /** Map from type system symbols to LR symbols. */
     Map<Object,GLRSymbol> symbolMap;
+    
+    IbexClassDef def;
 
     public GLR(ExtensionInfo ext, IbexClassDef pt) {
         this.ext = ext;
+        this.def = pt;
 
         // A & B
         // -->
@@ -182,16 +190,22 @@ public class GLR {
     }
 
     public boolean isReachable(Terminal s) {
+        if (! symbolMap.containsKey(s))
+            return false;
         GLRTerminal t = terminal(s);
         return t.index() != -1;
     }
 
     public boolean isReachable(Nonterminal s) {
+        if (! symbolMap.containsKey(s))
+            return false;
         GLRNonterminal t = nonterminal(s);
         return t.index() != -1;
     }
 
     public boolean isStartSymbol(Nonterminal s) {
+        if (! symbolMap.containsKey(s))
+            return false;
         GLRNonterminal t = nonterminal(s);
         t = startSymbolsMap[t.index()];
         if (t == null) return false;
@@ -233,7 +247,7 @@ public class GLR {
         if (lre == null) {
             if (Report.should_report(TOPICS, 1))
                 Report.report(1, "Encoding tables");
-            lre = new LREncoding(g, lrc);
+            lre = new LREncoding(g, lrc, def);
         }
         return lre.encodedActionTable();
     }
@@ -242,7 +256,7 @@ public class GLR {
         if (lre == null) {
             if (Report.should_report(TOPICS, 1))
                 Report.report(1, "Encoding tables");
-            lre = new LREncoding(g, lrc);
+            lre = new LREncoding(g, lrc, def);
         }
         return lre.encodedOverflowTable();
     }
@@ -251,7 +265,7 @@ public class GLR {
         if (lre == null) {
             if (Report.should_report(TOPICS, 1))
                 Report.report(1, "Encoding tables");
-            lre = new LREncoding(g, lrc);
+            lre = new LREncoding(g, lrc, def);
         }
         return lre.encodedGotoTable();
     }
@@ -260,7 +274,7 @@ public class GLR {
         if (lre == null) {
             if (Report.should_report(TOPICS, 1))
                 Report.report(1, "Encoding tables");
-            lre = new LREncoding(g, lrc);
+            lre = new LREncoding(g, lrc, def);
         }
         return lre.encodedRuleTable();
     }
@@ -269,9 +283,18 @@ public class GLR {
         if (lre == null) {
             if (Report.should_report(TOPICS, 1))
                 Report.report(1, "Encoding tables");
-            lre = new LREncoding(g, lrc);
+            lre = new LREncoding(g, lrc, def);
         }
         return lre.encodedMergeTable();
+    }
+    
+    public String[] encodedTerminalTable() {
+        if (lre == null) {
+            if (Report.should_report(TOPICS, 1))
+                Report.report(1, "Encoding tables");
+            lre = new LREncoding(g, lrc, def);
+        }
+        return lre.encodedTerminalTable();
     }
 
     /**
@@ -321,20 +344,43 @@ public class GLR {
         g.nonterminals = new ArrayList<GLRNonterminal>(pt.allNonterminals().size()+1);
         g.terminals = new ArrayList<GLRTerminal>(257);
         originalStartSymbols = new ArrayList<GLRNonterminal>();
-
-
-        // Force symbol numbering to be the same as the source order
-        // by creating the symbols now.
-        for (int i = 0; i < 256; i++) {
-            CharTerminal r = new CharTerminal_c((IbexTypeSystem) pt.typeSystem(), Position.COMPILER_GENERATED, (char) i);
-            GLRTerminal t = terminal(r);
-            assert t.index == i;
-        }
-
+        
         g.eofSymbol = new GLRTerminal(Name.make("$"), g.terminals.size());
         g.terminals.add(g.eofSymbol);
+
+//        IbexTypeSystem ts = (IbexTypeSystem) pt.typeSystem();
+//
+//        Type ByteParser;
+//        Type CharParser;
+//        try {
+//             ByteParser = (Type) ts.systemResolver().find(QName.make("ibex.runtime.IByteParser"));
+//             CharParser = (Type) ts.systemResolver().find(QName.make("ibex.runtime.ICharParser"));
+//        }
+//        catch (SemanticException e) {
+//            throw new InternalCompilerError(e);
+//        }
+//        
+//        if (ts.isSubtype(pt.asType(), ByteParser, ts.emptyContext())) {
+//            // Force symbol numbering to be the same as the source order
+//            // by creating the symbols now.
+//            for (int i = Byte.MIN_VALUE; i <= Byte.MAX_VALUE; i++) {
+//                ByteTerminal r = new ByteTerminal_c((IbexTypeSystem) pt.typeSystem(), Position.COMPILER_GENERATED, (byte) i);
+//                GLRTerminal t = terminal(r);
+//                assert t.index == i+1-Byte.MIN_VALUE;
+//            }
+//        }
+//        
+//        if (ts.isSubtype(pt.asType(), CharParser, ts.emptyContext())) {
+//            // Force symbol numbering to be the same as the source order
+//            // by creating the symbols now.
+//            for (int i = Character.MIN_VALUE; i <= Character.MAX_VALUE; i++) {
+//                CharTerminal r = new CharTerminal_c((IbexTypeSystem) pt.typeSystem(), Position.COMPILER_GENERATED, (char) i);
+//                GLRTerminal t = terminal(r);
+//                assert t.index == i+1;
+//            }
+//        }
         
-        assert g.eofSymbol.index == 256;
+        assert g.eofSymbol.index == 0;
 
         for (Iterator<Terminal> i = pt.allTerminals().iterator(); i.hasNext(); ) {
             Terminal r = i.next();
@@ -377,7 +423,7 @@ public class GLR {
                 if (rhs instanceof RAnd) {
                     RAnd a = (RAnd) rhs;
                     Rhs rhs1 = a.choice1();
-                    Rhs rhs2 = a.choice1();
+                    Rhs rhs2 = a.choice2();
                     
                     List<GLRSymbol> l1 = symbols(rhs1);
                     List<GLRSymbol> l2 = symbols(rhs2);
@@ -397,7 +443,7 @@ public class GLR {
                 else if (rhs instanceof RSub) {
                     RSub a = (RSub) rhs;
                     Rhs rhs1 = a.choice1();
-                    Rhs rhs2 = a.choice1();
+                    Rhs rhs2 = a.choice2();
 
                     List<GLRSymbol> l1 = symbols(rhs1);
                     List<GLRSymbol> l2 = symbols(rhs2);
@@ -531,50 +577,47 @@ public class GLR {
     }
 
     GLRNonterminal nonterminal(Nonterminal n) {
-        Object key = "this::" + n.name();
-        GLRNonterminal s = (GLRNonterminal) symbolMap.get(key);
+        GLRNonterminal s = (GLRNonterminal) symbolMap.get(n);
 
         if (s == null) {
             s = new GLRNonterminal(n, n.name(), g.nonterminals.size());
             g.nonterminals.add(s);
-            symbolMap.put(key, s);
-        }
-
-        return s;
-    }
-
-    GLRTerminal terminal(char n) {
-        String name = "#" + n;
-        String key = "this::" + name;
-        GLRTerminal s = (GLRTerminal) symbolMap.get(key);
-
-        if (s == null) {
-            s = new GLRTerminal(Name.make(name), g.terminals.size());
-            g.terminals.add(s);
-            symbolMap.put(key, s);
+            symbolMap.put(n, s);
         }
 
         return s;
     }
 
     private GLRTerminal terminal(Terminal s) {
-        return s instanceof CharTerminal ? terminal((CharTerminal) s) : terminal((StringTerminal) s);
+        return s instanceof CharTerminal ? terminal((CharTerminal) s) : terminal((ByteTerminal) s);
     }
 
     GLRTerminal terminal(CharTerminal n) {
         String print = printable(n.value());
-        String key = "this::#" + print;
-        GLRTerminal s = (GLRTerminal) symbolMap.get(key);
+        GLRTerminal s = (GLRTerminal) symbolMap.get(n);
 
         if (s == null) {
             s = new GLRTerminal(Name.make("#" + print), g.terminals.size());
             g.terminals.add(s);
-            symbolMap.put(key, s);
+            symbolMap.put(n, s);
         }
 
         return s;
     }
 
+    GLRTerminal terminal(ByteTerminal n) {
+        String print = printable((char) (n.value() & 0xff));
+        GLRTerminal s = (GLRTerminal) symbolMap.get(n);
+        
+        if (s == null) {
+            s = new GLRTerminal(Name.make("#" + print), g.terminals.size());
+            g.terminals.add(s);
+            symbolMap.put(n, s);
+        }
+        
+        return s;
+    }
+    
     private String printable(char ch) {
         if (ch >= 128 || (!Character.isDigit(ch) && !Character.isLetter(ch) && "`~!@#$%^&*()-_=+[]{}|\\;:'\"<>,/?".indexOf(ch) < 0))
                 return "$" + (int) ch;
