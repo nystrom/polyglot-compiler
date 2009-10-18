@@ -8,10 +8,11 @@ import polyglot.types.TypeSystem;
 
 public interface IbexTypeSystem extends TypeSystem {
     RuleInstance findSymbol(IbexClassType container, Name name) throws SemanticException;
-    ClassType runtimeMergeableType();
+
     ClassType runtimeParserType();
+    ClassType runtimeByteParserType();
+    ClassType runtimeCharParserType();
     ClassType runtimeParserImplType();
-    ClassType runtimeGLRParserType();
     
     Type nullable(Type t);
 }
