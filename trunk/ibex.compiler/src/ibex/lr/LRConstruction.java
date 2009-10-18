@@ -194,30 +194,6 @@ public class LRConstruction {
                 }
             }
         }
-
-        // Resolve conflicts using operator precedence
-        /*
-        for (Conflict c : conflicts) {
-            for (Action a : c.actions()) {
-                if (a instanceof Shift) {
-                    Shift s = (Shift) a;
-                    GLRTerminal t = s.terminal;
-                }
-                else if (a instanceof Reduce) {
-                    Reduce r = (Reduce) a;
-                    GLRRule rule = r.rule;
-                }
-                else if (a instanceof Accept) {
-                    Accept r = (Accept) a;
-                    GLRNonterminal A = r.nonterminal;
-                }
-            }
-
-            if (c.actions().size() <= 1) {
-                i.remove();
-            }
-        }
-         */
     }
 
     Collection<Conflict> conflicts() {

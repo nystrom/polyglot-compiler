@@ -670,7 +670,7 @@ MATCH:
         }
 
         // Remove unreachable terminals.
-        if (false) {
+        {
             List<GLRTerminal> l = new ArrayList<GLRTerminal>(this.terminals.size());
 
             for (int i = 0; i < this.terminals.size(); i++) {
