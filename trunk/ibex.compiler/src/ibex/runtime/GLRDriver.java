@@ -18,7 +18,7 @@ public class GLRDriver {
     public static final int DEBUG_ENQUEUE = 16;
     public static final int DEBUG_ACCEPT = 32;
 
-    public static int DEBUG = DEBUG_LOOP | DEBUG_SHIFT;
+    public static int DEBUG = DEBUG_LOOP | DEBUG_SHIFT | DEBUG_REDUCE | DEBUG_ACTIONS;
 
     public static boolean USE_FAST_PATH = true;
     public static boolean DO_ERROR_RECOVERY = true;
@@ -51,7 +51,7 @@ public class GLRDriver {
                     lookahead[i] = parser.scanTerminal();
                 }
                 catch (EOFException e) {
-                    lookahead[i] = new EOF();
+                    lookahead[i] = eof;
                 }
                 catch (IOException e) {
                     lookahead[i] = new ExceptionTerminal(e);
@@ -78,7 +78,7 @@ public class GLRDriver {
                         l[i] = parser.scanTerminal();
                     }
                     catch (EOFException e) {
-                        l[i] = new EOF();
+                        l[i] = eof;
                     }
                     catch (IOException e) {
                         l[i] = new ExceptionTerminal(e);
@@ -200,13 +200,17 @@ public class GLRDriver {
          * links that can be traversed before reaching a node with
          * out-degree &gt; 1.
          */
-        int depth;    
+        int depth;   
+        
+        /** The rule whose reduction caused this node to be added, or -1. */
+        int rule;
 
         /* Head of a list of links to the node's children. */
         Link out;     
 
-        public Node(int state) {
+        public Node(int state, int rule) {
             this.state = state;
+            this.rule = rule;
             this.out = null;
             this.refcount = 0;
             this.depth = 1;
@@ -414,12 +418,7 @@ public class GLRDriver {
 
     BitSet seen;
 
-    private static final int EOF_TERMINAL = -1;
-
     private String terminalString(int terminal) {
-        terminal--;
-        if (terminal == EOF_TERMINAL)
-            return "EOF";
         return String.valueOf((char) terminal);
     }
 
@@ -474,7 +473,7 @@ public class GLRDriver {
                         Node newTop = (Node) j.next();
                         int dest = gotoTable[newTop.state][lhs];
                         System.out.println(current + ": reduce with rule " + rules[i] + " and goto " + dest);
-                        Node pushed = new Node(dest);
+                        Node pushed = new Node(dest, rules[i]);
                         Link link = new Link(newTop, pushed, null, 1);
                         link.next = pushed.out;
                         pushed.out = link;
@@ -487,7 +486,7 @@ public class GLRDriver {
 
                 if (dest != -1) {
                     System.out.println(current + ": shift " + t + " to " + dest);
-                    Node pushed = new Node(dest);
+                    Node pushed = new Node(dest, -1);
                     Link link = new Link(current, pushed, null, 1);
                     link.next = pushed.out;
                     pushed.out = link;
@@ -691,6 +690,7 @@ public class GLRDriver {
 
     private boolean error;
     private boolean fatalError;
+    private EOF eof;
 
     // returns the set of accepting stack nodes
     public Object parse(int startState, int startSym) throws IOException {
@@ -702,10 +702,10 @@ public class GLRDriver {
         fatalError = false;
 
         topmost = new ArrayList<Node>();
-        topmost.add(new Node(startState));
+        topmost.add(new Node(startState, -1));
         boolean accept = false;
 
-        EOF eof = new EOF();
+        eof = new EOF(parser.eofSymbol());
 
         SCAN:
             while (! accept && ! fatalError) {
@@ -752,7 +752,7 @@ public class GLRDriver {
                                     System.out.println("shift " + t + " to " + dest);
                                 }
 
-                                Node topSib = new Node(dest);
+                                Node topSib = new Node(dest, -1);
 
                                 // insert topSib into topmost;
                                 // push topSib onto stack
@@ -766,8 +766,8 @@ public class GLRDriver {
                                 int rhsLength = ruleRhsLength(ruleTable[rule]);
 
                                 // Check if this is a merge rule.  If so, fall through to the slow case.
-                                int mergeSibling = mergeTable[rule];
-                                if (mergeSibling != 0)
+                                int mergeEntry = mergeTable[rule];
+                                if (mergeEntry != 0)
                                     break SWITCH;
                                 
                                 if (n.depth >= rhsLength) {
@@ -799,7 +799,7 @@ public class GLRDriver {
                                         System.out.println("        and goto " + nextState);
                                     }
 
-                                    Node newTop = new Node(nextState);
+                                    Node newTop = new Node(nextState, rule);
 
                                     // discard
                                     if (current != n) current.refcount--;
@@ -1215,8 +1215,6 @@ public class GLRDriver {
         PathQueue pathqueue = globalPathqueue;
         pathqueue.clear();
         
-        boolean[] present = new boolean[ruleTable.length];
-        
         for (Iterator<Node> j = topmost.iterator(); j.hasNext(); ) {
             Node current = (Node) j.next();
             
@@ -1229,48 +1227,6 @@ public class GLRDriver {
             for (int i = 0; i < rules.length && rules[i] != -1; i++) {
                 // reduce N -> alpha
                 int rule = rules[i];
-                present[rule] = true;
-            }
-        }
-        
-        for (Iterator<Node> j = topmost.iterator(); j.hasNext(); ) {
-            Node current = (Node) j.next();
-            
-            if ((DEBUG & DEBUG_REDUCE) != 0) {
-                System.out.println("in state " + current.state);
-            }
-            
-            int[] rules = reductions(current, t);
-            
-            for (int i = 0; i < rules.length && rules[i] != -1; i++) {
-                // reduce N -> alpha
-                int rule = rules[i];
-                
-                int merge = mergeTable[rule];
-                int sibling = merge >>> 3;
-                int mergeAction = merge & 7;
-                
-                assert (mergeTable[sibling] >>> 3) == rule;
-                
-                boolean discard = false;
-                
-                switch (mergeAction) {
-                case MERGE_THIS_NO_SIBLING_YES:
-                    // this is yes, so discard
-                    discard = true;
-                    break;
-                case MERGE_THIS_YES_SIBLING_NO:
-                    if (present[sibling])
-                        discard = true;
-                    break;
-                case MERGE_THIS_YES_SIBLING_YES:
-                    if (! present[sibling])
-                        discard = true;
-                    break;
-                }
-
-                if (discard)
-                    continue;
                 
                 if ((DEBUG & DEBUG_REDUCE) != 0) {
                     System.out.println("enqueue for reduce with rule " + rule);
@@ -1281,32 +1237,69 @@ public class GLRDriver {
                              pathqueue);
             }
         }
-        
-        for (Iterator<Node> j = topmost.iterator(); j.hasNext(); ) {
-            Node current = (Node) j.next();
 
-            if ((DEBUG & DEBUG_REDUCE) != 0) {
-                System.out.println("in state " + current.state);
-            }
-
-            int[] rules = reductions(current, t);
-
-            for (int i = 0; i < rules.length && rules[i] != -1; i++) {
-                // reduce N -> alpha
-                if ((DEBUG & DEBUG_REDUCE) != 0) {
-                    System.out.println("enqueue for reduce with rule " + rules[i]);
-                }
-                int rhsLength = ruleRhsLength(ruleTable[rules[i]]);
-                enqueuePaths(current, rhsLength, rules[i], null, null,
-                             pathqueue);
-            }
-        }
+        boolean[] present = new boolean[ruleTable.length];
 
         // don't use an iterator; path queue can grow as we iterate
         // through it.
         while (! pathqueue.isEmpty()) {
             PathQueueEntry e = pathqueue.get();
+            present[e.rule] = true;
             reduceViaPath(e.path, e.rule, t, pathqueue);
+        }
+        
+        filterFailedMerges(present);
+    }
+
+    private void filterFailedMerges(boolean[] present) {
+        for (Iterator<Node> i = topmost.iterator(); i.hasNext(); ) {
+            Node node = i.next();
+            
+            int rule = node.rule;
+            
+            if (rule == -1)
+                continue;
+            
+            int mergeEntry = mergeTable[rule];
+            
+            if (mergeEntry == 0)
+                continue;
+            
+            int sibling = mergeEntry >>> 3;
+            int mergeAction = mergeEntry & 7;
+
+            assert (mergeTable[sibling] >>> 3) == rule;
+
+            boolean discard = false;
+
+            switch (mergeAction) {
+            case MERGE_THIS_NO_SIBLING_YES:
+                // this is yes, so discard
+                discard = true;
+                break;
+            case MERGE_THIS_YES_SIBLING_NO:
+                if (present[sibling])
+                    discard = true;
+                break;
+            case MERGE_THIS_YES_SIBLING_YES:
+                if (! present[sibling])
+                    discard = true;
+                break;
+            }
+
+            if (discard) {
+                if ((DEBUG & DEBUG_REDUCE) != 0) {
+                    String[] s = { "this no sibling no",
+                                   "this no sibling yes",
+                                   "this yes sibling no",
+                                   "this yes sibling yes"
+                    };
+                    System.out.println("discarding reduction with rule " + rule + " failed merge with sibling " + sibling);
+                    System.out.println("  this rule present=" + present[rule] + " sibling present=" + present[sibling]);
+                    System.out.println("  merge action = " + s[mergeAction]);
+                }
+                i.remove();
+            }
         }
     }
 
@@ -1328,8 +1321,7 @@ public class GLRDriver {
         }
     }
 
-    private
-    Link addLink(Node bottom, Node top, Action semAction, int span) {
+    private Link addLink(Node bottom, Node top, Action semAction, int span) {
         Link link = new Link(bottom, top, semAction, span);
 
         if (top.out == null) {
@@ -1459,7 +1451,7 @@ public class GLRDriver {
                 }
 
                 // no such node; create one and add to topmost
-                Node topSib = new Node(dest);
+                Node topSib = new Node(dest, -1);
                 topmost.add(topSib);
 
                 // push topSib onto stack
@@ -1484,9 +1476,6 @@ public class GLRDriver {
      */
     private void reduceViaPath(Path p, int rule, Terminal t, PathQueue pathqueue) {
         // Apply the semantic action for the reduce action.
-        
-        int mergeAction = mergeTable[rule] & 7;
-        int mergeSibling = mergeTable[rule] >>> 3;
         
         // Note that semanticAction expects the semActions array in the
         // same order as the rule rhs; that is,
@@ -1543,38 +1532,11 @@ public class GLRDriver {
                         }
 
                         SemanticAction linkAction = (SemanticAction) link.semAction;
-                        
-                        if (mergeAction == 0) {
-                            // failure
-                            // remove this link
-                            j.remove();
-                            return;
-                        }
-                        
-                        if (mergeSibling == linkAction.rule) {
-                            if (mergeAction == 1) {
-                                // merge this if other successful
-                                link.semAction = semAction;
-                            }
-                            else if (mergeAction == 2) {
-                                // merge this if other fails
-                                // other was successful, so we fail
-                                // failure
-                                // remove this link
-                                j.remove();
-                                return;
-                            }
-                            else if (mergeAction == 3) {
-                                // merge other
-                                // okay! keep going.
-                                return;
-                            }
-                        }
 
-//                        // prepend semAction to link's ambiguous list
-//                        semAction.ambiguous = linkAction.ambiguous;
-//                        linkAction.ambiguous = semAction;
-//                        return;
+                        // prepend semAction to link's ambiguous list
+                        semAction.ambiguous = linkAction.ambiguous;
+                        linkAction.ambiguous = semAction;
+                        return;
                     }
                 }
 
@@ -1601,7 +1563,7 @@ public class GLRDriver {
             System.out.println("pushing " + nextState);
         }
 
-        Node topSib = new Node(nextState);
+        Node topSib = new Node(nextState, rule);
 
         // create a link from the new node to the bottom of the stack"
         addLink(bottomSib, topSib, semAction, p.span());
@@ -1623,8 +1585,7 @@ public class GLRDriver {
         }
     }
 
-    private
-    void enqueueLimitedReductions(Node bottom, Node top, Terminal t, PathQueue pathqueue) {
+    private void enqueueLimitedReductions(Node bottom, Node top, Terminal t, PathQueue pathqueue) {
         for (Iterator<Node> i = topmost.iterator(); i.hasNext(); ) {
             Node n = (Node) i.next();
 

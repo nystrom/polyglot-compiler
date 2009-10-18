@@ -2,6 +2,6 @@ package ibex.runtime;
 
 import java.io.IOException;
 
-public interface IByteParser<OutputType> {
+public interface IByteParser extends IParser {
      byte scan() throws IOException;
 }

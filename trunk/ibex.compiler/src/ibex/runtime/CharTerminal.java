@@ -1,8 +1,9 @@
 package ibex.runtime;
 
 class CharTerminal implements Terminal {
-    char sym;
-    CharTerminal(char sym) { this.sym = sym; }
+    int sym;
+    char val;
+    CharTerminal(int sym, char val) { this.sym = sym; this.val = val; }
     public int symbol() { return sym; }
-    public String toString() { return String.valueOf((char) sym); }
+    public String toString() { return String.valueOf((int) val); }
 }
