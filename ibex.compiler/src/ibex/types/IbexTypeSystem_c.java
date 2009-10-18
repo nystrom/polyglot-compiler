@@ -62,18 +62,18 @@ public class IbexTypeSystem_c extends TypeSystem_c implements IbexTypeSystem {
         return new RuleDef_c(this, pos, container, flags, type, name, choices);
     }
 
-    public ClassType runtimeMergeableType() {
-        return load("ibex.runtime.Mergeable");
-    }
-
     public ClassType runtimeParserType() {
-        return load("ibex.runtime.Parser");
+        return load("ibex.runtime.IParser");
+    }
+    
+    public ClassType runtimeCharParserType() {
+        return load("ibex.runtime.ICharParser");
     }
 
-    public ClassType runtimeGLRParserType() {
-        return load("ibex.runtime.GLRParser");
+    public ClassType runtimeByteParserType() {
+        return load("ibex.runtime.IByteParser");
     }
-
+    
     public ClassType runtimeParserImplType() {
         return load("ibex.runtime.ParserImpl");
     }
