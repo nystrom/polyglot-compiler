@@ -96,7 +96,11 @@ public class GrammarNormalizer extends ContextVisitor {
     }
 
     <T extends Node> T check(T n) throws SemanticException {
-        return check(n, this);
+        Node x = check(n, this);
+        if (n instanceof RhsInvoke && x instanceof RhsBind) {
+            return (T) ((RhsBind) x).item();
+        }
+        return (T) x;
     }
 
     List<RuleDecl> orphans;

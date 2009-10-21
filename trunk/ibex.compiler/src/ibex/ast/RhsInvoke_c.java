@@ -7,7 +7,9 @@ import ibex.types.RuleInstance;
 import java.util.List;
 
 import polyglot.ast.Call;
+import polyglot.ast.LocalDecl;
 import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
 import polyglot.ast.Term;
 import polyglot.types.Flags;
 import polyglot.types.LocalDef;
@@ -71,7 +73,13 @@ public class RhsInvoke_c extends RhsExpr_c implements RhsInvoke {
             LocalDef li = ts.localDef(position(), Flags.FINAL, Types.ref(call.type()), call.name().id());
             // Formal parameters are never compile-time constants.
             li.setNotConstant();
-            n = (RhsInvoke) n.localDef(li);
+            
+            IbexNodeFactory nf = (IbexNodeFactory) tc.nodeFactory();
+            LocalDecl ld = nf.LocalDecl(position(), nf.FlagsNode(position(), li.flags()), nf.CanonicalTypeNode(position(), li.type()), nf.Id(position(), li.name()));
+            ld = ld.localDef(li);
+            ld = ld.init(n);
+            
+            return nf.RhsSyntheticBind(position(), ld).type(n.type());
         }
         
         return n;

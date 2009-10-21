@@ -972,13 +972,13 @@ public class GLRDriver {
 
     private void enqueuePaths(Node root, int depth, int rule,
             Node useTop, Node useBottom, PathQueue pathqueue) {
-        enqueuePathsDFS(root, depth, rule, useTop, useBottom, pathqueue,
-                        0, new Path(root, depth));
+        enqueuePathsDFS(root, depth, rule, useTop, useBottom,
+                        pathqueue, 0, new Path(root, depth));
     }
 
     private void enqueuePathsDFS(Node current, int depth, int rule,
-            Node useTop, Node useBottom,
-            PathQueue pathqueue, int currDepth, Path p)
+            Node useTop,
+            Node useBottom, PathQueue pathqueue, int currDepth, Path p)
     {
         if (currDepth == depth) {
             if (useTop == null && useBottom == null) {
@@ -1007,8 +1007,8 @@ public class GLRDriver {
 
             p.path[currDepth] = l;
 
-            enqueuePathsDFS(l.bottom, depth, rule, useTop, useBottom,
-                            pathqueue, currDepth+1, p);
+            enqueuePathsDFS(l.bottom, depth, rule, useTop,
+                            useBottom, pathqueue, currDepth+1, p);
         }
     }
 
@@ -1233,8 +1233,8 @@ public class GLRDriver {
                 }
                 
                 int rhsLength = ruleRhsLength(ruleTable[rule]);
-                enqueuePaths(current, rhsLength, rule, null, null,
-                             pathqueue);
+                enqueuePaths(current, rhsLength, rule, null,
+                             null, pathqueue);
             }
         }
 
@@ -1592,16 +1592,18 @@ public class GLRDriver {
             int[] rules = reductions(n, t);
 
             for (int j = 0; j < rules.length && rules[j] != -1; j++) {
+                int rule = rules[j];
+
                 // reduce N -> alpha
                 if ((DEBUG & DEBUG_REDUCE) != 0) {
-                    System.out.println("secondary (limited) enqueue for reduce using " + rules[j]);
+                    System.out.println("secondary (limited) enqueue for reduce using " + rule);
                 }
 
-                int rhsLength = ruleRhsLength(ruleTable[rules[j]]);
+                int rhsLength = ruleRhsLength(ruleTable[rule]);
 
                 // enqueue <p, N -> alpha> for each path p of length |alpha|
                 // from n that uses the link top -> bottom
-                enqueuePaths(n, rhsLength, rules[j], top, bottom, pathqueue);
+                enqueuePaths(n, rhsLength, rule, top, bottom, pathqueue);
             }
         }
     }

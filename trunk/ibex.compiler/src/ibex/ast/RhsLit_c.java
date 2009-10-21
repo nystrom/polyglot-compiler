@@ -106,7 +106,7 @@ public class RhsLit_c extends RhsExpr_c implements RhsLit {
                 throw new SemanticException("Cannot find rule for " + mi);
             
             IbexNodeFactory nf = (IbexNodeFactory) tc.nodeFactory();
-            return nf.RhsInvoke(position(), call).symbol(sym).type(call.type());
+            return GrammarNormalizer.check(nf.RhsInvoke(position(), call), tc);
         }
         
         if (lit.isConstant() && lit.type().isChar() || lit.type().isSubtype(ts.String(), tc.context()))

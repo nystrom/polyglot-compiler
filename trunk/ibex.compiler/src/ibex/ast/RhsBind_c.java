@@ -22,12 +22,18 @@ import polyglot.visit.TypeBuilder;
 public class RhsBind_c extends RhsExpr_c implements RhsBind {
 
     private LocalDecl decl;
+    private boolean synthetic;
 
-    public RhsBind_c(Position pos, LocalDecl decl) {
+    public RhsBind_c(Position pos, LocalDecl decl, boolean synthetic) {
         super(pos);
         this.decl = decl;
+        this.synthetic = synthetic;
     }
     
+    public boolean synthetic() {
+        return synthetic;
+    }
+
     public RhsExpr item() {
         return (RhsExpr) decl().init();
     }
@@ -52,8 +58,7 @@ public class RhsBind_c extends RhsExpr_c implements RhsBind {
 
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-        return type(ts.Void());
+        return type(item().type());
     }
 
     /** Write the expression to an output file. */
