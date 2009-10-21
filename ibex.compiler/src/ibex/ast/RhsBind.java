@@ -8,4 +8,5 @@ public interface RhsBind extends RhsExpr {
     RhsBind decl(LocalDecl decl);
     
     RhsExpr item();
+    boolean synthetic();
 }

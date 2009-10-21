@@ -23,7 +23,6 @@ import polyglot.visit.TypeBuilder;
 public abstract class RhsExpr_c extends Expr_c implements RhsExpr {
 
     boolean isRegular;
-    LocalDef ld;
     
     public RhsExpr_c(Position pos) {
         super(pos);
@@ -39,22 +38,6 @@ public abstract class RhsExpr_c extends Expr_c implements RhsExpr {
         return n;
     }
     
-    public LocalDef localDef() {
-        return ld;
-    }
-    
-    public RhsExpr localDef(LocalDef localDef) {
-        RhsExpr_c n = (RhsExpr_c) copy();
-        n.ld = localDef;
-        return n;
-    }
-    
-    @Override
-    public void addDecls(Context c) {
-        if (ld != null)
-            c.addVariable(ld.asInstance());
-    }
-   
     abstract public Node visitChildren(NodeVisitor v);
 
     abstract public void prettyPrint(CodeWriter w, PrettyPrinter tr);

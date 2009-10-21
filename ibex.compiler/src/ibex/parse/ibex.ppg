@@ -110,7 +110,10 @@ rhs_seq ::=
                  l.addAll(((RhsSequence) b).terms());
              else
                  l.add(b);
-             RESULT = parser.nf.RhsSequence(parser.pos(a,b), l); :}
+             if (l.size() == 1)
+                 RESULT = (RhsExpr) l.get(0);
+             else
+                 RESULT = parser.nf.RhsSequence(parser.pos(a,b), l); :}
       ;
 
 rhs_term ::=

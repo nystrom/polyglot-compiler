@@ -33,7 +33,10 @@ public class IbexNodeFactory_c extends NodeFactory_c implements IbexNodeFactory 
         return new RhsAnyChar_c(pos);
     }
     public RhsBind RhsBind(Position pos, LocalDecl decl) {
-        return new RhsBind_c(pos, decl);
+        return new RhsBind_c(pos, decl, false);
+    }
+    public RhsBind RhsSyntheticBind(Position pos, LocalDecl decl) {
+        return new RhsBind_c(pos, decl, true);
     }
     public ibex.ast.RhsLit RhsLit(Position pos, Expr lit) {
         return new RhsLit_c(pos, lit);

@@ -17,6 +17,7 @@ import polyglot.util.Position;
  */
 public interface IbexNodeFactory extends NodeFactory {
     RhsBind RhsBind(Position pos, LocalDecl decl); 
+    RhsBind RhsSyntheticBind(Position pos, LocalDecl decl); 
     RhsAnyChar RhsAnyChar(Position pos);
     RhsLit RhsLit(Position pos, Expr lit);
     RhsRange RhsRange(Position pos, Expr from, Expr to);
