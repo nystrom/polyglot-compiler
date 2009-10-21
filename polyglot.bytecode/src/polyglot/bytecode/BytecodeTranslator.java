@@ -66,20 +66,27 @@ public class BytecodeTranslator {
                 ClassDef def = cd.classDef();
                 ClassTranslator a = new ClassTranslator(job, ts, nf, this, def);
                 new Dispatch.Dispatcher("visit").invoke(a, d);
-                byte[] b = a.cg.bytes();
-                polyglot.types.Package p = Types.get(def.package_());
-                File f = ts.extensionInfo().targetFactory().outputFile(a.cg.fullName().qualifier(), a.cg.fullName().name(), n.source());
-                try {
-                    if (! f.getParentFile().exists())
-                        // Create the parent directory.  Don't bother checking if successful, the file open below will fail if not.
-                        f.getParentFile().mkdirs();
-                    FileOutputStream out = new FileOutputStream(f);
-                    out.write(b);
-                    out.close();
+                Set<ClassDef> symbols = output.keySet();
+                for (final ClassDef sym : symbols) {
+                    final List<IClassGen> classes = output.get(sym);
+                    for (final IClassGen cg : classes) {
+                        byte[] b = cg.bytes();
+//              polyglot.types.Package p = Types.get(def.package_());
+                        File f = ts.extensionInfo().targetFactory().outputFile(cg.fullName().qualifier(), cg.fullName().name(), n.source());
+                        try {
+                            if (! f.getParentFile().exists())
+                                // Create the parent directory.  Don't bother checking if successful, the file open below will fail if not.
+                                f.getParentFile().mkdirs();
+                            FileOutputStream out = new FileOutputStream(f);
+                            out.write(b);
+                            out.close();
+                        }
+                        catch (IOException e) {
+                            job.extensionInfo().compiler().errorQueue().enqueue(ErrorInfo.POST_COMPILER_ERROR, e.getMessage(), n.position());
+                        }
+                    }
                 }
-                catch (IOException e) {
-                    job.extensionInfo().compiler().errorQueue().enqueue(ErrorInfo.POST_COMPILER_ERROR, e.getMessage(), n.position());
-                }
+                output.clear();
             }
         }
     }
