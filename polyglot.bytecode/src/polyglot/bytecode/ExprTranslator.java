@@ -30,6 +30,7 @@ import polyglot.ast.Special;
 import polyglot.ast.StringLit;
 import polyglot.ast.TypeNode;
 import polyglot.ast.Unary;
+import polyglot.bytecode.rep.IClassGen;
 import polyglot.bytecode.rep.ILabel;
 import polyglot.bytecode.types.StackType;
 import polyglot.bytecode.types.Type;
@@ -161,7 +162,8 @@ public class ExprTranslator extends AbstractExpTranslator {
 
     public void visit(final New n) {
         if (n.body() != null) {
-            new ClassTranslator(job, ts, nf, bc, n.anonType(), context).translateClass(n, n.anonType(), n.body());
+            IClassGen cg = new ClassTranslator(job, ts, nf, bc, n.anonType(), context).translateClass(n, n.body());
+            context.cg.addInnerClass(cg);
         }
 
         alloc((ClassType) n.type(), n.constructorInstance().formalTypes(),      n.arguments(), n.position());

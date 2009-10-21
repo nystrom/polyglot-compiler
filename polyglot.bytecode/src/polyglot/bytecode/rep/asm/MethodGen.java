@@ -25,6 +25,19 @@ public class MethodGen implements IMethodGen {
         this.code = null;
     }
     
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("MethodGen ");
+        sb.append(name);
+        sb.append("(");
+        for (Type t : argTypes) {
+            sb.append(t);
+        }
+        sb.append(")");
+        sb.append(returnType);
+        return sb.toString();
+    }
+
     MethodNode mn() {
         String[] throwTypeStrings = new String[throwTypes.size()];
         for (int i = 0; i < throwTypes.size(); i++)

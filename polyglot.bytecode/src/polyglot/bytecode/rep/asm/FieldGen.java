@@ -18,6 +18,15 @@ public class FieldGen implements IFieldGen {
         return new FieldNode(flags, name, type.desc(), null, value);
     }
     
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("FieldGen ");
+        sb.append(type);
+        sb.append(" ");
+        sb.append(name);
+        return sb.toString();
+    }
+
     public FieldGen(int flags, Type type, String name, Object value) {
         this.flags = flags;
         this.name = name;
