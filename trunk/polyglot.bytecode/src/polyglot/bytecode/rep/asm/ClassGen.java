@@ -31,6 +31,10 @@ public class ClassGen implements IClassGen {
         this.fields = new ArrayList<IFieldGen>();
         this.inner = new ArrayList<IClassGen>();
     }
+
+    public String toString() {
+        return "ClassGen " + name;
+    }
     
     public byte[] bytes() {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);

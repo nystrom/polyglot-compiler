@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import polyglot.ast.ClassBody;
 import polyglot.ast.ClassDecl;
 import polyglot.ast.NodeFactory;
 import polyglot.ast.SourceFile;
@@ -35,59 +36,44 @@ public class BytecodeTranslator {
         this.nf = nf;
     }
 
-    Map<ClassDef, List<IClassGen>> output = new HashMap<ClassDef, List<IClassGen>>();
-
-    void addClassForOutput(final ClassDef sym, final IClassGen jc) {
-        if (sym == null)
-            return;
-        List<IClassGen> classes = output.get(sym);
-        if (classes == null) {
-            classes = new ArrayList<IClassGen>();
-            output.put(sym, classes);
-        }
-        classes.add(jc);
-    }
-
-    public void dumpClasses() {
-        Set<ClassDef> symbols = output.keySet();
-        for (final ClassDef sym : symbols) {
-            final List<IClassGen> classes = output.get(sym);
-        }
-
-        output.clear();
+    public void visit(final ClassDecl n) {
     }
 
     public void visit(SourceFile n) {
         n = (SourceFile) n.visit(new LocalClassRemover(job, ts, nf).context(ts.emptyContext()));
         n = (SourceFile) n.visit(new InnerClassRemover(job, ts, nf).context(ts.emptyContext()));
+        
         for (TopLevelDecl d : n.decls()) {
             if (d instanceof ClassDecl) {
                 ClassDecl cd = (ClassDecl) d;
                 ClassDef def = cd.classDef();
-                ClassTranslator a = new ClassTranslator(job, ts, nf, this, def);
-                new Dispatch.Dispatcher("visit").invoke(a, d);
-                Set<ClassDef> symbols = output.keySet();
-                for (final ClassDef sym : symbols) {
-                    final List<IClassGen> classes = output.get(sym);
-                    for (final IClassGen cg : classes) {
-                        byte[] b = cg.bytes();
-//              polyglot.types.Package p = Types.get(def.package_());
-                        File f = ts.extensionInfo().targetFactory().outputFile(cg.fullName().qualifier(), cg.fullName().name(), n.source());
-                        try {
-                            if (! f.getParentFile().exists())
-                                // Create the parent directory.  Don't bother checking if successful, the file open below will fail if not.
-                                f.getParentFile().mkdirs();
-                            FileOutputStream out = new FileOutputStream(f);
-                            out.write(b);
-                            out.close();
-                        }
-                        catch (IOException e) {
-                            job.extensionInfo().compiler().errorQueue().enqueue(ErrorInfo.POST_COMPILER_ERROR, e.getMessage(), n.position());
-                        }
-                    }
-                }
-                output.clear();
+                new Dispatch.Dispatcher("visit").invoke(this, d);
+                final ClassDef sym = def;
+                ClassBody body = cd.body();
+                IClassGen cg = new ClassTranslator(job, ts, nf, this, sym).translateClass(cd, body);
+                genClass(n, Types.get(sym.package_()), cg);
             }
+        }
+    }
+
+    private void genClass(SourceFile n, polyglot.types.Package pkg, IClassGen acg) {
+        byte[] b = acg.bytes();
+        polyglot.types.Package p = pkg;
+        File f = ts.extensionInfo().targetFactory().outputFile(acg.fullName().qualifier(), acg.fullName().name(), n.source());
+        try {
+            if (! f.getParentFile().exists())
+                // Create the parent directory.  Don't bother checking if successful, the file open below will fail if not.
+                f.getParentFile().mkdirs();
+            FileOutputStream out = new FileOutputStream(f);
+            out.write(b);
+            out.close();
+        }
+        catch (IOException e) {
+            job.extensionInfo().compiler().errorQueue().enqueue(ErrorInfo.POST_COMPILER_ERROR, e.getMessage(), n.position());
+        }
+        
+        for (IClassGen cg : acg.innerClasses()) {
+            genClass(n, pkg, cg);
         }
     }
 }

@@ -65,6 +65,7 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
         this.containingExp = context;
         this.currentClass = currentClass;
         this.bc = bc;
+        this.cg = initCG();
     }
 
     public ClassTranslator(Job job, TypeSystem ts, NodeFactory nf, BytecodeTranslator bc, ClassDef currentClass) {
@@ -88,7 +89,8 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
     public void visit(final ClassDecl n) {
         final ClassDef sym = n.classDef();
         ClassBody body = n.body();
-        translateClass(n, sym, body);
+        IClassGen cg = new ClassTranslator(job, ts, nf, bc, sym).translateClass(n, body);
+        this.cg.addInnerClass(cg);
     }
 
     public String fileName(final Position pos) {
@@ -100,7 +102,9 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
         return s;
     }
 
-    protected String translateClass(final Node n, final ClassDef sym, final ClassBody body) {
+    protected IClassGen initCG() {
+        ClassDef sym = currentClass;
+        
         String generatedClassName = classNameOfSymbol(sym);
 
         final Type superklass = getSuperklass(sym);
@@ -109,9 +113,7 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
         int flags = bitsFromFlags(sym.flags());
 
         // Now create the class.
-        final IClassGen cg = AsmFactory.makeClass(generatedClassName, flags | ACC_SUPER, superklass, interfaces, fileName(n.position()));
-        bc.addClassForOutput(sym, cg);
-        this.cg = cg;
+        final IClassGen cg = AsmFactory.makeClass(generatedClassName, flags | ACC_SUPER, superklass, interfaces, fileName(sym.position()));
 
         final Map<MethodContext, String> frameFields1 = new HashMap<MethodContext, String>();
 
@@ -135,7 +137,11 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
                 argNames.add(fieldName);
             }
         }
+        
+        return cg;
+    }
 
+    protected IClassGen translateClass(final Node n, final ClassBody body) {
         final IMethodGen staticInit = AsmFactory.makeMethod(ACC_STATIC, "<clinit>", Type.VOID, new Type[0], new String[0], new Type[0]);
         final IOpcodes staticInitIL = AsmFactory.makeOpcodes(staticInit);
 
@@ -196,8 +202,8 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
         };
         
         visitChild(body);
-
-        return generatedClassName;
+        
+        return cg;
     }
     
     InstructionSequence fieldInits;
@@ -344,7 +350,6 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
         final String frameClass = classNameOfSymbol(currentClass) + "$$$frame$" + count++;
 
         final IClassGen frameCG = AsmFactory.makeClass(frameClass, ACC_PUBLIC | ACC_SUPER, Type.OBJECT, new Type[0], fileName(funsym.position()));
-        bc.addClassForOutput(currentClass, frameCG);
         
         // Create a field for each local.
         for (final LocalDef v : boxingMap.keySet()) {
@@ -433,6 +438,8 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
 
                 final Map<LocalDef, String> boxingMap = new HashMap<LocalDef, String>();
                 final IClassGen frameClass = makeFrameClass(needToBox, c.theMethod, boxingMap);
+                this.cg.addInnerClass(frameClass);
+                
                 final Name frameLocal = Name.makeFresh("frame");
 
                 c.frameClass = frameClass.type();
