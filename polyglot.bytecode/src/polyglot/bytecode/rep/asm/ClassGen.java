@@ -38,7 +38,7 @@ public class ClassGen implements IClassGen {
         for (int i = 0; i < interfaces.size(); i++) {
             interfaceNames[i] = interfaces.get(i).className();
         }
-        cw.visit(Opcodes.V1_4, flags, name, null, superClass.className(), interfaceNames);
+        cw.visit(Opcodes.V1_5, flags, name, null, superClass.className(), interfaceNames);
         cw.visitSource(sourceFile, null);
 //        cn.version = Opcodes.V1_4;
 //        cn.access = flags;
