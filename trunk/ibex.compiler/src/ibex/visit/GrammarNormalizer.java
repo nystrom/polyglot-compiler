@@ -26,26 +26,33 @@ import ibex.types.RuleDef_c;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import polyglot.ast.ArrayInit;
+import polyglot.ast.Block;
 import polyglot.ast.ClassBody;
 import polyglot.ast.ClassMember;
 import polyglot.ast.Expr;
+import polyglot.ast.LocalDecl;
+import polyglot.ast.NewArray;
 import polyglot.ast.Node;
+import polyglot.ast.Stmt;
 import polyglot.dispatch.Dispatch;
 import polyglot.dispatch.PassthruError;
 import polyglot.frontend.Job;
 import polyglot.types.Flags;
+import polyglot.types.LocalDef;
 import polyglot.types.MethodDef;
 import polyglot.types.Name;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.Types;
-import polyglot.util.ErrorInfo;
 import polyglot.util.Position;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
+import polyglot.visit.TypeChecker;
 
 public class GrammarNormalizer extends ContextVisitor {
     IbexTypeSystem ts;
@@ -340,6 +347,24 @@ public class GrammarNormalizer extends ContextVisitor {
 
         orphans.add(d);
         return sym;
+    }
+    
+    public Node visit(RhsLit e, Node parent) throws SemanticException {
+        Expr lit = e.lit();
+        if (lit.isConstant() && lit.constantValue() instanceof String) {
+            String v = (String) lit.constantValue();
+            Position pos = e.position();
+            List<RhsExpr> terms = new ArrayList<RhsExpr>(v.length());
+            for (int i = 0; i < v.length(); i++) {
+                RhsLit ch = nf.RhsLit(pos, nf.CharLit(pos, v.charAt(i)));
+                terms.add(ch);
+            }
+  
+            Block body = nf.Block(pos, nf.Return(pos, lit));
+            RhsSequence seq = nf.RhsSequence(pos, terms);
+            return nf.RhsAction(pos, seq, body).del().typeCheckOverride(parent, new TypeChecker(job, ts, nf, new HashMap<Node, Node>()).context(context));
+        }
+        return e;
     }
 
     public Node visit(RhsOption e, Node parent) throws SemanticException {

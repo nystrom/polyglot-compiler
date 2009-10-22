@@ -58,7 +58,7 @@ public class RhsLit_c extends RhsExpr_c implements RhsLit {
         Position pos = position();
         
         // Check if the lit is actually a call to a nonterminal.
-        Call c = null;
+         Call c = null;
         if (lit instanceof Field) {
             Field f = (Field) lit;
             c = nf.Call(pos, f.target(), f.name());

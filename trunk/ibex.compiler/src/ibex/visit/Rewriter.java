@@ -8,12 +8,18 @@ import ibex.ast.RhsOr;
 import ibex.ast.RhsSequence;
 import ibex.ast.RuleDecl;
 import ibex.lr.GLR;
+import ibex.types.ByteTerminal;
+import ibex.types.CharTerminal;
 import ibex.types.IbexClassDef;
 import ibex.types.IbexClassType;
 import ibex.types.IbexTypeSystem;
 import ibex.types.Nonterminal;
+import ibex.types.RAnd;
+import ibex.types.RSeq;
+import ibex.types.RSub;
 import ibex.types.Rhs;
 import ibex.types.RuleDef;
+import ibex.types.Terminal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 
 import polyglot.ast.ArrayInit;
+import polyglot.ast.Binary;
 import polyglot.ast.Block;
 import polyglot.ast.Call;
 import polyglot.ast.Case;
@@ -221,7 +228,7 @@ public class Rewriter extends ContextVisitor
             Nonterminal lhs = glr.ruleLhs(i);
             Rhs rhs = glr.ruleRhs(i);
 
-            if (lhs == null ||rhs == null) {
+            if (lhs == null || rhs == null) {
                 continue;
             }
 
@@ -245,7 +252,8 @@ public class Rewriter extends ContextVisitor
 
                 List<Expr> args = new ArrayList<Expr>();
 
-                args.add(nf.Local(pos, nf.Id(pos, argsLd.name())).localInstance(argsLd.asInstance()).type(argsLd.asInstance().type()));
+                Expr arg = nf.Local(pos, nf.Id(pos, argsLd.name())).localInstance(argsLd.asInstance()).type(argsLd.asInstance().type());
+                args.add(arg);
 
                 if (args.size() != formalTypes.size()) {
                     throw new InternalCompilerError("Argument count mismatch between " + mi + " and " + args);
@@ -271,7 +279,9 @@ public class Rewriter extends ContextVisitor
                 }
             }
             else {
-                code.add(retNull);
+                Expr arg = nf.Local(pos, nf.Id(pos, argsLd.name())).localInstance(argsLd.asInstance()).type(argsLd.asInstance().type());
+                Return ret = nf.Return(pos, unbox(rhs, arg));
+                code.add(ret);
             }
 
             SwitchBlock sb = nf.SwitchBlock(pos, code);
@@ -289,6 +299,29 @@ public class Rewriter extends ContextVisitor
         return mdl;
     }
     
+    Expr unbox(Rhs rhs, Expr e) throws SemanticException {
+        if (rhs instanceof RSeq && ((RSeq) rhs).items().size() == 0) {
+            return nf.NullLit(e.position()).type(ts.Null());
+        }
+        if (rhs instanceof RSeq && ((RSeq) rhs).items().size() == 1) {
+            return unbox(((RSeq) rhs).items().get(0), e);
+        }
+        if (rhs instanceof Nonterminal || rhs instanceof Terminal) {
+            Rhs ri = rhs;
+            Expr l = e;
+            int i = 0;
+            Expr ai = nf.ArrayAccess(ri.position(), l, nf.IntLit(ri.position(), IntLit.INT, i).type(ts.Int())).type(l.type().toArray().base());
+            ai = nf.Conditional(ri.position(), nf.Binary(ri.position(), l, Binary.NE, nf.NullLit(ri.position()).type(ts.Null())).type(ts.Boolean()), ai, nf.NullLit(ri.position()).type(ts.Null())).type(ai.type());
+            ai = Rewriter.unbox(ri.type(), ai, nf);
+            return ai;
+        }
+        if (rhs instanceof RSub) {
+            RSub r = (RSub) rhs;
+            return unbox(r.choice1(), e);
+        }
+        return e;
+    }
+
     
     MethodDecl eofMethod(IbexClassDef def) throws SemanticException {
         Position pos = def.position();
@@ -489,12 +522,13 @@ public class Rewriter extends ContextVisitor
         }
         return argTypes;
     }
-    MethodDecl action(IbexClassDef def, RuleDef rule, RhsAction e, int index) {
+    
+    MethodDecl action(IbexClassDef def, RuleDef rule, RhsAction e, Rhs rhs) {
         RhsExpr item = e.item();
         List<Formal> formals = e.formal() != null ? Collections.singletonList(e.formal()) : Collections.EMPTY_LIST;
         List<Ref<? extends Type>> argTypes = argTypesOfFormals(formals);
         Position pos = e.position();
-        Name name = actionMethodName(rule.asNonterminal(), null);
+        Name name = actionMethodName(rule.asNonterminal(), rhs);
         MethodDef md = ts.methodDef(pos, Types.ref(def.asType()), Flags.PROTECTED, Types.ref(e.type()), name, argTypes, Collections.EMPTY_LIST);
         MethodDecl mdl = nf.MethodDecl(pos, nf.FlagsNode(pos, md.flags()), nf.CanonicalTypeNode(pos, md.returnType()), nf.Id(pos, md.name()), formals, Collections.EMPTY_LIST, e.body());
         mdl = mdl.methodDef(md);
@@ -503,8 +537,41 @@ public class Rewriter extends ContextVisitor
     }
     
     Name actionMethodName(Nonterminal lhs, Rhs rhs) {
-        Name name = Name.make("action$" + lhs.name() + "$");
+        Name name = Name.make("action$" + lhs.name() + "$" + mangle(rhs));
         return name;
+    }
+    
+    String mangle(Rhs rhs) {
+        if (rhs instanceof Nonterminal) {
+            return ((Nonterminal) rhs).name().toString();
+        }
+        if (rhs instanceof CharTerminal) {
+            return "" + (int) ((CharTerminal) rhs).value();
+        }
+        if (rhs instanceof ByteTerminal) {
+            return "" + (int) ((ByteTerminal) rhs).value();
+        }
+        if (rhs instanceof RSeq) {
+            StringBuilder sb = new StringBuilder();
+            String sep = "";
+            for (Rhs r : ((RSeq) rhs).items()) {
+                sb.append(sep);
+                sep = "$";
+                sb.append(mangle(r));
+            }
+            return sb.toString();
+        }
+        if (rhs instanceof RAnd) {
+            return mangle(((RAnd) rhs).choice1())
+            + "$and$"            
+            + mangle(((RAnd) rhs).choice1());
+        }
+        if (rhs instanceof RSub) {
+            return mangle(((RSub) rhs).choice1())
+            + "$minus$"            
+            + mangle(((RSub) rhs).choice1());
+        }
+        return "";
     }
     
     private List<Formal> formals(RhsExpr item) {
@@ -544,7 +611,7 @@ public class Rewriter extends ContextVisitor
                 q.add(r.left());
             }
             else if (ei instanceof RhsAction) {
-                l.add(action(def, rule, (RhsAction) ei, l.size()));
+                l.add(action(def, rule, (RhsAction) ei, ei.rhs()));
             }
         }
         return l;

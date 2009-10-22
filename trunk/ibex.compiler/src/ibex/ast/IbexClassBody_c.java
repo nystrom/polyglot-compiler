@@ -4,6 +4,7 @@ import ibex.types.CharTerminal_c;
 import ibex.types.IbexTypeSystem;
 import ibex.types.RAnd_c;
 import ibex.types.RLookahead_c;
+import ibex.types.RSeq;
 import ibex.types.RSeq_c;
 import ibex.types.RSub_c;
 import ibex.types.Rhs;
@@ -12,7 +13,6 @@ import ibex.types.Terminal_c;
 import ibex.visit.GrammarNormalizer;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import polyglot.ast.ClassBody_c;
@@ -46,18 +46,80 @@ public class IbexClassBody_c extends ClassBody_c {
     }
 
     private Node updateRuleDefs(ContextVisitor tc) {
+        List<ClassMember> members = new ArrayList<ClassMember>();
         for (ClassMember cm : members()) {
             if (cm instanceof RuleDecl) {
                 RuleDecl d = (RuleDecl) cm;
                 RuleDef def = d.rule();
                 RhsExpr e = d.rhs();
+                e = getRhs(e, tc);
                 List<Rhs> choices = new ArrayList<Rhs>();
                 add(choices, e, tc);
                 def.setChoices(choices);
+                d = d.rhs(e);
+                members.add(d);
+            }
+            else {
+                members.add(cm);
             }
         }
 
-        return this;
+        return this.members(members);
+    }
+
+    RhsExpr getRhs(RhsExpr e, ContextVisitor tc) {
+        IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
+        if (e instanceof RhsOr) {
+            RhsOr c = (RhsOr) e;
+            RhsExpr e1 = c.left();
+            RhsExpr e2 = c.right();
+            return c.left(getRhs(e1, tc)).right(getRhs(e2, tc)).rhs(null);
+        }
+        else if (e instanceof RhsAnd) {
+            RhsAnd m = (RhsAnd) e;
+            RhsExpr e1 = m.left();
+            RhsExpr e2 = m.right();
+            RhsExpr r1 = getRhs(e1, tc);
+            RhsExpr r2 = getRhs(e2, tc);
+            return m.left(r1).right(r2).rhs(new RAnd_c(ts, m.position(), r1.rhs(), r2.rhs()));
+        }
+        else if (e instanceof RhsMinus) {
+            RhsMinus m = (RhsMinus) e;
+            RhsExpr e1 = m.left();
+            RhsExpr e2 = m.right();
+            RhsExpr r1 = getRhs(e1, tc);
+            RhsExpr r2 = getRhs(e2, tc);
+            return m.left(r1).right(r2).rhs(new RSub_c(ts, m.position(), r1.rhs(), r2.rhs()));
+        }
+        else if (e instanceof RhsAction) {
+            RhsAction a = (RhsAction) e;
+            RhsExpr r = getRhs(a.item(), tc);
+            return a.item(r).rhs(r.rhs());
+        }
+        else if (e instanceof RhsBind) {
+            RhsBind a = (RhsBind) e;
+            RhsExpr r = getRhs(a.item(), tc);
+            return a.item(r).rhs(r.rhs());
+        }
+        else if (e instanceof RhsSequence) {
+            return e.rhs(getSeq(e, tc));
+        }
+        else if (e instanceof RhsLit) {
+            return e.rhs(getSeq(e, tc));
+        }
+        else if (e instanceof RhsInvoke) {
+            return e.rhs(getSeq(e, tc));
+        }
+        else if (e instanceof RhsLookahead) {
+            return e.rhs(getSeq(e, tc));
+        }
+        else if (e instanceof RhsBind) {
+            return e.rhs(getSeq(e, tc));
+        }
+        else {
+            // The rest should have been eliminated during normalization.
+            throw new InternalCompilerError("unexpected rhs " + e);
+        }
     }
 
     private void add(List<Rhs> choices, RhsExpr e, ContextVisitor tc) {
@@ -69,85 +131,34 @@ public class IbexClassBody_c extends ClassBody_c {
             add(choices, e1, tc);
             add(choices, e2, tc);
         }
-        else if (e instanceof RhsAnd) {
-            RhsAnd m = (RhsAnd) e;
-            RhsExpr e1 = m.left();
-            RhsExpr e2 = m.right();
-            List<Rhs> cs1 = new ArrayList<Rhs>();
-            List<Rhs> cs2 = new ArrayList<Rhs>();
-            add(cs1, e1, tc);
-            add(cs2, e2, tc);
-            Rhs r1 = cs1.size() == 1 ? cs1.get(0) : new RSeq_c(ts, e1.position(), cs1, e1.type());
-            Rhs r2 = cs2.size() == 1 ? cs2.get(0) : new RSeq_c(ts, e2.position(), cs2, e2.type());
-            choices.add(new RAnd_c(ts, m.position(), r1, r2));
-        }
-        else if (e instanceof RhsMinus) {
-            RhsMinus m = (RhsMinus) e;
-            RhsExpr e1 = m.left();
-            RhsExpr e2 = m.right();
-            List<Rhs> cs1 = new ArrayList<Rhs>();
-            List<Rhs> cs2 = new ArrayList<Rhs>();
-            add(cs1, e1, tc);
-            add(cs2, e2, tc);
-            Rhs r1 = cs1.size() == 1 ? cs1.get(0) : new RSeq_c(ts, e1.position(), cs1, e1.type());
-            Rhs r2 = cs2.size() == 1 ? cs2.get(0) : new RSeq_c(ts, e2.position(), cs2, e2.type());
-            choices.add(new RSub_c(ts, m.position(), r1, r2));
-        }
-        else if (e instanceof RhsAction) {
-            RhsAction a = (RhsAction) e;
-            add(choices, a.item(), tc);
-        }
-        //        else if (e instanceof RhsBind) {
-        //            RhsBind a = (RhsBind) e;
-        //            add(choices, a.item(), tc);
-        //        }
-        else if (e instanceof RhsSequence) {
-            addSequence(choices, e, tc);
-        }
-        //        else if (e instanceof RhsAnyChar) {
-        //            addSequence(choices, e, tc);
-        //        }
-        //        else if (e instanceof RhsRange) {
-        //            addSequence(choices, e, tc);
-        //        }
-        else if (e instanceof RhsLit) {
-            addSequence(choices, e, tc);
-        }
-        else if (e instanceof RhsInvoke) {
-            addSequence(choices, e, tc);
-        }
-        else if (e instanceof RhsLookahead) {
-            addSequence(choices, e, tc);
-        }
-        else if (e instanceof RhsBind) {
-            addSequence(choices, e, tc);
-        }
-        else {
-            // The rest should have been eliminated during normalization.
-            throw new InternalCompilerError("unexpected rhs " + e);
-        }
+        else if (e.rhs() != null)
+            choices.add(e.rhs());
     }
 
-    private void addSequence(List<Rhs> choices, RhsExpr e, ContextVisitor tc) {
+    private Rhs getSeq(RhsExpr e, ContextVisitor tc) {
         IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
         if (e instanceof RhsSequence) {
             RhsSequence seq = (RhsSequence) e;
             List<Rhs> syms = new ArrayList<Rhs>(seq.terms().size());
             for (RhsExpr ei : seq.terms()) {
-                syms.addAll(atom(ei, ts));
+                Rhs ri = atom(ei, ts);
+                if (ri instanceof RSeq) {
+                    syms.addAll(((RSeq) ri).items());
+                }
+                else
+                    syms.add(ri);
             }
-            choices.add(new RSeq_c(ts, e.position(), syms, e.type()));
+            return new RSeq_c(ts, e.position(), syms, e.type());
         }
         else {
-            List<Rhs> syms = atom(e, ts);
-            choices.add(new RSeq_c(ts, e.position(), syms, e.type()));
+            return atom(e, ts);
         }
     }
     
-    private List<Rhs> atom(RhsExpr e, IbexTypeSystem ts) {
+    private Rhs atom(RhsExpr e, IbexTypeSystem ts) {
         if (e instanceof RhsInvoke) {
             RhsInvoke i = (RhsInvoke) e;
-            return Collections.<Rhs>singletonList(i.symbol());
+            return i.symbol();
         }
         if (e instanceof RhsBind) {
             RhsBind i = (RhsBind) e;
@@ -169,7 +180,7 @@ public class IbexClassBody_c extends ClassBody_c {
             assert r.lit().isConstant();
             Object o = r.lit().constantValue();
             if (o instanceof Character) {
-                return Collections.<Rhs>singletonList(new CharTerminal_c(ts, e.position(), (Character) o));
+                return new CharTerminal_c(ts, e.position(), (Character) o);
             }
             else if (o instanceof String) {
                 List<Rhs> l = new ArrayList<Rhs>();
@@ -178,15 +189,17 @@ public class IbexClassBody_c extends ClassBody_c {
                     Terminal_c t = new CharTerminal_c(ts, e.position(), (char) c);
                     l.add(t);
                 }
-                return l;
-//                    return Collections.<Symbol>singletonList(new Terminal_c(ts, e.position(), String.valueOf(o)));
+                if (l.size() == 1)
+                    return l.get(0);
+                else
+                    return new RSeq_c(ts, e.position(), l, ts.String());
             }
         }
         if (e instanceof RhsLookahead) {
             RhsLookahead r = (RhsLookahead) e;
             boolean f = r.negativeLookahead();
-            List<Rhs> rs = atom(r.item(), ts);
-            return Collections.<Rhs>singletonList(new RLookahead_c(ts, e.position(), new RSeq_c(ts, e.position(), rs, e.type()), f));
+            Rhs rs = atom(r.item(), ts);
+            return new RLookahead_c(ts, e.position(), rs, f);
         }
         if (e instanceof RhsAction) {
             RhsAction a = (RhsAction) e;
@@ -194,6 +207,6 @@ public class IbexClassBody_c extends ClassBody_c {
         }
         
         assert false : "unexpected node " + e + ": " + e.getClass().getName();
-        return Collections.EMPTY_LIST;
+        return null;
     }
 }

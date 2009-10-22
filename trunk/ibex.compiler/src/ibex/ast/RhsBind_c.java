@@ -38,6 +38,10 @@ public class RhsBind_c extends RhsExpr_c implements RhsBind {
         return (RhsExpr) decl().init();
     }
     
+    public RhsBind item(RhsExpr e) {
+        return decl(decl.init(e));
+    }
+    
     public LocalDecl decl() { return decl; }
     public RhsBind decl(LocalDecl decl) {
         RhsBind_c n = (RhsBind_c) copy();

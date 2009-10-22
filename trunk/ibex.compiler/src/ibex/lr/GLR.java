@@ -477,6 +477,24 @@ public class GLR {
                     g.rules.add(rule);
                     n.rules.add(rule);
                 }
+                else if (rhs instanceof Nonterminal) {
+                    Nonterminal a = (Nonterminal) rhs;
+                    
+                    List<GLRSymbol> l = symbols(rhs);
+                    
+                    GLRNormalRule rule = new GLRNormalRule(sym, sequence(a), n, l, g.rules.size(), Kind.NORMAL);
+                    g.rules.add(rule);
+                    n.rules.add(rule);
+                }
+                else if (rhs instanceof Terminal) {
+                    Terminal a = (Terminal) rhs;
+                    
+                    List<GLRSymbol> l = symbols(rhs);
+                    
+                    GLRNormalRule rule = new GLRNormalRule(sym, sequence(a), n, l, g.rules.size(), Kind.NORMAL);
+                    g.rules.add(rule);
+                    n.rules.add(rule);
+                }
                 else {
                     assert false : "unexpected rhs item " + rhs + " : " + rhs.getClass().getName();
                 }

@@ -1,5 +1,6 @@
 package ibex.ast;
 
+import ibex.visit.GrammarNormalizer;
 import ibex.visit.Rewriter;
 
 import java.util.ArrayList;
@@ -144,7 +145,7 @@ public class RhsAction_c extends RhsExpr_c implements RhsAction {
         NodeFactory nf = tc.nodeFactory();
         
         // Introduce a formal for the semantic action.
-        LocalDef adef = ts.localDef(item.position(), Flags.FINAL, Types.ref(item.type()), Name.makeFresh());
+        LocalDef adef = ts.localDef(item.position(), Flags.FINAL, Types.ref(ts.Object().arrayOf()), Name.makeFresh());
         adef.setNotConstant();
         Formal formal = nf.Formal(adef.position(), nf.FlagsNode(adef.position(), adef.flags()), nf.CanonicalTypeNode(adef.position(), adef.type()), nf.Id(adef.position(), adef.name()));
         formal = formal.localDef(adef);
@@ -157,12 +158,17 @@ public class RhsAction_c extends RhsExpr_c implements RhsAction {
         item = (RhsExpr) item.visit(ar);
         
         for (Map.Entry<LocalDef, Name> e : renaming.entrySet()) {
-
             RhsExpr r = item;
             Name oldName = e.getValue();
             LocalDef newDef = e.getKey();
             
-            Local l = (Local) nf.Local(r.position(), formal.name()).localInstance(adef.asInstance()).type(adef.asInstance().type());
+            Expr l = (Local) nf.Local(r.position(), formal.name()).localInstance(adef.asInstance()).type(adef.asInstance().type());
+
+            if (! item.type().isArray()) {
+                l = nf.ArrayAccess(r.position(), l, nf.IntLit(r.position(), IntLit.INT, 0).type(ts.Int())).type(ts.Object());
+                l = Rewriter.unbox(item.type(), l, nf);
+            }
+            
             Expr init = deconstruct(item, l, newDef.name());
 
             if (init != null) {
