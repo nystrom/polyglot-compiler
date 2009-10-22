@@ -21,30 +21,35 @@ import polyglot.util.UniqueID;
  **/
 public class AlphaRenamer extends NodeVisitor {
 
-  protected NodeFactory nf;
-
   // Each set in this stack tracks the set of local decls in a block that
   // we're traversing.
   protected Stack<Set<Name>> setStack;
 
   protected Map<Name,Name> renamingMap;
 
+  protected Map<LocalDef, Name> oldNamesMap;
+  
   // Tracks the set of variables known to be fresh.
   protected Set<Name> freshVars;
+
 
   /**
    * Creates a visitor for alpha-renaming locals.
    *
    * @param nf  The node factory to be used when generating new nodes.
    **/
-  public AlphaRenamer(NodeFactory nf) {
-    this.nf = nf;
-
+  public AlphaRenamer() {
     this.setStack = new Stack<Set<Name>>();
     this.setStack.push( new HashSet<Name>() );
 
+    this.oldNamesMap = new HashMap<LocalDef, Name>();
     this.renamingMap = new HashMap<Name,Name>();
     this.freshVars = new HashSet<Name>();
+  }
+
+  /** Map from local def to old names. */
+  public Map<LocalDef, Name> getMap() {
+      return oldNamesMap;
   }
 
   public NodeVisitor enter( Node n ) {
@@ -62,7 +67,7 @@ public class AlphaRenamer extends NodeVisitor {
 	Name name_ = Name.makeFresh(name);
 
 	freshVars.add(name_);
-
+	
 	setStack.peek().add( name );
 	renamingMap.put( name, name_ );
       }
@@ -114,7 +119,10 @@ public class AlphaRenamer extends NodeVisitor {
       // Update the local instance as necessary.
       Name newName = renamingMap.get(name);
       LocalDef li = l.localDef();
-      if (li != null) li.setName(newName);
+      if (li != null) {
+	  oldNamesMap.put(li, li.name());
+	  li.setName(newName);
+      }
       return l.name(l.name().id(newName));
     }
 
