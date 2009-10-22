@@ -7,26 +7,11 @@
 
 package polyglot.frontend;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
-import polyglot.main.Options;
 import polyglot.types.reflect.ClassFileLoader;
-import polyglot.util.CodeWriter;
-import polyglot.util.ErrorInfo;
-import polyglot.util.ErrorLimitError;
-import polyglot.util.ErrorQueue;
-import polyglot.util.InternalCompilerError;
-import polyglot.util.OptimalCodeWriter;
-import polyglot.util.SimpleCodeWriter;
-import polyglot.util.StdErrorQueue;
+import polyglot.util.*;
 
 /**
  * This is the main entry point for the compiler. It contains a work list that
