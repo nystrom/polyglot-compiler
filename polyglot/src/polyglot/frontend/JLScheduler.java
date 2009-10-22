@@ -191,7 +191,7 @@ public class JLScheduler extends Scheduler {
     public Goal CodeGenerated(Job job) {
     	TypeSystem ts = extInfo.typeSystem();
     	NodeFactory nf = extInfo.nodeFactory();
-    	return new OutputGoal(job, new Translator(job, ts, nf, extInfo.targetFactory()));
+    	return new OutputGoal(job, new Translator(job, ts, nf, extInfo.targetFactory())).intern(this);
     }
 
     @Override
