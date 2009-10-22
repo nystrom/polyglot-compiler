@@ -256,7 +256,12 @@ public class GLRDriver {
         }
 
         Object run() {
-            return terminal;
+            if (terminal instanceof CharTerminal)
+                return ((CharTerminal) terminal).val;
+            if (terminal instanceof ByteTerminal)
+                return ((ByteTerminal) terminal).val;
+            assert false : "unexpected terminal " + terminal;
+            return null;
         }
 
         public String toString() {
