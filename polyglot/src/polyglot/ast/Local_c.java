@@ -86,15 +86,6 @@ public class Local_c extends Expr_c implements Local
       return reconstruct(name);
   }
 
-  public Node buildTypes(TypeBuilder tb) throws SemanticException {
-      Local_c n = (Local_c) super.buildTypes(tb);
-
-      TypeSystem ts = tb.typeSystem();
-
-      LocalInstance li = ts.createLocalInstance(position(), new ErrorRef_c<LocalDef>(ts, position(), "Cannot get LocalDef before type-checking local variable."));
-      return n.localInstance(li);
-  }
-
   public Term firstChild() {
       return null;
   }

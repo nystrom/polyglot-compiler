@@ -51,10 +51,6 @@ public class ArrayTypeNode_c extends TypeNode_c implements ArrayTypeNode
 	return reconstruct(base);
     }
 
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-    	return typeRef(Types.<Type>ref(tb.typeSystem().arrayOf(position(), base.typeRef())));
-    }
-
     public Node exceptionCheck(ExceptionChecker ec) throws SemanticException {
 	throw new InternalCompilerError(position(),
 	    "Cannot exception check ambiguous node " + this + ".");

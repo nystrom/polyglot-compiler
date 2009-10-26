@@ -82,51 +82,6 @@ public class JL_c extends Ext_c implements JL {
     }
 
     /**
-     * Collects classes, methods, and fields from the AST rooted at this node
-     * and constructs type objects for these.  These type objects may be
-     * ambiguous.  Inserts classes into the <code>TypeSystem</code>.
-     *
-     * This method is called by the <code>enter()</code> method of the
-     * visitor.  The * method should perform work that should be done
-     * before visiting the children of the node.  The method may return
-     * <code>this</code> or a new copy of the node on which
-     * <code>visitChildren()</code> and <code>leave()</code> will be
-     * invoked.
-     *
-     * @param tb The visitor which adds new type objects to the
-     * <code>TypeSystem</code>.
-     */
-    public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
-	return jl().buildTypesEnter(tb);
-    }
-
-    /**
-     * Collects classes, methods, and fields from the AST rooted at this node
-     * and constructs type objects for these.  These type objects may be
-     * ambiguous.  Inserts classes into the <code>TypeSystem</code>.
-     *
-     * This method is called by the <code>leave()</code> method of the
-     * visitor.  The method should perform work that should be done
-     * after visiting the children of the node.  The method may return
-     * <code>this</code> or a new copy of the node which will be
-     * installed as a child of the node's parent.
-     *
-     * @param tb The visitor which adds new type objects to the
-     * <code>TypeSystem</code>.
-     */
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-	return jl().buildTypes(tb);
-    }
-
-    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
-        return jl().buildTypesOverride(tb);
-    }
-    
-    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
-	return jl().conformanceCheck(tc);
-    }
-    
-    /**
      * Check that exceptions are properly propagated throughout the AST.
      *
      * This method is called by the <code>enter()</code> method of the

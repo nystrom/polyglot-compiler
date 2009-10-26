@@ -154,52 +154,7 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
         return body == n.body ? n : n.body(body);
     }
 
-    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
-        TypeSystem ts = tb.typeSystem();
-
-        ClassDef ct = tb.currentClass();
-        assert ct != null;
-
-        Flags flags = this.flags.flags();
-
-        if (ct.flags().isInterface()) {
-            flags = flags.Public().Abstract();
-        }
-
-        ConstructorDef ci = createConstructorDef(ts, ct, flags);
-        ct.addConstructor(ci);
-
-        TypeBuilder tbChk = tb.pushCode(ci);
-        
-        final TypeBuilder tbx = tb;
-        final ConstructorDef mix = ci;
-        
-        ConstructorDecl_c n = (ConstructorDecl_c) this.visitSignature(new NodeVisitor() {
-            public Node override(Node n) {
-                return ConstructorDecl_c.this.visitChild(n, tbx.pushCode(mix));
-            }
-        });
-
-        List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(n.formals().size());
-        for (Formal f : n.formals()) {
-             formalTypes.add(f.type().typeRef());
-        }
-
-        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(n.throwTypes().size());
-        for (TypeNode tn : n.throwTypes()) {
-            throwTypes.add(tn.typeRef());
-        }
-
-        ci.setFormalTypes(formalTypes);
-        ci.setThrowTypes(throwTypes);
-
-        Block body = (Block) n.visitChild(n.body, tbChk);
-        
-        n = (ConstructorDecl_c) n.body(body);
-        return n.constructorDef(ci);
-    }
-
-    protected ConstructorDef createConstructorDef(TypeSystem ts, ClassDef ct, Flags flags) {
+    public ConstructorDef createConstructorDef(TypeSystem ts, ClassDef ct, Flags flags) {
 	ConstructorDef ci = ts.constructorDef(position(), Types.ref(ct.asType()), flags,
                                               Collections.<Ref<? extends Type>>emptyList(), Collections.<Ref<? extends Type>>emptyList());
 	return ci;

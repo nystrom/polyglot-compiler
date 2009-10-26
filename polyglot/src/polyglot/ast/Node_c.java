@@ -30,7 +30,7 @@ public abstract class Node_c implements Node
     protected Position position;
     protected JL del;
     protected Ext ext;
-    protected boolean error;
+    protected List<ErrorInfo> error;
     
     protected Ref<Node> checked;
     Job job;
@@ -82,7 +82,7 @@ public abstract class Node_c implements Node
     public Node_c(Position pos) {
     	assert(pos != null);
         this.position = pos;
-        this.error = false;
+        this.error = null;
         this.job = Globals.currentJob();
         this.checked = Types.lazyRef(null);
         setChecked();
@@ -99,12 +99,15 @@ public abstract class Node_c implements Node
         	    TypeChecker v = new TypeChecker(job, ts, nf);
         	    Node m = n.accept(v, n.context());
         	    n.checkedRef().update(m);
+        	    m.checkedRef().update(m);
         	}
         	catch (PassthruError e) {
-        	    n.checkedRef().update(n);
         	    if (e.getCause() instanceof SemanticException) {
         		SemanticException x = (SemanticException) e.getCause();
-        		Globals.Compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, x.getMessage(), x.position() != null ? x.position() : n.position());
+			ErrorInfo error = new ErrorInfo(ErrorInfo.SEMANTIC_ERROR, x.getMessage() != null ? x.getMessage() : "unknown error",
+							x.position() != null ? x.position() : n.position());
+			Node m = n.addError(error);
+        		n.checkedRef().update(m);
         	    }
         	    else {
         		throw new InternalCompilerError(e.getCause());
@@ -224,14 +227,24 @@ public abstract class Node_c implements Node
 	n.position = position;
 	return n;
     }
-
-    public boolean error() {
-        return error;
+    
+    public boolean hasErrors() {
+	return errors().size() > 0;
     }
 
-    public Node error(boolean flag) {
+    public List<ErrorInfo> errors() {
+	if (error == null)
+	    return Collections.EMPTY_LIST;
+	else
+	    return error;
+    }
+    
+    public Node addError(ErrorInfo error) {
         Node_c n = (Node_c) copy();
-        n.error = flag;
+        n.error = new ArrayList<ErrorInfo>((this.error != null ? this.error.size() : 0) + 1);
+        if (this.error != null)
+            n.error.addAll(this.error);
+        n.error.add(error);
         return n;
     }
     
@@ -348,22 +361,6 @@ public abstract class Node_c implements Node
 
     // These methods override the methods in Ext_c.
     // These are the default implementation of these passes.
-
-    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
-        return null;
-    }
-    
-    public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
-	return tb;
-    }
-
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-	return this;
-    }
-
-    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
-	return this;
-    }
 
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
 	return child.type();

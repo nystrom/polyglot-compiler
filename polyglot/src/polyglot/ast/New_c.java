@@ -43,7 +43,7 @@ public class New_c extends Expr_c implements New
 	
 	TypeSystem ts = Globals.TS();
 	ConstructorInstance ci = ts.createConstructorInstance(position(), new ErrorRef_c<ConstructorDef>(ts, position(), "Cannot get ConstructorDef before type-checking constructor call."));
-	this.ci = Types.<ConstructorInstance>lazyRef(ci);
+	this.setCi(Types.<ConstructorInstance>lazyRef(ci));
     }
 
     public List<Def> defs() {
@@ -93,13 +93,13 @@ public class New_c extends Expr_c implements New
     }
 
     public ConstructorInstance constructorInstance() {
-	return Types.get(this.ci);
+	return Types.get(this.getCi());
     }
 
     public New constructorInstance(ConstructorInstance ci) {
-        if (ci == this.ci) return this;
+        if (ci == this.getCi()) return this;
 	New_c n = (New_c) copy();
-	n.ci.update(ci);
+	n.getCi().update(ci);
 	return n;
     }
 
@@ -153,39 +153,6 @@ public class New_c extends Expr_c implements New
         return super.enterChildScope(child, c);
     }
 
-    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
-        New_c n = this;
-
-        final Job job = tb.job();
-        final TypeSystem ts = tb.typeSystem();
-        final NodeFactory nf = tb.nodeFactory();
-        
-        ((LazyRef<ConstructorInstance>) n.ci).setResolver(new Runnable() {
-            public void run() {
-        	new TypeChecker(job, ts, nf).visit(New_c.this);
-            } 
-        });
-        
-        Expr qual = (Expr) n.visitChild(n.qualifier(), tb);
-        TypeNode objectType = (TypeNode) n.visitChild(n.objectType(), tb);
-        List<Expr> arguments = (List<Expr>) n.visitList(n.arguments(), tb);
-        
-        ClassBody body = null;
-        
-        if (n.body() != null) {
-            TypeBuilder tb2 = tb.pushAnonClass(position());
-            ClassDef type = tb2.currentClass();
-
-            n = (New_c) n.anonType(type);
-            
-            body = (ClassBody) n.visitChild(n.body(), tb2);
-        }
-        
-        n = n.reconstruct(qual, objectType, arguments, body);
-        
-        return n.type(ts.unknownType(position()));
-    }
-    
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         if (child == qualifier) {
             StructType t = constructorInstance().container();
@@ -215,7 +182,7 @@ public class New_c extends Expr_c implements New
 
     public Node exceptionCheck(ExceptionChecker ec) throws SemanticException {
 	// something didn't work in the type check phase, so just ignore it.
-	if (ci == null) {
+	if (getCi() == null) {
 	    throw new InternalCompilerError(position(),
 		"Null constructor instance after type check.");
 	}
@@ -323,6 +290,14 @@ public class New_c extends Expr_c implements New
       l.addAll(constructorInstance().throwTypes());
       l.addAll(ts.uncheckedExceptions());
       return l;
+    }
+
+    public void setCi(Ref<ConstructorInstance> ci) {
+	this.ci = ci;
+    }
+
+    public Ref<ConstructorInstance> getCi() {
+	return ci;
     }
 
 }

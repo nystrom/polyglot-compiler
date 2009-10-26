@@ -20,28 +20,37 @@ import polyglot.types.Package;
 import polyglot.util.*;
 
 /** Visitor which traverses the AST constructing type objects. */
-public class TypeBuilder extends NodeVisitor
+public class TypeBuilderContext implements Copy
 {
     protected ImportTable importTable;
     protected Job job;
     protected TypeSystem ts;
     protected NodeFactory nf;
-    protected TypeBuilder outer;
+    protected TypeBuilderContext outer;
     protected boolean inCode; // true if the last scope pushed as not a class.
     protected boolean global; // true if all scopes pushed have been classes.
     protected Package package_;
     protected ClassDef type; // last class pushed.
     protected Def def;
 
-    public TypeBuilder(Job job, TypeSystem ts, NodeFactory nf) {
+    public TypeBuilderContext(Job job, TypeSystem ts, NodeFactory nf) {
         this.job = job;
         this.ts = ts;
         this.nf = nf;
         this.outer = null;
     }
     
-    public TypeBuilder push() {
-        TypeBuilder tb = (TypeBuilder) this.copy();
+    public Object copy() {
+	try {
+	    return super.clone();
+	}
+	catch (CloneNotSupportedException e) {
+	    throw new InternalCompilerError(e);
+	}
+    }
+    
+    public TypeBuilderContext push() {
+        TypeBuilderContext tb = (TypeBuilderContext) this.copy();
         tb.outer = this;
         return tb;
     }
@@ -50,7 +59,7 @@ public class TypeBuilder extends NodeVisitor
 	return inCode;
     }
 
-    public TypeBuilder pop() {
+    public TypeBuilderContext pop() {
         return outer;
     }
     
@@ -74,80 +83,16 @@ public class TypeBuilder extends NodeVisitor
         return ts;
     }
 
-    public NodeVisitor begin() {
-        return this;
-    }
-    
-    public Node override(Node n) {
-        try {
-            return n.del().buildTypesOverride(this);
-        }
-        catch (SemanticException e) {
-            Position position = e.position();
-
-            if (position == null) {
-                position = n.position();
-            }
-
-            if (e.getMessage() != null) {
-                errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR,
-                                    e.getMessage(), position);
-            }
-                            
-            return n;
-        }
-    }
-
-    public NodeVisitor enter(Node n) {
-        try {
-	    return n.del().buildTypesEnter(this);
-	}
-	catch (SemanticException e) {
-	    Position position = e.position();
-
-	    if (position == null) {
-		position = n.position();
-	    }
-
-            if (e.getMessage() != null) {
-                errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR,
-                                    e.getMessage(), position);
-            }
-                            
-            return this;
-	}
-    }
-
-    public Node leave(Node old, Node n, NodeVisitor v) {
-	try {
-	    return n.del().buildTypes((TypeBuilder) v);
-	}
-	catch (SemanticException e) {
-	    Position position = e.position();
-
-	    if (position == null) {
-		position = n.position();
-	    }
-
-            if (e.getMessage() != null) {
-                errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR,
-                                    e.getMessage(), position);
-            }
-
-	    return n;
-	}
-    }
-
     /**
     @deprecated */
-    public TypeBuilder pushContext(Context c) throws SemanticException {
+    public TypeBuilderContext pushContext(Context c) throws SemanticException {
         LinkedList<Context> stack = new LinkedList<Context>();
         while (c != null) {
             stack.addFirst(c);
             c = c.pop();
         }
         
-        TypeBuilder tb = this;
+        TypeBuilderContext tb = this;
         boolean inCode = false;
         for (Iterator<Context> i = stack.iterator(); i.hasNext(); ) {
             c = (Context) i.next();
@@ -178,35 +123,35 @@ public class TypeBuilder extends NodeVisitor
         return tb;
     }
     
-    public TypeBuilder pushDef(Def def) {
-        TypeBuilder tb = push();
+    public TypeBuilderContext pushDef(Def def) {
+        TypeBuilderContext tb = push();
         tb.def = def;
         return tb;
     }
     
-    public TypeBuilder pushPackage(Package p) {
+    public TypeBuilderContext pushPackage(Package p) {
         if (Report.should_report(Report.visit, 4))
 	    Report.report(4, "TB pushing package " + p + ": " + context());
-        TypeBuilder tb = push();
+        TypeBuilderContext tb = push();
         tb.inCode = false;
         tb.package_ = p;
         return tb;
     }
 
-    public TypeBuilder pushCode(CodeDef def) {
+    public TypeBuilderContext pushCode(CodeDef def) {
         if (Report.should_report(Report.visit, 4))
 	    Report.report(4, "TB pushing code: " + context());
-        TypeBuilder tb = pushDef(def);
+        TypeBuilderContext tb = pushDef(def);
         tb.inCode = true;
         tb.global = false;
         return tb;
     }
 
-    public TypeBuilder pushClass(ClassDef classDef) throws SemanticException {
+    public TypeBuilderContext pushClass(ClassDef classDef) throws SemanticException {
         if (Report.should_report(Report.visit, 4))
 	    Report.report(4, "TB pushing class " + classDef + ": " + context());
 
-        TypeBuilder tb = pushDef(classDef);
+        TypeBuilderContext tb = pushDef(classDef);
         tb.inCode = false;
         tb.type = classDef;
 
@@ -300,7 +245,7 @@ public class TypeBuilder extends NodeVisitor
 	}
     }
 
-    public TypeBuilder pushAnonClass(Position pos) throws SemanticException {
+    public TypeBuilderContext pushAnonClass(Position pos) throws SemanticException {
         if (Report.should_report(Report.visit, 4))
 	    Report.report(4, "TB pushing anon class: " + this);
 
@@ -326,7 +271,7 @@ public class TypeBuilder extends NodeVisitor
         return pushClass(ct);
     }
 
-    public TypeBuilder pushClass(Position pos, Flags flags, Name name)
+    public TypeBuilderContext pushClass(Position pos, Flags flags, Name name)
     	throws SemanticException {
 
         ClassDef t = newClass(pos, flags, name);

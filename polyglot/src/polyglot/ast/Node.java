@@ -65,8 +65,9 @@ public interface Node extends JL, Copy
     Node position(Position position);
     
     /** Return true if there an error in this node or its children. */
-    boolean error();
-    Node error(boolean flag);
+    boolean hasErrors();
+    List<ErrorInfo> errors();
+    Node addError(ErrorInfo error);
     
     /**
      * Visit the node.  This method is equivalent to

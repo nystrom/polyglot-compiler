@@ -10,9 +10,7 @@ package polyglot.ast;
 
 import java.util.*;
 
-import polyglot.dispatch.TypeChecker;
 import polyglot.frontend.Globals;
-import polyglot.frontend.Job;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -143,24 +141,6 @@ public class Call_c extends Expr_c implements Call
       return reconstruct(target, name, arguments);
   }
 
-
-
-  public Node buildTypes(TypeBuilder tb) throws SemanticException {
-    Call_c n = (Call_c) super.buildTypes(tb);
-
-    final TypeSystem ts = tb.typeSystem();
-    final Job job = tb.job();
-    final NodeFactory nf = tb.nodeFactory();
-
-    ((LazyRef<MethodInstance>) n.mi).setResolver(new Runnable() {
-	public void run() {
-	    new TypeChecker(job, ts, nf).visit(Call_c.this);
-	} 
-    });
-    
-    return n;
-  }
-  
     /**
      * Used to find the missing static target of a static method call.
      * Should return the container of the method instance. 
@@ -264,7 +244,7 @@ public class Call_c extends Expr_c implements Call
     if ( mi != null ) {
       w.allowBreak(4, " ");
       w.begin(0);
-      w.write("(instance " + mi + ")");
+      w.write("(instance " + methodInstanceRef() + ")");
       w.end();
     }
 
@@ -346,5 +326,9 @@ public class Call_c extends Expr_c implements Call
 //          }
       }      
   }
+
+public Ref<MethodInstance> methodInstanceRef() {
+    return mi;
+}
   
 }

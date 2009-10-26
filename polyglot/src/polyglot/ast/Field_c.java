@@ -27,7 +27,7 @@ public class Field_c extends Expr_c implements Field
 {
   protected Receiver target;
   protected Id name;
-  protected Ref<FieldInstance> fi;
+  private Ref<FieldInstance> fi;
   protected boolean targetImplicit;
   
   public Field_c(Position pos, Receiver target, Id name) {
@@ -124,23 +124,6 @@ public class Field_c extends Expr_c implements Field
     return reconstruct(target, name);
   }
 
-  @Override
-  public Node buildTypes(TypeBuilder tb) throws SemanticException {
-      Field_c n = (Field_c) super.buildTypes(tb);
-      
-      final Job job = tb.job();
-      final TypeSystem ts = tb.typeSystem();
-      final NodeFactory nf = tb.nodeFactory();
-
-      ((LazyRef<FieldInstance>) n.fi).setResolver(new Runnable() {
-	  public void run() {
-	      new TypeChecker(job, ts, nf).visit(Field_c.this);
-	  } 
-      });
-
-      return n;
-  }
-  
   public Type childExpectedType(Expr child, AscriptionVisitor av)
   {
       if (child == target) {
@@ -243,6 +226,14 @@ public class Field_c extends Expr_c implements Field
                vi + " instead of " + target, position());
       }      
   }
+
+public void setFi(Ref<FieldInstance> fi) {
+    this.fi = fi;
+}
+
+public Ref<FieldInstance> getFi() {
+    return fi;
+}
 
 
 }

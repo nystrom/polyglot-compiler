@@ -163,92 +163,13 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         return init == n.init ? n : n.init(init);
     }
 
-    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
-	
-	TypeSystem ts = tb.typeSystem();
-
-        ClassDef ct = tb.currentClass();
-        assert ct != null;
-
-        Flags flags = this.flags.flags();
-
-        if (ct.flags().isInterface()) {
-            flags = flags.Public().Static().Final();
-        }
-
-        FieldDef fi = createFieldDef(ts, ct, flags);
-        ct.addField(fi);
-
-        TypeBuilder tbChk = tb.pushDef(fi);
-        
-        InitializerDef ii = null;
-
-        if (init != null) {
-            Flags iflags = flags.isStatic() ? Flags.STATIC : Flags.NONE;
-            ii = createInitializerDef(ts, ct, iflags);
-            fi.setInitializer(ii);
-            tbChk = tbChk.pushCode(ii);
-        }
-
-        final TypeBuilder tbx = tb;
-        final FieldDef mix = fi;
-        
-        FieldDecl_c n = (FieldDecl_c) this.visitSignature(new NodeVisitor() {
-            public Node override(Node n) {
-                return FieldDecl_c.this.visitChild(n, tbx.pushDef(mix));
-            }
-        });
-        
-        fi.setType(n.type().typeRef());
-
-        Expr init = (Expr) n.visitChild(n.init, tbChk);
-        n = (FieldDecl_c) n.init(init);
-
-        n = (FieldDecl_c) n.fieldDef(fi);
-        
-        if (ii != null) {
-            n = (FieldDecl_c) n.initializerDef(ii);
-        }
-
-        n = (FieldDecl_c) n.flags(n.flags.flags(flags));
-
-        final Node xx = n;
-	    
-    	final FieldDef def = n.fieldDef();
-    	Ref<ConstantValue> r = def.constantValueRef();
-    	if (r instanceof LazyRef) {
-    	    ((LazyRef<ConstantValue>) r).setResolver(new AbstractGoal_c("ConstantValue") {
-    		public boolean runTask() {
-    		    if (state() == Goal.Status.RUNNING_RECURSIVE || state() == Goal.Status.RUNNING_WILL_FAIL) {
-    			// The field is not constant if the initializer is recursive.
-    			//
-    			// But, we could be checking if the field is constant for another
-    			// reference in the same file:
-    			//
-    			// m() { use x; }
-    			// final int x = 1;
-    			//
-    			// So this is incorrect.  The goal below needs to be refined to only visit the initializer.
-    			def.setNotConstant();
-    		    }
-    		    else {
-    			xx.checked();
-    		    }
-    		    return true;
-    		}
-    	    });
-    	}
-
-        return n;
-    }
-
-    protected InitializerDef createInitializerDef(TypeSystem ts, ClassDef ct, Flags iflags) {
+    public InitializerDef createInitializerDef(TypeSystem ts, ClassDef ct, Flags iflags) {
 	InitializerDef ii;
 	ii = ts.initializerDef(init.position(), Types.<ClassType>ref(ct.asType()), iflags);
 	return ii;
     }
 
-    protected FieldDef createFieldDef(TypeSystem ts, ClassDef ct, Flags flags) {
+    public FieldDef createFieldDef(TypeSystem ts, ClassDef ct, Flags flags) {
 	FieldDef fi = ts.fieldDef(position(), Types.ref(ct.asType()), flags, type.typeRef(), name.id());
 	return fi;
     }
