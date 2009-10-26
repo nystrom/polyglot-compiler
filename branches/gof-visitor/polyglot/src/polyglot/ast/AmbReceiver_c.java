@@ -35,8 +35,4 @@ public class AmbReceiver_c extends AmbPrefix_c implements AmbReceiver
             n.type = type;
             return n;
     }
-
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        return type(tb.typeSystem().unknownType(position()));
-    }
 }

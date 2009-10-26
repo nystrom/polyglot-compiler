@@ -26,7 +26,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
     protected Kind kind;
     protected Expr qualifier;
     protected List<Expr> arguments;
-    protected Ref<ConstructorInstance> ci;
+    private Ref<ConstructorInstance> ci;
 
     public ConstructorCall_c(Position pos, Kind kind, Expr qualifier, List arguments) {
 	super(pos);
@@ -37,7 +37,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 
 	TypeSystem ts = Globals.TS();
 	ConstructorInstance ci = ts.createConstructorInstance(position(), new ErrorRef_c<ConstructorDef>(ts, position(), "Cannot get ConstructorDef before type-checking constructor call."));
-	this.ci = Types.<ConstructorInstance>lazyRef(ci);
+	this.setCi(Types.<ConstructorInstance>lazyRef(ci));
     }
 
     /** Get the qualifier of the constructor call. */
@@ -82,14 +82,14 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 
     /** Get the constructor we are calling. */
     public ConstructorInstance constructorInstance() {
-	return Types.get(ci);
+	return Types.get(getCi());
     }
 
     /** Set the constructor we are calling. */
     public ConstructorCall constructorInstance(ConstructorInstance ci) {
-	if (ci == this.ci) return this;
+	if (ci == this.getCi()) return this;
 	ConstructorCall_c n = (ConstructorCall_c) copy();
-	n.ci.update(ci);
+	n.getCi().update(ci);
 	return n;
     }
 
@@ -119,28 +119,6 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	List arguments = visitList(this.arguments, v);
 	return reconstruct(qualifier, arguments);
     }
-
-
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-	final Job job = tb.job();
-	final TypeSystem ts = tb.typeSystem();
-	final NodeFactory nf = tb.nodeFactory();
-
-	// Remove super() calls for java.lang.Object.
-	if (kind == SUPER && tb.currentClass() == ts.Object()) {
-	    return nf.Empty(position());
-	}
-
-	ConstructorCall_c n = (ConstructorCall_c) super.buildTypes(tb);
-
-	((LazyRef<ConstructorInstance>) n.ci).setResolver(new Runnable() {
-	    public void run() {
-		new TypeChecker(job, ts, nf).visit(ConstructorCall_c.this);
-	    } 
-	});
-
-	return n;
-}
 
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
 	TypeSystem ts = av.typeSystem();
@@ -225,5 +203,13 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	l.addAll(constructorInstance().throwTypes());
 	l.addAll(ts.uncheckedExceptions());
 	return l;
+    }
+
+    public void setCi(Ref<ConstructorInstance> ci) {
+	this.ci = ci;
+    }
+
+    public Ref<ConstructorInstance> getCi() {
+	return ci;
     }
 }

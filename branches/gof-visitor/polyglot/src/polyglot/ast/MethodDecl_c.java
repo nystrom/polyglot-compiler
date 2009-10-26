@@ -168,53 +168,7 @@ public class MethodDecl_c extends Term_c implements MethodDecl
 	return body == n.body ? n : n.body(body);
     }
 
-    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
-        TypeSystem ts = tb.typeSystem();
-
-        ClassDef ct = tb.currentClass();
-        assert ct != null;
-
-	Flags flags = this.flags.flags();
-
-	if (ct.flags().isInterface()) {
-	    flags = flags.Public().Abstract();
-	}
-	
-	MethodDef mi = createMethodDef(ts, ct, flags);
-        ct.addMethod(mi);
-	
-	TypeBuilder tbChk = tb.pushCode(mi);
-
-	final TypeBuilder tbx = tb;
-	final MethodDef mix = mi;
-	
-	MethodDecl_c n = (MethodDecl_c) this.visitSignature(new NodeVisitor() {
-            public Node override(Node n) {
-                return MethodDecl_c.this.visitChild(n, tbx.pushCode(mix));
-            }
-        });
-
-	List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(n.formals().size());
-        for (Formal f : n.formals()) {
-             formalTypes.add(f.type().typeRef());
-        }
-
-        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(n.throwTypes().size());
-        for (TypeNode tn : n.throwTypes()) {
-            throwTypes.add(tn.typeRef());
-        }
-
-        mi.setReturnType(n.returnType().typeRef());
-        mi.setFormalTypes(formalTypes);
-        mi.setThrowTypes(throwTypes);
-
-        Block body = (Block) n.visitChild(n.body, tbChk);
-        
-        n = (MethodDecl_c) n.body(body);
-        return n.methodDef(mi);
-    }
-
-    protected MethodDef createMethodDef(TypeSystem ts, ClassDef ct, Flags flags) {
+    public MethodDef createMethodDef(TypeSystem ts, ClassDef ct, Flags flags) {
 	MethodDef mi = ts.methodDef(position(), Types.ref(ct.asType()), flags, returnType.typeRef(), name.id(),
 	                                 Collections.<Ref<? extends Type>>emptyList(), Collections.<Ref<? extends Type>>emptyList());
 	return mi;
@@ -234,18 +188,6 @@ public class MethodDecl_c extends Term_c implements MethodDecl
         List<Formal> formals = this.visitList(this.formals, v);
         List<TypeNode> throwTypes = this.visitList(this.throwTypes, v);
         return reconstruct(flags, returnType, name, formals, throwTypes, this.body);
-    }
-    
-    @Override
-    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
-	// Get the mi flags, not the node flags since the mi flags
-	// account for being nested within an interface.
-	Flags flags = mi.flags();
-	checkFlags(tc, flags);
-	
-	overrideMethodCheck(tc);
-	
-	return this;
     }
 
     protected void checkFlags(ContextVisitor tc, Flags flags) throws SemanticException {

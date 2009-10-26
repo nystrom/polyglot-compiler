@@ -16,7 +16,8 @@ package polyglot.frontend;
 import java.util.*;
 
 import polyglot.ast.*;
-import polyglot.dispatch.TypeChecker;
+import polyglot.dispatch.ConformanceChecker;
+import polyglot.dispatch.ErrorReporter;
 import polyglot.main.Version;
 import polyglot.types.*;
 import polyglot.util.ErrorInfo;
@@ -103,16 +104,32 @@ public class JLScheduler extends Scheduler {
     	final NodeFactory nf = job.extensionInfo().nodeFactory();
     	return new VisitorGoal("TypeChecked", job, new NodeVisitor() {
     	    @Override
+//    	    public Node override(Node parent, Node n) {
+//    		return n.checked();
+//    	    }
     	    public Node leave(Node parent, Node old, Node n, NodeVisitor v) {
-    		return n.checked();
+    		Node m = n.checked();
+    		
+    		if (m instanceof SourceFile) {
+    		    m.accept(new ErrorReporter());
+    		}
+    		
+    		return m;
     	    }
     	}).intern(this);
     }
     
-    public Goal ConformanceChecked(Job job) {
-	TypeSystem ts = job.extensionInfo().typeSystem();
-	NodeFactory nf = job.extensionInfo().nodeFactory();
-	return new VisitorGoal("ConformanceChecked", job, new ConformanceChecker(job, ts, nf)).intern(this);
+    public Goal ConformanceChecked(final Job job) {
+	final TypeSystem ts = job.extensionInfo().typeSystem();
+	final NodeFactory nf = job.extensionInfo().nodeFactory();
+	return new VisitorGoal("ConformanceChecked", job, new NodeVisitor() {
+	 @Override
+	public Node override(Node n) {
+		Node m = n.accept(new ConformanceChecker(job, ts, nf));
+		m.accept(new ErrorReporter());
+		return m;
+	}   
+	}).intern(this);
     }
     
     public Goal ReachabilityChecked(Job job) {

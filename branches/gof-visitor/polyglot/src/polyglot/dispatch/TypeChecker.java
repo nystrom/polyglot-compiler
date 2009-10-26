@@ -6,10 +6,11 @@ import polyglot.ast.*;
 import polyglot.frontend.*;
 import polyglot.types.*;
 import polyglot.types.Package;
-import polyglot.util.*;
-import polyglot.visit.*;
+import polyglot.util.InternalCompilerError;
+import polyglot.util.Position;
+import polyglot.visit.ContextVisitor;
 
-public class TypeChecker {
+public class TypeChecker extends Visitor {
 
     Job job;
     TypeSystem ts;
@@ -21,38 +22,13 @@ public class TypeChecker {
 	this.nf = nf;
     }
 
-    public Node visit(Node n) {
-	if (n == null)
-	    return n;
-	return n.checked();
-    }
-
-    Node accept(Node n) {
+    @Override
+    public Node accept(Node n, Object... args) {
 	if (n == null)
 	    return null;
 	Node m = n.checked();
-//	return n.accept(DispatchedTypeChecker.this);
-	
 	assert m != null : "null checked for " + n;
-	
 	return m;
-    }
-
-    List<? extends Node> accept(List<? extends Node> l) {
-	List result = new ArrayList();
-	for (Node n : l) {
-	    Node n2 = accept(n);
-	    result.add(n2);
-	}
-	return result;
-    }
-
-    public Node acceptChildren(Node n) {
-	return n.visitChildren(new NodeVisitor() {
-	    public Node override(Node n) {
-		return TypeChecker.this.visit(n);
-	    }
-	});
     }
 
     public Node visit(Node_c n, Context context) throws SemanticException {
@@ -783,8 +759,7 @@ public class TypeChecker {
 	    // If the super class is an inner class (i.e., has an enclosing
 	    // instance of its container class), then either a qualifier
 	    // must be provided, or ct must have an enclosing instance of
-	    // the
-	    // super class's container class, or a subclass thereof.
+	    // the superclass's container class, or a subclass thereof.
 	    if (q == null && superType.isClass() && superType.toClass().isInnerClass()) {
 		ClassType superContainer = superType.toClass().outer();
 		// ct needs an enclosing instance of superContainer,

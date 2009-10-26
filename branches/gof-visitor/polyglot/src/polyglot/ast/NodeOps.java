@@ -63,42 +63,6 @@ public interface NodeOps
     void addDecls(Context c);
 
     /**
-     * Collects classes, methods, and fields from the AST rooted at this node
-     * and constructs type objects for these.  These type objects may be
-     * ambiguous.  Inserts classes into the <code>TypeSystem</code>.
-     *
-     * This method is called by the <code>enter()</code> method of the
-     * visitor.  The * method should perform work that should be done
-     * before visiting the children of the node.  The method may return
-     * <code>this</code> or a new copy of the node on which
-     * <code>visitChildren()</code> and <code>leave()</code> will be
-     * invoked.
-     *
-     * @param tb The visitor which adds new type objects to the
-     * <code>TypeSystem</code>.
-     */
-    NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException;
-
-    /**
-     * Collects classes, methods, and fields from the AST rooted at this node
-     * and constructs type objects for these.  These type objects may be
-     * ambiguous.  Inserts classes into the <code>TypeSystem</code>.
-     *
-     * This method is called by the <code>leave()</code> method of the
-     * visitor.  The method should perform work that should be done
-     * after visiting the children of the node.  The method may return
-     * <code>this</code> or a new copy of the node which will be
-     * installed as a child of the node's parent.
-     *
-     * @param tb The visitor which adds new type objects to the
-     * <code>TypeSystem</code>.
-     */
-    Node buildTypesOverride(TypeBuilder tb) throws SemanticException;
-    Node buildTypes(TypeBuilder tb) throws SemanticException;
-
-    Node conformanceCheck(ContextVisitor tc) throws SemanticException;
-    
-    /**
      * Check that exceptions are properly propagated throughout the AST.
      *
      * This method is called by the <code>enter()</code> method of the

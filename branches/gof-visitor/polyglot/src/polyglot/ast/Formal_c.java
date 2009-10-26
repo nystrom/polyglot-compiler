@@ -129,20 +129,6 @@ public class Formal_c extends Term_c implements Formal
         tr.print(this, name, w);
     }
 
-    /** Build type objects for the formal. */
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        Formal_c n = (Formal_c) super.buildTypes(tb);
-
-        TypeSystem ts = tb.typeSystem();
-
-        LocalDef li = ts.localDef(position(), flags().flags(), type.typeRef(), name.id());
-        
-        // Formal parameters are never compile-time constants.
-        li.setNotConstant();
-
-        return n.localDef(li);
-    }
-
     public Term firstChild() {
         return type;
     }

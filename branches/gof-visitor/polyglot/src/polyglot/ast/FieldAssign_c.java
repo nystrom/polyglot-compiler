@@ -28,7 +28,7 @@ public class FieldAssign_c extends Assign_c implements FieldAssign
     boolean targetImplicit;
     Receiver target;
     Id name;
-    protected Ref<FieldInstance> fi;
+    private Ref<FieldInstance> fi;
 
     public FieldAssign_c(Position pos, Receiver target, Id name, Operator op, Expr right) {
 	super(pos, op, right);
@@ -39,23 +39,7 @@ public class FieldAssign_c extends Assign_c implements FieldAssign
 
 	TypeSystem ts = Globals.TS();
 	FieldInstance fi = ts.createFieldInstance(position(), new ErrorRef_c<FieldDef>(ts, position(), "Cannot get FieldDef before type-checking field access."));
-	this.fi = Types.<FieldInstance>lazyRef(fi);
-    }
-
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-	FieldAssign_c n = (FieldAssign_c) super.buildTypes(tb);
-
-	final Job job = tb.job();
-	final TypeSystem ts = tb.typeSystem();
-	final NodeFactory nf = tb.nodeFactory();
-
-	((LazyRef<FieldInstance>) this.fi).setResolver(new Runnable() {
-	    public void run() {
-		new TypeChecker(job, ts, nf).visit(FieldAssign_c.this);
-	    } 
-	});
-
-	return n;
+	this.setFi(Types.<FieldInstance>lazyRef(fi));
     }
 
     @Override
@@ -87,14 +71,14 @@ public class FieldAssign_c extends Assign_c implements FieldAssign
 
     public Expr left(NodeFactory nf) {
 	Field_c f = (Field_c) nf.Field(position(), target, name);
-	f.fi = this.fi;
+	f.setFi(this.getFi());
 	f.typeRef = this.typeRef;
 	f.targetImplicit = targetImplicit;
 	return f;
     }
 
     public Type leftType() {
-	if (fi == null) return null;
+	if (getFi() == null) return null;
 	return fieldInstance().type();
     }
 
@@ -119,12 +103,12 @@ public class FieldAssign_c extends Assign_c implements FieldAssign
     }
 
     public FieldInstance fieldInstance() {
-	return Types.get(fi);
+	return Types.get(getFi());
     }  
 
     public FieldAssign fieldInstance(FieldInstance fi) {
 	FieldAssign_c n = (FieldAssign_c) copy();
-	n.fi.update(fi);
+	n.getFi().update(fi);
 	return n;
     }
 
@@ -155,6 +139,14 @@ public class FieldAssign_c extends Assign_c implements FieldAssign
 	}
 
 	return l;
+    }
+
+    public void setFi(Ref<FieldInstance> fi) {
+	this.fi = fi;
+    }
+
+    public Ref<FieldInstance> getFi() {
+	return fi;
     }
 
 }

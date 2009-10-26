@@ -6,7 +6,6 @@ package polyglot.ast;
 import java.util.Collections;
 import java.util.List;
 
-import polyglot.dispatch.TypeChecker;
 import polyglot.frontend.*;
 import polyglot.types.LazyRef;
 import polyglot.types.TypeSystem;
@@ -51,9 +50,7 @@ public class TypeCheckFragmentGoal extends AbstractGoal_c {
 	}
 
 	try {
-	    TypeChecker d = new TypeChecker(job, ts, nf);
-	    Node m = d.visit(n);
-//	    Node m = parent.visitChild(n, v);
+	    Node m = n.checked();
 	    return mightFail || r.known();
 	}
 	catch (SchedulerException e) {

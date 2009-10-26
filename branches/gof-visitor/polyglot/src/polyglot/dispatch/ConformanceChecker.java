@@ -1,45 +1,116 @@
 package polyglot.dispatch;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import polyglot.ast.*;
 import polyglot.frontend.Job;
 import polyglot.types.*;
-import polyglot.visit.ContextVisitor;
 
-public class ConformanceChecker {
+public class ConformanceChecker extends Visitor {
     Job job;
     NodeFactory nf;
     TypeSystem ts;
 
+    public ConformanceChecker(Job job, TypeSystem ts, NodeFactory nf) {
+	this.job = job;
+	this.ts = ts;
+	this.nf = nf;
+    }
+
     public Node visit(Node n) throws SemanticException {
-	return n.acceptChildren(this);
+	return acceptChildren(n);
     }
-
-    ContextVisitor cc(Node n) throws SemanticException {
-	ContextVisitor cc = new ContextVisitor(job, ts, nf);
-	cc = cc.context(n.context());
-	return cc;
-    }
-
-
-    Node visit(ClassBody n) throws SemanticException {
-	ContextVisitor cc = cc(n);
-	ClassBody_c r = (ClassBody_c) n;
-	r.duplicateFieldCheck(cc);
-	r.duplicateConstructorCheck(cc);
-	r.duplicateMethodCheck(cc);
-	r.duplicateMemberClassCheck(cc);
-	return r;
+    Node visit(ClassBody_c n) throws SemanticException {
+	n.acceptChildren(this);
+	duplicateFieldCheck(n);
+	duplicateConstructorCheck(n);
+	duplicateMethodCheck(n);
+	duplicateMemberClassCheck(n);
+	return n;
 
     }
 
-    Node visit(ClassDecl n) throws SemanticException {
-	ContextVisitor cc = cc(n);
-	ClassDecl_c r = (ClassDecl_c) n;
+    private void duplicateMethodCheck(ClassBody_c n) throws SemanticException {
+	ClassDef type = n.context().currentClassDef();
 	
-	ClassType type = r.classDef().asType();
-	Name name = r.name().id();
+	ArrayList<MethodDef> l = new ArrayList<MethodDef>(type.methods());
+	
+	for (int i = 0; i < l.size(); i++) {
+	    MethodDef mi = l.get(i);
+	    MethodInstance ti = mi.asInstance();
+	
+	    for (int j = i+1; j < l.size(); j++) {
+	        MethodDef mj = l.get(j);
+	        MethodInstance tj = mj.asInstance();
+	
+	        if (ti.isSameMethod(tj, n.context())) {
+	            throw new SemanticException("Duplicate method \"" + mj + "\".", mj.position());
+	        }
+	    }
+	}
+    }
+
+    private void duplicateMemberClassCheck(ClassBody_c n) throws SemanticException {
+	ClassDef type = n.context().currentClassDef();
+	ArrayList<Ref<? extends Type>> l = new ArrayList<Ref<? extends Type>>(type.memberClasses());
+	
+	for (int i = 0; i < l.size(); i++) {
+	    Type mi = l.get(i).get();
+	
+	    for (int j = i+1; j < l.size(); j++) {
+	        Type mj = l.get(j).get();
+	
+	        if (mi instanceof Named && mj instanceof Named) {
+	            if (((Named) mi).name().equals(((Named) mj).name())) {
+	                throw new SemanticException("Duplicate member type \"" + mj + "\".", mj.position());
+	            }
+	        }
+	    }
+	}
+    }
+
+    private void duplicateConstructorCheck(ClassBody_c n) throws SemanticException {
+	ClassDef type = n.context().currentClassDef();
+	ArrayList<ConstructorDef> l = new ArrayList<ConstructorDef>(type.constructors());
+	
+	for (int i = 0; i < l.size(); i++) {
+	    ConstructorDef ci = l.get(i);
+	    ConstructorInstance ti = ci.asInstance();
+	
+	    for (int j = i+1; j < l.size(); j++) {
+	        ConstructorDef cj = l.get(j);
+	        ConstructorInstance tj = cj.asInstance();
+	
+	        if (ti.hasFormals(tj.formalTypes(), n.context())) {
+	            throw new SemanticException("Duplicate constructor \"" + cj + "\".", cj.position());
+	        }
+	    }
+	}
+    }
+
+    private void duplicateFieldCheck(ClassBody_c n) throws SemanticException {
+	ClassDef type = n.context().currentClassDef();
+	ArrayList<FieldDef> l = new ArrayList<FieldDef>(type.fields());
+	
+	for (int i = 0; i < l.size(); i++) {
+	    FieldDef fi = (FieldDef) l.get(i);
+	
+	    for (int j = i+1; j < l.size(); j++) {
+	        FieldDef fj = (FieldDef) l.get(j);
+	
+	        if (fi.name().equals(fj.name())) {
+	            throw new SemanticException("Duplicate field \"" + fj + "\".", fj.position());
+	        }
+	    }
+	}
+    }
+
+    Node visit(ClassDecl_c n) throws SemanticException {
+	n.acceptChildren(this);
+
+	ClassType type = n.classDef().asType();
+	Name name = n.name().id();
 	
 	// The class cannot have the same simple name as any enclosing class.
 	if (type.isNested()) {
@@ -53,7 +124,7 @@ public class ConformanceChecker {
 	                throw new SemanticException("Cannot declare member " +
 	                        "class \"" + type.fullName() +
 	                        "\" inside class with the " +
-	                        "same name.", r.position());
+	                        "same name.", n.position());
 	            }
 	        }
 	        if (container.isNested()) {
@@ -68,7 +139,7 @@ public class ConformanceChecker {
 	// A local class name cannot be redeclared within the same
 	// method, constructor or initializer, and within its scope                
 	if (type.isLocal()) {
-	    Context ctxt = cc.context();
+	    Context ctxt = n.context();
 
 	    if (ctxt.isLocal(name)) {
 	        // Something with the same name was declared locally.
@@ -78,9 +149,9 @@ public class ConformanceChecker {
 	            Type another = (Type) nm;
 	            if (another.isClass() && another.toClass().isLocal()) {
 	                throw new SemanticException("Cannot declare local " +
-	                        "class \"" + r.classDef().name() + "\" within the same " +
+	                        "class \"" + n.classDef().name() + "\" within the same " +
 	                        "method, constructor or initializer as another " +
-	                        "local class of the same name.", r.position());
+	                        "local class of the same name.", n.position());
 	            }
 	        }
 	    }                
@@ -91,36 +162,36 @@ public class ConformanceChecker {
 	        type.outer().isInnerClass()) {
 	    // it's a member interface in an inner class.
 	    throw new SemanticException("Inner classes cannot declare " + 
-	            "member interfaces.", r.position());             
+	            "member interfaces.", n.position());             
 	}
 	
 	// Make sure that static members are not declared inside inner classes
 	if (type.isMember() && type.flags().isStatic() 
 	        && type.outer().isInnerClass()) {
 	    throw new SemanticException("Inner classes cannot declare static " 
-	            + "member classes.", r.position());
+	            + "member classes.", n.position());
 	}
 	
 	if (type.superClass() != null) {
 	    if (! type.superClass().isClass() || type.superClass().toClass().flags().isInterface()) {
 	        throw new SemanticException("Cannot extend non-class \"" +
 	                type.superClass() + "\".",
-	                r.position());
+	                n.position());
 	    }
 	
 	    if (type.superClass().toClass().flags().isFinal()) {
 	        throw new SemanticException("Cannot extend final class \"" +
 	                type.superClass() + "\".",
-	                r.position());
+	                n.position());
 	    }
 	
-	    if (type.typeEquals(ts.Object(), cc.context())) {
-	        throw new SemanticException("Class \"" + r.classDef() + "\" cannot have a superclass.",
-	                r.superClass().position());
+	    if (type.typeEquals(ts.Object(), n.context())) {
+	        throw new SemanticException("Class \"" + n.classDef() + "\" cannot have a superclass.",
+	                n.superClass().position());
 	    }
 	}
 	
-	for (Iterator<TypeNode> i = r.interfaces().iterator(); i.hasNext(); ) {
+	for (Iterator<TypeNode> i = n.interfaces().iterator(); i.hasNext(); ) {
 	    TypeNode tn = (TypeNode) i.next();
 	    Type t = tn.type();
 	
@@ -129,8 +200,8 @@ public class ConformanceChecker {
 	                type + " is not an interface.", tn.position());
 	    }
 	
-	    if (type.typeEquals(ts.Object(), cc.context())) {
-	        throw new SemanticException("Class " + r.classDef() + " cannot have a superinterface.",
+	    if (type.typeEquals(ts.Object(), n.context())) {
+	        throw new SemanticException("Class " + n.classDef() + " cannot have a superinterface.",
 	                tn.position());
 	    }
 	}
@@ -147,66 +218,178 @@ public class ConformanceChecker {
 	    }
 	}
 	catch (SemanticException e) {
-	    throw new SemanticException(e.getMessage(), r.position());
+	    throw new SemanticException(e.getMessage(), n.position());
 	}
 	
 	// Check the class implements all abstract methods that it needs to.
-	ts.checkClassConformance(type, cc.context());
+	ts.checkClassConformance(type, n.context());
 	
-	return r;
+	return n;
     }
 
-    Node visit(ConstructorDecl n) throws SemanticException {
-	ContextVisitor cc = cc(n);
-	return n.del().conformanceCheck(cc);
+    Node visit(ConstructorDecl_c n) throws SemanticException {
+	n.acceptChildren(this);
+
+	Context c = n.context();
+	
+	ClassType ct = c.currentClass();
+	
+	if (ct.flags().isInterface()) {
+	    throw new SemanticException("Cannot declare a constructor inside an interface.",
+	                                n.position());
+	}
+	
+	if (ct.isAnonymous()) {
+	    throw new SemanticException("Cannot declare a constructor inside an anonymous class.",
+	                                n.position());
+	}
+	
+	Name ctName = ct.name();
+	
+	if (! ctName.equals(n.name().id())) {
+	    throw new SemanticException("Constructor name \"" + n.name() +
+	                                "\" does not match name of containing class \"" +
+	                                ctName + "\".", n.position());
+	}
+	
+	Flags flags = n.flags().flags();
+	
+	try {
+	    ts.checkConstructorFlags(flags);
+	}
+	catch (SemanticException e) {
+	    throw new SemanticException(e.getMessage(), n.position());
+	}
+	
+	if (n.body() == null && ! flags.isNative()) {
+	    throw new SemanticException("Missing constructor body.",
+	                                n.position());
+	}
+	
+	if (n.body() != null && flags.isNative()) {
+	    throw new SemanticException("A native constructor cannot have a body.", n.position());
+	}
+	
+	return n;
 
     }
 
-    Node visit(FieldDecl n) throws SemanticException {
-	ContextVisitor cc = cc(n);
-	return n.del().conformanceCheck(cc);
+    Node visit(FieldDecl_c n) throws SemanticException {
+	n.acceptChildren(this);
+
+	
+	// Get the fi flags, not the node flags since the fi flags
+	// account for being nested within an interface.
+	Flags flags = n.fieldDef().flags();
+	
+	try {
+	    ts.checkFieldFlags(flags);
+	}
+	catch (SemanticException e) {
+	    throw new SemanticException(e.getMessage(), n.position());
+	}
+	
+	Type fcontainer = Types.get(n.fieldDef().container());
+	
+	if (fcontainer.isClass()) {
+	    ClassType container = fcontainer.toClass();
+	
+	    if (container.flags().isInterface()) {
+		if (flags.isProtected() || flags.isPrivate()) {
+		    throw new SemanticException("Interface members must be public.",
+		                                n.position());
+		}
+	    }
+	
+	    // check that inner classes do not declare static fields, unless they
+	    // are compile-time constants
+	    if (flags.isStatic() &&
+		    container.isInnerClass()) {
+		// it's a static field in an inner class.
+		if (!flags.isFinal() || n.init() == null || !n.init().isConstant()) {
+		    throw new SemanticException("Inner classes cannot declare " +
+		                                "static fields, unless they are compile-time " +
+		                                "constant fields.", n.position());
+		}
+	    }
+	}
+	
+	return n;
 
     }
 
-    Node visit(Formal n) throws SemanticException {
-	ContextVisitor cc = cc(n);
-	return n.del().conformanceCheck(cc);
+    Node visit(MethodDecl_c n) throws SemanticException {
+	n.acceptChildren(this);
+
+	// Get the mi flags, not the node flags since the mi flags
+	// account for being nested within an interface.
+	Flags flags = n.methodDef().flags();
+	checkMethodFlags(n, flags);
+	overrideMethodCheck(n);
+	
+	return n;
 
     }
 
-    Node visit(Initializer n) throws SemanticException {
-	ContextVisitor cc = cc(n);
-	return n.del().conformanceCheck(cc);
-
+    private void checkMethodFlags(MethodDecl_c n, Flags flags) throws SemanticException {
+	if (n.context().currentClass().flags().isInterface()) {
+	    if (flags.isProtected() || flags.isPrivate()) {
+	        throw new SemanticException("Interface methods must be public.", n.position());
+	    }
+	    
+	    if (flags.isStatic()) {
+		throw new SemanticException("Interface methods cannot be static.", n.position());
+	    }
+	}
+	
+	try {
+	    ts.checkMethodFlags(flags);
+	}
+	catch (SemanticException e) {
+	    throw new SemanticException(e.getMessage(), n.position());
+	}
+	
+	Type container = Types.get(n.methodDef().container());
+	ClassType ct = container.toClass();
+	
+	if (n.body() == null && ! (flags.isAbstract() || flags.isNative())) {
+	    throw new SemanticException("Missing method body.", n.position());
+	}
+	
+	if (n.body() != null && ct.flags().isInterface()) {
+	    throw new SemanticException(
+		"Interface methods cannot have a body.", n.position());
+	}
+	
+	if (n.body() != null && flags.isAbstract()) {
+	    throw new SemanticException(
+		"An abstract method cannot have a body.", n.position());
+	}
+	
+	if (n.body() != null && flags.isNative()) {
+	    throw new SemanticException(
+		"A native method cannot have a body.", n.position());
+	}
+	
+	// check that inner classes do not declare static methods
+	if (ct != null && flags.isStatic() && ct.isInnerClass()) {
+	    // it's a static method in an inner class.
+	    throw new SemanticException("Inner classes cannot declare " + 
+	            "static methods.", n.position());             
+	}
     }
 
-    Node visit(Local n) throws SemanticException {
-	ContextVisitor cc = cc(n);
-	return n.del().conformanceCheck(cc);
-
+    private void overrideMethodCheck(MethodDecl_c n) throws SemanticException {
+	MethodInstance mi = n.methodDef().asInstance();
+	for (Iterator<MethodInstance> j = mi.implemented(n.context()).iterator(); j.hasNext(); ) {
+	    MethodInstance mj = (MethodInstance) j.next();
+	
+	    if (! ts.isAccessible(mj, n.context())) {
+	        continue;
+	    }
+	
+	    ts.checkOverride(mi, mj, n.context());
+	}
     }
 
-    Node visit(LocalDecl n) throws SemanticException {
-	ContextVisitor cc = cc(n);
-	return n.del().conformanceCheck(cc);
-
-    }
-
-    Node visit(MethodDecl n) throws SemanticException {
-	ContextVisitor cc = cc(n);
-	return n.del().conformanceCheck(cc);
-
-    }
-
-    Node visit(New n) throws SemanticException {
-	ContextVisitor cc = cc(n);
-	return n.del().conformanceCheck(cc);
-
-    }
-
-    Node visit(Return n) throws SemanticException {
-	ContextVisitor cc = cc(n);
-	return n.del().conformanceCheck(cc);
-
-    }
 }

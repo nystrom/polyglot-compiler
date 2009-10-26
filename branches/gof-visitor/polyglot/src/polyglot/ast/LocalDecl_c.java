@@ -156,14 +156,6 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         c.addVariable(li.asInstance());
     }
 
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        LocalDecl_c n = (LocalDecl_c) super.buildTypes(tb);
-        TypeSystem ts = tb.typeSystem();
-
-        LocalDef li = ts.localDef(position(), flags().flags(), type.typeRef(), name.id());
-        return n.localDef(li);
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         if (child == init) {
             TypeSystem ts = av.typeSystem();

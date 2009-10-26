@@ -52,23 +52,6 @@ public abstract class Expr_c extends Term_c implements Expr
     	n.typeRef.update(type);
     	return n;
     }
-    
-    @Override
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-	Expr_c n = (Expr_c) super.buildTypes(tb);
-	
-	final Job job = tb.job();
-	final TypeSystem ts = tb.typeSystem();
-	final NodeFactory nf = tb.nodeFactory();
-
-	((LazyRef<Type>) n.typeRef).setResolver(new Runnable() {
-	    public void run() {
-		new TypeChecker(job, ts, nf).visit(Expr_c.this);
-	    } 
-	});
-
-	return n;
-    }
 
     public void dump(CodeWriter w) {
         super.dump(w);

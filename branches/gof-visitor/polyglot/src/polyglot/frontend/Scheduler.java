@@ -16,6 +16,7 @@ package polyglot.frontend;
 import java.util.*;
 
 import polyglot.ast.Node;
+import polyglot.dispatch.ErrorReporter;
 import polyglot.frontend.Goal.Status;
 import polyglot.main.Report;
 import polyglot.types.*;
@@ -277,11 +278,11 @@ public abstract class Scheduler {
             Report.should_report.push(goal.name());
 
             if (job != null) {
-				    // We're starting to run the pass. 
-				    // Record the initial error count.
-				    job.initialErrorCount = job.compiler().errorQueue().errorCount();
+        	// We're starting to run the pass. 
+        	// Record the initial error count.
+        	job.initialErrorCount = job.compiler().errorQueue().errorCount();
             }
-            
+
             Goal oldGoal = currentGoal;
             currentGoal = goal;
             
@@ -318,14 +319,14 @@ public abstract class Scheduler {
                 currentGoal = oldGoal;
                 
                 if (job != null) {
-				    // We've stopped running a pass. 
-				    // Check if the error count changed.
-				    int errorCount = job.compiler().errorQueue().errorCount();
-				
-				    if (errorCount > job.initialErrorCount) {
-				        job.reportedErrors = true;
-				    }
-				}
+                    // We've stopped running a pass. 
+                    // Check if the error count changed.
+                    int errorCount = job.compiler().errorQueue().errorCount();
+
+                    if (errorCount > job.initialErrorCount) {
+                	job.reportedErrors = true;
+                    }
+                }
 
                 Report.should_report.pop();
             }

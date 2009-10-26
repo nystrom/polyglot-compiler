@@ -124,35 +124,7 @@ public class Initializer_c extends Term_c implements Initializer
         return succs;
     }
 
-    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
-        TypeSystem ts = tb.typeSystem();
-
-        ClassDef ct = tb.currentClass();
-        assert ct != null;
-
-        Flags flags = this.flags.flags();
-
-        InitializerDef ii = createInitializerDef(ts, ct, flags);
-        TypeBuilder tbChk = tb.pushCode(ii);
-
-        final TypeBuilder tbx = tb;
-        final InitializerDef mix = ii;
-
-        Initializer_c n = (Initializer_c) this.visitSignature(new NodeVisitor() {
-            public Node override(Node n) {
-                return Initializer_c.this.visitChild(n, tbx.pushCode(mix));
-            }
-        });
-
-        Block body = (Block) n.visitChild(n.body, tbChk);
-        n = (Initializer_c) n.body(body);
-
-        n = (Initializer_c) n.initializerDef(ii);
-
-        return n;
-    }
-
-    protected InitializerDef createInitializerDef(TypeSystem ts, ClassDef ct, Flags flags) {
+    public InitializerDef createInitializerDef(TypeSystem ts, ClassDef ct, Flags flags) {
 	InitializerDef ii = ts.initializerDef(position(), Types.ref(ct.asType()), flags);
 	return ii;
     }
