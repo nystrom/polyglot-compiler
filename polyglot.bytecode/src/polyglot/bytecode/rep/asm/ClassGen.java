@@ -3,6 +3,7 @@
  */
 package polyglot.bytecode.rep.asm;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -77,8 +78,19 @@ public class ClassGen implements IClassGen {
             String s = Bytecodes.insnListToString(mn.instructions);
             mn.accept(cw);
         }
+        for (IClassGen cg : inner) {
+            cw.visitInnerClass(cg.getName(), name, cg.name().toString(), cg.getFlags() & ~Modifier.SYNCHRONIZED);
+        }
         cw.visitEnd();
         return cw.toByteArray();
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public int getFlags() {
+        return flags;
     }
     
     public QName fullName() {
