@@ -9,6 +9,8 @@ import polyglot.types.QName;
 
 public interface IClassGen {
 
+    int getFlags();
+    
     Type type();
 
     List<IMethodGen> methods();
@@ -27,4 +29,6 @@ public interface IClassGen {
 
     QName fullName();
     Name name();
+
+    String getName();
 }
