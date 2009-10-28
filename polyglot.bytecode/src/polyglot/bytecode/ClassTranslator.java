@@ -435,7 +435,6 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
             // Create a frame object.
             if (!needToBox.isEmpty()) {
                 // First create a frame class.
-
                 final Map<LocalDef, String> boxingMap = new HashMap<LocalDef, String>();
                 final IClassGen frameClass = makeFrameClass(needToBox, c.theMethod, boxingMap);
                 this.cg.addInnerClass(frameClass);
