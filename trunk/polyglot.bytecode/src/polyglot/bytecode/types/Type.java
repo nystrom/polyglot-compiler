@@ -3,6 +3,8 @@
  */
 package polyglot.bytecode.types;
 
+import polyglot.types.ClassDef;
+import polyglot.types.Types;
 import polyglot.util.InternalCompilerError;
 
 public class Type {
@@ -149,8 +151,19 @@ public class Type {
             return Type.DOUBLE;
         if (t.isVoid())
             return Type.VOID;
-        if (t.isClass())
-            return typeFromClassName(t.toClass().fullName().toString());
+        if (t.isClass()) {
+            if (t.toClass().isTopLevel()) {
+                return typeFromClassName(t.toClass().fullName().toString());
+            }
+            else if (t.toClass().isMember()) {
+                ClassDef def = t.toClass().def();
+                polyglot.types.Type outer = Types.get(def.container());
+                return typeFromClassName(outer.toClass().fullName().toString() + "$" + def.name().toString());
+            }
+            else {
+                throw new InternalCompilerError("Not TopLevel or Member.");
+            }
+        }
         if (t.isNull())
             return Type.NULL;
         throw new InternalCompilerError("Unknown type " + t);
