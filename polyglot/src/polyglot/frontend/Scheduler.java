@@ -304,7 +304,7 @@ public abstract class Scheduler {
         boolean result = false;
 
         if (true || job == null || job.status()) {
-            Report.should_report.push(goal.name());
+            Report.start_reporting(goal.name());
 
             if (job != null) {
 				    // We're starting to run the pass. 
@@ -357,7 +357,7 @@ public abstract class Scheduler {
 				    }
 				}
 
-                Report.should_report.pop();
+                Report.stop_reporting(goal.name());
             }
 
             // pretty-print this pass if we need to.

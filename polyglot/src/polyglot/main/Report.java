@@ -29,7 +29,7 @@ public class Report {
 
   /** A collection of string names of topics which we should always check
       if we should report. */
-  public final static Stack should_report = new Stack();
+  protected final static Stack should_report = new Stack();
 
   /** 
    * The topics that the user has selected to report, mapped to the level
@@ -109,6 +109,24 @@ public class Report {
   }
 
   /**
+   * Start reporting messages on <code>topic</code>.
+   */
+  public static void start_reporting(String topic) {
+    synchronized (should_report) {
+      should_report.push(topic);
+    }
+  }
+
+  /**
+   * Stop reporting messages on <code>topic</code>.
+   */
+  public static void stop_reporting(String topic) {
+    synchronized (should_report) {
+      should_report.remove(topic);
+    }
+  }
+
+  /**
    * Return whether a message on <code>topics</code> of obscurity
    * <code>level</code> should be reported, based on use of the
    * -report command-line switches given by the user.
@@ -116,23 +134,29 @@ public class Report {
   public static boolean should_report(Collection topics, int level) {
       if (noReporting)
           return false;
-    for (Iterator i = should_report.iterator(); i.hasNext();) {
-        String topic = (String) i.next();
-        if (level(topic) >= level) return true;
-    }
-    if (topics != null) {
-	for (Iterator i = topics.iterator(); i.hasNext();) {
+    synchronized (should_report) {
+	for (Iterator i = should_report.iterator(); i.hasNext();) {
 	    String topic = (String) i.next();
 	    if (level(topic) >= level) return true;
+	}
+    }
+    if (topics != null) {
+	synchronized (topics) {
+	    for (Iterator i = topics.iterator(); i.hasNext();) {
+	        String topic = (String) i.next();
+	        if (level(topic) >= level) return true;
+	    }
 	}
     }
     return false;
   }
   
   public static void addTopic(String topic, int level) {
-      Integer i = (Integer)reportTopics.get(topic);
-      if (i == null || i.intValue() < level) {
-          reportTopics.put(topic, new Integer(level));
+      synchronized (reportTopics) {
+	  Integer i = (Integer)reportTopics.get(topic);
+	  if (i == null || i.intValue() < level) {
+	      reportTopics.put(topic, new Integer(level));
+	  }
       }
       noReporting = false;
   }
@@ -151,9 +175,11 @@ public class Report {
   }
 
   protected static int level(String name) {
-      Object i = reportTopics.get(name);
-      if (i == null) return 0;
-      else return ((Integer)i).intValue();
+      synchronized (reportTopics) {
+	  Object i = reportTopics.get(name);
+	  if (i == null) return 0;
+	  else return ((Integer)i).intValue();
+      }
   }
 
   /** This is the standard way to report debugging information in the
