@@ -3,6 +3,12 @@ Polyglot Change Log
 
 This file documents changes between releases of Polyglot.
 
+Nov 5, 2009: Polyglot 3.1.2
+===========================
+
+Fixed a race condition on a static variable (should_report) when running
+multiple instances of the compiler.
+
 Oct 23, 2009: Polyglot 3.1.1
 ============================
 
