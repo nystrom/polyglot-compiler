@@ -1,0 +1,6 @@
+/Users/mergen/x10/polyglot/tests/jrvm/TestClone.java:42: The type of the variable initializer "java.lang.Object" does not match that of the declaration "TestClone[][]".
+    final TestClone[][] d = c.clone();
+                            ^-------^
+
+1 error.
+null
