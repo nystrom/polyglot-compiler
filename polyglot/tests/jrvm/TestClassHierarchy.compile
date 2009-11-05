@@ -1,0 +1,10 @@
+/Users/mergen/x10/polyglot/tests/jrvm/TestClassHierarchy.java:15: Package or class tests.jrvm.data.SubClassInDifferentPackage not found.
+import tests.jrvm.data.SubClassInDifferentPackage;
+^------------------------------------------------^
+
+/Users/mergen/x10/polyglot/tests/jrvm/TestClassHierarchy.java:104: Could not find type "tests.jrvm.data.SubClassInDifferentPackage".
+  static class SubSubClass extends tests.jrvm.data.SubClassInDifferentPackage {
+                                   ^----------------------------------------^
+
+2 errors.
+null
