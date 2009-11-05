@@ -1,0 +1,3 @@
+Exception in thread "main" java.lang.IncompatibleClassChangeError
+	at TestMiranda.testSomeClass(TestMiranda.java:61)
+	at TestMiranda.main(TestMiranda.java:52)
