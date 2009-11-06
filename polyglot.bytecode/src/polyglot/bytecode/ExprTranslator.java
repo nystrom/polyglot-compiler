@@ -166,7 +166,7 @@ public class ExprTranslator extends AbstractExpTranslator {
             context.cg.addInnerClass(cg);
         }
 
-        alloc((ClassType) n.type(), n.constructorInstance().formalTypes(),      n.arguments(), n.position());
+        alloc((ClassType) n.type(), n.constructorInstance().formalTypes(), n.arguments(), n.position());
     }
 
     Type IObject = Type.OBJECT;
@@ -280,7 +280,7 @@ public class ExprTranslator extends AbstractExpTranslator {
         else if (n.target() instanceof TypeNode) {
             il.INVOKESTATIC(typeof(mi.container()), mi.name().toString(), typeofTypes(mi.formalTypes()), typeof(mi.returnType()), n.position());
         }
-        else if (n.target().type().isClass() && n.target().type().toClass().flags().isInterface()) {
+        else if (mi.container().isClass() && mi.container().toClass().flags().isInterface()) {
             il.INVOKEINTERFACE(typeof(mi.container()), mi.name().toString(), typeofTypes(mi.formalTypes()), typeof(mi.returnType()), n.position());
         }
         else {
