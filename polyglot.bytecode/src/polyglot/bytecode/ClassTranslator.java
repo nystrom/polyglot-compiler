@@ -113,7 +113,7 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
         int flags = bitsFromFlags(sym.flags());
 
         // Now create the class.
-        final IClassGen cg = AsmFactory.makeClass(generatedClassName, flags | ACC_SUPER, superklass, interfaces, fileName(sym.position()));
+        final IClassGen cg = AsmFactory.makeClass(generatedClassName, flags | (sym.flags().isInterface() ? 0 : ACC_SUPER), superklass, interfaces, fileName(sym.position()));
 
         final Map<MethodContext, String> frameFields1 = new HashMap<MethodContext, String>();
 
