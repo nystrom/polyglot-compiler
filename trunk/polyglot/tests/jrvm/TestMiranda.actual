@@ -1,3 +1,1 @@
-Exception in thread "main" java.lang.IncompatibleClassChangeError
-	at TestMiranda.testSomeClass(TestMiranda.java:61)
-	at TestMiranda.main(TestMiranda.java:52)
+AbstractClass.someMethod(6,7) Expected: 42 Actual: 42
