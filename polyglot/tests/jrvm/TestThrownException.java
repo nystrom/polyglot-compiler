@@ -84,8 +84,8 @@ class TestThrownException {
   private static void checkTrace(final Throwable throwable) {
     final StackTraceElement[] elements = throwable.getStackTrace();
     boolean foundOurClass = false;
-    for (StackTraceElement element : elements) {
-      if (element.getClassName().indexOf("TestThrownException") >= 0) {
+    for (int i = 0; i < elements.length; i++) {
+      if (elements[i].getClassName().indexOf("TestThrownException") >= 0) {
         System.out.println("Found our class in the stack trace");
         foundOurClass = true;
         break;
