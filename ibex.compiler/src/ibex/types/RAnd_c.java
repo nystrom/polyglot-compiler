@@ -1,10 +1,10 @@
 package ibex.types;
 
+
 import polyglot.types.Type;
-import polyglot.types.TypeObject_c;
 import polyglot.util.Position;
 
-public class RAnd_c extends TypeObject_c implements RAnd {
+public class RAnd_c extends Rhs_c implements RAnd {
 
     private Rhs choice1;
     private Rhs choice2;
@@ -18,7 +18,7 @@ public class RAnd_c extends TypeObject_c implements RAnd {
     public Type type() {
         return ts.Void();
     }
-
+    
     public Rhs choice1() {
         return choice1;
     }
@@ -40,7 +40,6 @@ public class RAnd_c extends TypeObject_c implements RAnd {
         
         return false;
     }
-
 
     public String toString() {
         StringBuilder sb = new StringBuilder();

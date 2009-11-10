@@ -1,5 +1,6 @@
 package ibex.ast;
 
+import ibex.ast.RhsAnyChar_c.RDummy_c;
 import ibex.lr.GLR;
 import ibex.types.RSeq;
 import ibex.types.IbexClassDef;
@@ -50,6 +51,7 @@ import polyglot.types.LocalDef;
 import polyglot.types.MemberDef;
 import polyglot.types.MethodInstance;
 import polyglot.types.Name;
+import polyglot.types.Ref;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
@@ -113,9 +115,14 @@ public class RuleDecl_c extends MethodDecl_c implements RuleDecl {
     }
     
     protected RuleDef createRuleDef(TypeSystem ts, ClassDef ct, Flags flags) {
+        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(throwTypes().size());
+        for (TypeNode tn : throwTypes()) {
+            throwTypes.add(tn.typeRef());
+        }
+
         List choices = Collections.EMPTY_LIST;
         RuleDef mi = new RuleDef_c(ts, position(), Types.ref(ct.asType()), flags, type().typeRef(), name.id(),
-                                         choices);
+                                   throwTypes, choices);
         return mi;
     }
     
@@ -160,6 +167,17 @@ public class RuleDecl_c extends MethodDecl_c implements RuleDecl {
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
         RuleDecl_c n = (RuleDecl_c) super.typeCheck(tc);
+        n.visit(new NodeVisitor() {
+            @Override
+            public Node leave(Node parent, Node old, Node n, NodeVisitor v) {
+                if (n instanceof RhsExpr) {
+                    RhsExpr e = (RhsExpr) n;
+                    System.out.println(e + ": " + e.type());
+                    assert e.rhs() != null : e;
+                }
+                return n;
+            }
+        });
         return n;
     }
     
@@ -190,6 +208,8 @@ public class RuleDecl_c extends MethodDecl_c implements RuleDecl {
     }
     
     public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
+        tc(tc);
+        
         // Check for duplicate choices.
         for (int i = 0; i < rule.choices().size(); i++) {
             Rhs rhs = rule.choices().get(i);

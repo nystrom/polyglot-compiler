@@ -1,5 +1,9 @@
 package ibex.ast;
 
+import ibex.types.IbexTypeSystem;
+import ibex.types.RAnd_c;
+import ibex.types.RSub_c;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,8 +55,21 @@ public class RhsMinus_c extends RhsBinary_c implements RhsMinus {
 
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-        return type(left.type());
+        IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
+        RhsExpr r = (RhsExpr) right.visit(new NodeVisitor() {
+            @Override
+            public Node override(Node n) {
+                if (n instanceof RhsBind) {
+                    return ((RhsBind) n).item();
+                }
+                if (n instanceof RhsAction) {
+                    return ((RhsAction) n).item();
+                }
+                return null;
+            }
+        });
+        RhsMinus_c n = (RhsMinus_c) this.right(r);
+        return n.rhs(new RSub_c(ts, position(), left().rhs(), right.rhs())).type(left.type());
     }
 }
     

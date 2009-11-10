@@ -47,7 +47,8 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
         public boolean reportPossibleMerges = true;
     }
 
-    public Options createOptions() {
+    @Override
+    protected Options createOptions() {
         return new IbexOptions(this);
     }
 

@@ -13,7 +13,10 @@ public class Item {
     Item(GLRNormalRule rule, int dot, Set<GLRTerminal> lookahead) {
         this.rule = rule;
         this.dot = dot;
-        this.lookahead = new TreeSet<GLRTerminal>(lookahead);
+        if (lookahead == null || lookahead.isEmpty())
+            this.lookahead = null;
+        else
+            this.lookahead = new TreeSet<GLRTerminal>(lookahead);
     }
 
     GLRSymbol afterDot() {
@@ -36,11 +39,21 @@ public class Item {
             else {
                 // LR(1) does consider the lookahead
                 return rule.equals(i.rule) && dot == i.dot
-                    && lookahead.equals(i.lookahead);
+                    && equals(lookahead, i.lookahead);
             }
         }
 
         return false;
+    }
+
+    private boolean equals(Set<GLRTerminal> lookahead2, Set<GLRTerminal> lookahead3) {
+        if (lookahead2 == lookahead3)
+            return true;
+        if (lookahead2 == null)
+            return false;
+        if (lookahead3 == null)
+            return false;
+        return lookahead2.equals(lookahead3);
     }
 
     public int hashCode() {
@@ -64,6 +77,20 @@ public class Item {
             s += " " + y;
         }
         if (index == dot) s += " .";
-        return s + ", " + lookahead + ">";
+        return s + ", " + (lookahead == null ? "{}" : lookahead) + ">";
+    }
+
+    public boolean addLookaheadAll(Set<GLRTerminal> first) {
+        if (! LRConstruction.LALR)
+            return false;
+        
+        if (first == null)
+            return false;
+        if (first.isEmpty())
+            return false;
+        
+        if (lookahead == null)
+            lookahead = new TreeSet<GLRTerminal>();
+        return lookahead.addAll(first);
     }
 }

@@ -1,17 +1,19 @@
 package ibex.ast;
 
+import ibex.types.IbexTypeSystem;
+import ibex.types.RAnd_c;
+import ibex.types.TupleType_c;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import polyglot.ast.Node;
-import polyglot.ast.Term;
 import polyglot.types.SemanticException;
-import polyglot.types.TypeSystem;
+import polyglot.types.Type;
+import polyglot.types.Types;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.CFGBuilder;
 import polyglot.visit.ContextVisitor;
-import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
 
 /**
@@ -51,8 +53,15 @@ public class RhsAnd_c extends RhsBinary_c implements RhsAnd {
 
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-        return type(ts.Void());
+        IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
+        Type t1 = left().type();
+        Type t2 = right().type();
+        Type t;
+        if ((t1.isVoid() || t1.isNull()) && (t2.isVoid() || t2.isNull()))
+            t = ts.Void();
+        else
+            t = new TupleType_c(ts, position(), Types.ref(t1), Types.ref(t2));
+        return rhs(new RAnd_c(ts, position(), left().rhs(), right.rhs())).type(t);
     }
 }
     

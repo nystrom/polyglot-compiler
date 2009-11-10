@@ -1,6 +1,8 @@
 package ibex.visit;
 
+import ibex.ast.IbexClassBody_c;
 import ibex.ast.IbexNodeFactory;
+import ibex.ast.RhsAction;
 import ibex.ast.RhsAnd;
 import ibex.ast.RhsAnyChar;
 import ibex.ast.RhsBind;
@@ -19,8 +21,14 @@ import ibex.ast.RhsSequence;
 import ibex.ast.RhsStar;
 import ibex.ast.RhsStarList;
 import ibex.ast.RuleDecl;
+import ibex.types.CharTerminal;
 import ibex.types.IbexClassDef;
 import ibex.types.IbexTypeSystem;
+import ibex.types.RAnd_c;
+import ibex.types.RLookahead_c;
+import ibex.types.RSeq_c;
+import ibex.types.RSub_c;
+import ibex.types.Rhs;
 import ibex.types.RuleDef;
 import ibex.types.RuleDef_c;
 
@@ -30,20 +38,15 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import polyglot.ast.ArrayInit;
 import polyglot.ast.Block;
 import polyglot.ast.ClassBody;
 import polyglot.ast.ClassMember;
 import polyglot.ast.Expr;
-import polyglot.ast.LocalDecl;
-import polyglot.ast.NewArray;
 import polyglot.ast.Node;
-import polyglot.ast.Stmt;
 import polyglot.dispatch.Dispatch;
 import polyglot.dispatch.PassthruError;
 import polyglot.frontend.Job;
 import polyglot.types.Flags;
-import polyglot.types.LocalDef;
 import polyglot.types.MethodDef;
 import polyglot.types.Name;
 import polyglot.types.SemanticException;
@@ -52,6 +55,7 @@ import polyglot.types.Types;
 import polyglot.util.Position;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
+import polyglot.visit.TypeBuilder;
 import polyglot.visit.TypeChecker;
 
 public class GrammarNormalizer extends ContextVisitor {
@@ -75,7 +79,15 @@ public class GrammarNormalizer extends ContextVisitor {
     public Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException {
         if (n instanceof RhsExpr || n instanceof ClassBody) {
             try {
+                if (n instanceof RhsExpr)
+                    assert ((RhsExpr) n).rhs() != null : n;
                 Node m = (Node) new Dispatch.Dispatcher("visit").invoke(v, n, parent);
+                if (m instanceof RhsExpr)
+                    assert ((RhsExpr) m).rhs() != null : n + " --> " + m;
+                if (m instanceof RhsExpr) {
+                    RhsExpr e = (RhsExpr) m;
+                    IbexClassBody_c.check(e.rhs(), e);
+                }
                 return m;
             }
             catch (PassthruError e) {
@@ -94,7 +106,21 @@ public class GrammarNormalizer extends ContextVisitor {
             List<ClassMember> members = new ArrayList<ClassMember>(n.members().size() + orphans.size());
             members.addAll( n.members());
             members.addAll(orphans);
-            return n.members(members);
+            ClassBody m = n.members(members);
+            m.visit(new NodeVisitor() {
+                @Override
+                public Node leave(Node old, Node n, NodeVisitor v) {
+                    if (n instanceof RhsOr) {
+                        return n;
+                    }
+                    if (n instanceof RhsExpr) {
+                        RhsExpr e = (RhsExpr) n;
+                        IbexClassBody_c.check(e.rhs(), e);
+                    }
+                    return n;
+                }
+            });
+            return m;
         }
     }
 
@@ -131,11 +157,16 @@ public class GrammarNormalizer extends ContextVisitor {
         if (o1.equals(o2)) {
             return rhs;
         }
+        
+        List<RhsExpr> cases = new ArrayList<RhsExpr>();
+        cases.add(rhs);
 
         for (int c = ((char) o1) + 1; c <= o2; c++) {
             RhsExpr rc = check(nf.RhsLit(pos, check(nf.CharLit(pos, (char) c))));
-            rhs = check(nf.RhsOr(pos, rhs, rc));
+            cases.add(rc);
         }
+
+        rhs = check(nf.RhsOr(pos, cases));
 
         RuleDecl d = makeRule(e.type(), pos, ruleName(e));
         RhsInvoke sym = check(nf.RhsInvoke(pos, check(nf.Call(pos, d.name()))));
@@ -150,7 +181,7 @@ public class GrammarNormalizer extends ContextVisitor {
 
         IbexClassDef def = (IbexClassDef) context.currentClassDef();
         RuleDecl d = nf.RuleDecl(pos, nf.FlagsNode(pos, Flags.PRIVATE), nf.CanonicalTypeNode(pos, type), nf.Id(pos, name), (RhsExpr) null);
-        RuleDef rd = new RuleDef_c(ts, d.position(), Types.ref(def.asType()), d.flags().flags(), d.type().typeRef(), d.name().id(), Collections.EMPTY_LIST);
+        RuleDef rd = new RuleDef_c(ts, d.position(), Types.ref(def.asType()), d.flags().flags(), d.type().typeRef(), d.name().id(), Collections.EMPTY_LIST, Collections.EMPTY_LIST);
         d = d.rule(rd);
         MethodDef md = ts.methodDef(pos, rd.container(), rd.flags(), rd.type(), rd.name(), Collections.EMPTY_LIST, Collections.EMPTY_LIST);
         d = (RuleDecl) d.methodDef(md);
@@ -188,11 +219,11 @@ public class GrammarNormalizer extends ContextVisitor {
         Position pos = e.position();
         RuleDecl d = makeRule(e.type(), pos, ruleName(e));
         RhsInvoke sym = check(nf.RhsInvoke(pos, check(nf.Call(pos, d.name()))));
-        d = d.rhs(e);
+        d = d.rhs(e.rhs(new RAnd_c(ts, pos, e.left().rhs(), e.right().rhs())));
         orphans.add(d);
         return sym;
     }
-
+    
     public Node visit(RhsMinus e, Node parent) throws SemanticException {
         if (parent instanceof RuleDecl)
             return e;
@@ -205,7 +236,7 @@ public class GrammarNormalizer extends ContextVisitor {
         Position pos = e.position();
         RuleDecl d = makeRule(e.type(), pos, ruleName(e));
         RhsInvoke sym = check(nf.RhsInvoke(pos, check(nf.Call(pos, d.name()))));
-        d = d.rhs(e);
+        d = d.rhs(e.rhs(new RSub_c(ts, pos, e.left().rhs(), e.right().rhs())));
         orphans.add(d);
         return sym;
     }
@@ -272,11 +303,14 @@ public class GrammarNormalizer extends ContextVisitor {
         }
         if (e instanceof RhsOr) {
             RhsOr r = (RhsOr) e;
-            Name lname = ruleName(r.left());
-            if (lname == null) return null;
-            Name rname = ruleName(r.right());
-            if (rname == null) return null;
-            return Name.make("Or$" + lname.toString() + "$" + rname.toString() + "$1");
+            StringBuilder sb = new StringBuilder();
+            for (RhsExpr ei : r.items()) {
+                sb.append("$");
+                Name lname = ruleName(ei);
+                if (lname == null) return null;
+                sb.append(lname);
+            }
+            return Name.make("Or" + sb + "$1");
         }
         if (e instanceof RhsAnd) {
             RhsAnd r = (RhsAnd) e;
@@ -298,7 +332,7 @@ public class GrammarNormalizer extends ContextVisitor {
             RhsSequence r = (RhsSequence) e;
             StringBuilder sb = new StringBuilder();
             sb.append("Seq");
-            for (RhsExpr ei : r.terms()) {
+            for (RhsExpr ei : r.items()) {
                 Name name = ruleName(ei);
                 if (name == null)
                     return null;
@@ -336,12 +370,17 @@ public class GrammarNormalizer extends ContextVisitor {
         RuleDecl d = makeRule(e.type(), pos, ruleName(e));
         RhsInvoke sym = check(nf.RhsInvoke(pos, check(nf.Call(pos, d.name()))));
 
+        List<RhsExpr> cases = new ArrayList<RhsExpr>();
+        
         RhsExpr rhs = check(nf.RhsLit(pos, check(nf.CharLit(pos, (char) 0))));
+        cases.add(rhs);
 
-        for (int c = 1; c != 0; c++) {
+        for (int c = 1; c <= Character.MAX_VALUE; c++) {
             RhsExpr rc = check(nf.RhsLit(pos, check(nf.CharLit(pos, (char) c))));
-            rhs = check(nf.RhsOr(pos, rhs, rc));
+            cases.add(rc);
         }
+
+        rhs = check(nf.RhsOr(pos, cases));
 
         d = d.rhs(rhs);
 
@@ -361,12 +400,21 @@ public class GrammarNormalizer extends ContextVisitor {
             }
   
             Block body = nf.Block(pos, nf.Return(pos, lit));
-            RhsSequence seq = nf.RhsSequence(pos, terms);
-            return nf.RhsAction(pos, seq, body).del().typeCheckOverride(parent, new TypeChecker(job, ts, nf, new HashMap<Node, Node>()).context(context));
+            RhsExpr seq = nf.RhsSequence(pos, terms);
+            TypeBuilder tb = new TypeBuilder(job, ts, nf);
+            tb.pushPackage(context.package_());
+            tb.pushClass(context.currentClassDef());
+            tb.pushCode(context.currentCode());
+            return nf.RhsAction(pos, seq, body).del().buildTypesOverride(tb).del().typeCheckOverride(parent, new TypeChecker(job, ts, nf, new HashMap<Node, Node>()).context(context));
         }
+        assert e.type().isChar() && e.rhs() instanceof CharTerminal;
         return e;
     }
-
+    
+    public Node visit(RhsAction e, Node parent) throws SemanticException {
+        return e.rhs(e.item().rhs());
+    }
+    
     public Node visit(RhsOption e, Node parent) throws SemanticException {
         // A? -> B
         // B ::= /* empty */ | A
@@ -399,7 +447,7 @@ public class GrammarNormalizer extends ContextVisitor {
         RuleDecl d = makeRule(e.type(), pos, ruleName(e));
         RhsInvoke sym = check(nf.RhsInvoke(pos, check(nf.Call(pos, d.name()))));
 
-        RhsExpr seq = (RhsExpr) visit(check(nf.RhsSequence(pos, e.item(), sym)), parent);
+        RhsExpr seq = (RhsExpr) visit(check(nf.RhsSequence(pos, sym, e.item())), parent);
         RhsExpr rhs = check(nf.RhsOr(pos, check(nf.RhsSequence(pos)), check(seq)));
         d = d.rhs(rhs);
         orphans.add(d);
@@ -409,7 +457,7 @@ public class GrammarNormalizer extends ContextVisitor {
     public Node visit(RhsLookahead e, Node parent) throws SemanticException {
         if (parent instanceof RuleDecl) {
             if (e.item() instanceof RhsInvoke || e.item() instanceof RhsLit || e.item() instanceof RhsRange) {
-                return e;
+                return e.rhs(new RLookahead_c(ts, e.position(), e.item().rhs(), e.negativeLookahead()));
             }
         }
 
@@ -426,13 +474,13 @@ public class GrammarNormalizer extends ContextVisitor {
             RhsInvoke sym = check(nf.RhsInvoke(pos, check(nf.Call(pos, d.name()))));
             d = d.rhs((RhsExpr) e.item());
             orphans.add(d);
-            return e.item(sym);
+            return e.item(sym).rhs(new RLookahead_c(ts, pos, sym.rhs(), e.negativeLookahead()));
         }
         else {
             // [alpha] -> A where A ::= [alpha]
             RuleDecl d = makeRule(e.type(), pos, ruleName(e));
             RhsInvoke sym = check(nf.RhsInvoke(pos, check(nf.Call(pos, d.name()))));
-            d = d.rhs(e);
+            d = d.rhs(e.rhs(new RLookahead_c(ts, pos, e.item().rhs(), e.negativeLookahead())));
             orphans.add(d);
             return sym;
         }
@@ -448,7 +496,7 @@ public class GrammarNormalizer extends ContextVisitor {
         Position pos = e.position();
 
         if (e.item() instanceof RhsInvoke || e.item() instanceof RhsLit || e.item() instanceof RhsRange) {
-            return e;
+            return e.rhs(e.item().rhs());
         }
 
         // !alpha -> !A
@@ -457,7 +505,7 @@ public class GrammarNormalizer extends ContextVisitor {
         RhsInvoke sym = check(nf.RhsInvoke(pos, check(nf.Call(pos, d.name()))));
         d = d.rhs((RhsExpr) e.decl().init());
         orphans.add(d);
-        return e.decl(e.decl().init(sym));
+        return e.decl(e.decl().init(sym)).rhs(sym.rhs());
     }
 
     public Node visit(RhsPlus e, Node parent) throws SemanticException {
@@ -473,7 +521,7 @@ public class GrammarNormalizer extends ContextVisitor {
         RuleDecl d = makeRule(e.type(), pos, ruleName(e));
         RhsInvoke sym = check(nf.RhsInvoke(pos, check(nf.Call(pos, d.name()))));
 
-        RhsExpr seq = (RhsExpr) visit(check(nf.RhsSequence(pos, e.item(), sym)), parent);
+        RhsExpr seq = (RhsExpr) visit(check(nf.RhsSequence(pos, sym, e.item())), parent);
         RhsExpr rhs = check(nf.RhsOr(pos, e.item(), check(seq)));
         d = d.rhs(rhs);
         orphans.add(d);
@@ -493,7 +541,7 @@ public class GrammarNormalizer extends ContextVisitor {
         RuleDecl d = makeRule(e.type(), pos, ruleName(e));
         RhsInvoke sym = check(nf.RhsInvoke(pos, check(nf.Call(pos, d.name()))));
 
-        RhsExpr seq = (RhsExpr) visit(check(nf.RhsSequence(pos, e.item(), e.sep(), sym)), parent);
+        RhsExpr seq = (RhsExpr) visit(check(nf.RhsSequence(pos, sym, e.sep(), e.item())), parent);
         RhsExpr rhs = check(nf.RhsOr(pos, e.item(), check(seq)));
         d = d.rhs(rhs);
         orphans.add(d);
@@ -522,7 +570,16 @@ public class GrammarNormalizer extends ContextVisitor {
         Position pos = e.position();
 
         RhsExpr e3 = check(nf.RhsMinus(pos, e.right(), e.left()));
-        return check(nf.RhsOr(pos, e.left(), e3));
+        RhsExpr rhs = check(nf.RhsOr(pos, e.left(), e3));
+        
+        if (parent instanceof RuleDecl)
+            return rhs;
+
+        RuleDecl d = makeRule(e.type(), pos, ruleName(e));
+        RhsInvoke sym = check(nf.RhsInvoke(pos, check(nf.Call(pos, d.name()))));
+        d = d.rhs(rhs);
+        orphans.add(d);
+        return sym;
     }
 
     public Node visit(RhsSequence e, Node parent) throws SemanticException {
@@ -533,13 +590,15 @@ public class GrammarNormalizer extends ContextVisitor {
 
         List<RhsExpr> es = new ArrayList<RhsExpr>();
         LinkedList<RhsExpr> q = new LinkedList<RhsExpr>();
-        q.addAll(e.terms());
+        q.addAll(e.items());
+        
+        List<Rhs> is = new ArrayList<Rhs>();
 
         while (! q.isEmpty()) {
             RhsExpr ei = q.removeFirst();
             if (ei instanceof RhsSequence) {
                 RhsSequence s = (RhsSequence) ei;
-                q.addAll(s.terms());
+                q.addAll(s.items());
             }
             else if (ei instanceof RhsOr || ei instanceof RhsAnd || ei instanceof RhsMinus) {
                 Position pos = e.position();
@@ -549,15 +608,17 @@ public class GrammarNormalizer extends ContextVisitor {
                 d = d.rhs(rhs);
                 orphans.add(d);
                 es.add(sym);
+                is.add(sym.rhs());
             }
             else {
                 es.add(ei);
+                is.add(ei.rhs());
             }
         }
 
         if (es.size() == 1)
-            return es.get(0);
+            return es.get(0).rhs(is.get(0));
 
-        return e.terms(es);
+        return e.items(es).rhs(new RSeq_c(ts, e.position(), is, e.type()));
     }
 }

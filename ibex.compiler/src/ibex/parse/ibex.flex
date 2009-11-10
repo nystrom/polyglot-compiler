@@ -101,6 +101,8 @@ import java.math.BigInteger;
         keywords.put("void",          new Integer(sym.VOID));
         keywords.put("volatile",      new Integer(sym.VOLATILE));
         keywords.put("while",         new Integer(sym.WHILE));
+
+        keywords.put("auto",          new Integer(sym.AUTO));
     }
 
     public String file() {

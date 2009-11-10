@@ -1,6 +1,7 @@
 package ibex.ast;
 
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,7 +14,13 @@ import polyglot.ast.Expr;
 import polyglot.ast.FlagsNode;
 import polyglot.ast.Id;
 import polyglot.ast.LocalDecl;
+import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
 import polyglot.ast.NodeFactory_c;
+import polyglot.ast.Return;
+import polyglot.ast.Return_c;
+import polyglot.ast.Stmt;
+import polyglot.ast.SwitchElement;
 import polyglot.ast.TypeNode;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
@@ -71,21 +78,48 @@ public class IbexNodeFactory_c extends NodeFactory_c implements IbexNodeFactory 
     public ibex.ast.RhsLookahead RhsPosLookahead(Position pos, RhsExpr item) {
         return new RhsLookahead_c(pos, item, false);
     }
-    public ibex.ast.RhsSequence RhsSequence(Position pos, List<RhsExpr> terms) {
-        return new RhsSequence_c(pos, terms);
+    public ibex.ast.RhsExpr RhsSequence(Position pos, List<RhsExpr> terms) {
+        if (terms.size() == 1)
+            return terms.get(0);
+        List<RhsExpr> t = new ArrayList<RhsExpr>();
+        for (RhsExpr e : terms) {
+            if (e instanceof RhsSequence)
+                t.addAll(((RhsSequence) e).items());
+            else
+                t.add(e);
+        }
+        return new RhsSequence_c(pos, t);
     }
-    public ibex.ast.RhsSequence RhsSequence(Position pos, RhsExpr... terms) {
-        return new RhsSequence_c(pos, Arrays.asList(terms));
+    public RhsExpr RhsSequence(Position pos, RhsExpr... terms) {
+        return RhsSequence(pos, Arrays.asList(terms));
     }
-    public ibex.ast.RhsOr RhsOr(Position pos, RhsExpr c1, RhsExpr c2) {
-        return new RhsOr_c(pos, c1, c2);
+    public ibex.ast.RhsExpr RhsOr(Position pos, RhsExpr... items) {
+        return RhsOr(pos, Arrays.asList(items));
     }
     public ibex.ast.RhsExpr RhsOr(Position pos, List<RhsExpr> cases) {
         if (cases.size() == 0)
             return RhsSequence(pos, cases);
         if (cases.size() == 1)
             return cases.get(0);
-        return RhsOr(pos, cases.get(0), RhsOr(pos, cases.subList(1, cases.size())));
+        return new RhsOr_c(pos, flatten(cases));
+    }
+    
+    private List<RhsExpr> flatten(List<RhsExpr> cases) {
+        ArrayList<RhsExpr> l = new ArrayList<RhsExpr>();
+        for (RhsExpr e : cases) {
+            if (e instanceof RhsOr)
+                l.addAll(flatten(((RhsOr) e).items()));
+            else
+                l.add(e);
+        }
+        return l;
+    }
+    @Override
+    public polyglot.ast.Return Return(Position pos, Expr expr) {
+        Return n = new IbexReturn_c(pos, expr);
+        n = (Return)n.ext(extFactory().extReturn());
+        n = (Return)n.del(delFactory().delReturn());
+        return n;
     }
     public ibex.ast.RhsExpr RhsOrdered(Position pos, List<RhsExpr> cases) {
         if (cases.size() == 0)
@@ -111,5 +145,8 @@ public class IbexNodeFactory_c extends NodeFactory_c implements IbexNodeFactory 
     }
     public RuleDecl RuleDecl(Position pos, FlagsNode flags, TypeNode returnType, Id name, RhsExpr rhs) {
         return new RuleDecl_c(pos, flags, returnType, name, rhs);
+    }
+    public TypeNode UnknownTypeNode(Position pos) {
+        return new UnknownTypeNode_c(pos);
     }
 }

@@ -8,5 +8,4 @@ public interface RhsInvoke extends RhsExpr {
     RhsInvoke call(Call lit);
     
     Nonterminal symbol();
-    RhsInvoke symbol(Nonterminal symbol);
 }

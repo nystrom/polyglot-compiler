@@ -8,6 +8,7 @@ import ibex.ast.RhsOr;
 import ibex.ast.RhsSequence;
 import ibex.ast.RuleDecl;
 import ibex.lr.GLR;
+import ibex.types.ActionDef;
 import ibex.types.ByteTerminal;
 import ibex.types.CharTerminal;
 import ibex.types.IbexClassDef;
@@ -20,6 +21,7 @@ import ibex.types.RSub;
 import ibex.types.Rhs;
 import ibex.types.RuleDef;
 import ibex.types.Terminal;
+import ibex.types.TupleType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -197,6 +199,36 @@ public class Rewriter extends ContextVisitor
             
             return cb.members(members);
         }
+        
+//        if (n instanceof TypeNode) {
+//            TypeNode tn = (TypeNode) n;
+//            Type t = tn.type();
+//            if (t instanceof TupleType) {
+//                Type tuple = (Type) ts.systemResolver().find(QName.make("ibex.runtime.ITuple"));
+//                return nf.CanonicalTypeNode(n.position(), Types.ref(tuple));
+//            }
+//        }
+        
+        if (n instanceof Field) {
+            Field f = (Field) n;
+            if (f.target().type() instanceof TupleType) {
+                Name name = f.name().id();
+                for (int i = 1; i < 1000; i++) {
+                    if (name == Name.make("f" + i)) {
+                        Position pos = f.position();
+                        Type tuple = ts.Object().arrayOf();
+//                        Type tuple = (Type) ts.systemResolver().find(QName.make("ibex.runtime.ITuple"));
+//                        MethodInstance mi = ts.findMethod(tuple, ts.MethodMatcher(tuple, Name.make("get"), Collections.singletonList(ts.Int()), c));
+//                        Call call = nf.Call(pos, f.target(), nf.Id(pos, mi.name()), nf.IntLit(pos, IntLit.INT, i-1).type(ts.Int()));
+//                        call = (Call) call.type(mi.returnType());
+//                        call = call.methodInstance(mi);
+                        Expr call = nf.ArrayAccess(pos, (Expr) f.target(), nf.IntLit(pos, IntLit.INT, i-1).type(ts.Int())).type(ts.Object());
+                        Expr cast = unbox(f.type(), call, nf);
+                        return cast;
+                    }
+                }
+            }
+        }
 
         return super.leaveCall(old, n, v);
     }
@@ -225,13 +257,10 @@ public class Rewriter extends ContextVisitor
         List<SwitchElement> elements = new ArrayList<SwitchElement>(2*glr.numRules());
 
         for (int i = 0; i < glr.numRules(); i++) {
-            Nonterminal lhs = glr.ruleLhs(i);
-            Rhs rhs = glr.ruleRhs(i);
-
-            if (lhs == null || rhs == null) {
+            ActionDef ad = glr.actionDef(i);
+            if (ad == null)
                 continue;
-            }
-
+            
             // case i:
             IntLit label = nf.IntLit(pos, IntLit.INT, i);
             label = (IntLit) label.type(ts.Int());
@@ -241,13 +270,13 @@ public class Rewriter extends ContextVisitor
             
             List<Stmt> code = new ArrayList<Stmt>();
             
-            Name methodName = actionMethodName(lhs, rhs);
-        
-            if (! def.asType().methodsNamed(methodName).isEmpty()) {
+            Name methodName = actionMethodName(i);
+            
+            if (ad != null && ! def.asType().methodsNamed(methodName).isEmpty()) {
                 List<Ref<? extends Type>> formalTypes = (List) Collections.singletonList(Types.ref(ts.Object().arrayOf()));
 
                 MethodDef mi = ts.methodDef(pos,
-                                            Types.ref(def.asType()), lhs.rule().flags(), Types.ref(lhs.type()), methodName,
+                                            Types.ref(def.asType()), Flags.PRIVATE, ad.returnType(), methodName,
                                             formalTypes, Collections.EMPTY_LIST);
 
                 List<Expr> args = new ArrayList<Expr>();
@@ -280,7 +309,7 @@ public class Rewriter extends ContextVisitor
             }
             else {
                 Expr arg = nf.Local(pos, nf.Id(pos, argsLd.name())).localInstance(argsLd.asInstance()).type(argsLd.asInstance().type());
-                Return ret = nf.Return(pos, unbox(rhs, arg));
+                Return ret = nf.Return(pos, arg); // unbox(ad, arg));
                 code.add(ret);
             }
 
@@ -299,29 +328,15 @@ public class Rewriter extends ContextVisitor
         return mdl;
     }
     
-    Expr unbox(Rhs rhs, Expr e) throws SemanticException {
-        if (rhs instanceof RSeq && ((RSeq) rhs).items().size() == 0) {
-            return nf.NullLit(e.position()).type(ts.Null());
-        }
-        if (rhs instanceof RSeq && ((RSeq) rhs).items().size() == 1) {
-            return unbox(((RSeq) rhs).items().get(0), e);
-        }
-        if (rhs instanceof Nonterminal || rhs instanceof Terminal) {
-            Rhs ri = rhs;
-            Expr l = e;
-            int i = 0;
-            Expr ai = nf.ArrayAccess(ri.position(), l, nf.IntLit(ri.position(), IntLit.INT, i).type(ts.Int())).type(l.type().toArray().base());
-            ai = nf.Conditional(ri.position(), nf.Binary(ri.position(), l, Binary.NE, nf.NullLit(ri.position()).type(ts.Null())).type(ts.Boolean()), ai, nf.NullLit(ri.position()).type(ts.Null())).type(ai.type());
-            ai = Rewriter.unbox(ri.type(), ai, nf);
-            return ai;
-        }
-        if (rhs instanceof RSub) {
-            RSub r = (RSub) rhs;
-            return unbox(r.choice1(), e);
-        }
-        return e;
+    Expr unbox(ActionDef ad, Expr e) throws SemanticException {
+        Expr l = e;
+        int i = 0;
+        Position pos = ad.position();
+        Expr ai = nf.ArrayAccess(pos, l, nf.IntLit(pos, IntLit.INT, i).type(ts.Int())).type(l.type().toArray().base());
+        ai = nf.Conditional(pos, nf.Binary(pos, l, Binary.NE, nf.NullLit(pos).type(ts.Null())).type(ts.Boolean()), ai, nf.NullLit(pos).type(ts.Null())).type(ai.type());
+        ai = Rewriter.unbox(ad.returnType().get(), ai, nf);
+        return ai;
     }
-
     
     MethodDecl eofMethod(IbexClassDef def) throws SemanticException {
         Position pos = def.position();
@@ -427,7 +442,7 @@ public class Rewriter extends ContextVisitor
             return (Type) ts.systemResolver().find(QName.make("java.lang.Float"));
         if (t.isDouble())
             return (Type) ts.systemResolver().find(QName.make("java.lang.Double"));
-        assert t.isReference();
+        assert t.isReference() || t.isVoid() || t.isNull() : "type is " + t;
         return t;
     }
     
@@ -457,10 +472,35 @@ public class Rewriter extends ContextVisitor
         return null;
     }
     
+    public static Expr box(Type t, Expr e, NodeFactory nf) throws SemanticException {
+        Type et = e.type();
+        Type T = boxedType(et);
+        Position pos = e.position();
+        TypeSystem ts = t.typeSystem();
+        Context context = ts.emptyContext();
+        MethodInstance mi = ts.findMethod(T, ts.MethodMatcher(T, Name.make("valueOf"), Collections.singletonList(et), context));
+        return nf.Call(pos, nf.CanonicalTypeNode(pos, T), nf.Id(pos, Name.make("valueOf")), e).methodInstance(mi).type(mi.returnType());
+    }
+
     public static
     Expr unbox(Type t, Expr e, NodeFactory nf) throws SemanticException {
         Position pos = e.position();
-        Cast         cast = nf.Cast(pos, nf.CanonicalTypeNode(pos, boxedType(t)), e);
+        
+        if (t.isVoid() || t.isNull())
+            return e;
+        
+        if (e.type().isVoid())
+            return e;
+
+        TypeSystem ts = t.typeSystem();
+        if (ts.isSubtype(e.type(), t, ts.emptyContext()))
+            return e;
+        
+        if (e.type().isPrimitive()) {
+            e = box(t, e, nf);
+        }
+
+        Cast cast = nf.Cast(pos, nf.CanonicalTypeNode(pos, boxedType(t)), e);
         cast = (Cast) cast.type(boxedType(t));
         if (t.isReference())
             return cast;
@@ -523,12 +563,11 @@ public class Rewriter extends ContextVisitor
         return argTypes;
     }
     
-    MethodDecl action(IbexClassDef def, RuleDef rule, RhsAction e, Rhs rhs) {
-        RhsExpr item = e.item();
+    MethodDecl action(IbexClassDef def, RhsAction e) {
         List<Formal> formals = e.formal() != null ? Collections.singletonList(e.formal()) : Collections.EMPTY_LIST;
         List<Ref<? extends Type>> argTypes = argTypesOfFormals(formals);
         Position pos = e.position();
-        Name name = actionMethodName(rule.asNonterminal(), rhs);
+        Name name = actionMethodName(e.actionDef());
         MethodDef md = ts.methodDef(pos, Types.ref(def.asType()), Flags.PROTECTED, Types.ref(e.type()), name, argTypes, Collections.EMPTY_LIST);
         MethodDecl mdl = nf.MethodDecl(pos, nf.FlagsNode(pos, md.flags()), nf.CanonicalTypeNode(pos, md.returnType()), nf.Id(pos, md.name()), formals, Collections.EMPTY_LIST, e.body());
         mdl = mdl.methodDef(md);
@@ -536,8 +575,13 @@ public class Rewriter extends ContextVisitor
         return mdl;
     }
     
-    Name actionMethodName(Nonterminal lhs, Rhs rhs) {
-        Name name = Name.make("action$" + lhs.name() + "$" + mangle(rhs));
+    Name actionMethodName(ActionDef def) {
+        int rule = glr.actionRule(def);
+        return actionMethodName(rule);
+    }
+
+    private Name actionMethodName(int rule) {
+        Name name = Name.make("action$" + rule);
         return name;
     }
     
@@ -581,8 +625,8 @@ public class Rewriter extends ContextVisitor
         }
         else if (item instanceof RhsSequence) {
             RhsSequence seq = (RhsSequence) item;
-            List<Formal> l = new ArrayList<Formal>(seq.terms().size());
-            for (RhsExpr e : seq.terms()) {
+            List<Formal> l = new ArrayList<Formal>(seq.items().size());
+            for (RhsExpr e : seq.items()) {
                 l.addAll(formals(e));
             }
             return l;
@@ -599,21 +643,17 @@ public class Rewriter extends ContextVisitor
         return f;
     }
 
-    List<ClassMember> semanticActions(IbexClassDef def, RuleDef rule, RhsExpr e) {
-        List<ClassMember> l = new ArrayList<ClassMember>();
-        List<RhsExpr> q = new ArrayList<RhsExpr>();
-        q.add(e);
-        while (! q.isEmpty()) {
-            RhsExpr ei = q.remove(q.size()-1);
-            if (ei instanceof RhsOr) {
-                RhsOr r = (RhsOr) ei;
-                q.add(r.right());
-                q.add(r.left());
-            }
-            else if (ei instanceof RhsAction) {
-                l.add(action(def, rule, (RhsAction) ei, ei.rhs()));
-            }
-        }
+    List<ClassMember> semanticActions(final IbexClassDef def, RuleDef rule, RhsExpr e) {
+        final List<ClassMember> l = new ArrayList<ClassMember>();
+        e.visit(new NodeVisitor() {
+            public Node leave(Node old, Node n, NodeVisitor v) {
+                if (n instanceof RhsAction) {
+                    RhsAction r = (RhsAction) n;
+                    l.add(action(def, r));
+                }
+                return n;
+            };
+        });
         return l;
     }
 
@@ -632,7 +672,8 @@ public class Rewriter extends ContextVisitor
                                     "encodedGotoTable",
                                     "encodedRuleTable",
                                     "encodedMergeTable",
-                                    "encodedTerminalTable"};
+                                    "encodedTerminalTable",
+                                    "encodedLookaheadTable"};
 
         List<String[]> tables = new ArrayList<String[]>();
 
@@ -642,6 +683,7 @@ public class Rewriter extends ContextVisitor
         tables.add(glr.encodedRuleTable());
         tables.add(glr.encodedMergeTable());
         tables.add(glr.encodedTerminalTable());
+        tables.add(glr.encodedLookaheadTable());
         
         List<ClassMember> ms = new ArrayList<ClassMember>();
 

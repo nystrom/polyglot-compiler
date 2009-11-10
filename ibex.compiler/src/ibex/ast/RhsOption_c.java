@@ -1,5 +1,6 @@
 package ibex.ast;
 
+import ibex.ast.RhsAnyChar_c.RDummy_c;
 import ibex.types.IbexTypeSystem;
 import polyglot.ast.Node;
 import polyglot.types.QName;
@@ -20,7 +21,8 @@ public class RhsOption_c extends RhsIteration_c implements RhsOption {
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
         IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
-        return type(ts.nullable(item.type()));
+        Type t = ts.nullable(item.type());
+        return rhs(new RDummy_c(ts, position(), t)).type(t);
     }
     
     /** Write the expression to an output file. */

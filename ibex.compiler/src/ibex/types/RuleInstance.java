@@ -33,4 +33,8 @@ public interface RuleInstance extends MemberInstance<RuleDef>, CodeInstance<Rule
     Ref<? extends Type> typeRef();
 
     List<Rhs> choices();
+    
+    public List<Type> throwTypes();
+
+    boolean isRegular();
 }

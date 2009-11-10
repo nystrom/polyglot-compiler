@@ -10,6 +10,7 @@ public interface ParserImpl extends IParser {
     String[] encodedRuleTable();
     String[] encodedMergeTable();
     String[] encodedTerminalTable();
+    String[] encodedLookaheadTable();
     Object semanticAction(int rule, Object[] args);
     Terminal scanTerminal() throws IOException;
     int eofSymbol();

@@ -33,7 +33,8 @@ public class ParserGenerator extends ContextVisitor
             ClassDecl cd = (ClassDecl) n;
             IbexClassDef pt = (IbexClassDef) cd.classDef();
             if (pt.isParser()) {
-                GLR glr = new GLR((ibex.ExtensionInfo) job().extensionInfo(), pt);
+                GLR glr = new GLR((ibex.ExtensionInfo) job().extensionInfo(), cd);
+//                GLR glr = new GLR((ibex.ExtensionInfo) job().extensionInfo(), pt);
                 pt.setGLR(glr);
             }
         }

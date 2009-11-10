@@ -5,5 +5,9 @@ class CharTerminal implements Terminal {
     char val;
     CharTerminal(int sym, char val) { this.sym = sym; this.val = val; }
     public int symbol() { return sym; }
-    public String toString() { return String.valueOf((int) val); }
+    public String toString() {
+        if (32 <= val && val < 127)
+            return "'" + val + "'";
+        return "'\\x" + Integer.toHexString(val) + "'";
+    }
 }

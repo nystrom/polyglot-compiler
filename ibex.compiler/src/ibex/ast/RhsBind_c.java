@@ -2,22 +2,20 @@ package ibex.ast;
 
 import java.util.List;
 
-import com.sun.tools.javac.code.Flags;
-
+import polyglot.ast.Expr;
 import polyglot.ast.LocalDecl;
 import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
 import polyglot.ast.Term;
 import polyglot.types.Context;
-import polyglot.types.LocalDef;
 import polyglot.types.SemanticException;
-import polyglot.types.TypeSystem;
+import polyglot.types.Type;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
 import polyglot.visit.CFGBuilder;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeBuilder;
 
 public class RhsBind_c extends RhsExpr_c implements RhsBind {
 
@@ -59,10 +57,29 @@ public class RhsBind_c extends RhsExpr_c implements RhsBind {
     public Context enterChildScope(Node child, Context c) {
         return c.pushBlock();
     }
+    
+    
+    @Override
+    public Node typeCheckOverride(Node parent, ContextVisitor tc) throws SemanticException {
+        if (decl().type() instanceof UnknownTypeNode_c) {
+            Expr e = (Expr) this.visitChild(item(), tc);
+            Type t = e.type();
+            if (t.isClass() && t.toClass().isAnonymous())
+                if (t.toClass().interfaces().size() > 0)
+                    t = t.toClass().interfaces().get(0);
+                else
+                    t = t.toClass().superClass();
+            NodeFactory nf = tc.nodeFactory();
+            LocalDecl ld = decl().type(nf.CanonicalTypeNode(decl.type().position(), t));
+            ld = (LocalDecl) ld.del().disambiguate(tc).del().typeCheck(tc).del().checkConstants(tc);
+            return decl(ld).typeCheck(tc);
+        }
+        return null;
+    }
 
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        return type(item().type());
+        return rhs(item().rhs()).type(item().type());
     }
 
     /** Write the expression to an output file. */

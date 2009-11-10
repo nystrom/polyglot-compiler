@@ -1,9 +1,10 @@
 package ibex.ast;
 
+import ibex.ast.RhsAnyChar_c.RDummy_c;
+import ibex.types.CharTerminal_c;
 import ibex.types.IbexClassType;
 import ibex.types.IbexTypeSystem;
 import ibex.types.Nonterminal;
-import ibex.types.Nonterminal_c;
 import ibex.types.RuleInstance;
 import ibex.visit.GrammarNormalizer;
 
@@ -18,7 +19,6 @@ import polyglot.ast.NodeFactory;
 import polyglot.ast.Term;
 import polyglot.types.MethodInstance;
 import polyglot.types.SemanticException;
-import polyglot.types.TypeSystem;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
 import polyglot.visit.CFGBuilder;
@@ -34,6 +34,16 @@ public class RhsLit_c extends RhsExpr_c implements RhsLit {
     public RhsLit_c(Position pos, Expr lit) {
         super(pos);
         this.lit = lit;
+    }
+    
+    @Override
+    public Object constantValue() {
+        return lit.constantValue();
+    }
+    
+    @Override
+    public boolean isConstant() {
+        return lit.isConstant();
     }
 
     public Expr lit() {
@@ -88,7 +98,7 @@ public class RhsLit_c extends RhsExpr_c implements RhsLit {
     
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
+        IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
         
         if (lit instanceof Call) {
             Call call = (Call) lit;
@@ -109,9 +119,12 @@ public class RhsLit_c extends RhsExpr_c implements RhsLit {
             return GrammarNormalizer.check(nf.RhsInvoke(position(), call), tc);
         }
         
-        if (lit.isConstant() && lit.type().isChar() || lit.type().isSubtype(ts.String(), tc.context()))
-            return isRegular(true).type(lit.type());
-        
+        if (lit.isConstant() && (lit.type().isChar() || lit.type().isSubtype(ts.String(), tc.context())))
+            if (lit.type().isChar())
+                return rhs(new CharTerminal_c(ts, position(), (Character) lit.constantValue())).isRegular(true).type(lit.type());
+            else
+                return rhs(new RDummy_c(ts, position(), lit.type())).isRegular(true).type(lit.type());
+                
         throw new SemanticException("Rule item is neither a constant char nor a constant String nor a nonterminal.", position());
     }
 

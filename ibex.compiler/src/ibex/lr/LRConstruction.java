@@ -1,13 +1,22 @@
 package ibex.lr;
 
-import ibex.types.*;
-import polyglot.util.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import polyglot.main.Report;
+import polyglot.util.InternalCompilerError;
 
 public class LRConstruction {
-    final static boolean LALR = true;
+    final static boolean LALR = false;
 
     Grammar g;
 
@@ -27,7 +36,7 @@ public class LRConstruction {
     List<State> startStates;
 
     List<State> states;
-    Map<Set<Item>,State> stateCache;
+    Map<Set<Item>, State> stateCache;
     boolean allowNewStates = true;
 
     public LRConstruction(Grammar g) {
@@ -58,8 +67,8 @@ public class LRConstruction {
         startStatesMap = new State[g.nonterminals().size()];
         startStates = new ArrayList<State>();
 
-        edgeTable = new List[g.terminals().size()+g.nonterminals().size()];
-        revEdgeTable = new List[g.terminals().size()+g.nonterminals().size()];
+        edgeTable = new List[g.terminals().size() + g.nonterminals().size()];
+        revEdgeTable = new List[g.terminals().size() + g.nonterminals().size()];
 
         if (Report.should_report(TOPICS, 1))
             Report.report(1, "creating start states");
@@ -85,7 +94,7 @@ public class LRConstruction {
         // The start state(s) should already be in the list.
         LinkedList<State> statesWorklist = new LinkedList<State>(states);
 
-        while (! statesWorklist.isEmpty()) {
+        while (!statesWorklist.isEmpty()) {
             State I = statesWorklist.removeFirst();
 
             for (Item item : I.items()) {
@@ -151,9 +160,10 @@ public class LRConstruction {
                 GLRSymbol X = item.afterDot();
 
                 if (X == null) {
-                    for (GLRTerminal t : item.lookahead) {
-                        addAction(I, t, new Reduce(item.rule));
-                    }
+                    if (item.lookahead != null)
+                        for (GLRTerminal t : item.lookahead) {
+                            addAction(I, t, new Reduce(item.rule));
+                        }
                 }
                 else if (X.equals(g.eofSymbol())) {
                     addAction(I, g.eofSymbol(), new Accept(item.rule.lhs()));
@@ -162,8 +172,7 @@ public class LRConstruction {
                     State J = gotoOrShiftState(I, X);
 
                     if (J == null) {
-                        throw new InternalCompilerError(
-                                                        "Unreachable next state for " + I + ": " + item);
+                        throw new InternalCompilerError("Unreachable next state for " + I + ": " + item);
                     }
 
                     // if J is a new state, it will be appended to the
@@ -173,8 +182,7 @@ public class LRConstruction {
                         setGoto(I, (GLRNonterminal) X, J);
                     }
                     else {
-                        addAction(I, (GLRTerminal) X,
-                                  new Shift(J, (GLRTerminal) X));
+                        addAction(I, (GLRTerminal) X, new Shift(J, (GLRTerminal) X));
                     }
                 }
             }
@@ -186,8 +194,7 @@ public class LRConstruction {
                 Report.report(1, conflicts.size() + " LR conflicts found:");
                 int k = 0;
                 for (Conflict c : conflicts) {
-                    if (Report.should_report("merge", 4) ||
-                            Report.should_report(TOPICS, 2)) {
+                    if (Report.should_report("merge", 4) || Report.should_report(TOPICS, 2)) {
                         Report.report(4, " Conflict #" + (++k));
                         c.dump();
                     }
@@ -210,7 +217,7 @@ public class LRConstruction {
         final Collection<String> TOPICS = new ArrayList<String>(LRConstruction.TOPICS);
         TOPICS.add("prec");
 
-        if (! c.isEmpty()) {
+        if (!c.isEmpty()) {
             // Check if the conflict can be resolved using operator precedence
             if (a instanceof Shift) {
                 Shift si = (Shift) a;
@@ -234,32 +241,35 @@ public class LRConstruction {
                         rule = (GLRNormalRule) A.rules().get(0);
                     }
 
-                    //                    if (rule != null) {
-                    //                        if (rule.prec > si.prec || (rule.prec == si.prec && si.assoc == -1)) {
-                    //                            // reduce; just return without adding the shift action
-                    //        if (Report.should_report(TOPICS, 2)) {
-                    //            Report.report(2, "resolving conflict between:");
-                    //            Report.report(2, "     " + si);
-                    //            Report.report(2, " and " + aj);
-                    //            Report.report(2, " in favor of reduce/accept");
-                    //        }
+                    // if (rule != null) {
+                    // if (rule.prec > si.prec || (rule.prec == si.prec &&
+                    // si.assoc == -1)) {
+                    // // reduce; just return without adding the shift action
+                    // if (Report.should_report(TOPICS, 2)) {
+                    // Report.report(2, "resolving conflict between:");
+                    // Report.report(2, "     " + si);
+                    // Report.report(2, " and " + aj);
+                    // Report.report(2, " in favor of reduce/accept");
+                    // }
                     //                            
-                    //                            return;
-                    //                        }
-                    //                        else if (rule.prec < si.prec || (rule.prec == si.prec && si.assoc == 1)) {
-                    //                            // shift; remove the reduce rule and fall through to add the shift
-                    //        if (Report.should_report(TOPICS, 2)) {
-                    //            Report.report(2, "resolving conflict between:");
-                    //            Report.report(2, "     " + si);
-                    //            Report.report(2, " and " + aj);
-                    //            Report.report(2, " in favor of shift");
-                    //        }
-                    //                            j.remove();
-                    //                        }
-                    //                        else {
-                    //                            // ambiguous; keep both actions
-                    //                        }
-                    //                    }
+                    // return;
+                    // }
+                    // else if (rule.prec < si.prec || (rule.prec == si.prec &&
+                    // si.assoc == 1)) {
+                    // // shift; remove the reduce rule and fall through to add
+                    // the shift
+                    // if (Report.should_report(TOPICS, 2)) {
+                    // Report.report(2, "resolving conflict between:");
+                    // Report.report(2, "     " + si);
+                    // Report.report(2, " and " + aj);
+                    // Report.report(2, " in favor of shift");
+                    // }
+                    // j.remove();
+                    // }
+                    // else {
+                    // // ambiguous; keep both actions
+                    // }
+                    // }
                 }
             }
             else if (a instanceof Reduce) {
@@ -272,29 +282,33 @@ public class LRConstruction {
                         Shift sj = (Shift) aj;
                         GLRTerminal tj = sj.terminal;
 
-                        //                        if (rule.prec > sj.prec || (rule.prec == sj.prec && sj.assoc == -1)) {
-                        //                            // reduce; remove the shift rule and fall through to add the reduce
-                        //        if (Report.should_report(TOPICS, 2)) {
-                        //            Report.report(2, "resolving conflict between:");
-                        //            Report.report(2, "     " + ri);
-                        //            Report.report(2, " and " + aj);
-                        //            Report.report(2, " in favor of reduce");
-                        //        }
-                        //                            j.remove();
-                        //                        }
-                        //                        else if (rule.prec < sj.prec || (rule.prec == sj.prec && sj.assoc == 1)) {
-                        //                            // shift; just return without adding the reduce action
-                        //        if (Report.should_report(TOPICS, 2)) {
-                        //            Report.report(2, "resolving conflict between:");
-                        //            Report.report(2, "     " + ri);
-                        //            Report.report(2, " and " + aj);
-                        //            Report.report(2, " in favor of shift");
-                        //        }
-                        //                            return;
-                        //                        }
-                        //                        else {
-                        //                            // ambiguous; keep both actions
-                        //                        }
+                        // if (rule.prec > sj.prec || (rule.prec == sj.prec &&
+                        // sj.assoc == -1)) {
+                        // // reduce; remove the shift rule and fall through to
+                        // add the reduce
+                        // if (Report.should_report(TOPICS, 2)) {
+                        // Report.report(2, "resolving conflict between:");
+                        // Report.report(2, "     " + ri);
+                        // Report.report(2, " and " + aj);
+                        // Report.report(2, " in favor of reduce");
+                        // }
+                        // j.remove();
+                        // }
+                        // else if (rule.prec < sj.prec || (rule.prec == sj.prec
+                        // && sj.assoc == 1)) {
+                        // // shift; just return without adding the reduce
+                        // action
+                        // if (Report.should_report(TOPICS, 2)) {
+                        // Report.report(2, "resolving conflict between:");
+                        // Report.report(2, "     " + ri);
+                        // Report.report(2, " and " + aj);
+                        // Report.report(2, " in favor of shift");
+                        // }
+                        // return;
+                        // }
+                        // else {
+                        // // ambiguous; keep both actions
+                        // }
                     }
                 }
             }
@@ -311,29 +325,33 @@ public class LRConstruction {
                         Shift sj = (Shift) aj;
                         GLRTerminal tj = sj.terminal;
 
-                        //                        if (rule.prec > sj.prec || (rule.prec == sj.prec && sj.assoc == -1)) {
-                        //                            // reduce; remove the shift rule and fall through to add the reduce
-                        //        if (Report.should_report(TOPICS, 2)) {
-                        //            Report.report(2, "resolving conflict between:");
-                        //            Report.report(2, "     " + ri);
-                        //            Report.report(2, " and " + aj);
-                        //            Report.report(2, " in favor of accept");
-                        //        }
-                        //                            j.remove();
-                        //                        }
-                        //                        else if (rule.prec < sj.prec || (rule.prec == sj.prec && sj.assoc == 1)) {
-                        //                            // shift; just return without adding the reduce action
-                        //        if (Report.should_report(TOPICS, 2)) {
-                        //            Report.report(2, "resolving conflict between:");
-                        //            Report.report(2, "     " + ri);
-                        //            Report.report(2, " and " + aj);
-                        //            Report.report(2, " in favor of shift");
-                        //        }
-                        //                            return;
-                        //                        }
-                        //                        else {
-                        //                            // ambiguous; keep both actions
-                        //                        }
+                        // if (rule.prec > sj.prec || (rule.prec == sj.prec &&
+                        // sj.assoc == -1)) {
+                        // // reduce; remove the shift rule and fall through to
+                        // add the reduce
+                        // if (Report.should_report(TOPICS, 2)) {
+                        // Report.report(2, "resolving conflict between:");
+                        // Report.report(2, "     " + ri);
+                        // Report.report(2, " and " + aj);
+                        // Report.report(2, " in favor of accept");
+                        // }
+                        // j.remove();
+                        // }
+                        // else if (rule.prec < sj.prec || (rule.prec == sj.prec
+                        // && sj.assoc == 1)) {
+                        // // shift; just return without adding the reduce
+                        // action
+                        // if (Report.should_report(TOPICS, 2)) {
+                        // Report.report(2, "resolving conflict between:");
+                        // Report.report(2, "     " + ri);
+                        // Report.report(2, " and " + aj);
+                        // Report.report(2, " in favor of shift");
+                        // }
+                        // return;
+                        // }
+                        // else {
+                        // // ambiguous; keep both actions
+                        // }
                     }
                 }
             }
@@ -355,8 +373,7 @@ public class LRConstruction {
     }
 
     State gotoOrShiftState(State I, GLRSymbol X) {
-        if (X != null && edgeTable[symbolIndex(X)] != null &&
-                I.index() < edgeTable[symbolIndex(X)].size()) {
+        if (X != null && edgeTable[symbolIndex(X)] != null && I.index() < edgeTable[symbolIndex(X)].size()) {
             return (State) edgeTable[symbolIndex(X)].get(I.index());
         }
 
@@ -364,10 +381,10 @@ public class LRConstruction {
     }
 
     Collection<State> reverseGotoOrShiftStates(State I, GLRSymbol X) {
-        if (X != null && revEdgeTable[symbolIndex(X)] != null &&
-                I.index() < revEdgeTable[symbolIndex(X)].size()) {
+        if (X != null && revEdgeTable[symbolIndex(X)] != null && I.index() < revEdgeTable[symbolIndex(X)].size()) {
             Collection<State> c = revEdgeTable[symbolIndex(X)].get(I.index());
-            if (c != null) return c;
+            if (c != null)
+                return c;
         }
 
         return Collections.EMPTY_LIST;
@@ -410,17 +427,15 @@ public class LRConstruction {
                 // This isn't important anyway since we're just dumping
                 // debug output.
                 if (gotoRow[j] != 0) {
-                    System.out.println("    on " + g.nonterminals().get(j) +
-                                       ", goto " + states.get(gotoRow[j]));
+                    System.out.println("    on " + g.nonterminals().get(j) + ", goto " + states.get(gotoRow[j]));
                 }
             }
 
             Set<Action>[] actionRow = actionTable[I.index()];
 
             for (int j = 0; j < actionRow.length; j++) {
-                if (! actionRow[j].isEmpty()) {
-                    System.out.println("    on " + g.terminals().get(j) +
-                                       ", " + actionRow[j]);
+                if (!actionRow[j].isEmpty()) {
+                    System.out.println("    on " + g.terminals().get(j) + ", " + actionRow[j]);
                 }
             }
 
@@ -462,7 +477,7 @@ public class LRConstruction {
             for (Item item : items) {
                 for (Item sitem : s.items) {
                     if (item.equals(sitem)) {
-                        changed |= sitem.lookahead.addAll(item.lookahead);
+                        changed |= sitem.addLookaheadAll(item.lookahead);
                     }
                 }
             }
@@ -499,7 +514,7 @@ public class LRConstruction {
         Set<Item> closure = new HashSet<Item>(items);
 
         while (worklist.size() > 0) {
-            Item item = worklist.remove(worklist.size()-1);
+            Item item = worklist.remove(worklist.size() - 1);
 
             // item == (A -> alpha . X beta, z)
             GLRSymbol X = item.afterDot();
@@ -507,7 +522,7 @@ public class LRConstruction {
             List<GLRSymbol> beta = new ArrayList<GLRSymbol>();
 
             if (item.dot < item.rule.rhs().size()) {
-                beta.addAll(item.rule.rhs().subList(item.dot+1, item.rule.rhs().size()));
+                beta.addAll(item.rule.rhs().subList(item.dot + 1, item.rule.rhs().size()));
             }
 
             Set<GLRTerminal> first = first(beta, item.lookahead);
@@ -523,16 +538,17 @@ public class LRConstruction {
 
                     List<Item> addToClosure = new ArrayList<Item>();
 
-                    for (Iterator<Item> k = closure.iterator(); k.hasNext(); ) {
+                    for (Iterator<Item> k = closure.iterator(); k.hasNext();) {
                         Item ritem = (Item) k.next();
                         if (ritem.rule == r && ritem.dot == 0) {
                             found = true;
-                            changed |= ritem.lookahead.addAll(first);
+                            if (LRConstruction.LALR)
+                                changed |= ritem.addLookaheadAll(first);
 
                             if (changed) {
                                 // The hash code may have changed; remove from
                                 // the closure, to add back after the iterator
-                                // finishes.  If we don't remove and add back,
+                                // finishes. If we don't remove and add back,
                                 // the item could be in the wrong hash
                                 // bucket and won't be found.
                                 k.remove();
@@ -541,7 +557,7 @@ public class LRConstruction {
                         }
                     }
 
-                    if (! found) {
+                    if (!found) {
                         Item ritem = new Item((GLRNormalRule) r, 0, first);
                         closure.add(ritem);
                         worklist.add(ritem);
@@ -566,10 +582,11 @@ public class LRConstruction {
             }
         }
 
-        first.addAll(z);
+        if (z != null)
+            first.addAll(z);
 
         return first;
     }
 
-    static Collection TOPICS = Arrays.asList( new String[] { "lr", "ibex" });
+    static Collection TOPICS = Arrays.asList(new String[] { "lr", "ibex" });
 }

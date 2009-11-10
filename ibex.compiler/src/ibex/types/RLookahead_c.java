@@ -4,7 +4,7 @@ import polyglot.types.Type;
 import polyglot.types.TypeObject_c;
 import polyglot.util.Position;
 
-public class RLookahead_c extends TypeObject_c implements RLookahead {
+public class RLookahead_c extends Rhs_c implements RLookahead {
 
     private Rhs item;
     private boolean neg;

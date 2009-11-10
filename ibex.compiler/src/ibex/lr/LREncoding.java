@@ -1,5 +1,6 @@
 package ibex.lr;
 
+import ibex.lr.GLRRule.Kind;
 import ibex.types.ByteTerminal;
 import ibex.types.ByteTerminal_c;
 import ibex.types.CharTerminal;
@@ -36,6 +37,7 @@ public class LREncoding {
     int[]   outputRuleTable;
     int[]   outputMergeTable;
     int[]   outputTerminalTable;
+    int[]   outputLookaheadTable;
 
     public LREncoding(Grammar g, LRConstruction lrc, IbexClassDef def) {
         this.g = g;
@@ -52,6 +54,7 @@ public class LREncoding {
         Set<Action>[][] actionTable = lrc.actionTable;
         List<State> states = lrc.states;
         List<GLRTerminal> terminals = g.terminals();
+        List<GLRNonterminal> nonterminals = g.nonterminals();
 
         outputActionTable = new int[states.size()][terminals.size()];
         List<Integer> overflow = new ArrayList<Integer>();
@@ -107,7 +110,21 @@ public class LREncoding {
             assert (outputMergeTable[r.left.index] >>> 3) == r.right.index;
             assert (outputMergeTable[r.right.index] >>> 3) == r.left.index;
         }
+        
+        outputLookaheadTable = new int[nonterminals.size()];
 
+        for (int j = 0; j < rules.size(); j++) {
+            GLRNormalRule r = rules.get(j);
+            if (r.kind == Kind.POS_LOOKAHEAD) {
+                State s = lrc.startState(r);
+                outputLookaheadTable[r.index] = (s.index << 1) | 1;
+            }
+            if (r.kind == Kind.NEG_LOOKAHEAD) {
+                State s = lrc.startState(r);
+                outputLookaheadTable[r.index] = (s.index << 1) | 0;
+            }
+        }
+        
         IbexTypeSystem ts = (IbexTypeSystem) this.def.typeSystem();
         Context context = ts.emptyContext();
         try {
@@ -118,9 +135,9 @@ public class LREncoding {
             if (ts.isSubtype(def.asType(), ByteParser, ts.emptyContext())) {
                 outputTerminalTable = new int[Byte.MAX_VALUE-Byte.MIN_VALUE+1];
                 for (int i = Byte.MIN_VALUE, j = 0; i <= Byte.MAX_VALUE; i++) {
-                    ByteTerminal t = new ByteTerminal_c(ts, pos, (byte) (i - Byte.MIN_VALUE));
-                    if (glr.isReachable(t)) {
-                        int n = glr.terminalNumber(t);
+                    byte value = (byte) (i - Byte.MIN_VALUE);
+                    if (glr.isReachable(value)) {
+                        int n = glr.terminalNumber(value);
                         outputTerminalTable[j++] = n;
                     }
                     else {
@@ -131,9 +148,9 @@ public class LREncoding {
             else if (ts.isSubtype(def.asType(), CharParser, context)) {
                 outputTerminalTable = new int[Character.MAX_VALUE-Character.MIN_VALUE+1];
                 for (int i = Character.MIN_VALUE, j = 0; i <= Character.MAX_VALUE; i++) {
-                    CharTerminal t = new CharTerminal_c((IbexTypeSystem) ts, pos, (char) (i - Character.MIN_VALUE));
-                    if (glr.isReachable(t)) {
-                        int n = glr.terminalNumber(t);
+                    char value = (char) (i - Character.MIN_VALUE);
+                    if (glr.isReachable(value)) {
+                        int n = glr.terminalNumber(value);
                         outputTerminalTable[j++] = n;
                     }
                     else {
@@ -191,6 +208,13 @@ public class LREncoding {
             throw new InternalCompilerError("tables not yet encoded");
         }
         return new Encoder().encode(outputTerminalTable);
+    }
+    
+    public String[] encodedLookaheadTable() {
+        if (outputLookaheadTable == null) {
+            throw new InternalCompilerError("tables not yet encoded");
+        }
+        return new Encoder().encode(outputLookaheadTable);
     }
 
     static Collection<String> TOPICS = Arrays.asList( new String[] { "lr", "ibex" });
