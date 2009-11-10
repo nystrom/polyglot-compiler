@@ -20,20 +20,39 @@ public class RuleDef_c extends Def_c implements RuleDef {
     protected Flags flags;
     protected Name name;
     protected Ref<? extends Type> type;
+    List<Ref<? extends Type>> throwTypes;
     protected List<Rhs> choices;
+    boolean isRegular;
 
     /** Used for deserializing types. */
     protected RuleDef_c() {
     }
     
     public RuleDef_c(TypeSystem ts, 
-        Position pos, Ref<? extends ClassType> container, Flags flags, Ref<? extends Type> type, Name name, List<Rhs> choices) {
+        Position pos, Ref<? extends ClassType> container, Flags flags, Ref<? extends Type> type, Name name, List<Ref<? extends Type>> throwTypes, List<Rhs> choices) {
         super(ts, pos);
         this.container = container;
         this.flags = flags;
         this.type = type;
         this.name = name;
+        this.throwTypes = TypedList.copyAndCheck(throwTypes, Ref.class, true);
         this.choices = TypedList.copyAndCheck(choices, Rhs.class, true);
+    }
+    
+    public boolean isRegular() {
+        return isRegular;
+    }
+    
+    public void setRegular(boolean f) {
+        isRegular = f;
+    }
+    
+    public List<Ref<? extends Type>> throwTypes() {
+        return Collections.unmodifiableList(throwTypes);
+    }
+    
+    public void setThrowTypes(List<Ref<? extends Type>> throwTypes) {
+        this.throwTypes = TypedList.copyAndCheck(throwTypes, Ref.class, true);
     }
     
     public Ref<? extends StructType> container() {

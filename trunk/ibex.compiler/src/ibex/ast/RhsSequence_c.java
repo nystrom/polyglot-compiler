@@ -1,16 +1,20 @@
 package ibex.ast;
 
 import ibex.types.IbexTypeSystem;
+import ibex.types.RSeq_c;
+import ibex.types.Rhs;
+import ibex.types.TupleType_c;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import polyglot.ast.Node;
 import polyglot.ast.Term;
-import polyglot.types.Context;
+import polyglot.types.Ref;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
-import polyglot.types.TypeSystem;
+import polyglot.types.Types;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
@@ -22,113 +26,57 @@ import polyglot.visit.PrettyPrinter;
 public class RhsSequence_c extends RhsExpr_c implements RhsSequence {
     public RhsSequence_c(Position pos, List<RhsExpr> terms) {
         super(pos);
-        this.terms = TypedList.<RhsExpr>copyAndCheck(terms, RhsExpr.class, true);
+        assert terms.size() != 1;
+        this.items = TypedList.<RhsExpr>copyAndCheck(terms, RhsExpr.class, true);
     }
 
-    private List<RhsExpr> terms;
-
-    public List<RhsExpr> terms() {
-        return terms;
+    private List<RhsExpr> items;
+    
+    public List<RhsExpr> items() {
+        return items;
     }
 
-    public RhsSequence terms(List<RhsExpr> terms) {
+    public RhsSequence items(List<RhsExpr> items) {
         RhsSequence_c n = (RhsSequence_c) copy();
-        n.terms = TypedList.<RhsExpr>copyAndCheck(terms, RhsExpr.class, true);
+        assert items.size() != 1;
+        n.items = TypedList.<RhsExpr>copyAndCheck(items, RhsExpr.class, true);
         return n;
     }
 
     @Override
     public Node visitChildren(NodeVisitor v) {
-        List<RhsExpr> terms = (List<RhsExpr>) visitList(this.terms, v);
-        return terms(terms);
+        List<RhsExpr> terms = (List<RhsExpr>) visitList(this.items, v);
+        return items(terms);
     }
 
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
         IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
-        Context context = tc.context();
         
-        if (terms.isEmpty()) {
-            return type(ts.Null());
-        }
-
-        boolean array = false;
-        int count = 0;
-        Type t1 = null;
-
-        for (RhsExpr e : terms) {
+        List<Ref<Type>> types = new ArrayList<Ref<Type>>(this.items.size());
+        List<Rhs> items = new ArrayList<Rhs>();
+        for (RhsExpr e : this.items) {
             if (e instanceof RhsLookahead)
                 continue;
             
-            count++;
+            Type t = e.type();
             
-            if (t1 == null) {
-                t1 = e.type();
-                if (! (e instanceof RhsOption)
-                        && (e instanceof RhsSequence || e instanceof RhsIteration || e instanceof RhsIterationList)
-                        && t1.isArray()) {    
-                    t1 = t1.toArray().base();
-                    array = true;
-                }
-            }
-            else {
-                Type t2 = e.type();
+            if (t.isVoid() || t.isNull())
+                continue;
 
-                if (! (e instanceof RhsOption)
-                        && (e instanceof RhsSequence || e instanceof RhsIteration || e instanceof RhsIterationList)
-                        && t2.isArray()) {    
-                    t2 = t2.toArray().base();
-                    array = true;
-                }
-
-                if (ts.typeEquals(t1, t2, context)) {
-                    // ok
-                }
-                else if (t1.isNumeric() && t2.isNumeric()) {
-                    Type p = ts.promote(t1, t2);
-                    t1 = p;
-                }
-                
-
-                // If one of the second and third operands is of the null type and the
-                // type of the other is a reference type, then the type of the
-                // conditional expression is that reference type.
-                else if (t1.isNull() && t2.isReference()) t1 = t2;
-                else if (t2.isNull() && t1.isReference()) ; // ok
-                
-                else if (t1.isPrimitive() && t2.isReference()) {
-                    Type r1 = ts.nullable(t1);
-                    Type p = ts.leastCommonAncestor(r1, t2, context);
-                    t1 = p;
-                }
-                else if (t1.isReference() && t2.isPrimitive()) {
-                    Type r2 = ts.nullable(t2);
-                    Type p = ts.leastCommonAncestor(t1, r2, context);
-                    t1 = p;
-                }
-                else if (t1.isReference() && t2.isReference()) {
-                    Type p = ts.leastCommonAncestor(t1, t2, context);
-                    t1 = p;
-                }
-                else {
-                    throw new SemanticException("Could not find least common ancestor type of " + t1 + " and " + t2 + ".", position());
-                }
-            }
+            types.add(Types.ref(t));
+            items.add(e.rhs());
         }
         
-        assert count == 0 || t1 != null;
+        TupleType_c type = new TupleType_c(ts, position(), types);
+        Rhs rhs = new RSeq_c(ts, position(), items, type);
         
-        if (count > 1 || array)
-            return type(ts.arrayOf(t1));
-        else if (count == 1)
-            return type(t1);
-        else
-            return type(ts.Null());
+        return rhs(rhs).type(type);
     }
 
     /** Write the expression to an output file. */
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-        for (Iterator<RhsExpr> i = terms.iterator(); i.hasNext(); ) {
+        for (Iterator<RhsExpr> i = items.iterator(); i.hasNext(); ) {
             RhsExpr e = i.next();
             
             print(e, w, tr);
@@ -141,7 +89,7 @@ public class RhsSequence_c extends RhsExpr_c implements RhsSequence {
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (Iterator<RhsExpr> i = terms.iterator(); i.hasNext(); ) {
+        for (Iterator<RhsExpr> i = items.iterator(); i.hasNext(); ) {
             RhsExpr e = i.next();
 
             if (e instanceof RhsBinary_c)
@@ -159,11 +107,11 @@ public class RhsSequence_c extends RhsExpr_c implements RhsSequence {
     }
     
     public Term firstChild() {
-        return listChild(terms, null);
+        return listChild(items, null);
     }
 
     public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        v.visitCFGList(terms, this, EXIT);
+        v.visitCFGList(items, this, EXIT);
         return succs;
     }
 }

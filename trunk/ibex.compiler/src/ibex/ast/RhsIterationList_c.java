@@ -1,5 +1,8 @@
 package ibex.ast;
 
+import ibex.ast.RhsAnyChar_c.RDummy_c;
+import ibex.types.IbexTypeSystem;
+
 import java.util.List;
 
 import polyglot.ast.Node;
@@ -46,8 +49,9 @@ public abstract class RhsIterationList_c extends RhsExpr_c implements RhsIterati
     
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-        return type(ts.arrayOf(item.type()));
+        IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
+        Type t = ts.arrayOf(item.type());
+        return rhs(new RDummy_c(ts, position(), t)).type(t);
     }
 
     public Term firstChild() {

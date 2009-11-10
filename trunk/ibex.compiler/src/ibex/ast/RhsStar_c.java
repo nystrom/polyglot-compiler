@@ -1,8 +1,10 @@
 package ibex.ast;
 
+import ibex.ast.RhsAnyChar_c.RDummy_c;
+import ibex.types.IbexTypeSystem;
 import polyglot.ast.Node;
 import polyglot.types.SemanticException;
-import polyglot.types.TypeSystem;
+import polyglot.types.Type;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
 import polyglot.visit.ContextVisitor;
@@ -16,8 +18,9 @@ public class RhsStar_c extends RhsIteration_c implements RhsStar {
 
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-        return type(ts.arrayOf(item.type()));
+        IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
+        Type t = ts.arrayOf(item.type());
+        return rhs(new RDummy_c(ts, position(), t)).type(t);
     }
     
     /** Write the expression to an output file. */

@@ -4,7 +4,7 @@ import polyglot.types.Type;
 import polyglot.types.TypeObject_c;
 import polyglot.util.Position;
 
-public class RSub_c extends TypeObject_c implements RSub {
+public class RSub_c extends Rhs_c implements RSub {
 
     private Rhs choice1;
     private Rhs choice2;

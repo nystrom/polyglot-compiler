@@ -1,5 +1,8 @@
 package ibex.ast;
 
+import ibex.ast.RhsAnyChar_c.RDummy_c;
+import ibex.types.IbexTypeSystem;
+
 import java.util.List;
 
 import polyglot.ast.Expr;
@@ -71,8 +74,8 @@ public class RhsRange_c extends RhsExpr_c implements RhsRange {
         if (lv > rv)
             throw new SemanticException("The low end of a character range must be <= the high end.", position());
         
-        TypeSystem ts = tc.typeSystem();
-        return isRegular(true).type(ts.Char());
+        IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
+        return (RhsExpr) rhs(new RDummy_c(ts, position(), ts.Char())).isRegular(true).type(ts.Char());
     }
 
     /** Write the expression to an output file. */

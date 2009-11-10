@@ -33,6 +33,10 @@ public class RhsInvoke_c extends RhsExpr_c implements RhsInvoke {
         super(pos);
         this.call = call;
     }
+    
+    public Nonterminal symbol() {
+        return (Nonterminal) rhs;
+    }
 
     public Call call() {
         return call;
@@ -64,9 +68,7 @@ public class RhsInvoke_c extends RhsExpr_c implements RhsInvoke {
         if (sym == null)
             throw new SemanticException("Cannot find rule for " + mi);
         
-        
-        RhsInvoke n = symbol(sym);
-        n = (RhsInvoke) n.type(call.type());
+        RhsInvoke n = (RhsInvoke) rhs(sym).type(call.type());
         
         if (! call.type().isVoid()) {
             TypeSystem ts = tc.typeSystem();
@@ -79,7 +81,7 @@ public class RhsInvoke_c extends RhsExpr_c implements RhsInvoke {
             ld = ld.localDef(li);
             ld = ld.init(n);
             
-            return nf.RhsSyntheticBind(position(), ld).type(n.type());
+            return nf.RhsSyntheticBind(position(), ld).rhs(n.rhs()).type(n.type());
         }
         
         return n;
@@ -101,17 +103,5 @@ public class RhsInvoke_c extends RhsExpr_c implements RhsInvoke {
     
     public String toString() {
         return call.toString();
-    }
-    
-    Nonterminal sym;
-    
-    public Nonterminal symbol() {
-        return sym;
-    }
-    
-    public RhsInvoke symbol(Nonterminal sym) {
-        RhsInvoke_c n = (RhsInvoke_c) copy();
-        n.sym = sym;
-        return n;
     }
 }

@@ -2,6 +2,7 @@ package ibex.lr;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.zip.GZIPOutputStream;
 
 import polyglot.util.Base64;
@@ -38,6 +39,7 @@ public class Encoder {
         byte[] b = baos.toByteArray();
 
         String s;
+        
         if (base64) {
             s = new String(Base64.encode(b));
         }
@@ -48,7 +50,14 @@ public class Encoder {
             }
             s = sb.toString();
         }
+        
+        ArrayList<String> ss = new ArrayList<String>();
+        
+        final int INC = 16384;
+        for (int i = 0; i < s.length(); i += INC) {
+            ss.add(s.substring(i, Math.min(i+INC, s.length())));
+        }
 
-        return new String[] { s };
+        return ss.toArray(new String[ss.size()]);
     }
 }

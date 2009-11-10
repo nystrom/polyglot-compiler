@@ -11,6 +11,8 @@ import polyglot.types.TypeSystem;
 import polyglot.types.Types;
 import polyglot.types.Use_c;
 import polyglot.util.Position;
+import polyglot.util.Transformation;
+import polyglot.util.TransformingList;
 
 public class RuleInstance_c extends Use_c<RuleDef> implements RuleInstance {
     protected Name name;
@@ -21,6 +23,14 @@ public class RuleInstance_c extends Use_c<RuleDef> implements RuleInstance {
         super(ts, position, def);
     }
 
+    public boolean isRegular() {
+        return def().isRegular();
+    }
+    
+    public List<Type> throwTypes() {
+        return new TransformingList<Ref<? extends Type>, Type>(def().throwTypes(), new polyglot.types.DerefTransform<Type>());
+    }
+    
     /* (non-Javadoc)
      * @see ibex.types.R#container(polyglot.types.StructType)
      */

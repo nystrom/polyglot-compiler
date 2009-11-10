@@ -1,12 +1,12 @@
 package ibex.types;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import polyglot.types.Type;
-import polyglot.types.TypeObject_c;
 import polyglot.util.Position;
 
-public class RSeq_c extends TypeObject_c implements RSeq {
+public class RSeq_c extends Rhs_c implements RSeq {
 
     private List<Rhs> items;
     private Type type;
@@ -19,6 +19,15 @@ public class RSeq_c extends TypeObject_c implements RSeq {
 
     public Type type() {
         return type;
+    }
+    
+    @Override
+    public List<Type> throwTypes() {
+        List<Type> throwTypes = new ArrayList<Type>();
+        for (Rhs r : items) {
+            throwTypes.addAll(r.throwTypes());
+        }
+        return throwTypes;
     }
 
     public boolean matches(Rhs r) {
@@ -40,7 +49,15 @@ public class RSeq_c extends TypeObject_c implements RSeq {
     }
 
     public void setItems(List<Rhs> items) {
-        this.items = items;
+        this.items = new ArrayList<Rhs>();
+        for (Rhs e : items) {
+            if (e instanceof RSeq) {
+                RSeq s = (RSeq) e;
+                this.items.addAll(s.items());
+            }
+            else 
+                this.items.add(e);
+        }
     }
 
     public List<Rhs> items() {

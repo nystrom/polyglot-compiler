@@ -16,6 +16,8 @@ import polyglot.util.Position;
  * NodeFactory for ibex extension.
  */
 public interface IbexNodeFactory extends NodeFactory {
+    TypeNode UnknownTypeNode(Position pos);
+    
     RhsBind RhsBind(Position pos, LocalDecl decl); 
     RhsBind RhsSyntheticBind(Position pos, LocalDecl decl); 
     RhsAnyChar RhsAnyChar(Position pos);
@@ -30,10 +32,10 @@ public interface IbexNodeFactory extends NodeFactory {
     RhsLookahead RhsPosLookahead(Position pos, RhsExpr item);
     RhsLookahead RhsNegLookahead(Position pos, RhsExpr item);
     RhsLookahead RhsLookahead(Position pos, RhsExpr item);
-    RhsSequence RhsSequence(Position pos, List<RhsExpr> terms);
-    RhsSequence RhsSequence(Position pos, RhsExpr... terms);
+    RhsExpr RhsSequence(Position pos, List<RhsExpr> terms);
+    RhsExpr RhsSequence(Position pos, RhsExpr... terms);
     
-    RhsOr RhsOr(Position pos, RhsExpr c1, RhsExpr c2);
+    RhsExpr RhsOr(Position pos, RhsExpr...c1);
     RhsOrdered RhsOrdered(Position pos, RhsExpr c1, RhsExpr c2);
     
     RhsExpr RhsOr(Position pos, List<RhsExpr> cases);
