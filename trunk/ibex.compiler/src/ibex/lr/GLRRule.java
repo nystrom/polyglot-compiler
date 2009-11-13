@@ -1,37 +1,46 @@
 package ibex.lr;
 
-import ibex.types.Nonterminal;
-import ibex.types.RSeq;
-
 import java.util.Iterator;
 import java.util.List;
 
-public abstract class GLRRule {
-
-    protected Nonterminal nonterm;
-    protected RSeq nontermRhs;
+class GLRRule {
+    List<GLRSymbol> rhs;
     protected GLRNonterminal lhs;
     protected int index;
-    protected Kind kind;
-
-    protected enum Kind {
-        NORMAL, POS_LOOKAHEAD, NEG_LOOKAHEAD, AND, SUB
-    }
     
-    abstract List<GLRSymbol> symbols();
-
-    public GLRRule(Nonterminal nonterm, RSeq nontermRhs, GLRNonterminal lhs, int index, Kind kind) {
-        this.nonterm = nonterm;
-        this.nontermRhs = nontermRhs;
+    GLRRule(GLRNonterminal lhs, List<GLRSymbol> rhs, int index) {
         this.lhs = lhs;
         this.index = index;
-        this.kind = kind;
+        this.rhs = rhs;
+    }
+
+    GLRRule(GLRNonterminal lhs, List<GLRSymbol> rhs, int index, Object kind) {
+        this(lhs, rhs, index);
     }
     
-    abstract GLRRule copy();
+    List<GLRSymbol> symbols() {
+        return rhs();
+    }
+    
+    protected List<GLRSymbol> rhs() {
+        return rhs;
+    }
 
-    public GLRRule() {
-        super();
+    GLRRule copy() {
+        return new GLRRule(lhs, rhs, index, null);
+    }
+    
+    public int encode() {
+        return (lhs.index() << 8) | rhs.size();
+    }
+
+    public String toString() {
+        String s = index + ": " + lhs + " ::=";
+        for (Iterator<GLRSymbol> i = rhs.iterator(); i.hasNext();) {
+            GLRSymbol y = (GLRSymbol) i.next();
+            s += " " + y;
+        }
+        return s;
     }
 
     protected GLRNonterminal lhs() {
@@ -47,8 +56,8 @@ public abstract class GLRRule {
     }
 
     public boolean equals(Object o) {
-        if (o instanceof GLRNormalRule) {
-            GLRNormalRule r = (GLRNormalRule) o;
+        if (o instanceof GLRRule) {
+            GLRRule r = (GLRRule) o;
             return index == r.index;
         }
         return false;
@@ -57,10 +66,4 @@ public abstract class GLRRule {
     public int hashCode() {
         return index;
     }
-
-
-    public Kind kind() {
-        return kind;
-    }
-
 }

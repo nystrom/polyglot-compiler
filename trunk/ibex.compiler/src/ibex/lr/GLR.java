@@ -19,22 +19,10 @@ import ibex.ast.RhsSequence;
 import ibex.ast.RhsStar;
 import ibex.ast.RhsStarList;
 import ibex.ast.RuleDecl;
-import ibex.ast.RhsAnyChar_c.RDummy_c;
-import ibex.lr.GLRRule.Kind;
 import ibex.types.ActionDef;
-import ibex.types.ByteTerminal;
-import ibex.types.CharTerminal;
-import ibex.types.CharTerminal_c;
 import ibex.types.IbexClassDef;
-import ibex.types.IbexTypeSystem;
 import ibex.types.Nonterminal;
-import ibex.types.RAnd;
-import ibex.types.RLookahead;
-import ibex.types.RSeq;
-import ibex.types.RSeq_c;
-import ibex.types.RSub;
 import ibex.types.Rhs;
-import ibex.types.StringTerminal;
 import ibex.types.Terminal;
 
 import java.util.ArrayList;
@@ -52,12 +40,10 @@ import polyglot.ast.ClassDecl;
 import polyglot.ast.Expr;
 import polyglot.ast.Node;
 import polyglot.ast.Stmt;
-import polyglot.frontend.Globals;
 import polyglot.main.Report;
 import polyglot.types.Name;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Pair;
-import polyglot.util.Position;
 import polyglot.visit.NodeVisitor;
 
 public class GLR {
@@ -89,8 +75,8 @@ public class GLR {
         def = (IbexClassDef) cd.classDef();
 
         g = new Grammar();
-        g.rules = new ArrayList<GLRNormalRule>(def.allNonterminals().size()*2);
-        g.merges = new ArrayList<GLRMergeRule>(def.allNonterminals().size()*2);
+        g.rules = new ArrayList<GLRRule>(def.allNonterminals().size()*2);
+        g.merges = new ArrayList<GLRMerge>(def.allNonterminals().size()*2);
 
         symbolMap = new HashMap<Object, GLRSymbol>();
         terminalMap = new HashMap<Pair<Integer,Integer>, GLRTerminal>();
@@ -208,13 +194,18 @@ public class GLR {
                     RhsBind r = (RhsBind) rhs;
                     return symbol(r.item());
                 }
+//                if (rhs instanceof RhsLookahead) {
+//                    RhsLookahead r = (RhsLookahead) rhs;
+//                    GLRSymbol s = symbol(r.item());
+//                    if (s != null)
+//                        return lookahead(s, r.negativeLookahead());
+//                }
                 if (rhs instanceof RhsInvoke) {
                     RhsInvoke r = (RhsInvoke) rhs;
                     return nonterminal(r.symbol());
                 }
                 if (rhs instanceof RhsLit) {
                     RhsLit r = (RhsLit) rhs;
-                    IbexTypeSystem ts = (IbexTypeSystem) Globals.TS();
                     if (r.constantValue() instanceof Character)
                         return terminal((char) (Character) r.constantValue());
                 }
@@ -317,10 +308,10 @@ public class GLR {
                     addRulesForRHS(B, r1);
                     addRulesForRHS(C, r2);
                     
-                    GLRNormalRule rule1 = addRule(A, B);
-                    GLRNormalRule rule2 = addRule(A, C);
+                    GLRRule rule1 = addRule(A, B);
+                    GLRRule rule2 = addRule(A, C);
                     
-                    GLRMergeRule rule = new GLRMergeRule(null, null, A, rule1, rule2, g.merges.size(), Kind.AND);
+                    GLRMerge rule = new GLRMerge(A, rule1, rule2, g.merges.size(), GLRMerge.Kind.AND);
                     g.merges.add(rule);
                     A.merges.add(rule);
                     addRule(lhs, A);
@@ -336,18 +327,22 @@ public class GLR {
                     addRulesForRHS(B, r1);
                     addRulesForRHS(C, r2);
                     
-                    GLRNormalRule rule1 = addRule(A, B);
-                    GLRNormalRule rule2 = addRule(A, C);
+                    GLRRule rule1 = addRule(A, B);
+                    GLRRule rule2 = addRule(A, C);
 
-                    GLRMergeRule rule = new GLRMergeRule(null, null, A, rule1, rule2, g.merges.size(), Kind.SUB);
+                    GLRMerge rule = new GLRMerge(A, rule1, rule2, g.merges.size(), GLRMerge.Kind.SUB);
                     g.merges.add(rule);
                     A.merges.add(rule);
+                    
                     addRule(lhs, A);
                 }
                 if (rhs instanceof RhsLookahead) {
                     RhsLookahead r = (RhsLookahead) rhs;
                     GLRNonterminal A = freshNonterminal();
-                    addRulesForRHS(A, r.item());
+                    GLRNonterminal B = freshNonterminal();
+                    addRulesForRHS(B, r.item());
+                    addRule(A, B);
+                    markLookahead(A, r.negativeLookahead());
                     addRule(lhs, A);
                 }
                 if (rhs instanceof RhsAction) {
@@ -492,13 +487,13 @@ public class GLR {
                 }
             }
             
-            GLRNormalRule addRule(GLRNonterminal lhs, List<GLRSymbol> rhs) {
-                GLRNormalRule rule = new GLRNormalRule(null, null, lhs, rhs, g.rules.size());
+            GLRRule addRule(GLRNonterminal lhs, List<GLRSymbol> rhs) {
+                GLRRule rule = new GLRRule(lhs, rhs, g.rules.size());
                 g.rules.add(rule);
                 lhs.rules.add(rule);
                 return rule;
             }
-            GLRNormalRule addRule(GLRNonterminal lhs, GLRSymbol... rhs) {
+            GLRRule addRule(GLRNonterminal lhs, GLRSymbol... rhs) {
                 return addRule(lhs, Arrays.asList(rhs));
             }
         });
@@ -523,6 +518,7 @@ public class GLR {
         if (Report.should_report(TOPICS, 1))
             Report.report(1, "Removing unreachable symbols");
 
+        g.removeUnitRules();
         g.removeUnreachableSymbols();
 
         // To avoid the yield-before-merge problem,
@@ -552,7 +548,7 @@ public class GLR {
         if (Report.should_report(TOPICS, 1))
             Report.report(1, "Constructing LALR(1) machine");
 
-        lrc = new LRConstruction(g);
+        lrc = new LRConstruction(this);
 
         if (Report.should_report(TOPICS, 9) ||
                 Report.should_report("dump-lr", 1)) {
@@ -580,129 +576,20 @@ public class GLR {
         }
         return null;
     }
-    
-    public GLR(ExtensionInfo ext, IbexClassDef pt) {
-        this.ext = ext;
-        this.def = pt;
-
-        // A & B
-        // -->
-        // introduce AB nonterminal
-        // add AB -> A | B
-        // when reducing AB, fail if no conflict, succeed if conflict
-        //
-        // A - B
-        // add AB -> A | B
-        // when reducing AB, fail if there is a conflict, fail if B
-        //
-        // [A]
-        // mark the path as lookahead
-        //
-        // fail if cannot eventually reduce the A
-        // ![A]
-        // fail at reduce
-
-        if (Report.should_report(TOPICS, 1))
-            Report.report(1, "Canonicalizing grammar");
-
-        g = new Grammar();
-
-        if (Report.should_report(TOPICS, 1))
-            Report.report(1, "Creating symbols");
-
-        initSymbols(pt);
-
-        if (Report.should_report(TOPICS, 1))
-            Report.report(1, "Creating rules");
-
-        initRules(pt);
-
-        if (Report.should_report(TOPICS, 1))
-            Report.report(1, "Augmenting grammar");
-
-        augmentGrammar();
-
-        if (Report.should_report(TOPICS, 9) ||
-                Report.should_report("dump-lr", 1)) {
-            g.dump();
-        }
-
-        if (Report.should_report(TOPICS, 1))
-            Report.report(1, "Removing unreachable symbols");
-
-        g.removeUnreachableSymbols();
-
-        // To avoid the yield-before-merge problem,
-        // the parser compares rules to be reduced so
-        // that if B ->+ A, a reduction of A occurs before
-        // a reduction of B.  To make this comparison simpler
-        // we generate the rules so that if B ->+ A, A occurs
-        // first in the rules list.
-        //
-        // Sort the rules by the derives relation.
-
-        if (Report.should_report(TOPICS, 1))
-            Report.report(1, "Sorting rules");
-
-        g.sortRules();
-
-        if (Report.should_report(TOPICS, 9) ||
-                Report.should_report("dump-lr", 1)) {
-            g.dump();
-        }
-
-        if (Report.should_report(TOPICS, 1))
-            Report.report(1, "Computing first and follow sets");
-
-        g.initSets();
-
-        if (Report.should_report(TOPICS, 1))
-            Report.report(1, "Constructing LALR(1) machine");
-
-        lrc = new LRConstruction(g);
-
-        if (Report.should_report(TOPICS, 9) ||
-                Report.should_report("dump-lr", 1)) {
-            lrc.dump();
-        }
-    }
 
     // -------------------- getters and setters --------------------
     List<GLRNonterminal> nonterminals() { return g.nonterminals(); }
     List<GLRTerminal> terminals() { return g.terminals(); }
-    List<GLRNormalRule> rules() { return g.rules(); }
-    List<GLRMergeRule> merges() { return g.merges(); }
+    List<GLRRule> rules() { return g.rules(); }
+    List<GLRMerge> merges() { return g.merges(); }
     GLRTerminal eofSymbol() { return g.eofSymbol(); }
 
     public int numRules() {
         return g.rules().size();
     }
 
-    public Nonterminal ruleLhs(int i) {
-        GLRRule rule = (GLRRule) rules().get(i);
-        return rule.nonterm;
-    }
-
-    public RSeq ruleRhs(int i) {
-        GLRRule rule = (GLRRule) rules().get(i);
-        return rule.nontermRhs;
-    }
-
     public int eofSymbolNumber() {
         return eofSymbol().index();
-    }
-
-    public int ruleNumber(Nonterminal lhs, Rhs rhs) {
-        GLRNonterminal t = nonterminal(lhs);
-
-        for (Iterator<GLRNormalRule> i = t.rules().iterator(); i.hasNext(); ) {
-            GLRNormalRule r = i.next();
-            if (r.nontermRhs.matches(rhs)) {
-                return r.index();
-            }
-        }
-
-        throw new InternalCompilerError("Could not get rule number for " + lhs + " ::= " + rhs);
     }
 
     public int nonterminalNumber(Nonterminal s) {
@@ -948,164 +835,6 @@ public class GLR {
         }
     }
 
-    /** Initialize the rules of the grammar. */
-    void initRules(IbexClassDef cd) {
-        IbexTypeSystem ts = (IbexTypeSystem) cd.typeSystem();
-
-        g.rules = new ArrayList<GLRNormalRule>(cd.allNonterminals().size()*2);
-        g.merges = new ArrayList<GLRMergeRule>(cd.allNonterminals().size()*2);
-
-        for (Iterator<Nonterminal> i = cd.allNonterminals().iterator(); i.hasNext(); ) {
-            Nonterminal sym = i.next();
-
-            GLRNonterminal n = nonterminal(sym);
-
-            for (Iterator<Rhs> j = sym.rule().choices().iterator(); j.hasNext(); ) {
-                Rhs rhs =  j.next();
-
-                Position pos = rhs.position();
-                if (rhs instanceof RAnd) {
-                    RAnd a = (RAnd) rhs;
-                    Rhs rhs1 = a.choice1();
-                    Rhs rhs2 = a.choice2();
-                    
-                    List<GLRSymbol> l1 = symbols(rhs1);
-                    List<GLRSymbol> l2 = symbols(rhs2);
-                    RSeq seq1 = sequence(rhs1);
-                    RSeq seq2 = sequence(rhs2);
-                    
-                    GLRNormalRule r1 = new GLRNormalRule(sym, seq1, n, l1, g.rules.size(), Kind.NORMAL);
-                    g.rules.add(r1);
-                    n.rules.add(r1);
-                    GLRNormalRule r2 = new GLRNormalRule(sym, seq2, n, l2, g.rules.size(), Kind.NORMAL);
-                    g.rules.add(r2);
-                    n.rules.add(r2);
-                    GLRMergeRule rule = new GLRMergeRule(sym, new RSeq_c(ts, pos, Arrays.<Rhs>asList(a), a.type()), n, r1, r2, g.rules.size(), Kind.AND);
-                    g.merges.add(rule);
-                    n.merges.add(rule);
-                }
-                else if (rhs instanceof RSub) {
-                    RSub a = (RSub) rhs;
-                    Rhs rhs1 = a.choice1();
-                    Rhs rhs2 = a.choice2();
-
-                    List<GLRSymbol> l1 = symbols(rhs1);
-                    List<GLRSymbol> l2 = symbols(rhs2);
-                    RSeq seq1 = sequence(rhs1);
-                    RSeq seq2 = sequence(rhs2);
-
-                    GLRNormalRule r1 = new GLRNormalRule(sym, seq1, n, l1, g.rules.size(), Kind.NORMAL);
-                    g.rules.add(r1);
-                    n.rules.add(r1);
-                    GLRNormalRule r2 = new GLRNormalRule(sym, seq2, n, l2, g.rules.size(), Kind.NORMAL);
-                    g.rules.add(r2);
-                    n.rules.add(r2);
-                    GLRMergeRule rule = new GLRMergeRule(sym, new RSeq_c(ts, pos, Arrays.<Rhs>asList(a), a.type()), n, r1, r2, g.rules.size(), Kind.SUB);
-                    g.merges.add(rule);
-                    n.merges.add(rule);
-                }
-                else if (rhs instanceof RLookahead) {
-                    RLookahead a = (RLookahead) rhs;
-                    List<GLRSymbol> l = symbols(a.item());
-                    RSeq seq = sequence(a.item());
-                    GLRNormalRule rule = new GLRNormalRule(sym, seq, n, l, g.rules.size(), a.negative() ? Kind.NEG_LOOKAHEAD : Kind.POS_LOOKAHEAD);
-                    g.rules.add(rule);
-                    n.rules.add(rule);
-                }
-                else if (rhs instanceof RSeq) {
-                    RSeq seq = (RSeq) rhs;
-                    
-                    List<GLRSymbol> l = symbols(rhs);
-
-                    GLRNormalRule rule = new GLRNormalRule(sym, seq, n, l, g.rules.size(), Kind.NORMAL);
-                    g.rules.add(rule);
-                    n.rules.add(rule);
-                }
-                else if (rhs instanceof Nonterminal) {
-                    Nonterminal a = (Nonterminal) rhs;
-                    
-                    List<GLRSymbol> l = symbols(rhs);
-                    
-                    GLRNormalRule rule = new GLRNormalRule(sym, sequence(a), n, l, g.rules.size(), Kind.NORMAL);
-                    g.rules.add(rule);
-                    n.rules.add(rule);
-                }
-                else if (rhs instanceof Terminal) {
-                    Terminal a = (Terminal) rhs;
-                    
-                    List<GLRSymbol> l = symbols(rhs);
-                    
-                    GLRNormalRule rule = new GLRNormalRule(sym, sequence(a), n, l, g.rules.size(), Kind.NORMAL);
-                    g.rules.add(rule);
-                    n.rules.add(rule);
-                }
-                else {
-                    assert false : "unexpected rhs item " + rhs + " : " + rhs.getClass().getName();
-                }
-            }
-        }
-    }
-
-    private RSeq sequence(Rhs rhs) {
-        IbexTypeSystem ts = (IbexTypeSystem) rhs.typeSystem();
-        Position pos = rhs.position();
-        if (rhs instanceof RSeq) {
-            return (RSeq) rhs;
-        }
-        else if (rhs instanceof Terminal) {
-            return new RSeq_c(ts, pos, Collections.singletonList(rhs), rhs.type());
-        }
-        else if (rhs instanceof Nonterminal) {
-            return new RSeq_c(ts, pos, Collections.singletonList(rhs), rhs.type());
-        }
-        else {
-            assert false : "unexpected rhs item " + rhs + " : " + rhs.getClass().getName();
-        }
-        return null;
-    }
-
-    private List<GLRSymbol> symbols(Rhs rhs) {
-        List<GLRSymbol> l = new ArrayList<GLRSymbol>();
-        if (rhs instanceof RSeq) {
-            RSeq choice = (RSeq) rhs;
-            for (Iterator<Rhs> k = choice.items().iterator(); k.hasNext(); ) {
-                Rhs e = k.next();
-
-                if (e instanceof Terminal) {
-                    Terminal s = (Terminal) e;
-//                    GLRTerminal t = terminal(s);
-//                    l.add(t);
-                    assert false;
-                }
-                else if (e instanceof Nonterminal) {
-                    Nonterminal s = (Nonterminal) e;
-                    GLRNonterminal t = nonterminal(s);
-                    l.add(t);
-                }
-                else {
-                    assert false : "unexpected rhs item " + e + " in " + rhs + " : " + e.getClass().getName();
-                }
-            }
-        }
-        else if (rhs instanceof Terminal) {
-            Terminal s = (Terminal) rhs;
-//            GLRTerminal t = terminal(s);
-//            l.add(t);
-            assert false;
-        }
-        else if (rhs instanceof Nonterminal) {
-            Nonterminal s = (Nonterminal) rhs;
-            GLRNonterminal t = nonterminal(s);
-            l.add(t);
-        }
-        else {
-            if (rhs instanceof RDummy_c)
-                ((RDummy_c) rhs).e.printStackTrace();
-            assert false : "unexpected rhs item " + rhs + " : " + rhs.getClass().getName();
-        }
-        return l;
-    }
-
     /** Augment the grammar with start rules for the start symbols. */
     void augmentGrammar() {
         startSymbolsMap = new GLRNonterminal[g.nonterminals.size() +
@@ -1117,14 +846,13 @@ public class GLR {
         for (Iterator<GLRNonterminal> i = originalStartSymbols.iterator(); i.hasNext(); ) {
             GLRNonterminal s = i.next();
 
-            GLRNonterminal s_ = new GLRNonterminal(s.nonterm,
-                                                   Name.make(s.name() + "!"),
+            GLRNonterminal s_ = new GLRNonterminal(Name.make(s.name() + "!"),
                                                    g.nonterminals.size());
             g.nonterminals.add(s_);
 
             // create a new rule for the new start symbol, S'
             // S' ::= S $
-            GLRNormalRule r = new GLRNormalRule(null, null, s_, Arrays.asList(s, eofSymbol()), g.rules.size());
+            GLRRule r = new GLRRule(s_, Arrays.asList(s, eofSymbol()), g.rules.size());
             g.rules.add(r);
             s_.rules.add(r);
 
@@ -1140,12 +868,17 @@ public class GLR {
         if (lrc != null)
             lrc.dump();
     }
+    
+    void markLookahead(GLRNonterminal X, boolean neg) {
+        assert X.rules.size() == 1;
+        X.kind = neg ? GLRNonterminal.Kind.NEG : GLRNonterminal.Kind.POS;
+    }
 
     GLRNonterminal nonterminal(Nonterminal n) {
         GLRNonterminal s = (GLRNonterminal) symbolMap.get(n);
 
         if (s == null) {
-            s = new GLRNonterminal(n, n.name(), g.nonterminals.size());
+            s = new GLRNonterminal(n.name(), g.nonterminals.size());
             g.nonterminals.add(s);
             symbolMap.put(n, s);
         }
@@ -1154,7 +887,7 @@ public class GLR {
     }
 
     GLRNonterminal freshNonterminal() {
-        GLRNonterminal s = new GLRNonterminal(null, Name.makeFresh("A"), g.nonterminals.size());
+        GLRNonterminal s = new GLRNonterminal(Name.makeFresh("A"), g.nonterminals.size());
         g.nonterminals.add(s);
         return s;
     }

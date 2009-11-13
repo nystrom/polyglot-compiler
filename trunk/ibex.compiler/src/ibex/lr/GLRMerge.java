@@ -1,17 +1,24 @@
 package ibex.lr;
 
-import ibex.types.Nonterminal;
-import ibex.types.RSeq;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class GLRMergeRule extends GLRRule {
-    GLRNormalRule left;
-    GLRNormalRule right;
+class GLRMerge {
+    GLRRule left;
+    GLRRule right;
+    protected GLRNonterminal lhs;
+    protected int index;
+    protected Kind kind;
 
-    GLRMergeRule(Nonterminal nonterm, RSeq nontermRhs, GLRNonterminal lhs, GLRNormalRule left, GLRNormalRule right, int index, Kind kind) {
-        super(nonterm, nontermRhs, lhs, index, kind);
+    protected enum Kind {
+        AND, SUB
+    }
+
+    GLRMerge(GLRNonterminal lhs, GLRRule left, GLRRule right, int index, Kind kind) {
+        this.lhs = lhs;
+        this.index = index;
+        this.kind = kind;
         this.left = left;
         this.right = right;
     }
@@ -23,8 +30,8 @@ class GLRMergeRule extends GLRRule {
         return l;
     }
 
-    GLRMergeRule copy() {
-        return new GLRMergeRule(nonterm, nontermRhs, lhs, left, right, index, kind);
+    GLRMerge copy() {
+        return new GLRMerge(lhs, left, right, index, kind);
     }
 
     public int encodeLeft() {
@@ -54,10 +61,38 @@ class GLRMergeRule extends GLRRule {
         return s;
     }
 
-    public GLRNormalRule left() {
+    public GLRRule left() {
         return left;
     }
-    public GLRNormalRule right() {
+    public GLRRule right() {
         return right;
+    }
+
+    protected GLRNonterminal lhs() {
+        return lhs;
+    }
+
+    protected int index() {
+        return index;
+    }
+
+    Action action() {
+        return null;
+    }
+
+    public boolean equals(Object o) {
+        if (o instanceof GLRRule) {
+            GLRRule r = (GLRRule) o;
+            return index == r.index;
+        }
+        return false;
+    }
+
+    public int hashCode() {
+        return index;
+    }
+
+    public Kind kind() {
+        return kind;
     }
 }

@@ -1,7 +1,5 @@
 package ibex.lr;
 
-import ibex.lr.GLRRule.Kind;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -20,8 +18,8 @@ import polyglot.util.InternalCompilerError;
 public class Grammar {
     List<GLRNonterminal> nonterminals;
     List<GLRTerminal> terminals;
-    List<GLRNormalRule> rules;
-    List<GLRMergeRule> merges;
+    List<GLRRule> rules;
+    List<GLRMerge> merges;
     GLRTerminal eofSymbol;
     Collection<GLRNonterminal> startSymbols;
     UnionFind terminalClasses;
@@ -30,8 +28,8 @@ public class Grammar {
     Grammar(Collection<GLRNonterminal> startSymbols,
             List<GLRNonterminal> nonterminals,
             List<GLRTerminal> terminals,
-            List<GLRNormalRule> rules,
-            List<GLRMergeRule> merges,
+            List<GLRRule> rules,
+            List<GLRMerge> merges,
             GLRTerminal eofSymbol) {
 
         this.startSymbols = startSymbols;
@@ -49,7 +47,7 @@ public class Grammar {
 
         for (int i = 0; i < nonterminals.size(); i++) {
             GLRNonterminal A = (GLRNonterminal) nonterminals.get(i);
-            nonterminals.set(i, new GLRNonterminal(A.nonterm, A.name, i));
+            nonterminals.set(i, new GLRNonterminal(A.name, i));
         }
 
         for (Iterator<GLRNonterminal> i = g.startSymbols().iterator(); i.hasNext(); ) {
@@ -59,15 +57,15 @@ public class Grammar {
 
         // Copy the rules.  Do the normal rules first.
         for (int i = 0; i < rules.size(); i++) {
-            GLRNormalRule r = rules.get(i);
-            GLRNormalRule r2 = copyRule(r);
+            GLRRule r = rules.get(i);
+            GLRRule r2 = copyRule(r);
             rules.set(i, r2);
             r2.lhs.rules.add(r2);
         }
-        
+
         for (int i = 0; i < merges.size(); i++) {
-            GLRMergeRule r = merges.get(i);
-            GLRMergeRule r2 = copyRule(r);
+            GLRMerge r = merges.get(i);
+            GLRMerge r2 = copyRule(r);
             merges.set(i, r2);
             r2.lhs.merges.add(r2);
         }
@@ -78,41 +76,41 @@ public class Grammar {
     void rebuildNonterminalRuleLists() {
         for (int i = 0; i < nonterminals.size(); i++) {
             GLRNonterminal A = (GLRNonterminal) nonterminals.get(i);
-            A.rules = new ArrayList<GLRNormalRule>(A.rules.size());
-            A.merges = new ArrayList<GLRMergeRule>(A.merges.size());
+            A.rules = new ArrayList<GLRRule>(A.rules.size());
+            A.merges = new ArrayList<GLRMerge>(A.merges.size());
         }
 
         for (int i = 0; i < rules.size(); i++) {
-            GLRNormalRule r = rules.get(i);
+            GLRRule r = rules.get(i);
             r.lhs.rules.add(r);
         }
         for (int i = 0; i < merges.size(); i++) {
-            GLRMergeRule r = merges.get(i);
+            GLRMerge r = merges.get(i);
             r.lhs.merges.add(r);
         }
     }
 
-    GLRNormalRule copyRule(GLRNormalRule rule) {
+    GLRRule copyRule(GLRRule rule) {
         GLRNonterminal A = (GLRNonterminal) nonterminals.get(rule.lhs.index());
-            GLRNormalRule r = (GLRNormalRule) rule;
-            List<GLRSymbol> rhs = new ArrayList<GLRSymbol>(r.rhs.size());
-            for (int i = 0; i < r.rhs.size(); i++) {
-                GLRSymbol X = r.rhs.get(i);
-                if (X instanceof GLRNonterminal) {
-                    rhs.add(nonterminals.get(X.index()));
-                }
-                else {
-                    rhs.add(X);
-                }
+        GLRRule r = (GLRRule) rule;
+        List<GLRSymbol> rhs = new ArrayList<GLRSymbol>(r.rhs.size());
+        for (int i = 0; i < r.rhs.size(); i++) {
+            GLRSymbol X = r.rhs.get(i);
+            if (X instanceof GLRNonterminal) {
+                rhs.add(nonterminals.get(X.index()));
             }
-            return new GLRNormalRule(r.nonterm, r.nontermRhs, A, rhs, r.index(), r.kind());
+            else {
+                rhs.add(X);
+            }
+        }
+        return new GLRRule(A, rhs, r.index());
     }
-    GLRMergeRule copyRule(GLRMergeRule rule) {
+    GLRMerge copyRule(GLRMerge rule) {
         GLRNonterminal A = (GLRNonterminal) nonterminals.get(rule.lhs.index());
-            GLRMergeRule r = (GLRMergeRule) rule;
-            GLRNormalRule r1 = (GLRNormalRule) rules.get(r.left.index);
-            GLRNormalRule r2 = (GLRNormalRule) rules.get(r.right.index);
-            return new GLRMergeRule(r.nonterm, r.nontermRhs, A, r1, r2, r.index(), r.kind());
+        GLRMerge r = (GLRMerge) rule;
+        GLRRule r1 = (GLRRule) rules.get(r.left.index);
+        GLRRule r2 = (GLRRule) rules.get(r.right.index);
+        return new GLRMerge(A, r1, r2, r.index(), r.kind());
     }
 
     void initSets() {
@@ -130,8 +128,8 @@ public class Grammar {
     // -------------------- getters and setters --------------------
     List<GLRNonterminal> nonterminals() { return nonterminals; }
     List<GLRTerminal> terminals() { return terminals; }
-    List<GLRNormalRule> rules() { return rules; }
-    List<GLRMergeRule> merges() { return merges; }
+    List<GLRRule> rules() { return rules; }
+    List<GLRMerge> merges() { return merges; }
     GLRTerminal eofSymbol() { return eofSymbol; }
     Collection<GLRNonterminal> startSymbols() { return startSymbols; }
 
@@ -146,10 +144,10 @@ public class Grammar {
 
     // Sort the rules by the derives relation.
     void sortRules() {
-        Collections.<GLRNormalRule>sort(rules, new Comparator<GLRNormalRule>() {
-            public int compare(GLRNormalRule o1, GLRNormalRule o2) {
-                GLRNormalRule r1 = o1;
-                GLRNormalRule r2 = o2;
+        Collections.<GLRRule>sort(rules, new Comparator<GLRRule>() {
+            public int compare(GLRRule o1, GLRRule o2) {
+                GLRRule r1 = o1;
+                GLRRule r2 = o2;
                 GLRNonterminal A1 = r1.lhs;
                 GLRNonterminal A2 = r2.lhs;
                 if (deriv().derives(A1, A2)) {
@@ -167,7 +165,7 @@ public class Grammar {
 
         // Now, renumber the rules.
         for (int i = 0; i < rules.size(); i++) {
-            GLRNormalRule r = rules.get(i);
+            GLRRule r = rules.get(i);
             r.index = i;
         }
     }
@@ -186,12 +184,12 @@ public class Grammar {
         System.out.println();
 
         for (int i = 0; i < rules.size(); i++) {
-            GLRNormalRule t = rules.get(i);
+            GLRRule t = rules.get(i);
             System.out.println("Rule " + t);
         }
         System.out.println();
         for (int i = 0; i < merges.size(); i++) {
-            GLRMergeRule t = merges.get(i);
+            GLRMerge t = merges.get(i);
             System.out.println("Merge " + t);
         }
         System.out.println();
@@ -209,37 +207,41 @@ public class Grammar {
         while (changed) {
             changed = false;
 
-            for (Iterator<GLRNormalRule> it = rules().iterator(); it.hasNext(); ) {
-                GLRNormalRule rule = it.next();
+            for (Iterator<GLRRule> it = rules().iterator(); it.hasNext(); ) {
+                GLRRule rule = it.next();
 
                 GLRNonterminal lhs = rule.lhs();
+
+                GLRRule r = (GLRRule) rule;
+                List<GLRSymbol> rhs = r.rhs();
                 
-                    GLRNormalRule r = (GLRNormalRule) rule;
-                    List<GLRSymbol> rhs = r.rhs();
+                boolean allNullable = true;
 
-                    boolean allNullable = true;
+                for (Iterator<GLRSymbol> rit = rhs.iterator(); rit.hasNext(); ) {
+                    GLRSymbol s = rit.next();
 
-                    for (Iterator<GLRSymbol> rit = rhs.iterator(); rit.hasNext(); ) {
-                        GLRSymbol s = rit.next();
+                    if (s instanceof GLRNonterminal) {
+                        GLRNonterminal nt = (GLRNonterminal) s;
 
-                        if (s instanceof GLRNonterminal) {
-                            GLRNonterminal nt = (GLRNonterminal) s;
-
-                            if (! nt.isNullable()) {
-                                allNullable = false;
-                                break;
-                            }
-                        }
-                        else {
+                        // Ignore lookahead symbols.
+                        if (nt.kind != GLRNonterminal.Kind.NORMAL)
+                            continue;
+                        
+                        if (! nt.isNullable()) {
                             allNullable = false;
                             break;
                         }
                     }
-
-                    if (allNullable && ! lhs.isNullable()) {
-                        changed = true;
-                        lhs.setNullable(true);
+                    else {
+                        allNullable = false;
+                        break;
                     }
+                }
+
+                if (allNullable && ! lhs.isNullable()) {
+                    changed = true;
+                    lhs.setNullable(true);
+                }
             }
         }
     }
@@ -256,25 +258,24 @@ public class Grammar {
         while (changed) {
             changed = false;
 
-            for (Iterator<GLRNormalRule> it = rules().iterator(); it.hasNext(); ) {
-                GLRNormalRule rule = it.next();
+            for (Iterator<GLRRule> it = rules().iterator(); it.hasNext(); ) {
+                GLRRule rule = it.next();
 
                 GLRNonterminal lhs = rule.lhs();
-                
-                    GLRNormalRule r = (GLRNormalRule) rule;
-                    
 
-                    // Iterate over the RHS = Y1 Y2 ... Yk and add in FIRST(Yi)
-                    // until Yi is not nullable.
-                    Set<GLRTerminal> firstRHS = firstOfRule(r);
+                GLRRule r = (GLRRule) rule;
 
-                    // Union FIRST(rhs) into FIRST(lhs) and see if the set grew.
-                    changed |= lhs.first().addAll(firstRHS);
+                // Iterate over the RHS = Y1 Y2 ... Yk and add in FIRST(Yi)
+                // until Yi is not nullable.
+                Set<GLRTerminal> firstRHS = firstOfRule(r);
+
+                // Union FIRST(rhs) into FIRST(lhs) and see if the set grew.
+                changed |= lhs.first().addAll(firstRHS);
             }
         }
     }
 
-    private Set<GLRTerminal> firstOfRule(GLRNormalRule r) {
+    private Set<GLRTerminal> firstOfRule(GLRRule r) {
         Set<GLRTerminal> firstRHS = new HashSet<GLRTerminal>();
         for (GLRSymbol s : r.rhs()) {
             if (s instanceof GLRNonterminal) {
@@ -290,74 +291,83 @@ public class Grammar {
                 firstRHS.add((GLRTerminal) s);
                 break;
             }
+            // else GLRLookahead -- ignore it
         }
         return firstRHS;
     }
 
     // Compute follow(X) for all nonterminals, X.
     private void computeFollow() {
-	// Assume first sets initialized to empty.
+        // Assume first sets initialized to empty.
 
         // unnecessary, since in the rules
         // startSymbol().follow().add(eofSymbol());
 
-	boolean changed = true;
+        boolean changed = true;
 
-	while (changed) {
-	    changed = false;
+        while (changed) {
+            changed = false;
 
-	    for (GLRNormalRule rule : rules()) {
-	        GLRNonterminal lhs = rule.lhs();
+            for (GLRRule rule : rules()) {
+                GLRNonterminal lhs = rule.lhs();
 
-	        LinkedList<GLRSymbol> rhs = new LinkedList<GLRSymbol>(((GLRNormalRule) rule).rhs());
+                LinkedList<GLRSymbol> rhs = new LinkedList<GLRSymbol>(((GLRRule) rule).rhs());
 
-	        while (! rhs.isEmpty()) {
-	            GLRSymbol e = (GLRSymbol) rhs.removeFirst();
+                while (! rhs.isEmpty()) {
+                    GLRSymbol e = (GLRSymbol) rhs.removeFirst();
 
-	            if (e instanceof GLRNonterminal) {
-	                GLRNonterminal s = (GLRNonterminal) e;
+                    if (e instanceof GLRNonterminal) {
+                        GLRNonterminal s = (GLRNonterminal) e;
 
-	                // The rule we're examining looks like:
-	                //     X -> Y1 Y2 ... Yi Yi+1 ... Yk
-	                // s is Yi and rhs contains Yi+1 ... Yk
-	                // FOLLOW(Yi) contains FIRST(Yi+1 ... Yk)
-	                // and also FOLLOW(Yi+1 ... Yi+j) if that is nullable.
+                        // Ignore lookahead symbols.
+                        if (s.kind != GLRNonterminal.Kind.NORMAL)
+                            continue;
 
-	                Set<GLRTerminal> followSym = new HashSet<GLRTerminal>();
-	                boolean allNullable = true;
+                        // The rule we're examining looks like:
+                        //     X -> Y1 Y2 ... Yi Yi+1 ... Yk
+                        // s is Yi and rhs contains Yi+1 ... Yk
+                        // FOLLOW(Yi) contains FIRST(Yi+1 ... Yk)
+                        // and also FOLLOW(Yi+1 ... Yi+j) if that is nullable.
 
-	                for (GLRSymbol e2 : rhs) {
-	                    if (e2 instanceof GLRNonterminal) {
-	                        GLRNonterminal nt = (GLRNonterminal) e2;
+                        Set<GLRTerminal> followSym = new HashSet<GLRTerminal>();
+                        boolean allNullable = true;
 
-	                        followSym.addAll(nt.first());
+                        for (GLRSymbol e2 : rhs) {
+                            if (e2 instanceof GLRNonterminal) {
+                                GLRNonterminal nt = (GLRNonterminal) e2;
 
-	                        if (! nt.isNullable()) {
-	                            allNullable = false;
-	                            break;
-	                        }
-	                    }
-	                    else if (e2 instanceof GLRTerminal) {
-	                        GLRTerminal t = (GLRTerminal) e2;
-	                        followSym.add(t);
-	                        allNullable = false;
-	                        break;
-	                    }
-	                }
+                                // Ignore lookahead symbols.
+                                if (nt.kind != GLRNonterminal.Kind.NORMAL)
+                                    continue;
 
-	                if (allNullable) {
-	                    followSym.addAll(lhs.follow());
-	                }
+                                followSym.addAll(nt.first());
 
-	                changed |= s.follow().addAll(followSym);
-	            }
-	        }
-	    }
-	}
+                                if (! nt.isNullable()) {
+                                    allNullable = false;
+                                    break;
+                                }
+                            }
+                            else if (e2 instanceof GLRTerminal) {
+                                GLRTerminal t = (GLRTerminal) e2;
+                                followSym.add(t);
+                                allNullable = false;
+                                break;
+                            }
+                        }
+
+                        if (allNullable) {
+                            followSym.addAll(lhs.follow());
+                        }
+
+                        changed |= s.follow().addAll(followSym);
+                    }
+                }
+            }
+        }
     }
 
     /** Count occurrences of A in rj.rhs */
-    int countOccurrences(GLRNormalRule rj, GLRNonterminal A) {
+    int countOccurrences(GLRRule rj, GLRNonterminal A) {
         int occurrences = 0;
         for (GLRSymbol X : rj.symbols()) {
             if (X.equals(A)) {
@@ -367,16 +377,16 @@ public class Grammar {
         return occurrences;
     }
 
-    Collection<GLRNormalRule>[] computeRhsRules() {
-        Collection<GLRNormalRule>[] rhsRules = new Collection[nonterminals.size()];
+    Collection<GLRRule>[] computeRhsRules() {
+        Collection<GLRRule>[] rhsRules = new Collection[nonterminals.size()];
 
         for (Iterator<GLRNonterminal> i = nonterminals.iterator(); i.hasNext(); ) {
             GLRNonterminal A = (GLRNonterminal) i.next();
-            rhsRules[A.index()] = new HashSet<GLRNormalRule>();
+            rhsRules[A.index()] = new HashSet<GLRRule>();
         }
 
-        for (Iterator<GLRNormalRule> i = rules.iterator(); i.hasNext(); ) {
-            GLRNormalRule r = i.next();
+        for (Iterator<GLRRule> i = rules.iterator(); i.hasNext(); ) {
+            GLRRule r = i.next();
             for (Iterator<GLRSymbol> j = r.symbols().iterator(); j.hasNext(); ) {
                 GLRSymbol X = (GLRSymbol) j.next();
                 if (X instanceof GLRNonterminal) {
@@ -391,8 +401,8 @@ public class Grammar {
 
     void removeMarkedRules() {
         // Remove the rules marked.
-        for (Iterator<GLRNormalRule> i = rules.iterator(); i.hasNext(); ) {
-            GLRNormalRule r = i.next();
+        for (Iterator<GLRRule> i = rules.iterator(); i.hasNext(); ) {
+            GLRRule r = i.next();
             if (r.index == -1) {
                 System.out.println("removing from rules: " + r);
                 i.remove();
@@ -403,8 +413,8 @@ public class Grammar {
         // Remove the removed rules from the nonterminal's rule lists.
         for (Iterator<GLRNonterminal> i = nonterminals.iterator(); i.hasNext(); ) {
             GLRNonterminal A = (GLRNonterminal) i.next();
-            for (Iterator<GLRNormalRule> j = A.rules().iterator(); j.hasNext(); ) {
-                GLRNormalRule r = j.next();
+            for (Iterator<GLRRule> j = A.rules().iterator(); j.hasNext(); ) {
+                GLRRule r = j.next();
                 if (r.index == -1) {
                     System.out.println("removing from " + A + ".rules: " + r);
                     j.remove();
@@ -415,8 +425,8 @@ public class Grammar {
 
         // Now, renumber the rules.
         int index = 0;
-        for (Iterator<GLRNormalRule> i = rules.iterator(); i.hasNext(); ) {
-            GLRNormalRule r = i.next();
+        for (Iterator<GLRRule> i = rules.iterator(); i.hasNext(); ) {
+            GLRRule r = i.next();
             if (r.index == -1) throw new InternalCompilerError("rule " + r + " not removed");
             System.out.println("renumbering " + r);
             r.index = index++;
@@ -424,19 +434,19 @@ public class Grammar {
         }
     }
 
-        String P(BitSet s) {
-            StringBuffer sb = new StringBuffer();
-            sb.append("[");
-            boolean first = true;
-            for (int j = s.nextSetBit(0); j >= 0; j = s.nextSetBit(j+1)) {
-                GLRTerminal tj = (GLRTerminal) terminals.get(j);
-                if (! first) sb.append(" ");
-                first = false;
-                sb.append(tj.toString());
-            }
-            sb.append("]");
-            return sb.toString();
+    String P(BitSet s) {
+        StringBuffer sb = new StringBuffer();
+        sb.append("[");
+        boolean first = true;
+        for (int j = s.nextSetBit(0); j >= 0; j = s.nextSetBit(j+1)) {
+            GLRTerminal tj = (GLRTerminal) terminals.get(j);
+            if (! first) sb.append(" ");
+            first = false;
+            sb.append(tj.toString());
         }
+        sb.append("]");
+        return sb.toString();
+    }
 
     /**
      * Compute equivalence classes of terminals.
@@ -450,19 +460,19 @@ public class Grammar {
         // Each bitset contains one partition of equivalent terminals.
         BitSet[] partitions = new BitSet[terminals.size()];
         int[] partitionMap = new int[terminals.size()]; 
-        Collection<GLRNormalRule>[] rulesMap = new Collection[terminals.size()];
+        Collection<GLRRule>[] rulesMap = new Collection[terminals.size()];
 
         int[] sizeMap = new int[terminals.size()];
         int numPartitions = 0;
 
         for (int i = 0; i < terminals.size(); i++) {
-            rulesMap[i] = new HashSet<GLRNormalRule>();
+            rulesMap[i] = new HashSet<GLRRule>();
             partitions[i] = new BitSet();
             sizeMap[i] = -1;
         }
 
-        for (Iterator<GLRNormalRule> i = this.rules.iterator(); i.hasNext(); ) {
-            GLRNormalRule r = i.next();
+        for (Iterator<GLRRule> i = this.rules.iterator(); i.hasNext(); ) {
+            GLRRule r = i.next();
 
             for (Iterator<GLRSymbol> k = r.symbols().iterator(); k.hasNext(); ) {
                 GLRSymbol X = (GLRSymbol) k.next();
@@ -488,7 +498,7 @@ public class Grammar {
         // have a rule that is definitely not equivalent.
         for (int i = 0; i < numPartitions; i++) {
             BitSet s = partitions[i];
-            
+
             if (s.cardinality() == 1) {
                 continue;
             }
@@ -507,100 +517,93 @@ public class Grammar {
 
                 if (Report.should_report(EQUIVTOPICS, 5))
                     Report.report(5, "j=" + tj + ": partition " + i + " = " + P(partitions[i]));
-K:
-                for (int k = s.nextSetBit(j+1); k >= 0; k = s.nextSetBit(k+1)) {
-                    GLRTerminal tk = (GLRTerminal) terminals.get(k);
+                K:
+                    for (int k = s.nextSetBit(j+1); k >= 0; k = s.nextSetBit(k+1)) {
+                        GLRTerminal tk = (GLRTerminal) terminals.get(k);
 
-                    if (Report.should_report(EQUIVTOPICS, 5))
-                        Report.report(5, "k=" + tk + ": partition " + i + " = " + P(partitions[i]));
+                        if (Report.should_report(EQUIVTOPICS, 5))
+                            Report.report(5, "k=" + tk + ": partition " + i + " = " + P(partitions[i]));
 
-                    if (rulesMap[j].size() != rulesMap[k].size()) {
-                        s.clear(k);
-                        next.set(k);
-                        partitionMap[k] = numPartitions;
-                        continue K;
-                    }
-
-                    for (Iterator<GLRNormalRule> hj = rulesMap[j].iterator(); hj.hasNext(); ) {
-                        GLRNormalRule rj = hj.next();
-
-                        // Look for a matching rule.
-                        boolean match = true;
-
-MATCH:
-                        for (Iterator<GLRNormalRule> hk = rulesMap[k].iterator(); hk.hasNext(); ) {
-                            GLRNormalRule rk = hk.next();
-                            
-                            if (rj.kind() != rk.kind()) {
-                                if (Report.should_report(EQUIVTOPICS, 5))
-                                    Report.report(5, "  no match 2: " + rj + " and " + rk);
-                                match = false;
-                                break MATCH;
-                            }
-
-                            if (rj.lhs != rk.lhs) {
-                                if (Report.should_report(EQUIVTOPICS, 5))
-                                    Report.report(5, "  no match 2: " + rj + " and " + rk);
-                                match = false;
-                                break MATCH;
-                            }
-
-                            if (rj.symbols().size() != rk.symbols().size()) {
-                                if (Report.should_report(EQUIVTOPICS, 5))
-                                    Report.report(5, "  no match 1: " + rj + " and " + rk);
-                                match = false;
-                                break MATCH;
-                            }
-
-                            Iterator<GLRSymbol> ij = rj.symbols().iterator();
-                            Iterator<GLRSymbol> ik = rk.symbols().iterator();
-
-                            while (ij.hasNext()) {
-                                GLRSymbol Xj = (GLRSymbol) ij.next();
-                                GLRSymbol Xk = (GLRSymbol) ik.next();
-
-                                if (Xj.equals(Xk)) {
-                                    continue;
-                                }
-
-                                if (Xj instanceof GLRNonterminal ||
-                                        Xk instanceof GLRNonterminal) {
-
-                                    if (Report.should_report(EQUIVTOPICS, 5))
-                                        Report.report(5, "  no match 3: " + rj + " and " + rk + " (" + Xj + "!=" + Xk + ")");
-
-                                    match = false;
-                                    break MATCH;
-                                }
-
-                                GLRTerminal sj = (GLRTerminal) tj;
-                                GLRTerminal sk = (GLRTerminal) tk;
-
-                                if (partitionMap[sj.index()] != 
-                                    partitionMap[sk.index()]) {
-
-                                    if (Report.should_report(EQUIVTOPICS, 5))
-                                        Report.report(5, "  no match 4: " + rj + " and " + rk + " (" + sj + "!~" + sk + ")");
-
-                                    match = false;
-                                    break MATCH;
-                                }
-                            }
-
-                            if (Report.should_report(EQUIVTOPICS, 5))
-                                Report.report(5, rj + " matches " + rk);
-                        }
-
-                        if (! match) {
+                        if (rulesMap[j].size() != rulesMap[k].size()) {
                             s.clear(k);
                             next.set(k);
                             partitionMap[k] = numPartitions;
-                            if (Report.should_report(EQUIVTOPICS, 5))
-                                Report.report(5, rj + " does not match any of " + rulesMap[k]);
                             continue K;
                         }
+
+                        for (Iterator<GLRRule> hj = rulesMap[j].iterator(); hj.hasNext(); ) {
+                            GLRRule rj = hj.next();
+
+                            // Look for a matching rule.
+                            boolean match = true;
+
+                            MATCH:
+                                for (Iterator<GLRRule> hk = rulesMap[k].iterator(); hk.hasNext(); ) {
+                                    GLRRule rk = hk.next();
+
+                                    if (rj.lhs != rk.lhs) {
+                                        if (Report.should_report(EQUIVTOPICS, 5))
+                                            Report.report(5, "  no match 2: " + rj + " and " + rk);
+                                        match = false;
+                                        break MATCH;
+                                    }
+
+                                    if (rj.symbols().size() != rk.symbols().size()) {
+                                        if (Report.should_report(EQUIVTOPICS, 5))
+                                            Report.report(5, "  no match 1: " + rj + " and " + rk);
+                                        match = false;
+                                        break MATCH;
+                                    }
+
+                                    Iterator<GLRSymbol> ij = rj.symbols().iterator();
+                                    Iterator<GLRSymbol> ik = rk.symbols().iterator();
+
+                                    while (ij.hasNext()) {
+                                        GLRSymbol Xj = (GLRSymbol) ij.next();
+                                        GLRSymbol Xk = (GLRSymbol) ik.next();
+
+                                        if (Xj.equals(Xk)) {
+                                            continue;
+                                        }
+
+                                        if (Xj instanceof GLRNonterminal ||
+                                                Xk instanceof GLRNonterminal) {
+
+                                            if (Report.should_report(EQUIVTOPICS, 5))
+                                                Report.report(5, "  no match 3: " + rj + " and " + rk + " (" + Xj + "!=" + Xk + ")");
+
+                                            match = false;
+                                            break MATCH;
+                                        }
+
+                                        GLRTerminal sj = (GLRTerminal) tj;
+                                        GLRTerminal sk = (GLRTerminal) tk;
+
+                                        if (partitionMap[sj.index()] != 
+                                            partitionMap[sk.index()]) {
+
+                                            if (Report.should_report(EQUIVTOPICS, 5))
+                                                Report.report(5, "  no match 4: " + rj + " and " + rk + " (" + sj + "!~" + sk + ")");
+
+                                            match = false;
+                                            break MATCH;
+                                        }
+                                    }
+
+                                    if (Report.should_report(EQUIVTOPICS, 5))
+                                        Report.report(5, rj + " matches " + rk);
+                                }
+
+                            if (! match) {
+                                s.clear(k);
+                                next.set(k);
+                                partitionMap[k] = numPartitions;
+                                if (Report.should_report(EQUIVTOPICS, 5))
+                                    Report.report(5, rj + " does not match any of " + rulesMap[k]);
+                                continue K;
+                            }
+                        }
                     }
-                }
             }
 
             if (! next.isEmpty()) {
@@ -637,6 +640,62 @@ MATCH:
         }
 
         return (GLRTerminal) terminals.get(terminalClasses.find(A.index()));
+    }
+
+    @Deprecated
+    void removeUnitRules() {
+// Broken
+        if (true)
+            return;
+        
+        int[] map = new int[this.nonterminals.size()];
+        Arrays.fill(map, -1);
+        for (GLRNonterminal A : this.nonterminals) {
+            if (A.rules.size() == 1) {
+                GLRRule rule = A.rules.get(0);
+                if (rule.rhs.size() == 1 && rule.rhs.get(0) instanceof GLRNonterminal) {
+                    GLRNonterminal B = (GLRNonterminal) rule.rhs.get(0);
+                    if (B.kind == GLRNonterminal.Kind.NORMAL) {
+                        // A ::= B
+                        // Replace occurrences of A with B
+                        System.out.println("replace " + A + " with " + B);
+                        map[A.index] = B.index; 
+                    }
+                }
+            }
+        }
+        
+        // Keep the start symbols.
+        for (GLRNonterminal A : startSymbols) {
+            map[A.index] = -1;
+        }
+        
+        for (GLRRule rule : this.rules) {
+            if (map[rule.lhs.index] != -1) {
+                rule.lhs = this.nonterminals.get(map[rule.lhs.index]);
+            }
+            
+            List<GLRSymbol> Xs = new ArrayList<GLRSymbol>();
+            
+            for (GLRSymbol X : rule.rhs) {
+                if (X instanceof GLRNonterminal) {
+                    GLRNonterminal A = (GLRNonterminal) X;
+                    GLRNonterminal B = A;
+                    while (map[B.index] != -1) {
+                        B = this.nonterminals.get(map[B.index]);
+                    }
+                    Xs.add(B);
+                }
+                else {
+                    Xs.add(X);
+                }
+            }
+        }
+
+//        for (GLRRule r : this.rules) {
+//            if (map[r.lhs.index] != -1)
+//                r.rhs = Collections.EMPTY_LIST;
+//        }
     }
 
     void removeUnreachableSymbols() {
@@ -689,10 +748,10 @@ MATCH:
 
         // Remove unreachable rules.
         {
-            List<GLRNormalRule> l = new ArrayList<GLRNormalRule>(this.rules.size()); 
+            List<GLRRule> l = new ArrayList<GLRRule>(this.rules.size()); 
 
             for (int i = 0; i < this.rules.size(); i++) {
-                GLRNormalRule r = this.rules.get(i);
+                GLRRule r = this.rules.get(i);
                 if (r.lhs.index() != -1) {
                     r.index = l.size();
                     l.add(r);
@@ -713,8 +772,8 @@ MATCH:
 
         reachableNonterms.set(A.index());
 
-        for (Iterator<GLRNormalRule> i = A.rules().iterator(); i.hasNext(); ) {
-            GLRNormalRule r = i.next();
+        for (Iterator<GLRRule> i = A.rules().iterator(); i.hasNext(); ) {
+            GLRRule r = i.next();
             for (Iterator<GLRSymbol> j = r.symbols().iterator(); j.hasNext(); ) {
                 GLRSymbol X = j.next();
                 if (X instanceof GLRNonterminal) {

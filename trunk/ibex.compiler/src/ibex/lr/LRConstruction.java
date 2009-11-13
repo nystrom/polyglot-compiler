@@ -1,5 +1,7 @@
 package ibex.lr;
 
+import ibex.lr.GLRNonterminal.Kind;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,9 +18,10 @@ import polyglot.main.Report;
 import polyglot.util.InternalCompilerError;
 
 public class LRConstruction {
-    final static boolean LALR = false;
+    final static boolean LALR = true;
 
     Grammar g;
+    GLR glr;
 
     int[][] gotoTable;
     Set<Action>[][] actionTable;
@@ -39,8 +42,9 @@ public class LRConstruction {
     Map<Set<Item>, State> stateCache;
     boolean allowNewStates = true;
 
-    public LRConstruction(Grammar g) {
-        this.g = g;
+    public LRConstruction(GLR glr) {
+        this.glr = glr;
+        this.g = glr.g;
 
         allowNewStates = true;
 
@@ -75,13 +79,21 @@ public class LRConstruction {
 
         for (GLRNonterminal s : g.startSymbols()) {
             for (GLRRule r : s.rules()) {
-                if (r instanceof GLRNormalRule) {
-                    // Create a state for the start item.
-                    // As a side effect, it is added to the states set.
-                    State I = startState((GLRNormalRule) r);
-                    startStatesMap[s.index()] = I;
-                    startStates.add(I);
-                }
+                // Create a state for the start item.
+                // As a side effect, it is added to the states set.
+                State I = startState((GLRRule) r);
+                startStatesMap[s.index()] = I;
+                startStates.add(I);
+            }
+        }
+        
+        for (GLRRule r : g.rules()) {
+            if (r.lhs.kind != Kind.NORMAL) {
+                // Create a state for the lookahead rule.
+                // As a side effect, it is added to the states set.
+                State I = lookaheadStartState((GLRRule) r);
+                startStatesMap[r.lhs.index()] = I;
+                startStates.add(I);
             }
         }
     }
@@ -99,7 +111,7 @@ public class LRConstruction {
 
             for (Item item : I.items()) {
                 GLRSymbol X = item.afterDot();
-
+                
                 // create a (possibly) new state
                 State J = createGotoOrShiftState(I, X, statesWorklist);
 
@@ -160,10 +172,21 @@ public class LRConstruction {
                 GLRSymbol X = item.afterDot();
 
                 if (X == null) {
-                    if (item.lookahead != null)
+                    if (item.rule.lhs().kind != Kind.NORMAL) {
+                        for (GLRTerminal t : g.terminals) {
+                            addAction(I, t, new Accept(item.rule.lhs()));
+                        }
+                    }
+                    else if (item.lookahead != null) {
                         for (GLRTerminal t : item.lookahead) {
                             addAction(I, t, new Reduce(item.rule));
                         }
+                    }
+                    else {
+                        for (GLRTerminal t : g.terminals) {
+                            addAction(I, t, new Reduce(item.rule));
+                        }
+                    }
                 }
                 else if (X.equals(g.eofSymbol())) {
                     addAction(I, g.eofSymbol(), new Accept(item.rule.lhs()));
@@ -179,10 +202,18 @@ public class LRConstruction {
                     // states list and we'll process it soon
 
                     if (X instanceof GLRNonterminal) {
-                        setGoto(I, (GLRNonterminal) X, J);
+                        GLRNonterminal A = (GLRNonterminal) X;
+                        if (A.kind == Kind.POS)
+                            for (GLRTerminal t : g.terminals())
+                                addAction(I, t, new Lookahead(A.rules.get(0), false));
+                        if (A.kind == Kind.NEG)
+                            for (GLRTerminal t : g.terminals())
+                                addAction(I, t, new Lookahead(A.rules.get(0), true));
+                        setGoto(I, A, J);
                     }
-                    else {
-                        addAction(I, (GLRTerminal) X, new Shift(J, (GLRTerminal) X));
+                    else if (X instanceof GLRTerminal) {
+                        GLRTerminal x = (GLRTerminal) X;
+                        addAction(I, x, new Shift(J, x));
                     }
                 }
             }
@@ -224,7 +255,7 @@ public class LRConstruction {
                 GLRTerminal ti = si.terminal;
 
                 for (Action aj : c) {
-                    GLRNormalRule rule = null;
+                    GLRRule rule = null;
 
                     if (aj instanceof Reduce) {
                         // shift-reduce
@@ -238,7 +269,7 @@ public class LRConstruction {
                         if (A.rules().size() != 1) {
                             throw new InternalCompilerError("Start symbol " + A + " should have exactly 1 rule.");
                         }
-                        rule = (GLRNormalRule) A.rules().get(0);
+                        rule = (GLRRule) A.rules().get(0);
                     }
 
                     // if (rule != null) {
@@ -274,7 +305,7 @@ public class LRConstruction {
             }
             else if (a instanceof Reduce) {
                 Reduce ri = (Reduce) a;
-                GLRNormalRule rule = ri.rule;
+                GLRRule rule = ri.rule;
 
                 for (Action aj : c) {
                     if (aj instanceof Shift) {
@@ -404,7 +435,7 @@ public class LRConstruction {
         System.out.println();
 
         for (int i = 0; i < g.rules().size(); i++) {
-            GLRNormalRule t = (GLRNormalRule) g.rules().get(i);
+            GLRRule t = (GLRRule) g.rules().get(i);
             System.out.println("Rule " + t);
         }
         System.out.println();
@@ -450,12 +481,19 @@ public class LRConstruction {
         return X.index();
     }
 
-    Item startItem(GLRNormalRule rule) {
+    Item startItem(GLRRule rule) {
         return new Item(rule, 0, Collections.EMPTY_SET);
     }
+    
+    Item lookaheadStartItem(GLRRule rule) {
+        return new Item(rule, 0, new HashSet(g.terminals));
+    }
 
-    State startState(GLRNormalRule rule) {
+    State startState(GLRRule rule) {
         return closure(Collections.singleton(startItem(rule)), null);
+    }
+    State lookaheadStartState(GLRRule rule) {
+        return closure(Collections.singleton(lookaheadStartItem(rule)), null);
     }
 
     State createStateForItemSet(Set<Item> items, List<State> statesWorklist) {
@@ -519,19 +557,25 @@ public class LRConstruction {
             // item == (A -> alpha . X beta, z)
             GLRSymbol X = item.afterDot();
 
-            List<GLRSymbol> beta = new ArrayList<GLRSymbol>();
-
-            if (item.dot < item.rule.rhs().size()) {
-                beta.addAll(item.rule.rhs().subList(item.dot + 1, item.rule.rhs().size()));
-            }
-
-            Set<GLRTerminal> first = first(beta, item.lookahead);
-
             if (X instanceof GLRNonterminal) {
-                // item == (A -> alpha . X beta, z)
-                List<GLRNormalRule> rules = ((GLRNonterminal) X).rules();
+                GLRNonterminal A = (GLRNonterminal) X;
+                
+                // Don't add lookahead rules to the closure.
+                if (A.kind != Kind.NORMAL)
+                    continue;
+                
+                List<GLRSymbol> beta = new ArrayList<GLRSymbol>();
 
-                for (GLRNormalRule r : rules) {
+                if (item.dot < item.rule.rhs().size()) {
+                    beta.addAll(item.rule.rhs().subList(item.dot + 1, item.rule.rhs().size()));
+                }
+
+                Set<GLRTerminal> first = first(beta, item.lookahead);
+
+                // item == (A -> alpha . X beta, z)
+                List<GLRRule> rules = A.rules();
+
+                for (GLRRule r : rules) {
                     // r == X -> gamma
                     boolean changed = false;
                     boolean found = false;
@@ -540,6 +584,7 @@ public class LRConstruction {
 
                     for (Iterator<Item> k = closure.iterator(); k.hasNext();) {
                         Item ritem = (Item) k.next();
+                        
                         if (ritem.rule == r && ritem.dot == 0) {
                             found = true;
                             if (LRConstruction.LALR)
@@ -558,7 +603,7 @@ public class LRConstruction {
                     }
 
                     if (!found) {
-                        Item ritem = new Item((GLRNormalRule) r, 0, first);
+                        Item ritem = new Item((GLRRule) r, 0, first);
                         closure.add(ritem);
                         worklist.add(ritem);
                     }

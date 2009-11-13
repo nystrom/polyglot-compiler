@@ -20,13 +20,14 @@ public class GLRDriver implements Cloneable {
     public static final int DEBUG_ENQUEUE = 16;
     public static final int DEBUG_ACCEPT = 32;
 
-    public static int DEBUG = DEBUG_LOOP | DEBUG_SHIFT | DEBUG_REDUCE | DEBUG_ACTIONS;
+    public static int DEBUG = DEBUG_LOOP | DEBUG_SHIFT | DEBUG_REDUCE | DEBUG_ACTIONS | DEBUG_ACCEPT;
 
     public static boolean USE_FAST_PATH = true;
     public static boolean DO_ERROR_RECOVERY = true;
     public static final int REPAIR_STRING_LENGTH = 4;
     public static final int ERROR_LOOKAHEAD = REPAIR_STRING_LENGTH * 2;
 
+    boolean lookahead;
 
     ParserImpl parser;
 
@@ -43,7 +44,7 @@ public class GLRDriver implements Cloneable {
     public GLRDriver clone() {
         try {
             GLRDriver d = (GLRDriver) super.clone();
-            d.topmost = (ArrayList<Node>) topmost.clone();
+            d.topmost = null;
             d.seen = null;
             return d;
         }
@@ -79,12 +80,17 @@ public class GLRDriver implements Cloneable {
             input = ts.toArray(new Terminal[ts.size()]);
         }
 
-        Terminal t = input[inputScan];
-        if (t instanceof ExceptionTerminal) {
-            throw ((ExceptionTerminal) t).exception();
+        if (inputScan < input.length) {
+            Terminal t = input[inputScan];
+            if (t instanceof ExceptionTerminal) {
+                throw ((ExceptionTerminal) t).exception();
+            }
+            inputScan++;
+            return t;
         }
-        inputScan++;
-        return t;
+        else {
+            return eof;
+        }
     }
 
     private Terminal scan() throws IOException {
@@ -118,12 +124,13 @@ public class GLRDriver implements Cloneable {
      * of the list of conflicting actions.
      */
     public static final int OVERFLOW = 4;
-    
+
     /**
      * Tag used in the action table to indicate a lookahead action.
      * The entry contains contains the start state of the lookahead.
      */
-    public static final int LOOKAHEAD = 5;
+    public static final int POS_LOOKAHEAD = 5;
+    public static final int NEG_LOOKAHEAD = 6;
 
     /**
      * The lookahead table.
@@ -133,7 +140,7 @@ public class GLRDriver implements Cloneable {
      * If 1, the lookahead should succeed.
      */
     int[] lookaheadTable;
-    
+
     /**
      * The LR action table.
      * Indexed by parser state and by a terminal index.
@@ -182,7 +189,18 @@ public class GLRDriver implements Cloneable {
     ArrayList<Node> topmost;
 
     /** A node in the graph-structured stack (GSS) */
-    protected static class Node {
+    protected static class Node implements Cloneable {
+        public Node clone() {
+            try {
+                Node n = (Node) super.clone();
+                n.out = out != null ? out.clone() : null;
+                return n;
+            }
+            catch (CloneNotSupportedException e) {
+                assert false;
+                return null;
+            }
+        }
         /** The state the node represents. */
         int state;
 
@@ -222,11 +240,24 @@ public class GLRDriver implements Cloneable {
      * All links in the chain represent a set of LR states the parser
      * could be in.
      */
-    protected static class Link {
+    protected static class Link implements Cloneable {
         Node bottom; // pointer down the stack
         Action semAction; // the semantic action associated with the link
         Link next;   // a sibling link, or null
         int span;
+
+        public Link clone() {
+            try {
+                Link n = (Link) super.clone();
+                n.bottom = bottom != null ? bottom.clone() : null;
+                n.next = next != null ? next.clone() : null;
+                return n;
+            }
+            catch (CloneNotSupportedException e) {
+                assert false;
+                return null;
+            }
+        }
 
         Link(Node bottom, Node top, Action semAction, int span) {
             this.bottom = bottom;
@@ -415,7 +446,7 @@ public class GLRDriver implements Cloneable {
     String p(Terminal[] a) {
         return p(Arrays.asList(a));
     }
-    
+
     private static class BitSet {
         int[] x;
         int size;
@@ -429,7 +460,7 @@ public class GLRDriver implements Cloneable {
             int p = Arrays.binarySearch(x, v);
             if (p >= 0)
                 return;
-            
+
             // find the insertion point
             int z = -(p+1);
 
@@ -607,7 +638,7 @@ public class GLRDriver implements Cloneable {
             return;
         }
 
-        actionMap = new int[actionTable.length][actionTable[0].length];
+        actionMap = new int[actionTable.length][actionTable[0].length+1];
 
         for (int i = 0; i < actionTable.length; i++) {
             int j = 0;
@@ -756,157 +787,162 @@ public class GLRDriver implements Cloneable {
 
         eof = new EOF(parser.eofSymbol());
 
-        SCAN:
-            while (! accept && ! fatalError) {
-                Terminal t;
+        SCAN: while (! accept && ! fatalError) {
+            Terminal t;
 
-                try {
-                    t = scan();
-                }
-                catch (EOFException e) {
-                    t = eof;
-                }
-
-                if (error && t.symbol() == eof.symbol()) {
-                    fatalError = true;
-                }
-
-                CHURN:
-                    while (! accept) {
-                        if ((DEBUG & DEBUG_LOOP) != 0) {
-                            System.out.println("------------------------");
-                            System.out.println("scan: " + t + " (" + t.symbol() + ")");
-                            System.out.println("topmost: " + topmost);
-                        }
-
-                        // Do LR(1) parsing if it will be deterministic.
-                        if (USE_FAST_PATH && topmost.size() == 1) {
-                            Node n = (Node) topmost.get(0);
-                            int e = actionTable[n.state][t.symbol()];
-                            int action = action(e);
-
-                            SWITCH:
-                                switch (action) {
-                                case ERROR:
-                                    error(n, t);
-                                    continue SCAN;
-                                case SHIFT: {
-                                    int dest = actionData(e);
-
-                                    if (repairLength > 0) {
-                                        repairLength--;
-                                    }
-
-                                    if ((DEBUG & DEBUG_LOOP) != 0) {
-                                        System.out.println("shift " + t + " to " + dest);
-                                    }
-
-                                    Node topSib = new Node(dest, -1);
-
-                                    // insert topSib into topmost;
-                                    // push topSib onto stack
-                                    addLink(n, topSib, new TerminalAction(t), 1);
-                                    topmost.set(0, topSib);
-                                    continue SCAN;
-                                }
-                                case REDUCE: {
-                                    int rule = actionData(e);
-                                    int lhs = ruleLhsIndex(ruleTable[rule]);
-                                    int rhsLength = ruleRhsLength(ruleTable[rule]);
-
-                                    // Check if this is a merge rule.  If so, fall through to the slow case.
-                                    int mergeEntry = mergeTable[rule];
-                                    if (mergeEntry != 0)
-                                        break SWITCH;
-
-                                    if (n.depth >= rhsLength) {
-                                        // the reduce is deterministic
-
-                                        Action[] semAction = new Action[rhsLength];
-
-                                        // walk the stack, building the array of
-                                        // children for the semantic action node
-                                        Node current = n;
-                                        int span = 0;
-
-                                        for (int i = 0; i < rhsLength; i++) {
-                                            Link l = current.out;
-                                            semAction[rhsLength-i-1] = l.semAction;
-                                            current = l.bottom;
-                                            span += l.span;
-                                        }
-
-                                        // create a semantic action node.
-                                        SemanticAction v = new SemanticAction(rule, semAction);
-
-                                        // current now points to the new top of stack
-
-                                        int nextState = gotoTable[current.state][lhs];
-
-                                        if ((DEBUG & DEBUG_LOOP) != 0) {
-                                            System.out.println("reduce with rule " + rule);
-                                            System.out.println("        and goto " + nextState);
-                                        }
-
-                                        Node newTop = new Node(nextState, rule);
-
-                                        // discard
-                                        if (current != n) current.refcount--;
-                                        topmost.remove(0);
-                                        topmost.add(newTop);
-
-                                        addLink(current, newTop, v, span);
-
-                                        // resume at the next token
-                                        continue CHURN;
-                                    }
-                                    else {
-                                        // nondeterministic reduce; break to the GLR code
-                                        break SWITCH;
-                                    }
-                                }
-                                case LOOKAHEAD: {
-                                    break SWITCH;
-                                }
-                                case OVERFLOW:
-                                    if ((DEBUG & DEBUG_LOOP) != 0) {
-                                        System.out.println("overflow!");
-                                    }
-                                    // let the GLR code handle it.
-                                    break SWITCH;
-                                case ACCEPT:
-                                    // let the GLR code handle it.
-                                    break SWITCH;
-                                }
-                        }
-
-                        if ((DEBUG & DEBUG_LOOP) != 0) {
-                            System.out.println("doing GLR parse");
-                            System.out.println("before R topmost = " + topmost);
-                        }
-                        
-                        doLookaheads(t);
-                        
-                        // Couldn't do LR(1) parsing.  Do GLR parsing.
-                        doReductions(t);
-
-                        if ((DEBUG & DEBUG_LOOP) != 0) {
-                            System.out.println("before S topmost = " + topmost);
-                        }
-
-                        accept = doAccepts(t, startSym);
-
-                        if (! accept) {
-                            doShifts(t);
-                        }
-
-                        if ((DEBUG & DEBUG_LOOP) != 0) {
-                            System.out.println("after S topmost = " + topmost);
-                        }
-
-                        break CHURN;
-                    }
+            try {
+                t = scan();
             }
+            catch (EOFException e) {
+                t = eof;
+            }
+
+            if (error && t.symbol() == eof.symbol()) {
+                fatalError = true;
+            }
+
+            CHURN: while (! accept) {
+                if ((DEBUG & DEBUG_LOOP) != 0) {
+                    System.out.println("------------------------");
+                    System.out.println("scan: " + t + " (" + t.symbol() + ")");
+                    System.out.println("topmost: " + topmost);
+                }
+
+                // Do LR(1) parsing if it will be deterministic.
+                if (USE_FAST_PATH && topmost.size() == 1) {
+                    Node n = (Node) topmost.get(0);
+                    int e = actionTable[n.state][t.symbol()];
+                    int action = action(e);
+
+                    SWITCH: switch (action) {
+                    case ERROR:
+                        if (lookahead)
+                            throw new IOException();
+                        error(n, t);
+                        continue SCAN;
+                    case SHIFT: {
+                        int dest = actionData(e);
+
+                        if (repairLength > 0) {
+                            repairLength--;
+                        }
+
+                        if ((DEBUG & DEBUG_LOOP) != 0) {
+                            System.out.println("shift " + t + " to " + dest);
+                        }
+
+                        Node topSib = new Node(dest, -1);
+
+                        // insert topSib into topmost;
+                        // push topSib onto stack
+                        addLink(n, topSib, new TerminalAction(t), 1);
+                        topmost.set(0, topSib);
+                        continue SCAN;
+                    }
+                    case REDUCE: {
+                        int rule = actionData(e);
+                        int lhs = ruleLhsIndex(ruleTable[rule]);
+                        int rhsLength = ruleRhsLength(ruleTable[rule]);
+
+                        // Check if this is a merge rule.  If so, fall through to the slow case.
+                        int mergeEntry = mergeTable[rule];
+                        if (mergeEntry != 0)
+                            break SWITCH;
+
+                        if (n.depth >= rhsLength) {
+                            // the reduce is deterministic
+
+                            Action[] semAction = new Action[rhsLength];
+
+                            // walk the stack, building the array of
+                            // children for the semantic action node
+                            Node current = n;
+                            int span = 0;
+
+                            for (int i = 0; i < rhsLength; i++) {
+                                Link l = current.out;
+                                semAction[rhsLength-i-1] = l.semAction;
+                                current = l.bottom;
+                                span += l.span;
+                            }
+
+                            // create a semantic action node.
+                            SemanticAction v = new SemanticAction(rule, semAction);
+
+                            // current now points to the new top of stack
+
+                            int nextState = gotoTable[current.state][lhs];
+
+                            if ((DEBUG & DEBUG_LOOP) != 0) {
+                                System.out.println("reduce with rule " + rule);
+                                System.out.println("        and goto " + nextState);
+                            }
+
+                            Node newTop = new Node(nextState, rule);
+
+                            // discard
+                            if (current != n) current.refcount--;
+                            topmost.remove(0);
+                            topmost.add(newTop);
+
+                            addLink(current, newTop, v, span);
+
+                            // resume at the next token
+                            continue CHURN;
+                        }
+                        else {
+                            // nondeterministic reduce; break to the GLR code
+                            break SWITCH;
+                        }
+                    }
+                    case POS_LOOKAHEAD: {
+                        break SWITCH;
+                    }
+                    case NEG_LOOKAHEAD: {
+                        break SWITCH;
+                    }
+                    case OVERFLOW:
+                        if ((DEBUG & DEBUG_LOOP) != 0) {
+                            System.out.println("overflow!");
+                        }
+                        // let the GLR code handle it.
+                        break SWITCH;
+                    case ACCEPT:
+                        // let the GLR code handle it.
+                        break SWITCH;
+                    }
+                }
+
+                if ((DEBUG & DEBUG_LOOP) != 0) {
+                    System.out.println("doing GLR parse");
+                    System.out.println("before R topmost = " + topmost);
+                }
+
+                doLookaheads(t);
+
+                // Couldn't do LR(1) parsing.  Do GLR parsing.
+                doReductions(t);
+
+                if ((DEBUG & DEBUG_LOOP) != 0) {
+                    System.out.println("before S topmost = " + topmost);
+                }
+
+                accept = doAccepts(t, startSym);
+
+                if (! accept) {
+                    doShifts(t);
+                }
+
+                if (topmost.isEmpty())
+                    error = true;
+
+                if ((DEBUG & DEBUG_LOOP) != 0) {
+                    System.out.println("after S topmost = " + topmost);
+                }
+
+                break CHURN;
+            }
+        }
 
         if (! error && ! topmost.isEmpty()) {
             // Only nodes in an accepting state should be in topmost.
@@ -929,53 +965,105 @@ public class GLRDriver implements Cloneable {
 
         return null;
     }
-    
+
     private void doLookaheads(Terminal t) {
+        List<Node> prevTops = new ArrayList<Node>(topmost);
+        
         for (Iterator<Node> j = topmost.iterator(); j.hasNext(); ) {
             Node n = (Node) j.next();
 
             int entry = actionTable[n.state][t.symbol()];
             int action = action(entry);
-            
-            if (action == LOOKAHEAD) {
+            boolean remove = false;
+
+            if (action == POS_LOOKAHEAD) {
                 int rule = actionData(entry);
                 if (! doLookahead(rule))
-                    j.remove();
+                    remove = true;
+            }
+            if (action == NEG_LOOKAHEAD) {
+                int rule = actionData(entry);
+                if (doLookahead(rule))
+                    remove = true;
             }
             if (action == OVERFLOW) {
                 int start = actionData(entry);
-                
+
                 // get the number of actions in this string of actions.
-                int length = overflowTable[start];
+                int count = overflowTable[start];
 
-                int count = 0;
-
-                for (int i = 0; i < length; i++) {
+                for (int i = 0; i < count; i++) {
                     entry = overflowTable[start+1+i];
                     action = action(entry);
-                    if (action == LOOKAHEAD) {
+                    if (action == POS_LOOKAHEAD) {
                         int rule = actionData(entry);
                         if (! doLookahead(rule))
-                            j.remove();
+                            remove = true;
+                    }
+                    if (action == NEG_LOOKAHEAD) {
+                        int rule = actionData(entry);
+                        if (doLookahead(rule))
+                            remove = true;
                     }
                 }
             }
+            
+            if (remove) {
+                if ((DEBUG & DEBUG_LOOP) != 0) {
+                    System.out.println("Lookahead failed: Removing state " + n.state + " from topmost");
+                }
+
+                j.remove();
+            }
+            else {
+                if ((DEBUG & DEBUG_LOOP) != 0) {
+                    System.out.println("Lookahead as expected: Keeping state " + n.state + " in topmost");
+                }
+            }
+        }
+        
+        // Error handling.
+        if (topmost.isEmpty()) {
+            if (lookahead) {
+                error = true;
+                fatalError = true;
+                return;
+            }
+            for (Iterator<Node> i = prevTops.iterator(); i.hasNext(); ) {
+                Node current = (Node) i.next();
+                error(current, t);
+                return;
+            }
         }
     }
-    
+
     private boolean doLookahead(int rule) {
         int startSym = ruleLhsIndex(ruleTable[rule]);
-        int startState = lookaheadTable[rule] >>> 1;
-        boolean accept = (lookaheadTable[rule] & 1) != 0;
-        boolean doGoto;
-        
+        int startState = lookaheadTable[rule];
+
+        if ((DEBUG & DEBUG_LOOP) != 0) {
+            System.out.println("Lookahead with rule #" + rule);
+            System.out.println("   start sym = " + startSym);
+            System.out.println("   start state = " + startState);
+        }
+
         GLRDriver d = clone();
+        d.inputScan--;
+        d.lookahead = true;
         try {
             Object o = d.parse(startState, startSym);
-            return accept;
+
+            if ((DEBUG & DEBUG_LOOP) != 0) {
+                System.out.println("Successful lookahead with rule #" + rule);
+            }
+
+            return true;
         }
         catch (IOException ex) {
-            return ! accept;
+            if ((DEBUG & DEBUG_LOOP) != 0) {
+                System.out.println("Failed lookahead with rule #" + rule);
+            }
+            return false;
         }
     }
 
@@ -1281,7 +1369,7 @@ public class GLRDriver implements Cloneable {
         String[] t = parser.encodedMergeTable();
         return (int[]) new Decoder().decode(t);
     }
-    
+
     private int[] decodeLookaheadTable() {
         String[] t = parser.encodedLookaheadTable();
         return (int[]) new Decoder().decode(t);
@@ -1518,60 +1606,64 @@ public class GLRDriver implements Cloneable {
 
         TerminalAction termAction = new TerminalAction(t);
 
-        TOPMOST:
-            for (Iterator<Node> i = prevTops.iterator(); i.hasNext(); ) {
-                Node current = (Node) i.next();
+        TOPMOST: for (Iterator<Node> i = prevTops.iterator(); i.hasNext(); ) {
+            Node current = (Node) i.next();
 
+            if ((DEBUG & DEBUG_SHIFT) != 0) {
+                System.out.println("in state " + current.state);
+            }
+
+            int dest = shift(current, t);
+
+            if (dest == -1) {
                 if ((DEBUG & DEBUG_SHIFT) != 0) {
-                    System.out.println("in state " + current.state);
+                    System.out.println("not shifting " + t);
                 }
 
-                int dest = shift(current, t);
+                // error(current, t);
+                continue TOPMOST;
+            }
 
-                if (dest == -1) {
-                    if ((DEBUG & DEBUG_SHIFT) != 0) {
-                        System.out.println("not shifting " + t);
-                    }
+            if (repairLength > 0) {
+                repairLength--;
+            }
 
-                    // error(current, t);
+            if ((DEBUG & DEBUG_SHIFT) != 0) {
+                System.out.println("shifting " + t + " to " + dest);
+            }
+
+            // check if there is an existing node topSib in topmost with
+            // state dest
+            for (Iterator<Node> j = topmost.iterator(); j.hasNext(); ) {
+                Node topSib = (Node) j.next();
+
+                if (topSib.state == dest) {
+                    // add another link, then continue with the next
+                    // element of topmost
+                    addLink(current, topSib, termAction, 1);
                     continue TOPMOST;
                 }
-
-                if (repairLength > 0) {
-                    repairLength--;
-                }
-
-                if ((DEBUG & DEBUG_SHIFT) != 0) {
-                    System.out.println("shifting " + t + " to " + dest);
-                }
-
-                // check if there is an existing node topSib in topmost with
-                // state dest
-                for (Iterator<Node> j = topmost.iterator(); j.hasNext(); ) {
-                    Node topSib = (Node) j.next();
-
-                    if (topSib.state == dest) {
-                        // add another link, then continue with the next
-                        // element of topmost
-                        addLink(current, topSib, termAction, 1);
-                        continue TOPMOST;
-                    }
-                }
-
-                // no such node; create one and add to topmost
-                Node topSib = new Node(dest, -1);
-                topmost.add(topSib);
-
-                // push topSib onto stack
-                addLink(current, topSib, termAction, 1);
             }
+
+            // no such node; create one and add to topmost
+            Node topSib = new Node(dest, -1);
+            topmost.add(topSib);
+
+            // push topSib onto stack
+            addLink(current, topSib, termAction, 1);
+        }
 
         // Error handling.
         if (topmost.isEmpty()) {
+            if (lookahead) {
+                error = true;
+                fatalError = true;
+                return;
+            }
             for (Iterator<Node> i = prevTops.iterator(); i.hasNext(); ) {
                 Node current = (Node) i.next();
                 error(current, t);
-                break;
+                return;
             }
         }
     }

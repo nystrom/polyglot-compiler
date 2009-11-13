@@ -1,9 +1,9 @@
 package ibex.lr;
 
 class Reduce extends Action {
-    GLRNormalRule rule;
+    GLRRule rule;
 
-    Reduce(GLRNormalRule rule) {
+    Reduce(GLRRule rule) {
         this.rule = rule;
     }
 
