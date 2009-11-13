@@ -1,16 +1,15 @@
 package ibex.lr;
 
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class Item {
-    GLRNormalRule rule;
+    GLRRule rule;
     int dot;
     Set<GLRTerminal> lookahead;
 
-    Item(GLRNormalRule rule, int dot, Set<GLRTerminal> lookahead) {
+    Item(GLRRule rule, int dot, Set<GLRTerminal> lookahead) {
         this.rule = rule;
         this.dot = dot;
         if (lookahead == null || lookahead.isEmpty())

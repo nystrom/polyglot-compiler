@@ -1,10 +1,5 @@
 package ibex.lr;
 
-import ibex.lr.GLRRule.Kind;
-import ibex.types.ByteTerminal;
-import ibex.types.ByteTerminal_c;
-import ibex.types.CharTerminal;
-import ibex.types.CharTerminal_c;
 import ibex.types.IbexClassDef;
 import ibex.types.IbexTypeSystem;
 
@@ -14,15 +9,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import polyglot.ast.ArrayInit;
-import polyglot.ast.Expr;
-import polyglot.ast.IntLit;
 import polyglot.main.Report;
 import polyglot.types.Context;
 import polyglot.types.QName;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
-import polyglot.types.TypeSystem;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 
@@ -89,21 +80,21 @@ public class LREncoding {
 
         outputGotoTable = gotoTable;
 
-        List<GLRNormalRule> rules = g.rules();
+        List<GLRRule> rules = g.rules();
 
         outputRuleTable = new int[rules.size()];
 
         for (int j = 0; j < rules.size(); j++) {
-            GLRNormalRule r = rules.get(j);
+            GLRRule r = rules.get(j);
             outputRuleTable[j] = r.encode();
         }
 
-        List<GLRMergeRule> merges = g.merges();
+        List<GLRMerge> merges = g.merges();
 
         outputMergeTable = new int[rules.size()];
 
         for (int j = 0; j < merges.size(); j++) {
-            GLRMergeRule r = merges.get(j);
+            GLRMerge r = merges.get(j);
             outputMergeTable[r.left.index] = r.encodeLeft();
             outputMergeTable[r.right.index] = r.encodeRight();
             
@@ -111,17 +102,17 @@ public class LREncoding {
             assert (outputMergeTable[r.right.index] >>> 3) == r.left.index;
         }
         
-        outputLookaheadTable = new int[nonterminals.size()];
+        outputLookaheadTable = new int[rules.size()];
 
         for (int j = 0; j < rules.size(); j++) {
-            GLRNormalRule r = rules.get(j);
-            if (r.kind == Kind.POS_LOOKAHEAD) {
-                State s = lrc.startState(r);
-                outputLookaheadTable[r.index] = (s.index << 1) | 1;
+            GLRRule r = rules.get(j);
+            if (r.lhs.kind == GLRNonterminal.Kind.POS) {
+                State s = lrc.lookaheadStartState(r);
+                outputLookaheadTable[r.index] = s.index;
             }
-            if (r.kind == Kind.NEG_LOOKAHEAD) {
-                State s = lrc.startState(r);
-                outputLookaheadTable[r.index] = (s.index << 1) | 0;
+            if (r.lhs.kind == GLRNonterminal.Kind.NEG) {
+                State s = lrc.lookaheadStartState(r);
+                outputLookaheadTable[r.index] = s.index;
             }
         }
         

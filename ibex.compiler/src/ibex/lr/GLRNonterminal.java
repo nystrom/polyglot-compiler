@@ -10,29 +10,34 @@ import java.util.Set;
 import polyglot.types.Name;
 
 class GLRNonterminal extends GLRSymbol {
-    Nonterminal nonterm;
-    List<GLRNormalRule> rules;
-    List<GLRMergeRule> merges;
+    List<GLRRule> rules;
+    List<GLRMerge> merges;
     Set<GLRTerminal> first;
     Set<GLRTerminal> follow;
     boolean nullable;
+    Kind kind;
+    
+    enum Kind { NORMAL, POS, NEG }
 
-    GLRNonterminal(Nonterminal nonterm, Name name, int index) {
+    public GLRNonterminal(Name name, int index) {
+        this(Kind.NORMAL, name, index);
+    }
+    GLRNonterminal(Kind kind, Name name, int index) {
         super(name, index);
-        this.nonterm = nonterm;
-        this.rules = new ArrayList<GLRNormalRule>();
-        this.merges = new ArrayList<GLRMergeRule>();
+        this.kind = kind;
+        this.rules = new ArrayList<GLRRule>();
+        this.merges = new ArrayList<GLRMerge>();
         this.first = new HashSet<GLRTerminal>();
         this.follow = new HashSet<GLRTerminal>();
         this.nullable = false;
     }
 
     GLRNonterminal copy() {
-        return new GLRNonterminal(nonterm, name, index);
+        return new GLRNonterminal(kind, name, index);
     }
 
-    List<GLRNormalRule> rules() { return rules; }
-    List<GLRMergeRule> merges() { return merges; }
+    List<GLRRule> rules() { return rules; }
+    List<GLRMerge> merges() { return merges; }
 
     Set<GLRTerminal> first() { return first; }
     Set<GLRTerminal> follow() { return follow; }
@@ -41,5 +46,14 @@ class GLRNonterminal extends GLRSymbol {
 
     public boolean equals(Object o) {
         return o instanceof GLRNonterminal && super.equals(o);
+    }
+    
+    @Override
+    public String toString() {
+        if (kind == Kind.POS)
+            return "+" + super.toString();
+        if (kind == Kind.NEG)
+            return "-" + super.toString();
+        return super.toString();
     }
 }

@@ -8,11 +8,8 @@ abstract class Action {
     public static final int REDUCE = 2;
     public static final int ACCEPT = 3;
     public static final int OVERFLOW = 4;
-    public static final int REDUCE_POS_LOOKAHEAD = 5;
-    public static final int REDUCE_NEG_LOOKAHEAD = 6;
-    public static final int REDUCE_LEFT = 7;
-    public static final int REDUCE_RIGHT = 8;
-    public static final int REDUCE_NOT_RIGHT = 9;
+    public static final int POS_LOOKAHEAD = 5;
+    public static final int NEG_LOOKAHEAD = 6;
     
     // the bottom 29 bits are of an action table entry e indicate the following:
     // if action(e) == SHIFT, the state to transition to after the shift

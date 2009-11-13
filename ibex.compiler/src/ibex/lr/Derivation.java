@@ -26,7 +26,7 @@ public class Derivation {
             GLRNonterminal A = (GLRNonterminal) i.next();
 
             for (Iterator j = A.rules().iterator(); j.hasNext(); ) {
-                GLRNormalRule r = (GLRNormalRule) j.next();
+                GLRRule r = (GLRRule) j.next();
 
                 for (Iterator k = r.rhs.iterator(); k.hasNext(); ) {
                     GLRSymbol X = (GLRSymbol) k.next();
@@ -47,7 +47,7 @@ public class Derivation {
                 GLRNonterminal A = (GLRNonterminal) i.next();
 
                 for (Iterator j = A.rules().iterator(); j.hasNext(); ) {
-                    GLRNormalRule r = (GLRNormalRule) j.next();
+                    GLRRule r = (GLRRule) j.next();
 
                     for (Iterator k = r.rhs.iterator(); k.hasNext(); ) {
                         GLRSymbol X = (GLRSymbol) k.next();
