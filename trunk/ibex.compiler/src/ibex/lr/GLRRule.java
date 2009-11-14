@@ -1,5 +1,7 @@
 package ibex.lr;
 
+import ibex.lr.GLRNonterminal.Kind;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -31,7 +33,10 @@ class GLRRule {
     }
     
     public int encode() {
-        return (lhs.index() << 8) | rhs.size();
+        if (lhs.kind == Kind.NORMAL)
+            return (lhs.index() << 8) | rhs.size();
+        else
+            return (lhs.index() << 8) | 0;
     }
 
     public String toString() {

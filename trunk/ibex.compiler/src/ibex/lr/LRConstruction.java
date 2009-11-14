@@ -203,13 +203,25 @@ public class LRConstruction {
 
                     if (X instanceof GLRNonterminal) {
                         GLRNonterminal A = (GLRNonterminal) X;
-                        if (A.kind == Kind.POS)
-                            for (GLRTerminal t : g.terminals())
+                        switch (A.kind) {
+                        case POS:
+                            for (GLRTerminal t : g.terminals()) {
                                 addAction(I, t, new Lookahead(A.rules.get(0), false));
-                        if (A.kind == Kind.NEG)
-                            for (GLRTerminal t : g.terminals())
+                                addAction(I, t, new Reduce(A.rules.get(0)));
+                            }
+                            setGoto(I, A, J);
+                            break;
+                        case NEG:
+                            for (GLRTerminal t : g.terminals()) {
                                 addAction(I, t, new Lookahead(A.rules.get(0), true));
-                        setGoto(I, A, J);
+                                addAction(I, t, new Reduce(A.rules.get(0)));
+                            }
+                            setGoto(I, A, J);
+                            break;
+                        default:
+                            setGoto(I, A, J);
+                            break;
+                        }
                     }
                     else if (X instanceof GLRTerminal) {
                         GLRTerminal x = (GLRTerminal) X;

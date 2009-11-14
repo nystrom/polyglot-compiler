@@ -976,17 +976,20 @@ public class GLRDriver implements Cloneable {
             int action = action(entry);
             boolean remove = false;
 
-            if (action == POS_LOOKAHEAD) {
+            switch (action) {
+            case POS_LOOKAHEAD: {
                 int rule = actionData(entry);
                 if (! doLookahead(rule))
                     remove = true;
+                break;
             }
-            if (action == NEG_LOOKAHEAD) {
+            case NEG_LOOKAHEAD: {
                 int rule = actionData(entry);
                 if (doLookahead(rule))
                     remove = true;
+                break;
             }
-            if (action == OVERFLOW) {
+            case OVERFLOW: {
                 int start = actionData(entry);
 
                 // get the number of actions in this string of actions.
@@ -995,17 +998,23 @@ public class GLRDriver implements Cloneable {
                 for (int i = 0; i < count; i++) {
                     entry = overflowTable[start+1+i];
                     action = action(entry);
-                    if (action == POS_LOOKAHEAD) {
+                    switch (action) {
+                    case POS_LOOKAHEAD: {
                         int rule = actionData(entry);
                         if (! doLookahead(rule))
                             remove = true;
+                        break;
                     }
-                    if (action == NEG_LOOKAHEAD) {
+                    case NEG_LOOKAHEAD: {
                         int rule = actionData(entry);
                         if (doLookahead(rule))
                             remove = true;
+                        break;
+                    }
                     }
                 }
+                break;
+            }
             }
             
             if (remove) {
