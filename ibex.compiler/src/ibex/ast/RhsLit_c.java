@@ -6,7 +6,7 @@ import ibex.types.IbexClassType;
 import ibex.types.IbexTypeSystem;
 import ibex.types.Nonterminal;
 import ibex.types.RuleInstance;
-import ibex.visit.GrammarNormalizer;
+import ibex.visit.Rewriter;
 
 import java.util.List;
 
@@ -81,14 +81,14 @@ public class RhsLit_c extends RhsExpr_c implements RhsLit {
             NodeVisitor v = tc.enter(parent, c);
             c = (Call) c.visitChildren(v);
             try {
-                return GrammarNormalizer.check(lit(GrammarNormalizer.check(c, tc)), tc);
+                return Rewriter.check(lit(Rewriter.check(c, tc)), tc);
             }
             catch (SemanticException e) {
                 // Ignore
                 if (lit instanceof Field) {
                     Field f = (Field) lit;
                     f = f.target(c.target());
-                    return GrammarNormalizer.check(lit(GrammarNormalizer.check(f, tc)), tc);
+                    return Rewriter.check(lit(Rewriter.check(f, tc)), tc);
                 }
             }
         }
@@ -116,7 +116,7 @@ public class RhsLit_c extends RhsExpr_c implements RhsLit {
                 throw new SemanticException("Cannot find rule for " + mi);
             
             IbexNodeFactory nf = (IbexNodeFactory) tc.nodeFactory();
-            return GrammarNormalizer.check(nf.RhsInvoke(position(), call), tc);
+            return Rewriter.check(nf.RhsInvoke(position(), call), tc);
         }
         
         if (lit.isConstant() && (lit.type().isChar() || lit.type().isSubtype(ts.String(), tc.context())))

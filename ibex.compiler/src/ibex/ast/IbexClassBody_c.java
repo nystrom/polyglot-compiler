@@ -1,17 +1,11 @@
 package ibex.ast;
 
 import ibex.ast.RhsAnyChar_c.RDummy_c;
-import ibex.types.CharTerminal_c;
-import ibex.types.IbexTypeSystem;
 import ibex.types.RAnd_c;
-import ibex.types.RLookahead_c;
-import ibex.types.RSeq;
 import ibex.types.RSeq_c;
 import ibex.types.RSub_c;
 import ibex.types.Rhs;
 import ibex.types.RuleDef;
-import ibex.types.Terminal_c;
-import ibex.visit.GrammarNormalizer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +14,6 @@ import polyglot.ast.ClassBody_c;
 import polyglot.ast.ClassMember;
 import polyglot.ast.Node;
 import polyglot.types.SemanticException;
-import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
