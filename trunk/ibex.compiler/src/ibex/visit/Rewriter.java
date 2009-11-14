@@ -445,9 +445,13 @@ public class Rewriter extends ContextVisitor
         assert t.isReference() || t.isVoid() || t.isNull() : "type is " + t;
         return t;
     }
+
+    public
+    static <T extends Node> T check(T n, ContextVisitor v) throws SemanticException {
+        return (T) n.del().disambiguate(v).del().typeCheck(v).del().checkConstants(v);
+    }
     
     static
-
     MethodInstance unboxMethod(Type t) throws SemanticException {
         Type T = boxedType(t);
         TypeSystem ts = t.typeSystem();
