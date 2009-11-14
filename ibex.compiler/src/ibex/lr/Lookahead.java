@@ -4,9 +4,9 @@ class Lookahead extends Action {
     GLRRule rule;
     boolean neg;
 
-    Lookahead(GLRRule rule, boolean terminal) {
+    Lookahead(GLRRule rule, boolean neg) {
         this.rule = rule;
-        this.neg = terminal;
+        this.neg = neg;
     }
 
     public String toString() {
@@ -15,9 +15,9 @@ class Lookahead extends Action {
 
     int encode() {
         if (neg)
-            return Action.encode(Action.POS_LOOKAHEAD, rule.index());
-        else
             return Action.encode(Action.NEG_LOOKAHEAD, rule.index());
+        else
+            return Action.encode(Action.POS_LOOKAHEAD, rule.index());
     }
 
     public boolean equals(Object o) {
