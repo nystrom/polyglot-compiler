@@ -22,5 +22,5 @@ public interface IbexTypeSystem extends TypeSystem {
     Type nullable(Type t);
     
     RuleDef ruleDef(Position pos, Ref<? extends ClassType> container,
-            Flags flags, Ref<? extends Type> type, Name name, List<Ref<? extends Type>> throwTypes, List<Rhs> choices);
+            Flags flags, Ref<? extends Type> type, Name name, List<Ref<? extends Type>> throwTypes);
 }

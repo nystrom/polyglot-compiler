@@ -1,8 +1,6 @@
 package ibex.ast;
 
 import ibex.types.IbexTypeSystem;
-import ibex.types.Rhs;
-import ibex.types.Rhs_c;
 
 import java.util.List;
 
@@ -33,32 +31,12 @@ public class RhsAnyChar_c extends RhsExpr_c implements RhsAnyChar {
         return this;
     }
 
-    public static class RDummy_c extends Rhs_c implements Rhs {
-        Type t;
-        public Exception e;
-
-        public RDummy_c(IbexTypeSystem ts, Position pos, Type t) {
-            super(ts, pos);
-            this.t = t;
-            this.e = new Exception();
-        }
-
-        public boolean matches(Rhs c) {
-            return false;
-        }
-
-        public Type type() {
-            return t;
-        }
-
-    }
-
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
         IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
         IbexNodeFactory nf = (IbexNodeFactory) tc.nodeFactory();
 
-        RhsExpr n = (RhsExpr) rhs(new RDummy_c(ts, position(), ts.Char())).isRegular(true).type(ts.Char());
+        RhsExpr n = (RhsExpr) isRegular(true).type(ts.Char());
 
         LocalDef li = ts.localDef(position(), Flags.FINAL, Types.ref(ts.Char()), Name.make("_"));
         // Formal parameters are never compile-time constants.
@@ -67,7 +45,7 @@ public class RhsAnyChar_c extends RhsExpr_c implements RhsAnyChar {
         LocalDecl ld = nf.LocalDecl(position(), nf.FlagsNode(position(), li.flags()), nf.CanonicalTypeNode(position(), li.type()), nf.Id(position(), li.name()));
         ld = ld.localDef(li);
         ld = ld.init(n);
-        return nf.RhsSyntheticBind(position(), ld).rhs(n.rhs()).type(n.type());
+        return nf.RhsSyntheticBind(position(), ld).type(n.type());
     }
 
     public Term firstChild() {

@@ -125,11 +125,4 @@ public class RuleInstance_c extends Use_c<RuleDef> implements RuleInstance {
         }
         return type;
     }
-    
-    /* (non-Javadoc)
-     * @see ibex.types.R#choices()
-     */
-    public List<Rhs> choices() {
-        return def().choices();
-    }
 }

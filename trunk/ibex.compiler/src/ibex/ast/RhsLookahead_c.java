@@ -1,11 +1,8 @@
 package ibex.ast;
 
-import ibex.ast.RhsAnyChar_c.RDummy_c;
 import ibex.types.IbexTypeSystem;
-import ibex.types.RLookahead_c;
 import polyglot.ast.Node;
 import polyglot.types.SemanticException;
-import polyglot.types.TypeSystem;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
 import polyglot.visit.ContextVisitor;
@@ -50,7 +47,7 @@ public class RhsLookahead_c extends RhsUnary_c implements RhsLookahead {
                 return null;
             }
         });
-        return n.rhs(new RLookahead_c(ts, position(), item.rhs(), neg)).type(ts.Void());
+        return n.type(ts.Void());
     }
 
     /** Write the expression to an output file. */

@@ -1,67 +1,38 @@
 package ibex.ast;
 
-import ibex.ast.RhsAnyChar_c.RDummy_c;
-import ibex.lr.GLR;
-import ibex.types.RSeq;
 import ibex.types.IbexClassDef;
-import ibex.types.IbexTypeSystem;
-import ibex.types.RAnd;
-import ibex.types.Nonterminal;
-import ibex.types.Nonterminal_c;
 import ibex.types.IbexClassType;
-import ibex.types.Rhs;
+import ibex.types.IbexTypeSystem;
 import ibex.types.RuleDef;
 import ibex.types.RuleDef_c;
 import ibex.types.RuleInstance;
-import ibex.visit.Rewriter;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
-import JFlex.NFA;
-
 import polyglot.ast.Block;
-import polyglot.ast.Call;
-import polyglot.ast.ClassBody;
-import polyglot.ast.ClassMember;
 import polyglot.ast.Eval;
-import polyglot.ast.Expr;
 import polyglot.ast.FlagsNode;
-import polyglot.ast.FloatLit;
 import polyglot.ast.Id;
-import polyglot.ast.IntLit;
 import polyglot.ast.MethodDecl_c;
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
 import polyglot.ast.Return;
 import polyglot.ast.Stmt;
-import polyglot.ast.Term;
 import polyglot.ast.TypeNode;
-import polyglot.dispatch.Dispatch;
-import polyglot.dispatch.PassthruError;
 import polyglot.frontend.Globals;
 import polyglot.types.ClassDef;
-import polyglot.types.ClassType;
 import polyglot.types.CodeDef;
-import polyglot.types.Context;
 import polyglot.types.Flags;
-import polyglot.types.LocalDef;
 import polyglot.types.MemberDef;
-import polyglot.types.MethodInstance;
-import polyglot.types.Name;
 import polyglot.types.Ref;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
 import polyglot.types.Types;
-import polyglot.util.ErrorInfo;
-import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
-import polyglot.visit.CFGBuilder;
 import polyglot.visit.ContextVisitor;
-import polyglot.visit.NodeVisitor;
 import polyglot.visit.TypeBuilder;
 
 /** A rule is simple any method that takes an IMatchContext and returns a value or throws a MatchFailure */
@@ -122,7 +93,7 @@ public class RuleDecl_c extends MethodDecl_c implements RuleDecl {
 
         List choices = Collections.EMPTY_LIST;
         RuleDef mi = new RuleDef_c(ts, position(), Types.ref(ct.asType()), flags, type().typeRef(), name.id(),
-                                   throwTypes, choices);
+                                   throwTypes);
         return mi;
     }
     
@@ -167,17 +138,6 @@ public class RuleDecl_c extends MethodDecl_c implements RuleDecl {
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
         RuleDecl_c n = (RuleDecl_c) super.typeCheck(tc);
-        n.visit(new NodeVisitor() {
-            @Override
-            public Node leave(Node parent, Node old, Node n, NodeVisitor v) {
-                if (n instanceof RhsExpr) {
-                    RhsExpr e = (RhsExpr) n;
-                    System.out.println(e + ": " + e.type());
-                    assert e.rhs() != null : e;
-                }
-                return n;
-            }
-        });
         return n;
     }
     
@@ -211,18 +171,18 @@ public class RuleDecl_c extends MethodDecl_c implements RuleDecl {
         tc(tc);
         
         // Check for duplicate choices.
-        for (int i = 0; i < rule.choices().size(); i++) {
-            Rhs rhs = rule.choices().get(i);
-
-            for (int j = i+1; j < rule.choices().size(); j++) {
-                Rhs rhsj = rule.choices().get(j);
-
-                if (rhsj.matches(rhs)) {
-                    throw new SemanticException("Duplicate rule: \"" + rhs +
-                        "\" and \"" + rhsj + "\".", rhsj.position());
-                }
-            }
-        }
+//        for (int i = 0; i < rule.choices().size(); i++) {
+//            Rhs rhs = rule.choices().get(i);
+//
+//            for (int j = i+1; j < rule.choices().size(); j++) {
+//                Rhs rhsj = rule.choices().get(j);
+//
+//                if (rhsj.matches(rhs)) {
+//                    throw new SemanticException("Duplicate rule: \"" + rhs +
+//                        "\" and \"" + rhsj + "\".", rhsj.position());
+//                }
+//            }
+//        }
 
         Flags flags = flags().flags();
       

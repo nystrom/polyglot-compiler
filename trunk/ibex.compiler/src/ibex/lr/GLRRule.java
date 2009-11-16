@@ -9,6 +9,10 @@ class GLRRule {
     List<GLRSymbol> rhs;
     protected GLRNonterminal lhs;
     protected int index;
+    protected int prec; // larger means LOWER precedence
+    protected Assoc assoc;
+    
+    enum Assoc { LEFT, RIGHT, NONE };
     
     GLRRule(GLRNonterminal lhs, List<GLRSymbol> rhs, int index) {
         this.lhs = lhs;

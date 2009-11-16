@@ -1,8 +1,6 @@
 package ibex.ast;
 
 import ibex.types.IbexTypeSystem;
-import ibex.types.RSeq_c;
-import ibex.types.Rhs;
 import ibex.types.TupleType_c;
 
 import java.util.ArrayList;
@@ -54,7 +52,6 @@ public class RhsSequence_c extends RhsExpr_c implements RhsSequence {
         IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
         
         List<Ref<Type>> types = new ArrayList<Ref<Type>>(this.items.size());
-        List<Rhs> items = new ArrayList<Rhs>();
         for (RhsExpr e : this.items) {
             if (e instanceof RhsLookahead)
                 continue;
@@ -65,13 +62,11 @@ public class RhsSequence_c extends RhsExpr_c implements RhsSequence {
                 continue;
 
             types.add(Types.ref(t));
-            items.add(e.rhs());
         }
         
         TupleType_c type = new TupleType_c(ts, position(), types);
-        Rhs rhs = new RSeq_c(ts, position(), items, type);
         
-        return rhs(rhs).type(type);
+        return type(type);
     }
 
     /** Write the expression to an output file. */

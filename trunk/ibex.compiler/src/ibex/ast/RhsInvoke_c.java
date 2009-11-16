@@ -2,6 +2,7 @@ package ibex.ast;
 
 import ibex.types.IbexClassType;
 import ibex.types.Nonterminal;
+import ibex.types.RuleDef;
 import ibex.types.RuleInstance;
 
 import java.util.List;
@@ -9,8 +10,9 @@ import java.util.List;
 import polyglot.ast.Call;
 import polyglot.ast.LocalDecl;
 import polyglot.ast.Node;
-import polyglot.ast.NodeFactory;
 import polyglot.ast.Term;
+import polyglot.types.CodeDef;
+import polyglot.types.Context;
 import polyglot.types.Flags;
 import polyglot.types.LocalDef;
 import polyglot.types.MethodInstance;
@@ -28,6 +30,8 @@ import polyglot.visit.PrettyPrinter;
 public class RhsInvoke_c extends RhsExpr_c implements RhsInvoke {
 
     private Call call;
+    private boolean assocTag;
+    Nonterminal sym;
 
     public RhsInvoke_c(Position pos, Call call) {
         super(pos);
@@ -35,7 +39,23 @@ public class RhsInvoke_c extends RhsExpr_c implements RhsInvoke {
     }
     
     public Nonterminal symbol() {
-        return (Nonterminal) rhs;
+        return (Nonterminal) sym;
+    }
+
+    public RhsInvoke symbol(Nonterminal s) {
+        RhsInvoke_c n = (RhsInvoke_c) copy();
+        n.sym = s;
+        return n;
+    }
+    
+    public boolean assocTag() {
+        return assocTag;
+    }
+    
+    public RhsInvoke assocTag(boolean assocTag) {
+        RhsInvoke_c n = (RhsInvoke_c) copy();
+        n.assocTag = assocTag;
+        return n;
     }
 
     public Call call() {
@@ -56,19 +76,29 @@ public class RhsInvoke_c extends RhsExpr_c implements RhsInvoke {
 
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        Nonterminal sym = null;
+        RuleDef sym = null;
 
         MethodInstance mi = call.methodInstance();
         IbexClassType ct = (IbexClassType) mi.container();
         for (RuleInstance rule : ct.rules()) {
             if (rule.name() == mi.name())
-                sym = rule.def().asNonterminal();
+                sym = rule.def();
         }
 
         if (sym == null)
             throw new SemanticException("Cannot find rule for " + mi);
         
-        RhsInvoke n = (RhsInvoke) rhs(sym).type(call.type());
+        RhsInvoke n = (RhsInvoke) symbol(sym.asNonterminal()).type(call.type());
+        
+        if (assocTag) {
+            Context c = tc.context();
+            CodeDef code = c.currentCode();
+            if (code instanceof RuleDef) {
+                RuleDef rd = (RuleDef) code;
+                if (rd != sym)
+                    throw new SemanticException("Associativity annotation must be self-recursive.", position());
+            }
+        }
         
         if (! call.type().isVoid()) {
             TypeSystem ts = tc.typeSystem();
@@ -81,7 +111,7 @@ public class RhsInvoke_c extends RhsExpr_c implements RhsInvoke {
             ld = ld.localDef(li);
             ld = ld.init(n);
             
-            return nf.RhsSyntheticBind(position(), ld).rhs(n.rhs()).type(n.type());
+            return nf.RhsSyntheticBind(position(), ld).type(n.type());
         }
         
         return n;
@@ -102,6 +132,6 @@ public class RhsInvoke_c extends RhsExpr_c implements RhsInvoke {
     }
     
     public String toString() {
-        return call.toString();
+        return (assocTag ? "^" : "") + call.toString();
     }
 }

@@ -968,7 +968,7 @@ public class GLRDriver implements Cloneable {
 
     private void doLookaheads(Terminal t) {
         List<Node> prevTops = new ArrayList<Node>(topmost);
-        
+
         for (Iterator<Node> j = topmost.iterator(); j.hasNext(); ) {
             Node n = (Node) j.next();
 
@@ -1016,7 +1016,7 @@ public class GLRDriver implements Cloneable {
                 break;
             }
             }
-            
+
             if (remove) {
                 if ((DEBUG & DEBUG_LOOP) != 0) {
                     System.out.println("Lookahead failed: Removing state " + n.state + " from topmost");
@@ -1030,7 +1030,7 @@ public class GLRDriver implements Cloneable {
                 }
             }
         }
-        
+
         // Error handling.
         if (topmost.isEmpty()) {
             if (lookahead) {
@@ -1471,40 +1471,40 @@ public class GLRDriver implements Cloneable {
                 continue;
 
             int sibling = mergeEntry >>> 3;
-                    int mergeAction = mergeEntry & 7;
+            int mergeAction = mergeEntry & 7;
 
-                    assert (mergeTable[sibling] >>> 3) == rule;
+            assert (mergeTable[sibling] >>> 3) == rule;
 
-                    boolean discard = false;
+            boolean discard = false;
 
-                    switch (mergeAction) {
-                    case MERGE_THIS_NO_SIBLING_YES:
-                        // this is yes, so discard
-                        discard = true;
-                        break;
-                    case MERGE_THIS_YES_SIBLING_NO:
-                        if (present[sibling])
-                            discard = true;
-                        break;
-                    case MERGE_THIS_YES_SIBLING_YES:
-                        if (! present[sibling])
-                            discard = true;
-                        break;
-                    }
+            switch (mergeAction) {
+            case MERGE_THIS_NO_SIBLING_YES:
+                // this is yes, so discard
+                discard = true;
+                break;
+            case MERGE_THIS_YES_SIBLING_NO:
+                if (present[sibling])
+                    discard = true;
+                break;
+            case MERGE_THIS_YES_SIBLING_YES:
+                if (! present[sibling])
+                    discard = true;
+                break;
+            }
 
-                    if (discard) {
-                        if ((DEBUG & DEBUG_REDUCE) != 0) {
-                            String[] s = { "this no sibling no",
-                                           "this no sibling yes",
-                                           "this yes sibling no",
-                                           "this yes sibling yes"
-                            };
-                            System.out.println("discarding reduction with rule " + rule + " failed merge with sibling " + sibling);
-                            System.out.println("  this rule present=" + present[rule] + " sibling present=" + present[sibling]);
-                            System.out.println("  merge action = " + s[mergeAction]);
-                        }
-                        i.remove();
-                    }
+            if (discard) {
+                if ((DEBUG & DEBUG_REDUCE) != 0) {
+                    String[] s = { "this no sibling no",
+                                   "this no sibling yes",
+                                   "this yes sibling no",
+                                   "this yes sibling yes"
+                    };
+                    System.out.println("discarding reduction with rule " + rule + " failed merge with sibling " + sibling);
+                    System.out.println("  this rule present=" + present[rule] + " sibling present=" + present[sibling]);
+                    System.out.println("  merge action = " + s[mergeAction]);
+                }
+                i.remove();
+            }
         }
     }
 

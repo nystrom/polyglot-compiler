@@ -66,8 +66,8 @@ public class IbexTypeSystem_c extends TypeSystem_c implements IbexTypeSystem {
     }
 
     public RuleDef ruleDef(Position pos, Ref<? extends ClassType> container,
-            Flags flags, Ref<? extends Type> type, Name name, List<Ref<? extends Type>> throwTypes, List<Rhs> choices) {
-        return new RuleDef_c(this, pos, container, flags, type, name, throwTypes, choices);
+            Flags flags, Ref<? extends Type> type, Name name, List<Ref<? extends Type>> throwTypes) {
+        return new RuleDef_c(this, pos, container, flags, type, name, throwTypes);
     }
 
     public ClassType runtimeParserType() {

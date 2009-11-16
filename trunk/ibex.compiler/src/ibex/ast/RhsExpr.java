@@ -1,6 +1,5 @@
 package ibex.ast;
 
-import ibex.types.Rhs;
 import polyglot.ast.Expr;
 
 public interface RhsExpr extends Expr {
@@ -8,6 +7,6 @@ public interface RhsExpr extends Expr {
     RhsExpr isRegular(boolean f);
     
 
-    public Rhs rhs();
-    public RhsExpr rhs(Rhs rhs);
+    public Object rhs();
+    public RhsExpr rhs(Object rhs);
 }

@@ -12,7 +12,7 @@ public class ByteTerminal_c extends Terminal_c implements ByteTerminal {
         this.value = value;
     }
 
-    public boolean matches(Rhs sym) {
+    public boolean matches(Symbol sym) {
         if (sym instanceof ByteTerminal) {
             ByteTerminal t = (ByteTerminal) sym;
             return t.value() == value;

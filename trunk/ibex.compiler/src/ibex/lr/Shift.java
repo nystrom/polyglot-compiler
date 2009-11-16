@@ -1,12 +1,18 @@
 package ibex.lr;
 
+import ibex.lr.GLRRule.Assoc;
+
 class Shift extends Action {
     State dest;
     GLRTerminal terminal;
+    int prec;
+    Assoc assoc;
 
-    Shift(State dest, GLRTerminal terminal) {
+    Shift(State dest, GLRTerminal terminal, int prec, Assoc assoc) {
         this.dest = dest;
         this.terminal = terminal;
+        this.prec = prec;
+        this.assoc = assoc;
     }
 
     public String toString() {

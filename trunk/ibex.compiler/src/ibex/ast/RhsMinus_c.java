@@ -1,19 +1,14 @@
 package ibex.ast;
 
 import ibex.types.IbexTypeSystem;
-import ibex.types.RAnd_c;
-import ibex.types.RSub_c;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import polyglot.ast.Node;
-import polyglot.ast.Term;
 import polyglot.types.SemanticException;
-import polyglot.types.TypeSystem;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.CFGBuilder;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
@@ -69,7 +64,7 @@ public class RhsMinus_c extends RhsBinary_c implements RhsMinus {
             }
         });
         RhsMinus_c n = (RhsMinus_c) this.right(r);
-        return n.rhs(new RSub_c(ts, position(), left().rhs(), right.rhs())).type(left.type());
+        return n.type(left.type());
     }
 }
     

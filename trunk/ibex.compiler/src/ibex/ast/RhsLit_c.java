@@ -1,7 +1,5 @@
 package ibex.ast;
 
-import ibex.ast.RhsAnyChar_c.RDummy_c;
-import ibex.types.CharTerminal_c;
 import ibex.types.IbexClassType;
 import ibex.types.IbexTypeSystem;
 import ibex.types.Nonterminal;
@@ -120,10 +118,7 @@ public class RhsLit_c extends RhsExpr_c implements RhsLit {
         }
         
         if (lit.isConstant() && (lit.type().isChar() || lit.type().isSubtype(ts.String(), tc.context())))
-            if (lit.type().isChar())
-                return rhs(new CharTerminal_c(ts, position(), (Character) lit.constantValue())).isRegular(true).type(lit.type());
-            else
-                return rhs(new RDummy_c(ts, position(), lit.type())).isRegular(true).type(lit.type());
+            return isRegular(true).type(lit.type());
                 
         throw new SemanticException("Rule item is neither a constant char nor a constant String nor a nonterminal.", position());
     }
