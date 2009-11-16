@@ -135,7 +135,7 @@ class TestArrayAccess {
     for (int i = 0; i < outer; ++i) {
       for (int j = 0; j < middle; ++j) {
         for (int k = 0; k < inner; ++k) {
-          System.out.printf(" %4d", ary[i][j][k]);
+          System.out.print("   "+ary[i][j][k]);
         }
         System.out.println();
       }
@@ -156,13 +156,13 @@ class TestArrayAccess {
     for (int i = 0; i < outer; ++i)
       for (int j = 0; j < middle; ++j)
         for (int k = 0; k < inner; ++k)
-          ary[i][j][k] = n++;
+          ary[i][j][k] = new Integer(n++);
 
     System.out.println("Multi-dimensional Object Array");
     for (int i = 0; i < outer; ++i) {
       for (int j = 0; j < middle; ++j) {
         for (int k = 0; k < inner; ++k) {
-          System.out.printf(" %4d", ary[i][j][k]);
+          System.out.print("   "+ary[i][j][k]);
         }
         System.out.println();
       }
@@ -181,7 +181,7 @@ class TestArrayAccess {
     System.out.println("Partial Multi-dimensional int Array");
     for (int i = 0; i < outer; ++i) {
       for (int j = 0; j < middle; ++j) {
-        System.out.printf(" %5s", String.valueOf(ary[i][j]));
+        System.out.print("  "+String.valueOf(ary[i][j]));
       }
       System.out.println();
     }
