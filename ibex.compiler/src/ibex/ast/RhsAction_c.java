@@ -449,6 +449,6 @@ public class RhsAction_c extends RhsExpr_c implements RhsAction {
 //        for (Type tt : types) {
 //            t = ts.leastCommonAncestor(t, tt, tc.context());
 //        }
-        return rhs(item.rhs()).type(t);
+        return type(t);
     }
 }

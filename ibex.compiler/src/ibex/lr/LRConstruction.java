@@ -1,6 +1,7 @@
 package ibex.lr;
 
 import ibex.lr.GLRNonterminal.Kind;
+import ibex.lr.GLRRule.Assoc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -225,7 +226,7 @@ public class LRConstruction {
                     }
                     else if (X instanceof GLRTerminal) {
                         GLRTerminal x = (GLRTerminal) X;
-                        addAction(I, x, new Shift(J, x));
+                        addAction(I, x, new Shift(J, x, item.rule.prec, item.rule.assoc));
                     }
                 }
             }
@@ -254,6 +255,14 @@ public class LRConstruction {
         return actionTable[I.index()][t.index()];
     }
 
+    static boolean ltprec(int p1, int p2) {
+        return p1 > p2;
+    }
+
+    static boolean gtprec(int p1, int p2) {
+        return p1 < p2;
+    }
+
     void addAction(State I, GLRTerminal t, Action a) {
         Set<Action> c = actions(I, t);
 
@@ -266,7 +275,8 @@ public class LRConstruction {
                 Shift si = (Shift) a;
                 GLRTerminal ti = si.terminal;
 
-                for (Action aj : c) {
+                for (Iterator<Action> j = c.iterator(); j.hasNext(); ) {
+                    Action aj = j.next();
                     GLRRule rule = null;
 
                     if (aj instanceof Reduce) {
@@ -284,74 +294,68 @@ public class LRConstruction {
                         rule = (GLRRule) A.rules().get(0);
                     }
 
-                    // if (rule != null) {
-                    // if (rule.prec > si.prec || (rule.prec == si.prec &&
-                    // si.assoc == -1)) {
-                    // // reduce; just return without adding the shift action
-                    // if (Report.should_report(TOPICS, 2)) {
-                    // Report.report(2, "resolving conflict between:");
-                    // Report.report(2, "     " + si);
-                    // Report.report(2, " and " + aj);
-                    // Report.report(2, " in favor of reduce/accept");
-                    // }
-                    //                            
-                    // return;
-                    // }
-                    // else if (rule.prec < si.prec || (rule.prec == si.prec &&
-                    // si.assoc == 1)) {
-                    // // shift; remove the reduce rule and fall through to add
-                    // the shift
-                    // if (Report.should_report(TOPICS, 2)) {
-                    // Report.report(2, "resolving conflict between:");
-                    // Report.report(2, "     " + si);
-                    // Report.report(2, " and " + aj);
-                    // Report.report(2, " in favor of shift");
-                    // }
-                    // j.remove();
-                    // }
-                    // else {
-                    // // ambiguous; keep both actions
-                    // }
-                    // }
+                    if (rule != null) {
+                        if (gtprec(rule.prec, si.prec) || (rule.prec == si.prec && si.assoc == Assoc.LEFT)) {
+                            // reduce; just return without adding the shift action
+                            if (Report.should_report(TOPICS, 2)) {
+                                Report.report(2, "resolving conflict between:");
+                                Report.report(2, "     " + si);
+                                Report.report(2, " and " + aj);
+                                Report.report(2, " in favor of reduce/accept");
+                            }
+
+                            return;
+                        }
+                        else if (ltprec(rule.prec, si.prec) || (rule.prec == si.prec && si.assoc == Assoc.RIGHT)) {
+                            // shift; remove the reduce rule and fall through to add the shift
+                            if (Report.should_report(TOPICS, 2)) {
+                                Report.report(2, "resolving conflict between:");
+                                Report.report(2, "     " + si);
+                                Report.report(2, " and " + aj);
+                                Report.report(2, " in favor of shift");
+                            }
+                            j.remove();
+                        }
+                        else {
+                            // ambiguous; keep both actions
+                        }
+                    }
                 }
             }
             else if (a instanceof Reduce) {
                 Reduce ri = (Reduce) a;
                 GLRRule rule = ri.rule;
 
-                for (Action aj : c) {
+                for (Iterator<Action> j = c.iterator(); j.hasNext(); ) {
+                    Action aj = j.next();
                     if (aj instanceof Shift) {
                         // shift-reduce
                         Shift sj = (Shift) aj;
                         GLRTerminal tj = sj.terminal;
 
-                        // if (rule.prec > sj.prec || (rule.prec == sj.prec &&
-                        // sj.assoc == -1)) {
-                        // // reduce; remove the shift rule and fall through to
-                        // add the reduce
-                        // if (Report.should_report(TOPICS, 2)) {
-                        // Report.report(2, "resolving conflict between:");
-                        // Report.report(2, "     " + ri);
-                        // Report.report(2, " and " + aj);
-                        // Report.report(2, " in favor of reduce");
-                        // }
-                        // j.remove();
-                        // }
-                        // else if (rule.prec < sj.prec || (rule.prec == sj.prec
-                        // && sj.assoc == 1)) {
-                        // // shift; just return without adding the reduce
-                        // action
-                        // if (Report.should_report(TOPICS, 2)) {
-                        // Report.report(2, "resolving conflict between:");
-                        // Report.report(2, "     " + ri);
-                        // Report.report(2, " and " + aj);
-                        // Report.report(2, " in favor of shift");
-                        // }
-                        // return;
-                        // }
-                        // else {
-                        // // ambiguous; keep both actions
-                        // }
+                        if (gtprec(rule.prec, sj.prec) || (rule.prec == sj.prec && sj.assoc == Assoc.LEFT)) {
+                            // reduce; remove the shift rule and fall through to add the reduce
+                            if (Report.should_report(TOPICS, 2)) {
+                                Report.report(2, "resolving conflict between:");
+                                Report.report(2, "     " + ri);
+                                Report.report(2, " and " + aj);
+                                Report.report(2, " in favor of reduce");
+                            }
+                            j.remove();
+                        }
+                        else if (ltprec(rule.prec, sj.prec) || (rule.prec == sj.prec && sj.assoc == Assoc.RIGHT)) {
+                            // shift; just return without adding the reduce action
+                            if (Report.should_report(TOPICS, 2)) {
+                                Report.report(2, "resolving conflict between:");
+                                Report.report(2, "     " + ri);
+                                Report.report(2, " and " + aj);
+                                Report.report(2, " in favor of shift");
+                            }
+                            return;
+                        }
+                        else {
+                            // ambiguous; keep both actions
+                        }
                     }
                 }
             }
@@ -362,39 +366,39 @@ public class LRConstruction {
                     throw new InternalCompilerError("Start symbol " + A + " should have exactly 1 rule.");
                 }
 
-                for (Action aj : c) {
+                GLRRule rule = (GLRRule) A.rules().get(0);
+
+                for (Iterator<Action> j = c.iterator(); j.hasNext(); ) {
+                    Action aj = j.next();
+                    
                     if (aj instanceof Shift) {
                         // shift-reduce
                         Shift sj = (Shift) aj;
                         GLRTerminal tj = sj.terminal;
 
-                        // if (rule.prec > sj.prec || (rule.prec == sj.prec &&
-                        // sj.assoc == -1)) {
-                        // // reduce; remove the shift rule and fall through to
-                        // add the reduce
-                        // if (Report.should_report(TOPICS, 2)) {
-                        // Report.report(2, "resolving conflict between:");
-                        // Report.report(2, "     " + ri);
-                        // Report.report(2, " and " + aj);
-                        // Report.report(2, " in favor of accept");
-                        // }
-                        // j.remove();
-                        // }
-                        // else if (rule.prec < sj.prec || (rule.prec == sj.prec
-                        // && sj.assoc == 1)) {
-                        // // shift; just return without adding the reduce
-                        // action
-                        // if (Report.should_report(TOPICS, 2)) {
-                        // Report.report(2, "resolving conflict between:");
-                        // Report.report(2, "     " + ri);
-                        // Report.report(2, " and " + aj);
-                        // Report.report(2, " in favor of shift");
-                        // }
-                        // return;
-                        // }
-                        // else {
-                        // // ambiguous; keep both actions
-                        // }
+                        if (gtprec(rule.prec, sj.prec) || (rule.prec == sj.prec && sj.assoc == Assoc.LEFT)) {
+                            // reduce; remove the shift rule and fall through to add the reduce
+                            if (Report.should_report(TOPICS, 2)) {
+                                Report.report(2, "resolving conflict between:");
+                                Report.report(2, "     " + ri);
+                                Report.report(2, " and " + aj);
+                                Report.report(2, " in favor of accept");
+                            }
+                            j.remove();
+                        }
+                        else if (ltprec(rule.prec, sj.prec) || (rule.prec == sj.prec && sj.assoc == Assoc.RIGHT)) {
+                            // shift; just return without adding the reduce action
+                            if (Report.should_report(TOPICS, 2)) {
+                                Report.report(2, "resolving conflict between:");
+                                Report.report(2, "     " + ri);
+                                Report.report(2, " and " + aj);
+                                Report.report(2, " in favor of shift");
+                            }
+                            return;
+                        }
+                        else {
+                            // ambiguous; keep both actions
+                        }
                     }
                 }
             }

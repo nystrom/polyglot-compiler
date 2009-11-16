@@ -4,23 +4,15 @@ import ibex.ast.IbexNodeFactory;
 import ibex.ast.RhsAction;
 import ibex.ast.RhsBind;
 import ibex.ast.RhsExpr;
-import ibex.ast.RhsOr;
 import ibex.ast.RhsSequence;
 import ibex.ast.RuleDecl;
 import ibex.lr.GLR;
 import ibex.types.ActionDef;
-import ibex.types.ByteTerminal;
-import ibex.types.CharTerminal;
 import ibex.types.IbexClassDef;
 import ibex.types.IbexClassType;
 import ibex.types.IbexTypeSystem;
 import ibex.types.Nonterminal;
-import ibex.types.RAnd;
-import ibex.types.RSeq;
-import ibex.types.RSub;
-import ibex.types.Rhs;
 import ibex.types.RuleDef;
-import ibex.types.Terminal;
 import ibex.types.TupleType;
 
 import java.util.ArrayList;
@@ -251,6 +243,9 @@ public class Rewriter extends ContextVisitor
         
         List<Ref<? extends Type>> argTypes = argTypesOfFormals(formals);
 
+        Expr arg = nf.Local(pos, nf.Id(pos, argsLd.name())).localInstance(argsLd.asInstance()).type(argsLd.asInstance().type());
+
+//        Return retNull = nf.Return(pos, arg);
         Return retNull = nf.Return(pos, nf.NullLit(pos).type(ts.Null()));
 
         // Build a switch statement.
@@ -281,7 +276,6 @@ public class Rewriter extends ContextVisitor
 
                 List<Expr> args = new ArrayList<Expr>();
 
-                Expr arg = nf.Local(pos, nf.Id(pos, argsLd.name())).localInstance(argsLd.asInstance()).type(argsLd.asInstance().type());
                 args.add(arg);
 
                 if (args.size() != formalTypes.size()) {
@@ -308,7 +302,6 @@ public class Rewriter extends ContextVisitor
                 }
             }
             else {
-                Expr arg = nf.Local(pos, nf.Id(pos, argsLd.name())).localInstance(argsLd.asInstance()).type(argsLd.asInstance().type());
                 Return ret = nf.Return(pos, arg); // unbox(ad, arg));
                 code.add(ret);
             }
@@ -587,39 +580,6 @@ public class Rewriter extends ContextVisitor
     private Name actionMethodName(int rule) {
         Name name = Name.make("action$" + rule);
         return name;
-    }
-    
-    String mangle(Rhs rhs) {
-        if (rhs instanceof Nonterminal) {
-            return ((Nonterminal) rhs).name().toString();
-        }
-        if (rhs instanceof CharTerminal) {
-            return "" + (int) ((CharTerminal) rhs).value();
-        }
-        if (rhs instanceof ByteTerminal) {
-            return "" + (int) ((ByteTerminal) rhs).value();
-        }
-        if (rhs instanceof RSeq) {
-            StringBuilder sb = new StringBuilder();
-            String sep = "";
-            for (Rhs r : ((RSeq) rhs).items()) {
-                sb.append(sep);
-                sep = "$";
-                sb.append(mangle(r));
-            }
-            return sb.toString();
-        }
-        if (rhs instanceof RAnd) {
-            return mangle(((RAnd) rhs).choice1())
-            + "$and$"            
-            + mangle(((RAnd) rhs).choice1());
-        }
-        if (rhs instanceof RSub) {
-            return mangle(((RSub) rhs).choice1())
-            + "$minus$"            
-            + mangle(((RSub) rhs).choice1());
-        }
-        return "";
     }
     
     private List<Formal> formals(RhsExpr item) {

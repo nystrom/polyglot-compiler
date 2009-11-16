@@ -1,7 +1,6 @@
 package ibex.ast;
 
 import ibex.types.IbexTypeSystem;
-import ibex.types.RAnd_c;
 import ibex.types.TupleType_c;
 
 import java.util.ArrayList;
@@ -61,7 +60,7 @@ public class RhsAnd_c extends RhsBinary_c implements RhsAnd {
             t = ts.Void();
         else
             t = new TupleType_c(ts, position(), Types.ref(t1), Types.ref(t2));
-        return rhs(new RAnd_c(ts, position(), left().rhs(), right.rhs())).type(t);
+        return type(t);
     }
 }
     

@@ -18,9 +18,6 @@ public interface RuleDef extends MemberDef, CodeDef, Def {
     Ref<? extends Type> type();
     void setType(Ref<? extends Type> type);
 
-    List<Rhs> choices();
-    void setChoices(List<Rhs> choices);
-
     boolean isRegular();
     void setRegular(boolean isRegular);
 }

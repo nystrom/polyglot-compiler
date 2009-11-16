@@ -12,7 +12,7 @@ public class StringTerminal_c extends Terminal_c implements StringTerminal {
         this.value = value;
     }
 
-    public boolean matches(Rhs sym) {
+    public boolean matches(Symbol sym) {
         if (sym instanceof StringTerminal) {
             StringTerminal t = (StringTerminal) sym;
             return t.value().equals(value);

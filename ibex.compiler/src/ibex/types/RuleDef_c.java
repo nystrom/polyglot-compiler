@@ -21,7 +21,6 @@ public class RuleDef_c extends Def_c implements RuleDef {
     protected Name name;
     protected Ref<? extends Type> type;
     List<Ref<? extends Type>> throwTypes;
-    protected List<Rhs> choices;
     boolean isRegular;
 
     /** Used for deserializing types. */
@@ -29,14 +28,13 @@ public class RuleDef_c extends Def_c implements RuleDef {
     }
     
     public RuleDef_c(TypeSystem ts, 
-        Position pos, Ref<? extends ClassType> container, Flags flags, Ref<? extends Type> type, Name name, List<Ref<? extends Type>> throwTypes, List<Rhs> choices) {
+        Position pos, Ref<? extends ClassType> container, Flags flags, Ref<? extends Type> type, Name name, List<Ref<? extends Type>> throwTypes) {
         super(ts, pos);
         this.container = container;
         this.flags = flags;
         this.type = type;
         this.name = name;
         this.throwTypes = TypedList.copyAndCheck(throwTypes, Ref.class, true);
-        this.choices = TypedList.copyAndCheck(choices, Rhs.class, true);
     }
     
     public boolean isRegular() {
@@ -63,10 +61,6 @@ public class RuleDef_c extends Def_c implements RuleDef {
         return flags;
     }
 
-    public List<Rhs> choices() {
-        return Collections.unmodifiableList(choices);
-    }
-
     /**
      * @param container The container to set.
      */
@@ -79,10 +73,6 @@ public class RuleDef_c extends Def_c implements RuleDef {
      */
     public void setFlags(Flags flags) {
         this.flags = flags;
-    }
-    
-    public void setChoices(List<Rhs> choices) {
-        this.choices = TypedList.copyAndCheck(choices, Rhs.class, true);
     }
     
     protected transient RuleInstance asInstance;
@@ -124,13 +114,6 @@ public class RuleDef_c extends Def_c implements RuleDef {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        String sep = "";
-        for (Rhs r : choices) {
-            sb.append(sep);
-            sep = " | ";
-            sb.append(r);
-        }
-        return flags.translate() + type + " " + name + " ::= " + sb;
+        return flags.translate() + type + " " + name;
     }
 }

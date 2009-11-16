@@ -41,16 +41,6 @@ public class IbexClassType_c extends ParsedClassType_c implements ParsedClassTyp
         return l;
     }
 
-    public List<Nonterminal> allNonterminals() {
-        IbexClassDef def = (IbexClassDef) def();
-        return def.allNonterminals();
-    }
-
-    public List<Terminal> allTerminals() {
-        IbexClassDef def = (IbexClassDef) def();
-        return def.allTerminals();
-    }
-
     public boolean isParser() {
         IbexClassDef def = (IbexClassDef) def();
         return def.isParser();

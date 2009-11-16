@@ -9,8 +9,6 @@ import polyglot.types.ClassDef;
 public interface IbexClassDef extends ClassDef {
 
     boolean isParser();
-    List<Nonterminal> allNonterminals();
-    List<Terminal> allTerminals();
 
     GLR glr();
     void setGLR(GLR glr);

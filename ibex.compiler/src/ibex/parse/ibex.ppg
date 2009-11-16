@@ -34,6 +34,7 @@ non terminal RhsExpr rhs_term;
 non terminal RhsExpr rhs_iterator;
 non terminal RhsExpr rhs_primary;
 non terminal RhsExpr inner;
+non terminal RhsInvoke rhs_invoke;
 non terminal Expr rhs_expr;
 non terminal RhsExpr rhs_lit;
 non terminal Expr restricted_primary;
@@ -164,7 +165,6 @@ s(b), IntLit.INT, 1), null); :}
 rhs_expr ::=
     restricted_primary:a {: RESULT = a; :}
  |  name:a {:  RESULT = a.toExpr();  :}
- |  XOR name:a {:  RESULT = a.toExpr();  :}
   ;
 
 restricted_field_access ::=
@@ -219,9 +219,22 @@ rhs_lit ::= rhs_expr:a {:
                   }
                   :}
                   ;
- 
+rhs_invoke ::= rhs_expr:a {:
+                  if (a instanceof AmbExpr) {
+                          AmbExpr e = (AmbExpr) a;
+                          RESULT = parser.nf.RhsInvoke(parser.pos(a), parser.nf.Call(parser.pos(a), e.name()));
+                  } else if (a instanceof Field) {
+                          Field e = (Field) a;
+                          RESULT = parser.nf.RhsInvoke(parser.pos(a), parser.nf.Call(parser.pos(a), e.target(), e.name()));
+                  } else {
+                          assert false;
+                  }
+:}
+;
+
 rhs_primary ::=
    rhs_lit:a {: RESULT = a; :}
+ | XOR rhs_invoke:a {: RESULT = a.assocTag(true); :}
  | rhs_expr:a DOTDOT rhs_expr:b
           {:  RESULT = parser.nf.RhsRange(parser.pos(a, b), a, b); :}
  | COMP rhs_lit:a

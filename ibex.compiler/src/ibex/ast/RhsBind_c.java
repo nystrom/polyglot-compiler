@@ -79,7 +79,7 @@ public class RhsBind_c extends RhsExpr_c implements RhsBind {
 
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        return rhs(item().rhs()).type(item().type());
+        return type(item().type());
     }
 
     /** Write the expression to an output file. */

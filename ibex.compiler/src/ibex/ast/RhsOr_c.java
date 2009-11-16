@@ -1,6 +1,5 @@
 package ibex.ast;
 
-import ibex.ast.RhsAnyChar_c.RDummy_c;
 import ibex.types.ActionDef;
 import ibex.types.ActionDef_c;
 import ibex.types.IbexTypeSystem;
@@ -80,7 +79,7 @@ public class RhsOr_c extends RhsExpr_c implements RhsOr {
             e = coerce(e, lca, tc);
             coerced.add(e);
         }
-        return (RhsExpr) this.items(coerced).rhs(new RDummy_c(ts, position(), lca)).type(lca);
+        return (RhsExpr) this.items(coerced).type(lca);
     }
 
     public static RhsExpr coerce(RhsExpr e, Type type, ContextVisitor tc) throws SemanticException {
@@ -118,7 +117,7 @@ public class RhsOr_c extends RhsExpr_c implements RhsOr {
     static RhsExpr typeCheckOr(RhsExpr e, RhsExpr left, RhsExpr right, ContextVisitor tc) throws SemanticException {
         IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
         Type t = lca(e, left.type(), right.type(), tc);
-        return (RhsExpr) e.rhs(new RDummy_c(ts, e.position(), t)).type(t);
+        return (RhsExpr) e.type(t);
     }
 
     static Type lca(RhsExpr e, Type t1, Type t2, ContextVisitor tc) throws SemanticException {

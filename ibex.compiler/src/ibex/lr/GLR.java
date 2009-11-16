@@ -12,6 +12,7 @@ import ibex.ast.RhsLookahead;
 import ibex.ast.RhsMinus;
 import ibex.ast.RhsOption;
 import ibex.ast.RhsOr;
+import ibex.ast.RhsOrdered;
 import ibex.ast.RhsPlus;
 import ibex.ast.RhsPlusList;
 import ibex.ast.RhsRange;
@@ -19,10 +20,10 @@ import ibex.ast.RhsSequence;
 import ibex.ast.RhsStar;
 import ibex.ast.RhsStarList;
 import ibex.ast.RuleDecl;
+import ibex.lr.GLRRule.Assoc;
 import ibex.types.ActionDef;
 import ibex.types.IbexClassDef;
 import ibex.types.Nonterminal;
-import ibex.types.Rhs;
 import ibex.types.Terminal;
 
 import java.util.ArrayList;
@@ -75,13 +76,13 @@ public class GLR {
         def = (IbexClassDef) cd.classDef();
 
         g = new Grammar();
-        g.rules = new ArrayList<GLRRule>(def.allNonterminals().size()*2);
-        g.merges = new ArrayList<GLRMerge>(def.allNonterminals().size()*2);
+        g.rules = new ArrayList<GLRRule>();
+        g.merges = new ArrayList<GLRMerge>();
 
         symbolMap = new HashMap<Object, GLRSymbol>();
         terminalMap = new HashMap<Pair<Integer,Integer>, GLRTerminal>();
        
-        g.nonterminals = new ArrayList<GLRNonterminal>(def.allNonterminals().size()+1);
+        g.nonterminals = new ArrayList<GLRNonterminal>();
         g.terminals = new ArrayList<GLRTerminal>(257);
         originalStartSymbols = new ArrayList<GLRNonterminal>();
         
@@ -172,7 +173,7 @@ public class GLR {
                     RuleDecl rule = (RuleDecl) n;
                     RhsExpr rhs = rule.rhs();
                     GLRNonterminal A = nonterminal(rule.rule().asNonterminal());
-                    addRulesForRHS(A, rhs);
+                    addRulesForRHS(A, rhs, 0);
                     if (! rule.rule().flags().isPrivate())
                         originalStartSymbols.add(A);
                 }
@@ -183,7 +184,7 @@ public class GLR {
                 GLRSymbol X = symbol(rhs);
                 if (X == null) {
                     GLRNonterminal A = freshNonterminal();
-                    addRulesForRHS(A, rhs);
+                    addRulesForRHS(A, rhs, 0);
                     return A;
                 }
                 return X;
@@ -202,7 +203,10 @@ public class GLR {
 //                }
                 if (rhs instanceof RhsInvoke) {
                     RhsInvoke r = (RhsInvoke) rhs;
-                    return nonterminal(r.symbol());
+                    if (r.assocTag())
+                        return nonterminal(r.symbol());
+                    else
+                        return nonterminal(r.symbol());
                 }
                 if (rhs instanceof RhsLit) {
                     RhsLit r = (RhsLit) rhs;
@@ -224,8 +228,8 @@ public class GLR {
                 
                 if (A == null) {
                     A = freshNonterminal();
-                    addRule(A);
-                    addRule(A, A, B);
+                    addRule(0, A);
+                    addRule(0, A, A, B);
                     stars.put(B, A);
                 }
                 
@@ -240,8 +244,8 @@ public class GLR {
                 
                 if (A == null) {
                     A = freshNonterminal();
-                    addRule(A, B);
-                    addRule(A, A, B);
+                    addRule(0, A, B);
+                    addRule(0, A, A, B);
                     plusses.put(B, A);
                 }
                 
@@ -256,8 +260,8 @@ public class GLR {
                 
                 if (A == null) {
                     A = freshNonterminal();
-                    addRule(A);
-                    addRule(A, B);
+                    addRule(0, A);
+                    addRule(0, A, B);
                     options.put(B, A);
                 }
                 
@@ -282,7 +286,7 @@ public class GLR {
                         if (seen.get(t.index))
                             continue;
                         seen.set(t.index);
-                        addRule(A, t);
+                        addRule(0, A, t);
                     }
                     
                     ranges.put(k, A);
@@ -291,13 +295,12 @@ public class GLR {
                 return A;
             }
 
-            private void addRulesForRHS(GLRNonterminal lhs, RhsExpr rhs) {
+            private void addRulesForRHS(GLRNonterminal lhs, RhsExpr rhs, int prec) {
                 GLRSymbol X = symbol(rhs);
                 if (X != null) {
-                    addRule(lhs, X);
-                    return;
+                    addRule(prec, lhs, X);
                 }
-                if (rhs instanceof RhsAnd) {
+                else if (rhs instanceof RhsAnd) {
                     RhsAnd r = (RhsAnd) rhs;
                     RhsExpr r1 = r.left();
                     RhsExpr r2 = r.right();
@@ -305,18 +308,18 @@ public class GLR {
                     GLRNonterminal A = freshNonterminal();
                     GLRNonterminal B = freshNonterminal();
                     GLRNonterminal C = freshNonterminal();
-                    addRulesForRHS(B, r1);
-                    addRulesForRHS(C, r2);
+                    addRulesForRHS(B, r1, 0);
+                    addRulesForRHS(C, r2, 0);
                     
-                    GLRRule rule1 = addRule(A, B);
-                    GLRRule rule2 = addRule(A, C);
+                    GLRRule rule1 = addRule(prec, A, B);
+                    GLRRule rule2 = addRule(prec, A, C);
                     
                     GLRMerge rule = new GLRMerge(A, rule1, rule2, g.merges.size(), GLRMerge.Kind.AND);
                     g.merges.add(rule);
                     A.merges.add(rule);
-                    addRule(lhs, A);
+                    addRule(prec, lhs, A);
                 }
-                if (rhs instanceof RhsMinus) {
+                else if (rhs instanceof RhsMinus) {
                     RhsMinus r = (RhsMinus) rhs;
                     RhsExpr r1 = r.left();
                     RhsExpr r2 = r.right();
@@ -324,57 +327,57 @@ public class GLR {
                     GLRNonterminal A = freshNonterminal();
                     GLRNonterminal B = freshNonterminal();
                     GLRNonterminal C = freshNonterminal();
-                    addRulesForRHS(B, r1);
-                    addRulesForRHS(C, r2);
+                    addRulesForRHS(B, r1, 0);
+                    addRulesForRHS(C, r2, 0);
                     
-                    GLRRule rule1 = addRule(A, B);
-                    GLRRule rule2 = addRule(A, C);
+                    GLRRule rule1 = addRule(prec, A, B);
+                    GLRRule rule2 = addRule(prec, A, C);
 
                     GLRMerge rule = new GLRMerge(A, rule1, rule2, g.merges.size(), GLRMerge.Kind.SUB);
                     g.merges.add(rule);
                     A.merges.add(rule);
                     
-                    addRule(lhs, A);
+                    addRule(prec, lhs, A);
                 }
-                if (rhs instanceof RhsLookahead) {
+                else if (rhs instanceof RhsLookahead) {
                     RhsLookahead r = (RhsLookahead) rhs;
                     GLRNonterminal A = freshNonterminal();
                     GLRNonterminal B = freshNonterminal();
-                    addRulesForRHS(B, r.item());
-                    addRule(A, B);
+                    addRulesForRHS(B, r.item(), 0);
+                    addRule(prec, A, B);
                     markLookahead(A, r.negativeLookahead());
-                    addRule(lhs, A);
+                    addRule(prec, lhs, A);
                 }
-                if (rhs instanceof RhsAction) {
+                else if (rhs instanceof RhsAction) {
                     RhsAction r = (RhsAction) rhs;
                     GLRNonterminal A = freshNonterminal();
-                    addRulesForRHS(A, r.item());
-                    GLRRule rule = addRule(lhs, A);
+                    addRulesForRHS(A, r.item(), 0);
+                    GLRRule rule = addRule(prec, lhs, A);
                     recordAction(rule, r.actionDef());
                 }
-                if (rhs instanceof RhsBind) {
+                else if (rhs instanceof RhsBind) {
                     RhsBind r = (RhsBind) rhs;
-                    addRulesForRHS(lhs, r.item());
+                    addRulesForRHS(lhs, r.item(), prec);
                 }
-                if (rhs instanceof RhsRange) {
+                else if (rhs instanceof RhsRange) {
                     RhsRange r = (RhsRange) rhs;
                     
                     char lo = (char) (Character) r.lo().constantValue();
                     char hi = (char) (Character) r.hi().constantValue();
                     
                     GLRNonterminal t = range(lo, hi);
-                    addRule(lhs, t);
+                    addRule(prec, lhs, t);
                 }
-                if (rhs instanceof RhsAnyChar) {
+                else if (rhs instanceof RhsAnyChar) {
                     RhsAnyChar r = (RhsAnyChar) rhs;
                     
                     char lo = (char) 0;
                     char hi = Character.MAX_VALUE;
 
                     GLRNonterminal t = range(lo, hi);
-                    addRule(lhs, t);
+                    addRule(prec, lhs, t);
                 }
-                if (rhs instanceof RhsLit) {
+                else if (rhs instanceof RhsLit) {
                     RhsLit r = (RhsLit) rhs;
                     
                     Object v = r.constantValue();
@@ -396,105 +399,122 @@ public class GLR {
                         assert false : r + ".value = " + v;
                     }
                     
-                    addRule(lhs, l);
+                    addRule(prec, lhs, l);
                 }
-                if (rhs instanceof RhsSequence) {
+                else if (rhs instanceof RhsSequence) {
                     RhsSequence r = (RhsSequence) rhs;
                     GLRSymbol[] s = new GLRSymbol[r.items().size()];
+                    boolean[] assoc = new boolean[s.length];
                     int i = 0;
                     for (RhsExpr e : r.items()) {
+                        if (e instanceof RhsInvoke) {
+                            RhsInvoke ei = (RhsInvoke) e;
+                            if (ei.assocTag()) {
+                                assoc[i] = true;
+                            }
+                        }
                         s[i++] = symbolOrAdd(e);
                     }
-                    addRule(lhs, s);
+                    GLRRule rule = addRule(prec, lhs, s);
+                    if (assoc[0])
+                        rule.assoc = Assoc.LEFT;
+                    else if (assoc[assoc.length-1])
+                        rule.assoc = Assoc.RIGHT;
                 }
-                if (rhs instanceof RhsOr) {
+                else if (rhs instanceof RhsOr) {
                     RhsOr r = (RhsOr) rhs;
                     for (RhsExpr e : r.items()) {
-                        addRulesForRHS(lhs, e);
+                        addRulesForRHS(lhs, e, prec);
                     }
                 }
-                if (rhs instanceof RhsOption) {
+                else if (rhs instanceof RhsOrdered) {
+                    RhsOrdered r = (RhsOrdered) rhs;
+                    addRulesForRHS(lhs, r.left(), prec);
+                    addRulesForRHS(lhs, r.right(), prec+1);
+                }
+                else if (rhs instanceof RhsOption) {
                     RhsOption r = (RhsOption) rhs;
                     GLRSymbol Y = symbol(r.item());
                     if (Y != null) {
                         GLRNonterminal A = option(Y);
-                        addRule(lhs, A);
+                        addRule(prec, lhs, A);
                     }
                     else {
-                        addRulesForRHS(lhs, r.item());
-                        addRule(lhs);
+                        addRulesForRHS(lhs, r.item(), prec);
+                        addRule(prec, lhs);
                     }
-//                    GLRNonterminal A = freshNonterminal();
-//                    addRule(A);
-//                    addRulesForRHS(A, r.item());
-//                    addRule(lhs, A);
                 }
-                if (rhs instanceof RhsStar) {
+                else if (rhs instanceof RhsStar) {
                     RhsStar r = (RhsStar) rhs;
                     GLRSymbol Y = symbol(r.item());
                     if (Y != null) {
                         GLRNonterminal A = star(Y);
-                        addRule(lhs, A);
+                        addRule(prec, lhs, A);
                     }
                     else {
                         GLRNonterminal A = freshNonterminal();
                         GLRNonterminal B = freshNonterminal();
-                        addRulesForRHS(B, r.item());
-                        addRule(A);
-                        addRule(A, A, B);
-                        addRule(lhs, A);
+                        addRulesForRHS(B, r.item(), 0);
+                        addRule(prec, A);
+                        addRule(prec, A, A, B);
+                        addRule(prec, lhs, A);
                     }
                 }
-                if (rhs instanceof RhsPlus) {
+                else if (rhs instanceof RhsPlus) {
                     RhsPlus r = (RhsPlus) rhs;
                     GLRSymbol Y = symbol(r.item());
                     if (Y != null) {
                         GLRNonterminal A = plus(Y);
-                        addRule(lhs, A);
+                        addRule(prec, lhs, A);
                     }
                     else {
                         GLRNonterminal A = freshNonterminal();
                         GLRNonterminal B = freshNonterminal();
-                        addRulesForRHS(B, r.item());
-                        addRule(A, B);
-                        addRule(A, A, B);
-                        addRule(lhs, A);
+                        addRulesForRHS(B, r.item(), 0);
+                        addRule(prec, A, B);
+                        addRule(prec, A, A, B);
+                        addRule(prec, lhs, A);
                     }
                 }
-                if (rhs instanceof RhsStarList) {
+                else if (rhs instanceof RhsStarList) {
                     RhsStarList r = (RhsStarList) rhs;
                     GLRNonterminal A = lhs;
                     GLRNonterminal Ai = freshNonterminal();
                     GLRNonterminal As = freshNonterminal();
-                    addRulesForRHS(Ai, r.item());
-                    addRulesForRHS(As, r.sep());
-                    addRule(A);
-                    addRule(A, Ai);
-                    addRule(A, A, As, Ai);
-                    addRule(lhs);
-                    addRule(lhs, A);
+                    addRulesForRHS(Ai, r.item(), 0);
+                    addRulesForRHS(As, r.sep(), 0);
+                    addRule(prec, A);
+                    addRule(prec, A, Ai);
+                    addRule(prec, A, A, As, Ai);
+                    addRule(prec, lhs);
+                    addRule(prec, lhs, A);
                 }
-                if (rhs instanceof RhsPlusList) {
+                else if (rhs instanceof RhsPlusList) {
                     RhsPlusList r = (RhsPlusList) rhs;
                     GLRNonterminal A = freshNonterminal();
                     GLRNonterminal Ai = freshNonterminal();
                     GLRNonterminal As = freshNonterminal();
-                    addRulesForRHS(Ai, r.item());
-                    addRulesForRHS(As, r.sep());
-                    addRule(A, Ai);
-                    addRule(A, A, As, Ai);
-                    addRule(lhs, A);
+                    addRulesForRHS(Ai, r.item(), 0);
+                    addRulesForRHS(As, r.sep(), 0);
+                    addRule(prec, A, Ai);
+                    addRule(prec, A, A, As, Ai);
+                    addRule(prec, lhs, A);
+                }
+                
+                else {
+                    assert false : rhs + ": " + rhs.getClass().getName();
                 }
             }
             
-            GLRRule addRule(GLRNonterminal lhs, List<GLRSymbol> rhs) {
+            GLRRule addRule(int prec, GLRNonterminal lhs, List<GLRSymbol> rhs) {
                 GLRRule rule = new GLRRule(lhs, rhs, g.rules.size());
+                rule.prec = prec;
                 g.rules.add(rule);
                 lhs.rules.add(rule);
                 return rule;
             }
-            GLRRule addRule(GLRNonterminal lhs, GLRSymbol... rhs) {
-                return addRule(lhs, Arrays.asList(rhs));
+            GLRRule addRule(int prec, GLRNonterminal lhs, GLRSymbol... rhs) {
+                return addRule(prec, lhs, Arrays.asList(rhs));
             }
         });
         
@@ -735,7 +755,7 @@ public class GLR {
      * action.  Each pair of rules in each collection should have a merge
      * action.
      */
-    public Collection<Collection<Rhs>> mergeRulesForNonterminal(Nonterminal lhs) {
+    public Collection<Collection<?>> mergeRulesForNonterminal(Nonterminal lhs) {
         if (! ext.getIbexOptions().checkMergeActions) {
             return Collections.EMPTY_LIST;
         }
@@ -771,7 +791,7 @@ public class GLR {
     void initSymbols(IbexClassDef pt) {
         symbolMap = new HashMap<Object, GLRSymbol>();
 
-        g.nonterminals = new ArrayList<GLRNonterminal>(pt.allNonterminals().size()+1);
+        g.nonterminals = new ArrayList<GLRNonterminal>();
         g.terminals = new ArrayList<GLRTerminal>(257);
         originalStartSymbols = new ArrayList<GLRNonterminal>();
         
@@ -812,19 +832,19 @@ public class GLR {
         
         assert g.eofSymbol.index == 0;
 
-        for (Iterator<Terminal> i = pt.allTerminals().iterator(); i.hasNext(); ) {
-            Terminal r = i.next();
-//            GLRTerminal t = terminal(r);
-            assert false;
-        }
-
-        for (Iterator<Nonterminal> i = pt.allNonterminals().iterator(); i.hasNext(); ) {
-            Nonterminal r = i.next();
-            GLRNonterminal n = nonterminal(r);
-            if (isStart(r)) {
-                originalStartSymbols.add(n);
-            }
-        }
+//        for (Iterator<Terminal> i = pt.allTerminals().iterator(); i.hasNext(); ) {
+//            Terminal r = i.next();
+////            GLRTerminal t = terminal(r);
+//            assert false;
+//        }
+//
+//        for (Iterator<Nonterminal> i = pt.allNonterminals().iterator(); i.hasNext(); ) {
+//            Nonterminal r = i.next();
+//            GLRNonterminal n = nonterminal(r);
+//            if (isStart(r)) {
+//                originalStartSymbols.add(n);
+//            }
+//        }
 
         if (g.nonterminals.isEmpty() || g.terminals.isEmpty()) {
             throw new InternalCompilerError(pt + " is not a parser.");

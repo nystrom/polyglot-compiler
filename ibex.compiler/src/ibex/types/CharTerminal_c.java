@@ -12,7 +12,7 @@ public class CharTerminal_c extends Terminal_c implements CharTerminal {
         this.value = value;
     }
 
-    public boolean matches(Rhs sym) {
+    public boolean matches(Symbol sym) {
         if (sym instanceof CharTerminal) {
             CharTerminal t = (CharTerminal) sym;
             return t.value() == value;

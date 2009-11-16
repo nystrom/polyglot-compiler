@@ -1,6 +1,5 @@
 package ibex.ast;
 
-import ibex.ast.RhsAnyChar_c.RDummy_c;
 import ibex.types.IbexTypeSystem;
 
 import java.util.List;
@@ -9,13 +8,10 @@ import polyglot.ast.Node;
 import polyglot.ast.Term;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
-import polyglot.types.TypeSystem;
-import polyglot.util.CodeWriter;
 import polyglot.util.Position;
 import polyglot.visit.CFGBuilder;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
-import polyglot.visit.PrettyPrinter;
 
 public abstract class RhsIterationList_c extends RhsExpr_c implements RhsIterationList {
     RhsExpr item;
@@ -51,7 +47,7 @@ public abstract class RhsIterationList_c extends RhsExpr_c implements RhsIterati
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
         IbexTypeSystem ts = (IbexTypeSystem) tc.typeSystem();
         Type t = ts.arrayOf(item.type());
-        return rhs(new RDummy_c(ts, position(), t)).type(t);
+        return type(t);
     }
 
     public Term firstChild() {
