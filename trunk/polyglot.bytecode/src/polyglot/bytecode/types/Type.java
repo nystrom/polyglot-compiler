@@ -182,7 +182,9 @@ public class Type {
     }
 
     public static Type array(Type base, int dims) {
-        if (dims == 1)
+        if (dims == 0)
+            return base;
+        else if (dims == 1)
             return array(base);
         else
             return array(array(base), dims - 1);

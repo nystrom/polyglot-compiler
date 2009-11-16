@@ -953,14 +953,12 @@ public class ExprTranslator extends AbstractExpTranslator {
         polyglot.types.Type baseType = n.baseType().type();
         Type base = typeof(baseType);
 
-        if (n.numDims() == 1) {
-            if (baseType.isReference())
-                il.ANEWARRAY(base, n.position());
-            else
-                il.NEWARRAY(base, n.position());
-        }
-        else {
-            il.MULTIANEWARRAY(Type.array(base, n.additionalDims()), n.dims().size(), n.position());
+        if (n.numDims() == 1 && !baseType.isReference()) {
+            il.NEWARRAY(base, n.position());
+        } else if (n.dims().size() <= 1) {
+            il.ANEWARRAY(Type.array(base, n.numDims() - 1), n.position());
+        } else {
+            il.MULTIANEWARRAY(Type.array(base, n.numDims()), n.dims().size(), n.position());
         }
 
         if (n.init() != null) {

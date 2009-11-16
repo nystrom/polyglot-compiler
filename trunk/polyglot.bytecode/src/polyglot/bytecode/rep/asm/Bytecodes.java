@@ -1501,7 +1501,7 @@ public class Bytecodes implements IOpcodes {
         mn.instructions.add(new TypeInsnNode(Opcodes.INSTANCEOF, type.desc()));
         assert isReachable();
 
-        setStack(currentStack.pop(Type.OBJECT).push(Type.INT));
+        setStack(currentStack.pop(Type.OBJECT).push(Type.BOOLEAN));
         return postAppend(pos, h);
     }
 
@@ -2048,7 +2048,7 @@ public class Bytecodes implements IOpcodes {
         for (int i = 0; i < dimensions; i++) {
             setStack(currentStack.pop(Type.INT));
         }
-        setStack(currentStack.push(Type.array(elementType, dimensions)));
+        setStack(currentStack.push(elementType));
         return postAppend(pos, h);
     }
 

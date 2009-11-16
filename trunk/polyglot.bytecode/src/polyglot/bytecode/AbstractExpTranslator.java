@@ -479,8 +479,8 @@ public class AbstractExpTranslator extends AbstractTranslator {
 
     protected void arrayLoad(polyglot.types.Type t, Position pos) {
         if (t.isBoolean()) {
-            il.IALOAD(pos);
-            il.uncheckedCoerce(Type.INT, Type.BOOLEAN);
+            il.BALOAD(pos);
+            il.uncheckedCoerce(Type.BYTE, Type.BOOLEAN);
         }
         if (t.isByte())
             il.BALOAD(pos);
@@ -502,8 +502,8 @@ public class AbstractExpTranslator extends AbstractTranslator {
 
     protected void arrayStore(polyglot.types.Type t, Position pos) {
         if (t.isBoolean()) {
-            il.uncheckedCoerce(Type.BOOLEAN, Type.INT);
-            il.IASTORE(pos);
+            il.uncheckedCoerce(Type.BOOLEAN, Type.BYTE);
+            il.BASTORE(pos);
         }
         if (t.isByte())
             il.BASTORE(pos);
