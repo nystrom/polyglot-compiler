@@ -39,7 +39,7 @@ class TestClone implements Cloneable {
     for (int i = 0; i < 2; ++i)
       for (int j = 0; j < 3; ++j)
         c[i][j] = new TestClone(i + "" + j);
-    final TestClone[][] d = c.clone();
+    final TestClone[][] d = (TestClone[][]) c.clone();
 
     runTest(c,d);
 
