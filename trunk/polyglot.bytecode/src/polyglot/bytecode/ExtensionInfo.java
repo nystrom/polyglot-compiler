@@ -1,15 +1,13 @@
 package polyglot.bytecode;
 
 import polyglot.ast.NodeFactory;
-import polyglot.dispatch.Dispatch;
+import polyglot.ast.SourceFile;
 import polyglot.frontend.AbstractGoal_c;
 import polyglot.frontend.Compiler;
 import polyglot.frontend.Goal;
 import polyglot.frontend.JLScheduler;
 import polyglot.frontend.Job;
 import polyglot.frontend.Scheduler;
-import polyglot.frontend.TargetFactory;
-import polyglot.frontend.Topics;
 import polyglot.types.TypeSystem;
 
 /**
@@ -49,7 +47,7 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
                 @Override
                 public boolean runTask() {
                     try {
-                        new Dispatch.Dispatcher("visit").invoke(new BytecodeTranslator(job, ts, nf), job.ast());
+                        new BytecodeTranslator(job, ts, nf).visit((SourceFile) job.ast());
                     }
                     catch (Exception e) {
                         return false;

@@ -6,6 +6,7 @@ import polyglot.ast.Expr;
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
 import polyglot.ast.TypeNode;
+import polyglot.bytecode.rep.ILabel;
 import polyglot.bytecode.rep.IOpcodes;
 import polyglot.bytecode.types.StackType;
 import polyglot.bytecode.types.NonEmpty;
@@ -28,7 +29,17 @@ public abstract class AbstractTranslator implements Copy {
         this.ts = ts;
         this.nf = nf;
     }
-
+    
+    public StmtTranslator newStmtTranslator(BytecodeTranslator bc, MethodContext context) {
+        return new StmtTranslator(job, ts, nf, bc, context);
+    }
+    public ExprTranslator newExprTranslator(BytecodeTranslator bc, MethodContext context) {
+        return new ExprTranslator(job, ts, nf, bc, context);
+    }
+    public BranchTranslator newBranchTranslator(BytecodeTranslator bc, MethodContext context, ILabel target, boolean branchOnTrue) {
+        return new BranchTranslator(job, ts, nf, bc, context, target, branchOnTrue);
+    }
+    
     protected Job job;
     protected TypeSystem ts;
     protected NodeFactory nf;
