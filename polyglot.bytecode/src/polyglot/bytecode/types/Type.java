@@ -182,6 +182,7 @@ public class Type {
     }
 
     public static Type array(Type base, int dims) {
+        assert dims >= 0;
         if (dims == 0)
             return base;
         else if (dims == 1)
