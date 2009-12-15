@@ -199,7 +199,7 @@ public class StmtTranslator extends AbstractExpTranslator {
         il.addLabel(B);
     }
     public void visit(LocalClassDecl n) {
-        visitChild(n.decl(), new ClassTranslator(job, ts, nf, bc, n.decl().classDef(), this.context));
+        visitChild(n.decl(), newClassTranslator(bc, n.decl().classDef(), this.context));
     }
     public void visit(LocalDecl n) {
         int index = context.addLocal(n.localDef());

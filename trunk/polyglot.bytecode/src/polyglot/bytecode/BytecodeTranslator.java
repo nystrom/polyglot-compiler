@@ -44,13 +44,15 @@ public class BytecodeTranslator {
             if (d instanceof ClassDecl) {
                 ClassDecl cd = (ClassDecl) d;
                 ClassDef def = cd.classDef();
-                new Dispatch.Dispatcher("visit").invoke(this, d);
-                final ClassDef sym = def;
                 ClassBody body = cd.body();
-                IClassGen cg = new ClassTranslator(job, ts, nf, this, sym).translateClass(cd, body);
-                genClass(n, Types.get(sym.package_()), cg);
+                IClassGen cg = newClassTranslator(this, def).translateClass(cd, body);
+                genClass(n, Types.get(def.package_()), cg);
             }
         }
+    }
+    
+    public ClassTranslator newClassTranslator(BytecodeTranslator bc, ClassDef cd) {
+        return new ClassTranslator(job, ts, nf, bc, cd);
     }
 
     private void genClass(SourceFile n, polyglot.types.Package pkg, IClassGen acg) {
