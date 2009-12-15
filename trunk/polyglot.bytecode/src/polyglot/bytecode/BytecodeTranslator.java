@@ -57,7 +57,6 @@ public class BytecodeTranslator {
 
     private void genClass(SourceFile n, polyglot.types.Package pkg, IClassGen acg) {
         byte[] b = acg.bytes();
-        polyglot.types.Package p = pkg;
         File f = ts.extensionInfo().targetFactory().outputFile(acg.fullName().qualifier(), acg.fullName().name(), n.source());
         try {
             if (! f.getParentFile().exists()) {
