@@ -39,7 +39,7 @@ public class AbstractExpTranslator extends AbstractTranslator {
     protected MethodContext context;
     protected IOpcodes il;
     protected BytecodeTranslator bc;
-    
+
     public MethodContext context() {
         return context;
     }
@@ -59,11 +59,11 @@ public class AbstractExpTranslator extends AbstractTranslator {
     }
     
     public void visitBranch(Expr e, ILabel target, boolean branchOnTrue) {
-        visitChild(e, new BranchTranslator(job, ts, nf, bc, context, target, branchOnTrue));
+        visitChild(e, newBranchTranslator(bc, context, target, branchOnTrue));
     }
 
     public void visitExpr(Expr n) {
-        visitChild(n, new ExprTranslator(job, ts, nf, bc, context));
+        visitChild(n, newExprTranslator(bc, context));
     }
 
     public void visitChild(final Expr e, final Type newTop) {

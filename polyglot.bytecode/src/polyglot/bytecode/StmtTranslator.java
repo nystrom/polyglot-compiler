@@ -479,7 +479,7 @@ public class StmtTranslator extends AbstractExpTranslator {
             public void appendInstructions(IOpcodes il, MethodContext c) {
                 // visit the finally block, but pop the context so we don't recurse.
                 if (il.isReachable()) {
-                    visitChild(n.finallyBlock(), new StmtTranslator(job, ts, nf, bc, context));
+                    visitChild(n.finallyBlock(), newStmtTranslator(bc, context));
                 }
             }
         };

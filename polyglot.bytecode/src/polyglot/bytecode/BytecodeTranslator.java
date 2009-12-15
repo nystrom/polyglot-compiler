@@ -36,9 +36,6 @@ public class BytecodeTranslator {
         this.nf = nf;
     }
 
-    public void visit(final ClassDecl n) {
-    }
-
     public void visit(SourceFile n) {
         n = (SourceFile) n.visit(new LocalClassRemover(job, ts, nf).context(ts.emptyContext()));
         n = (SourceFile) n.visit(new InnerClassRemover(job, ts, nf).context(ts.emptyContext()));
@@ -61,9 +58,10 @@ public class BytecodeTranslator {
         polyglot.types.Package p = pkg;
         File f = ts.extensionInfo().targetFactory().outputFile(acg.fullName().qualifier(), acg.fullName().name(), n.source());
         try {
-            if (! f.getParentFile().exists())
+            if (! f.getParentFile().exists()) {
                 // Create the parent directory.  Don't bother checking if successful, the file open below will fail if not.
                 f.getParentFile().mkdirs();
+            }
             FileOutputStream out = new FileOutputStream(f);
             out.write(b);
             out.close();

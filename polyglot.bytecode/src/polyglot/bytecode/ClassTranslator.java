@@ -152,9 +152,9 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
                 if (fd.fieldDef().flags().isStatic() && fd.init() != null) {
                     MethodContext context = new MethodContext(fd.initializerDef(), staticInit, this, Empty.it);
                     if (fd.init() instanceof ArrayInit)
-                        visitChild(fd.init().type(Types.get(fd.fieldDef().type())), new ExprTranslator(job, ts, nf, bc, context));
+                        visitChild(fd.init().type(Types.get(fd.fieldDef().type())), newExprTranslator(bc, context));
                     else
-                        visitChild(fd.init(), new ExprTranslator(job, ts, nf, bc, context));
+                        visitChild(fd.init(), newExprTranslator(bc, context));
                     coerce(staticInitIL, typeof(fd.init()), typeof(fd.fieldDef().type()), fd.position());
                     staticInitIL.PUTSTATIC(typeof(fd.fieldDef().container()), fd.fieldDef().name().toString(), typeof(fd.fieldDef().type()), fd.position());
                     if (staticInitIL.isUnreachable())
@@ -165,7 +165,7 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
                 Initializer i = (Initializer) member;
                 if (i.initializerDef().flags().isStatic()) {
                     MethodContext context = new MethodContext(i.initializerDef(), staticInit, this, Empty.it);
-                    visitChild(i.body(), new StmtTranslator(job, ts, nf, bc, context));
+                    visitChild(i.body(), newStmtTranslator(bc, context));
                     if (staticInitIL.isUnreachable())
                         break;
                 }
@@ -184,9 +184,9 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
                         if (! fd.fieldDef().flags().isStatic() && fd.init() != null) {
                             il.ALOAD(context.getThisIndex(), typeof(currentClass.asType()), fd.position());
                             if (fd.init() instanceof ArrayInit)
-                                visitChild(fd.init().type(Types.get(fd.fieldDef().type())), new ExprTranslator(job, ts, nf, bc, context));
+                                visitChild(fd.init().type(Types.get(fd.fieldDef().type())), newExprTranslator(bc, context));
                             else
-                                visitChild(fd.init(), new ExprTranslator(job, ts, nf, bc, context));
+                                visitChild(fd.init(), newExprTranslator(bc, context));
                             coerce(il, typeof(fd.init()), typeof(fd.fieldDef().type()), fd.position());
                             il.PUTFIELD(typeof(fd.fieldDef().container()), fd.fieldDef().name().toString(), typeof(fd.fieldDef().type()), fd.position());
                         }
@@ -194,7 +194,7 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
                     if (member instanceof Initializer) {
                         Initializer i = (Initializer) member;
                         if (! i.initializerDef().flags().isStatic()) {
-                            visitChild(i.body(), new StmtTranslator(job, ts, nf, bc, context));
+                            visitChild(i.body(), newStmtTranslator(bc, context));
                         }
                     }
                 }
@@ -476,7 +476,7 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
                 // }
             }
 
-            final StmtTranslator v = new StmtTranslator(job, ts, nf, bc, c);
+            final StmtTranslator v = newStmtTranslator(bc, c);
 
             visitChild(body, v);
 
