@@ -162,7 +162,7 @@ public class ExprTranslator extends AbstractExpTranslator {
 
     public void visit(final New n) {
         if (n.body() != null) {
-            IClassGen cg = new ClassTranslator(job, ts, nf, bc, n.anonType(), context).translateClass(n, n.body());
+            IClassGen cg = newClassTranslator(bc, n.anonType(), context).translateClass(n, n.body());
             context.cg.addInnerClass(cg);
         }
 

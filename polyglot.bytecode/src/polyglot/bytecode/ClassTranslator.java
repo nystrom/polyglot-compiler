@@ -89,7 +89,7 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
     public void visit(final ClassDecl n) {
         final ClassDef sym = n.classDef();
         ClassBody body = n.body();
-        IClassGen cg = new ClassTranslator(job, ts, nf, bc, sym).translateClass(n, body);
+        IClassGen cg = newClassTranslator(bc, sym).translateClass(n, body);
         this.cg.addInnerClass(cg);
     }
 

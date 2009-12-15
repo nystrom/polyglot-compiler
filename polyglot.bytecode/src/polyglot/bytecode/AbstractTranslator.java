@@ -14,6 +14,7 @@ import polyglot.bytecode.types.Type;
 import polyglot.bytecode.types.Unreachable;
 import polyglot.dispatch.Dispatch;
 import polyglot.frontend.Job;
+import polyglot.types.ClassDef;
 import polyglot.types.Ref;
 import polyglot.types.TypeSystem;
 import polyglot.types.Types;
@@ -38,6 +39,12 @@ public abstract class AbstractTranslator implements Copy {
     }
     public BranchTranslator newBranchTranslator(BytecodeTranslator bc, MethodContext context, ILabel target, boolean branchOnTrue) {
         return new BranchTranslator(job, ts, nf, bc, context, target, branchOnTrue);
+    }
+    public ClassTranslator newClassTranslator(BytecodeTranslator bc, ClassDef cd, MethodContext context) {
+        return new ClassTranslator(job, ts, nf, bc, cd, context);
+    }
+    public ClassTranslator newClassTranslator(BytecodeTranslator bc, ClassDef cd) {
+        return new ClassTranslator(job, ts, nf, bc, cd);
     }
     
     protected Job job;
