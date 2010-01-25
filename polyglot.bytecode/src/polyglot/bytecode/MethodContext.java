@@ -29,15 +29,17 @@ public class MethodContext implements BytecodeConstants, Copy {
     MethodContext containingExp;
     CodeDef theMethod;
     IMethodGen mg;
+    ClassTranslator ct;
     private Map<MethodContext, String> frameFields;
-    InstructionSequence fieldInits;
+    public InstructionSequence fieldInits;
     
-    public MethodContext(CodeDef sym, IMethodGen mg, ClassTranslator t, StackType currentStack) {
-        this(sym, mg, t.currentClass, t.cg, t.containingExp, t.frameFields, currentStack);
+    public MethodContext(CodeDef sym, IMethodGen mg, ClassTranslator ct, StackType currentStack) {
+        this(sym, mg, ct.currentClass, ct.cg, ct.containingExp, ct.frameFields, currentStack);
         assert sym != null;
+        this.ct = ct;
     }
 
-    public MethodContext(CodeDef sym, IMethodGen mg, ClassDef currentClass, IClassGen cg, MethodContext t, Map<MethodContext, String> frameFields, StackType currentStack) {
+    private MethodContext(CodeDef sym, IMethodGen mg, ClassDef currentClass, IClassGen cg, MethodContext t, Map<MethodContext, String> frameFields, StackType currentStack) {
         this.theMethod = sym;
         this.mg = mg;
         this.il = mg.code(); // AsmFactory.makeOpcodes(mg, currentStack);
@@ -149,13 +151,13 @@ public class MethodContext implements BytecodeConstants, Copy {
     Map<Name,StackType> continueStacks;
 
     IOpcodes il;
-    ClassDef currentClass;
+    public ClassDef currentClass;
     IClassGen cg;
 
     public Type frameClass;
     public Name frameLocal;
 
-    int getThisIndex() {
+    public int getThisIndex() {
         int index = getIndex(new ThisVar(Type.OBJECT));
         assert index == 0;
         return index;
@@ -187,7 +189,7 @@ public class MethodContext implements BytecodeConstants, Copy {
 
     Integer checkLocalIndex(LocalDef sym) {
         //        if (sym.name() == Name.THIS) return getThisIndex();
-        Integer v = varMap.get(new LocalVar(sym, ExprTranslator.typeof(Types.get(sym.type()))));
+        Integer v = varMap.get(new LocalVar(sym, ct.typeof(Types.get(sym.type()))));
         return v;
     }
 
@@ -214,14 +216,14 @@ public class MethodContext implements BytecodeConstants, Copy {
     }
 
     void removeLocal(LocalDef sym) {
-        varMap.remove(new LocalVar(sym, ExprTranslator.typeof(sym.type())));
+        varMap.remove(new LocalVar(sym, ct.typeof(sym.type())));
     }
 
 //    void removeLabelLocal(Name name) {
 //        varMap.remove(new VarMapKey(VarMapKey.Kind.LABEL, name));
 //    }
 
-    Type localType(int index) {
+    public Type localType(int index) {
         for (Map.Entry<Var, Integer> e : varMap.entrySet()) {
             if (e.getValue() == index)
                 return e.getKey().type;
@@ -231,7 +233,7 @@ public class MethodContext implements BytecodeConstants, Copy {
     }
 
     int addLocal(LocalDef sym) {
-        return addLocal(new LocalVar(sym, ExprTranslator.typeof(sym.type())));
+        return addLocal(new LocalVar(sym, ct.typeof(sym.type())));
     }
     
     int addFormal(Var key, int index) {
@@ -255,7 +257,7 @@ public class MethodContext implements BytecodeConstants, Copy {
     }
 
     int addFormal(LocalDef sym, int index) {
-        return addFormal(new LocalVar(sym, ExprTranslator.typeof(sym.type())), index);
+        return addFormal(new LocalVar(sym, ct.typeof(sym.type())), index);
     }
     
     /** Pop the stack until it's type agrees with t. */

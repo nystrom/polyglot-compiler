@@ -131,8 +131,6 @@ public class Type {
     public static final Type DOUBLE = new Type("D");
 
     public static Type typeFromPolyglotType(polyglot.types.Type t) {
-        if (t.isArray())
-            return array(typeFromPolyglotType(t.toArray().base()));
         if (t.isBoolean())
             return Type.BOOLEAN;
         if (t.isByte())

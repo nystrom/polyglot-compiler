@@ -141,7 +141,7 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
         return cg;
     }
 
-    protected IClassGen translateClass(final Node n, final ClassBody body) {
+    public IClassGen translateClass(final Node n, final ClassBody body) {
         final IMethodGen staticInit = AsmFactory.makeMethod(ACC_STATIC, "<clinit>", Type.VOID, new Type[0], new String[0], new Type[0]);
         final IOpcodes staticInitIL = AsmFactory.makeOpcodes(staticInit);
 
@@ -243,7 +243,7 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
     protected Type getSuperklass(final ClassDef sym) {
         polyglot.types.ClassType t = (ClassType) Types.get(sym.superType());
         assert ! t.flags().isInterface();
-        return Type.typeFromPolyglotType(t);
+        return typeFromPolyglotTypeV(t);
     }
 
     protected Type[] getInterfaces(final ClassDef sym) {
@@ -252,7 +252,7 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
             Ref<? extends polyglot.types.Type> ref = sym.interfaces().get(i);
             polyglot.types.ClassType t = (ClassType) Types.get(ref);
             assert t.flags().isInterface();
-            ifaces[i] = Type.typeFromPolyglotType(t);
+            ifaces[i] = typeFromPolyglotTypeV(t);
         }
         return ifaces;
     }
@@ -305,9 +305,9 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
             nameStrings[i] = names[i].toString();
 
         for (int i = 0; i < types.length; i++)
-            types[i] = ExprTranslator.typeof(formals.get(i).type());
+            types[i] = typeof(formals.get(i).type());
         for (int i = 0; i < ttypes.length; i++) {
-            ttypes[i] = ExprTranslator.typeof(throwTypes.get(i));
+            ttypes[i] = typeof(throwTypes.get(i));
         }
 
         // Generate the actual implementation as a static method.

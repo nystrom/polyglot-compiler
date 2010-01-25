@@ -61,19 +61,25 @@ public abstract class AbstractTranslator implements Copy {
         }
     }
 
-    protected static Type typeof(polyglot.types.Type t) {
+    protected Type typeFromPolyglotTypeV(polyglot.types.Type t) {
+        if (t.isArray())
+            return Type.array(typeFromPolyglotTypeV(t.toArray().base()));
         return Type.typeFromPolyglotType(t);
     }
 
-    protected static Type typeof(Ref<? extends polyglot.types.Type> t) {
-        return Type.typeFromPolyglotType(Types.get(t));
+    protected Type typeof(polyglot.types.Type t) {
+        return typeFromPolyglotTypeV(t);
     }
 
-    protected static Type typeof(TypeNode t) {
+    protected Type typeof(Ref<? extends polyglot.types.Type> t) {
+        return typeFromPolyglotTypeV(Types.get(t));
+    }
+
+    protected Type typeof(TypeNode t) {
         return typeof(t.type());
     }
 
-    public static Type[] typeof(List<Expr> es) {
+    public Type[] typeof(List<Expr> es) {
         Type[] ts = new Type[es.size()];
         for (int i = 0; i < es.size(); i++) {
             ts[i] = typeof(es.get(i));
@@ -81,7 +87,7 @@ public abstract class AbstractTranslator implements Copy {
         return ts;
     }
 
-    public static Type[] typeofTypes(List<polyglot.types.Type> es) {
+    public Type[] typeofTypes(List<polyglot.types.Type> es) {
         Type[] ts = new Type[es.size()];
         for (int i = 0; i < es.size(); i++) {
             ts[i] = typeof(es.get(i));
@@ -89,7 +95,7 @@ public abstract class AbstractTranslator implements Copy {
         return ts;
     }
 
-    protected static Type typeof(Expr e) {
+    protected Type typeof(Expr e) {
         polyglot.types.Type t = e.type();
         return typeof(t);
     }
