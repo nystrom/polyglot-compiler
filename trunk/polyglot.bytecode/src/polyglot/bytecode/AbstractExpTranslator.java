@@ -178,7 +178,7 @@ public class AbstractExpTranslator extends AbstractTranslator {
         final MethodContext ti = context;
 
         final boolean boxed = t.isBoxedHere(sym);
-        final Type type = ExprTranslator.typeof(sym.type());
+        final Type type = typeof(sym.type());
         assert type != null;
         Expr init = v.init();
 
@@ -539,7 +539,7 @@ public class AbstractExpTranslator extends AbstractTranslator {
         coerce(typeof(n), typeof(t), n.position());
     }
 
-    void pushArguments(List<polyglot.types.Type> formalTypes, List<Expr> args) {
+    protected void pushArguments(List<polyglot.types.Type> formalTypes, List<Expr> args) {
         assert formalTypes.size() == args.size();
         for (int i = 0; i < args.size(); i++) {
             polyglot.types.Type t = formalTypes.get(i);
@@ -561,7 +561,7 @@ public class AbstractExpTranslator extends AbstractTranslator {
         il.INVOKESPECIAL(typeof(type), "<init>", tys, Type.VOID, pos);
     }
 
-    void coerce(final Type currentTop, final Type newTop, final Position pos) {
+    protected void coerce(final Type currentTop, final Type newTop, final Position pos) {
         coerce(il, currentTop, newTop, pos);
     }
 }

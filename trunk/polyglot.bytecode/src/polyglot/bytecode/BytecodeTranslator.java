@@ -25,9 +25,9 @@ import polyglot.visit.InnerClassRemover;
 import polyglot.visit.LocalClassRemover;
 
 public class BytecodeTranslator {
-    private Job job;
-    private TypeSystem ts;
-    private NodeFactory nf;
+    protected Job job;
+    protected TypeSystem ts;
+    protected NodeFactory nf;
 
     public BytecodeTranslator(Job job, TypeSystem ts, NodeFactory nf) {
         super();
@@ -55,7 +55,7 @@ public class BytecodeTranslator {
         return new ClassTranslator(job, ts, nf, bc, cd);
     }
 
-    private void genClass(SourceFile n, polyglot.types.Package pkg, IClassGen acg) {
+    protected void genClass(SourceFile n, polyglot.types.Package pkg, IClassGen acg) {
         byte[] b = acg.bytes();
         File f = ts.extensionInfo().targetFactory().outputFile(acg.fullName().qualifier(), acg.fullName().name(), n.source());
         try {

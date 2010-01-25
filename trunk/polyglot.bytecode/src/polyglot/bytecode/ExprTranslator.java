@@ -760,7 +760,7 @@ public class ExprTranslator extends AbstractExpTranslator {
             Type t = typeof(local.type());
 
             if (local.target() instanceof TypeNode) {
-                il.GETSTATIC(Type.typeFromPolyglotType(fi.container()), fi.name().toString(), Type.typeFromPolyglotType(fi.type()), pos);
+                il.GETSTATIC(typeFromPolyglotTypeV(fi.container()), fi.name().toString(), typeFromPolyglotTypeV(fi.type()), pos);
                 if (operator == Unary.PRE_INC) {
                     il.LDC(1, pos);
                     coerce(Type.INT, t, pos);
@@ -785,7 +785,7 @@ public class ExprTranslator extends AbstractExpTranslator {
                     coerce(Type.INT, t, pos);
                     binaryOp(Binary.SUB, t, pos);
                 }
-                il.PUTSTATIC(Type.typeFromPolyglotType(fi.container()), fi.name().toString(), Type.typeFromPolyglotType(fi.type()), pos);
+                il.PUTSTATIC(typeFromPolyglotTypeV(fi.container()), fi.name().toString(), typeFromPolyglotTypeV(fi.type()), pos);
             }
             else {
                 // S
@@ -793,7 +793,7 @@ public class ExprTranslator extends AbstractExpTranslator {
                 // S e
                 il.DUP(pos);
                 // S e e
-                il.GETFIELD(Type.typeFromPolyglotType(fi.container()), fi.name().toString(), Type.typeFromPolyglotType(fi.type()), pos);
+                il.GETFIELD(typeFromPolyglotTypeV(fi.container()), fi.name().toString(), typeFromPolyglotTypeV(fi.type()), pos);
                 // S e v
                 if (operator == Unary.PRE_INC) {
                     il.LDC(1, pos);
@@ -837,7 +837,7 @@ public class ExprTranslator extends AbstractExpTranslator {
                     coerce(Type.INT, t, pos);
                     binaryOp(Binary.SUB, t, pos);
                 }
-                il.PUTFIELD(Type.typeFromPolyglotType(fi.container()), fi.name().toString(), Type.typeFromPolyglotType(fi.type()), pos);
+                il.PUTFIELD(typeFromPolyglotTypeV(fi.container()), fi.name().toString(), typeFromPolyglotTypeV(fi.type()), pos);
             }
         }
         else if (e instanceof ArrayAccess) {

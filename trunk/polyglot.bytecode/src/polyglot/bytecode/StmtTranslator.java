@@ -140,10 +140,10 @@ public class StmtTranslator extends AbstractExpTranslator {
         pushArguments(n.constructorInstance().formalTypes(), n.arguments());
 
         if (n.kind() == ConstructorCall.THIS) {
-            il.INVOKESPECIAL(Type.typeFromPolyglotType(context.currentClass.asType()), "<init>", typeof(n.arguments()), Type.VOID, n.position());
+            il.INVOKESPECIAL(typeFromPolyglotTypeV(context.currentClass.asType()), "<init>", typeof(n.arguments()), Type.VOID, n.position());
         }
         else {
-            il.INVOKESPECIAL(Type.typeFromPolyglotType(Types.get(context.currentClass.superType())), "<init>", typeof(n.arguments()), Type.VOID, n.position());
+            il.INVOKESPECIAL(typeFromPolyglotTypeV(Types.get(context.currentClass.superType())), "<init>", typeof(n.arguments()), Type.VOID, n.position());
         }
         
         if (n.kind() == ConstructorCall.SUPER) {
