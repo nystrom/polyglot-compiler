@@ -6,6 +6,7 @@ Bundle-SymbolicName: polyglot3
 Bundle-Version: 3.1.2
 Bundle-Localization: plugin
 Export-Package: polyglot.ast,
+ polyglot.dispatch,
  polyglot.frontend,
  polyglot.lex,
  polyglot.main,
