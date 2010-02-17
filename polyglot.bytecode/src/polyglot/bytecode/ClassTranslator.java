@@ -55,7 +55,7 @@ import polyglot.visit.NodeVisitor;
  */
 public class ClassTranslator extends AbstractTranslator implements BytecodeConstants {
     final MethodContext containingExp;
-    ClassDef currentClass;
+    protected ClassDef currentClass;
     IClassGen cg;
     BytecodeTranslator bc;
     Map<MethodContext, String> frameFields;
@@ -210,7 +210,7 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
 
     private static int count = 1;
 
-    private String classNameOfSymbol(ClassDef def) {
+    protected String classNameOfSymbol(ClassDef def) {
         if (def.isTopLevel()) {
             return def.fullName().toString();
         }
@@ -291,7 +291,7 @@ public class ClassTranslator extends AbstractTranslator implements BytecodeConst
                   n.body());
     }
 
-    private void genMethod(Flags flags, ProcedureDef def, String name, List<Formal> formals, polyglot.types.Type returnType, List<TypeNode> throwTypes,
+    protected void genMethod(Flags flags, ProcedureDef def, String name, List<Formal> formals, polyglot.types.Type returnType, List<TypeNode> throwTypes,
             Block body) {
 
         final Name[] names = new Name[formals.size()];
