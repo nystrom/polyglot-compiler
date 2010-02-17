@@ -534,7 +534,7 @@ public class AbstractExpTranslator extends AbstractTranslator {
     }
 
 
-    void promote(Expr n, polyglot.types.Type t) {
+    protected void promote(Expr n, polyglot.types.Type t) {
         visitExpr(n);
         coerce(typeof(n), typeof(t), n.position());
     }

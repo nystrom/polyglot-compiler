@@ -152,7 +152,7 @@ public class MethodContext implements BytecodeConstants, Copy {
 
     IOpcodes il;
     public ClassDef currentClass;
-    IClassGen cg;
+    private IClassGen cg;
 
     public Type frameClass;
     public Name frameLocal;
@@ -449,4 +449,12 @@ public class MethodContext implements BytecodeConstants, Copy {
         }
         return null;
     }
+
+	public void cg(IClassGen cg) {
+		this.cg = cg;
+	}
+
+	public IClassGen cg() {
+		return cg;
+	}
 }

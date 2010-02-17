@@ -302,6 +302,7 @@ public class StmtTranslator extends AbstractExpTranslator {
     public void visit(Return n) {
         if (n.expr() != null) {
             visitChild(n.expr());
+            coerce(il.currentStack().top(), context.mg.getReturnType(), n.position());
         }
 
         for (MethodContext c = context; c != null; c = c.outer()) {
