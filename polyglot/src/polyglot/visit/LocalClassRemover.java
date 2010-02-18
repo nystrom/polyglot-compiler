@@ -111,9 +111,12 @@ public class LocalClassRemover extends ContextVisitor {
 		    ClassDecl cd = lcd.decl();
 		    Flags oldFlags = cd.flags().flags();
 		    Flags flags = context.inStaticContext() ? oldFlags.Private().Static() : oldFlags.Private();
+		    Id name = nf.Id(cd.name().position(), UniqueID.newID(cd.name().toString()));
+		    cd = cd.name(name);
 		    cd = cd.flags(cd.flags().flags(flags));
 		    cd.classDef().flags(flags);
 		    cd.classDef().kind(ClassDef.MEMBER);
+		    cd.classDef().name(cd.name().id());
 
 		    cd = rewriteLocalClass(cd, (List<FieldDef>) hashGet(newFields, cd.classDef(), Collections.<FieldDef>emptyList()));
 
