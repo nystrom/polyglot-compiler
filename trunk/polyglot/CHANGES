@@ -6,7 +6,7 @@ This file documents changes between releases of Polyglot.
 Feb 20, 2009: Polyglot 3.1.3
 ===========================
 
-Fixed bug in LocalClassResolver.  Other minor fixes.
+Fixed bug in LocalClassRemover.  Other minor fixes.
 
 Nov 5, 2009: Polyglot 3.1.2
 ===========================
