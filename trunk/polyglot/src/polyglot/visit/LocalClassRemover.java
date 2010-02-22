@@ -117,6 +117,7 @@ public class LocalClassRemover extends ContextVisitor {
 		    cd.classDef().flags(flags);
 		    cd.classDef().kind(ClassDef.MEMBER);
 		    cd.classDef().name(cd.name().id());
+		    cd = renameConstructors(cd, nf);
 
 		    cd = rewriteLocalClass(cd, (List<FieldDef>) hashGet(newFields, cd.classDef(), Collections.<FieldDef>emptyList()));
 
@@ -151,6 +152,25 @@ public class LocalClassRemover extends ContextVisitor {
 	}
 
 	return null;
+    }
+
+    /**
+     * Rename all of the constructors to match the class name.
+     */
+    private ClassDecl renameConstructors(ClassDecl cd, NodeFactory nf) {
+        ClassBody b = cd.body();
+        List<ClassMember> newMembers = new ArrayList<ClassMember>();
+        List<ClassMember> members = b.members();
+        for (ClassMember m : members) {
+            if (m instanceof ConstructorDecl) {
+        	ConstructorDecl td = (ConstructorDecl) m;
+        	td = td.name(nf.Id(td.name().position(), cd.name().id()));
+        	newMembers.add(td.name(cd.name()));
+            } else {
+        	newMembers.add(m);
+            }
+	}
+        return cd.body(b.members(newMembers));
     }
 
     boolean inConstructorCall;
