@@ -1,0 +1,20 @@
+import java.util.List;
+import java.io.*;
+
+public class LookaheadTest implements ibex.runtime.ICharParser {
+    String input;
+    int p = 0;
+    public char scan() throws IOException {
+        if (p < input.length())
+            return input.charAt(p++);
+        throw new EOFException(); }
+    
+
+    public static void main(String[] args) throws Exception {
+        LookaheadTest j = new LookaheadTest();
+        j.input = args.length > 0 ? args[0] : "A";
+        j.A();
+    }
+
+    Object A ::= ['A'] 'A' ;
+}
