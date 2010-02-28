@@ -33,8 +33,8 @@ public class PaoBinaryExt_c extends PaoExt_c {
 
             // The container of mi, mi.container(), is the super class of
             // the runtime boxed representations of primitive values.
-            if (ts.isSubtype(l.type(), mi.container()) ||
-                ts.equals(l.type(), ts.Object())) {
+            if (ts.isSubtype(l.type(), mi.container(), ts.emptyContext()) ||
+                ts.typeEquals(l.type(), ts.Object(), ts.emptyContext())) {
                 // The left operand is either a subtype of
             	// pao.runtime.Primitive, or it is an
             	// Object, and thus possibly a subtype of 
@@ -46,7 +46,8 @@ public class PaoBinaryExt_c extends PaoExt_c {
                 	// Primitive.equals(Object, Object).
                     TypeNode x = nf.CanonicalTypeNode(b.position(),
                                                       mi.container());
-                    Call y = nf.Call(b.position(), x, mi.name(), l, r);
+                    Call y = nf.Call(b.position(), x,
+                                     nf.Id(b.position(), mi.name()), l, r);
                     y = (Call) y.type(mi.returnType());
                     if (b.operator() == Binary.NE) {
                         return nf.Unary(b.position(), Unary.NOT, y).type(mi.returnType());

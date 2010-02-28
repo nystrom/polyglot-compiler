@@ -1,0 +1,11 @@
+
+To test:
+
+First, build jars:
+
+ant jar
+
+Then run:
+
+../bin/paoc Hash.pao
+

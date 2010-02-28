@@ -23,21 +23,8 @@ import polyglot.util.InternalCompilerError;
  */
 public class PaoTypeSystem_c extends TypeSystem_c implements PaoTypeSystem {
 
-    /**
-     * Returns a new instance of <code>PaoPrimitiveType_c</code>
-     * @see PaoPrimitiveType_c
-     */
-    public PrimitiveType createPrimitive(PrimitiveType.Kind kind) {
-        return new PaoPrimitiveType_c(this, kind);
-    }
-
-    /**
-     * Returns a new instance of <code>PaoParsedClassType_c</code>
-     * @see PaoParsedClassType_c
-     */
-    public ParsedClassType createClassType(LazyClassInitializer init, 
-                                           Source fromSource) {
-        return new PaoParsedClassType_c(this, init, fromSource);
+    public TypeEnv env(Context context) {
+        return new PaoTypeEnv_c(context);
     }
 
     /**
@@ -56,15 +43,15 @@ public class PaoTypeSystem_c extends TypeSystem_c implements PaoTypeSystem {
 
         try {
             // use the system resolver to find the type named by name.
-            Type ct = (Type) systemResolver().find(name);
+            Type ct = (Type) systemResolver().find(QName.make(name));
 
             // create an argument list: two arguments of type Object.
-            List args = new LinkedList();
+            List<Type> args = new LinkedList<Type>();
             args.add(Object());
             args.add(Object());
 
             // take the first method "equals(Object, Object)" in ct.
-            List l = ct.toClass().methods("equals", args);
+            List l = ct.toClass().methods(Name.make("equals"), args, emptyContext());
             if (!l.isEmpty()) {
                 return (MethodInstance)l.get(0);
             }
@@ -83,11 +70,11 @@ public class PaoTypeSystem_c extends TypeSystem_c implements PaoTypeSystem {
         String methodName = t.toString() + "Value";
         
         // get the type used to represent boxed values of type t
-        ReferenceType boxedType = boxedType(t);
+        ClassType boxedType = boxedType(t);
 
         // take the first method with the appropriate name and an empty 
         // argument list, in the type boxedType
-        List l = boxedType.methods(methodName, Collections.EMPTY_LIST);
+        List l = boxedType.methods(Name.make(methodName), Collections.EMPTY_LIST, emptyContext());
         if (!l.isEmpty()) {
             return (MethodInstance)l.get(0);
         }
@@ -103,7 +90,7 @@ public class PaoTypeSystem_c extends TypeSystem_c implements PaoTypeSystem {
                 + wrapperTypeString(t).substring("java.lang.".length());
 
         try {
-            return ((Type)systemResolver().find(name)).toClass();
+            return ((Type)systemResolver().find(QName.make(name))).toClass();
 
         }
         catch (SemanticException e) {
@@ -120,7 +107,7 @@ public class PaoTypeSystem_c extends TypeSystem_c implements PaoTypeSystem {
             ConstructorInstance ci = (ConstructorInstance) i.next();
             if (ci.formalTypes().size() == 1) {
                 Type argType = (Type) ci.formalTypes().get(0);
-                if (equals(argType, t)) {
+                if (typeEquals(argType, t, emptyContext())) {
                     // found the appropriate constructor
                     return ci;
                 }

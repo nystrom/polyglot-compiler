@@ -49,7 +49,7 @@ public class PaoCastExt_c extends PaoExt_c {
                              c.expr());
             x = (Cast) x.type(mi.container());
 
-            Call y = nf.Call(c.position(), x, mi.name(),
+            Call y = nf.Call(c.position(), x, nf.Id(c.position(), mi.name()),
                              Collections.EMPTY_LIST);
             y = (Call) y.type(mi.returnType());
 

@@ -31,7 +31,7 @@ public class PaoInstanceofDel_c extends JL_c {
 		Type rtype = n.compareType().type();
 		Type ltype = n.expr().type();
 		
-		if (! tc.typeSystem().isCastValid(ltype, rtype)) {
+		if (! tc.typeSystem().isCastValid(ltype, rtype, tc.context())) {
 			throw new SemanticException(
 					"Left operand of \"instanceof\" must be castable to "
 					+ "the right operand.");
