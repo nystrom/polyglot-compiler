@@ -67,17 +67,21 @@ public class ExtensionInfo extends JLExtensionInfo {
         public List<Goal> goals(Job job) {
             List<Goal> goals = super.goals(job);
 
-            Rewrite(job).addPrereq(ForwardReferencesChecked(job));
-            Serialized(job).addPrereq(Rewrite(job));
+            List<Goal> result = new ArrayList<Goal>();
 
-            return goals;
+            for (Goal g : goals) {
+                if (g == Serialized(job))
+                    result.add(Rewrite(job));
+                result.add(g);
+            }
+
+            return result;
         }
 
         public Goal Rewrite(final Job job) { 
             TypeSystem ts = job.extensionInfo().typeSystem();
             NodeFactory nf = job.extensionInfo().nodeFactory();
-
-            Goal g = new VisitorGoal(job, new PaoBoxer(job, ts, nf)).intern(this);
+            Goal g = new VisitorGoal("Rewrite", job, new PaoBoxer(job, ts, nf)).intern(this);
             return g;
         }
     }

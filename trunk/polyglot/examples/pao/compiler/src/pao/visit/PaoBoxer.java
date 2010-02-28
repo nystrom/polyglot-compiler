@@ -66,8 +66,8 @@ public class PaoBoxer extends AscriptionVisitor
      * method to rewrite the explicit casts inserted by the 
      * <code>ascribe</code> method into correct boxing and unboxing code.
      */
-    public Node leaveCall(Node old, Node n, NodeVisitor v) throws SemanticException {
-        n = super.leaveCall(old, n, v);
+    public Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException {
+        n = super.leaveCall(parent, old, n, v);
 
         if (n.ext() instanceof PaoExt) {
             return ((PaoExt) n.ext()).rewrite((PaoTypeSystem) typeSystem(),
