@@ -8,6 +8,7 @@ import polyglot.frontend.Goal;
 import polyglot.frontend.JLScheduler;
 import polyglot.frontend.Job;
 import polyglot.frontend.Scheduler;
+import polyglot.frontend.SourceGoal_c;
 import polyglot.types.TypeSystem;
 
 /**
@@ -43,7 +44,7 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
         public Goal CodeGenerated(final Job job) {
             final TypeSystem ts = extInfo.typeSystem();
             final NodeFactory nf = extInfo.nodeFactory();
-            return new AbstractGoal_c("BCCodeGenerated") {
+            return new SourceGoal_c("BCCodeGenerated", job) {
                 @Override
                 public boolean runTask() {
                     try {
