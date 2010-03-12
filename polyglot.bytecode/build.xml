@@ -45,6 +45,11 @@
 		<antcall target="mkdirs" />
 	</target>
 
+	<target name="configure-version" unless="pbc.version">
+		<property file="${basedir}/build.properties" prefix="pbc" />
+		<property name="pbc.version" value="${pbc.version.major}.${pbc.version.minor}.${pbc.version.patch}" />
+	</target>
+
 	<target name="polyglot-jar" depends="init">
 		<ant antfile="${polyglot.location}/build.xml" target="jar" inheritAll="false" dir="${polyglot.location}"/>
         <copy file="${polyglot.location}/lib/polyglot.jar" tofile="${lib}/polyglot.jar"/>
@@ -62,4 +67,9 @@
 		<jar destfile="${lib}/polyglot-bytecode.jar" basedir="${classes}" includes="polyglot/**" />
 	</target>
 
+	<target name="eclipse-plugin-jar" depends="compile,configure-version">
+		<delete file="${lib}/polyglot.bytecode_${pbc.version}.jar" failonerror="false" />
+		<jar destfile="${lib}/polyglot.bytecode_${pbc.version}.jar" basedir="${classes}" includes="polyglot/**"
+			 manifest="META-INF/MANIFEST.MF" />
+	</target>
 </project>
