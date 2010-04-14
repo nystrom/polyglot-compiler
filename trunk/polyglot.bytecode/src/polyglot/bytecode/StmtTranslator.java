@@ -502,7 +502,10 @@ public class StmtTranslator extends AbstractExpTranslator {
             
             ILabel HANDLER = il.makeLabel(n.position());
 
-            il.addExceptionHandler(START, END, HANDLER, typeof(c.formal().type()));
+            Type catch_type = typeof(c.formal().type());
+            catch_type = Type.typeFromDescriptor(catch_type.desc().substring(1, catch_type.desc().length()-1));
+
+            il.addExceptionHandler(START, END, HANDLER, catch_type);
             
             il.setStack(polyglot.bytecode.types.Empty.it.push(Type.OBJECT));
             il.addLabel(HANDLER);
