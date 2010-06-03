@@ -140,7 +140,7 @@ public class TypeBuilder extends NodeVisitor
 
     /**
     @deprecated */
-    public TypeBuilder pushContext(Context c) throws SemanticException {
+    public TypeBuilder pushContext(Context c) {
         LinkedList<Context> stack = new LinkedList<Context>();
         while (c != null) {
             stack.addFirst(c);
@@ -202,7 +202,7 @@ public class TypeBuilder extends NodeVisitor
         return tb;
     }
 
-    public TypeBuilder pushClass(ClassDef classDef) throws SemanticException {
+    public TypeBuilder pushClass(ClassDef classDef) {
         if (Report.should_report(Report.visit, 4))
 	    Report.report(4, "TB pushing class " + classDef + ": " + context());
 
@@ -218,9 +218,14 @@ public class TypeBuilder extends NodeVisitor
         return tb;
     }
 
-    protected ClassDef newClass(Position pos, Flags flags, Name name)
-        throws SemanticException
-    {
+    // Duplicate class id counter
+    private static int dupId = 0;
+
+    /**
+     * Do not fail on duplicate types, but create another instance of the type with a
+     * dummy name, to allow proceeding with compilation.
+     */
+    protected ClassDef newClass(Position pos, Flags flags, Name name) {
 	TypeSystem ts = typeSystem();
 
         ClassDef ct = ts.createClassDef(job().source());
@@ -264,11 +269,15 @@ public class TypeBuilder extends NodeVisitor
             }
 
             if (allMembers) {
-                typeSystem().systemResolver().addNamed(QName.make(currentClass().fullName(), ct.name()), ct.asType());
+                try {
+                    typeSystem().systemResolver().addNamed(QName.make(currentClass().fullName(), ct.name()), ct.asType());
 
-                // Save in the cache using the name a class file would use.
-                QName classFileName = typeSystem().getTransformedClassName(ct);
-                typeSystem().systemResolver().install(classFileName, ct.asType());
+                    // Save in the cache using the name a class file would use.
+                    QName classFileName = typeSystem().getTransformedClassName(ct);
+                    typeSystem().systemResolver().install(classFileName, ct.asType());
+                } catch (SemanticException e) {
+                    job.compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, e.getMessage(), e.position());
+                }
             }
 
             return ct;
@@ -290,17 +299,24 @@ public class TypeBuilder extends NodeVisitor
             Named dup = typeSystem().systemResolver().check(fullName);
 
             if (dup != null && dup.fullName().equals(fullName)) {
-                throw new SemanticException("Duplicate class \"" +
-                                            ct.fullName() + "\".", pos);
+                job.compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR,
+                                                    "Duplicate class \"" + ct.fullName() + "\".", pos);
+                Name newName = Name.make(name.toString()+"_dup"+(dupId++));
+                ct.name(newName);
+                fullName = QName.make(null, newName);
             }
 
-            typeSystem().systemResolver().addNamed(fullName, ct.asType());
+            try {
+        	typeSystem().systemResolver().addNamed(fullName, ct.asType());
+            } catch (SemanticException e) {
+        	job.compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, e.getMessage(), e.position());
+            }
 
 	    return ct;
 	}
     }
 
-    public TypeBuilder pushAnonClass(Position pos) throws SemanticException {
+    public TypeBuilder pushAnonClass(Position pos) {
         if (Report.should_report(Report.visit, 4))
 	    Report.report(4, "TB pushing anon class: " + this);
 
@@ -326,8 +342,7 @@ public class TypeBuilder extends NodeVisitor
         return pushClass(ct);
     }
 
-    public TypeBuilder pushClass(Position pos, Flags flags, Name name)
-    	throws SemanticException {
+    public TypeBuilder pushClass(Position pos, Flags flags, Name name) {
 
         ClassDef t = newClass(pos, flags, name);
         return pushClass(t);

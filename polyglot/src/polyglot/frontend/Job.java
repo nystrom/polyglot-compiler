@@ -150,7 +150,7 @@ public class Job
             Job job = this;
             TypeSystem ts = job.extensionInfo().typeSystem();
             NodeFactory nf = job.extensionInfo().nodeFactory();
-            TypesInitialized = new VisitorGoal("TypesInitialized", job, new TypeBuilder(job, ts, nf)).intern(scheduler);
+            TypesInitialized = new ForgivingVisitorGoal("TypesInitialized", job, new TypeBuilder(job, ts, nf)).intern(scheduler);
         }
         return TypesInitialized;
     }

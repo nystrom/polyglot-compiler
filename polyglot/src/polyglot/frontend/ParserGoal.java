@@ -8,11 +8,19 @@
 
 package polyglot.frontend;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Collections;
 
+import polyglot.ast.ClassMember;
 import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
+import polyglot.ast.SourceFile;
+import polyglot.ast.TopLevelDecl;
+import polyglot.ast.TypeNode;
 import polyglot.main.Report;
+import polyglot.types.Flags;
 import polyglot.util.ErrorInfo;
 import polyglot.util.ErrorQueue;
 import polyglot.util.Position;
@@ -30,11 +38,28 @@ public class ParserGoal extends SourceGoal_c
 	this.compiler = compiler;
     }
 
+    protected SourceFile createDummyAST() {
+	NodeFactory nf = job().extensionInfo().nodeFactory();
+	String fName = job.source().name();
+	Position pos = new Position(job.source().name(), fName);
+	String name = fName.substring(fName.lastIndexOf(File.separatorChar)+1, fName.lastIndexOf('.'));
+	TopLevelDecl decl = nf.ClassDecl(pos, nf.FlagsNode(pos, Flags.PUBLIC),
+	                                 nf.Id(pos, name), null, Collections.<TypeNode>emptyList(),
+	                                 nf.ClassBody(pos, Collections.<ClassMember>emptyList()));
+	SourceFile ast = nf.SourceFile(pos, Collections.singletonList(decl)).source(job.source());
+	return ast;
+    }
+
+    /**
+     * Do not fail on parse errors, but create a dummy AST containing a single class
+     * with the expected name, to allow proceeding with compilation.
+     */
     public boolean runTask() {
 	ErrorQueue eq = compiler.errorQueue();
         
 	FileSource source = (FileSource) job().source();
 
+	Node ast = null;
 	try {
 	    if (Report.should_report("parser", 1))
 		Report.report(1, "" + source);
@@ -45,24 +70,23 @@ public class ParserGoal extends SourceGoal_c
 
 	    if (Report.should_report(Report.frontend, 2))
 		Report.report(2, "Using parser " + p);
-	    Node ast = p.parse();
+	    ast = p.parse();
 
 	    source.close();
-
-	    if (ast != null) {
-		job().ast(ast);
-		return true;
-	    }
-
-	    return false;
 	}
 	catch (IOException e) {
 	    eq.enqueue(ErrorInfo.IO_ERROR, e.getMessage(),
                 new Position(job().source().path(),
                              job().source().name(), 1, 1, 1, 1));
 
-            return false;
 	}
+
+	if (ast == null) {
+	    ast = createDummyAST();
+	}
+
+	job().ast(ast);
+	return true;
     }
 
     public String toString() {

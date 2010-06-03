@@ -45,7 +45,7 @@ public class JLScheduler extends Scheduler {
         goals.add(ImportTableInitialized(job));
         
         goals.add(PreTypeCheck(job));
-        goals.add(TypesInitializedForCommandLine());
+        goals.add(TypesInitializedForCommandLineBarrier());
         goals.add(TypeChecked(job));
         goals.add(ReassembleAST(job));
         
@@ -83,10 +83,10 @@ public class JLScheduler extends Scheduler {
         return job.TypesInitialized(this);
     }
 
-    public Goal TypesInitializedForCommandLine() {
+    public Goal TypesInitializedForCommandLineBarrier() {
         TypeSystem ts = extInfo.typeSystem();
         NodeFactory nf = extInfo.nodeFactory();
-        return new BarrierGoal("TypesInitializedForCommandLine", commandLineJobs()) {
+        return new BarrierGoal("TypesInitializedForCommandLineBarrier", commandLineJobs()) {
             public Goal prereqForJob(Job job) {
                 return PreTypeCheck(job);
             }
@@ -210,6 +210,14 @@ public class JLScheduler extends Scheduler {
         return new LookupGlobalTypeDefAndSetFlags(sym, className, flags).intern(this);
     }
     
+    public Goal EnsureNoErrors(Job job) {
+           return new SourceGoal_c("EnsureNoErrors", job) {
+               public boolean runTask() {
+                   return !job.reportedErrors();
+               }
+           }.intern(this);
+       }
+
     public static class LookupGlobalType extends TypeObjectGoal_c<Type> {
         public LookupGlobalType(String name, Ref<Type> v) {
             super(name, v);
