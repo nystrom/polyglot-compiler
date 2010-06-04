@@ -1,17 +1,18 @@
 Manifest-Version: 1.0
-Ant-Version: Apache Ant 1.7.1
-Created-By: 14.3-b01-101 (Apple Inc.)
 Bundle-ManifestVersion: 2
 Bundle-Name: Polyglot3
 Main-Class: polyglot.main.Main
 Bundle-SymbolicName: polyglot3
-Bundle-Version: 3.1.3
+Bundle-Version: 3.2.0
 Bundle-Localization: plugin
-Export-Package: polyglot.ast,polyglot.dispatch,polyglot.frontend,polyg
- lot.lex,polyglot.main,polyglot.parse,polyglot.types,polyglot.types.re
- flect,polyglot.util,polyglot.visit
+Export-Package: polyglot.ast,
+ polyglot.dispatch,
+ polyglot.frontend,
+ polyglot.lex,
+ polyglot.main,
+ polyglot.parse,
+ polyglot.types,
+ polyglot.types.reflect,
+ polyglot.util,
+ polyglot.visit
 Bundle-Vendor: nate@nanocow.com
-Built-By: nystrom
-Implementation-Version: 3.1.3
-Built-Date: 3.1.3 (2010-02-21 20:50:19)
-
