@@ -1,0 +1,23 @@
+
+To test:
+
+First, build jars:
+
+ant jar
+
+Then run:
+
+../bin/paoc Hash.pao
+
+
+Note: the post-compiler may report an error:
+
+-----------
+paoc: Post-compiler Error -- Note: Hash.java uses unchecked or unsafe operations.    
+     Note: Recompile with -Xlint:unchecked for details.    
+1 error.
+-----------
+
+
+You can ignore this.
+
