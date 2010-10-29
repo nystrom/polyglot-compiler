@@ -8,12 +8,10 @@
 
 package polyglot.ast;
 
-import java.util.List;
-
-import polyglot.types.*;
-import polyglot.util.CodeWriter;
+import polyglot.types.Context;
+import polyglot.types.Type;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>Catch</code> represents one half of a <code>try-catch</code>
@@ -86,23 +84,4 @@ public class Catch_c extends Stmt_c implements Catch
     public String toString() {
 	return "catch (" + formal + ") " + body;
     }
-
-    /** Write the catch block to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-	w.write("catch (");
-	printBlock(formal, w, tr);
-	w.write(")");
-	printSubStmt(body, w, tr);
-    }
-
-    public Term firstChild() {
-        return formal;
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        v.visitCFG(formal, body, ENTRY);
-        v.visitCFG(body, this, EXIT);
-        return succs;
-    }
-
 }

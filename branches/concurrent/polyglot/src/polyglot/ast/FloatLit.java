@@ -7,7 +7,6 @@
 
 package polyglot.ast;
 
-import polyglot.util.Enum;
 
 /** 
  * A <code>FloatLit</code> represents a literal in java of type
@@ -16,12 +15,12 @@ import polyglot.util.Enum;
 public interface FloatLit extends Lit 
 {    
     /** Integer literal kinds: float (e.g., 0.0F) or double (e.g., 0.0). */
-    public static class Kind extends Enum {
-        public Kind(String name) { super(name); }
+    public static enum Kind {
+	FLOAT, DOUBLE
     }
-
-    public static final Kind FLOAT = new Kind("float");
-    public static final Kind DOUBLE = new Kind("double");
+    
+    public static final Kind FLOAT = Kind.FLOAT;
+    public static final Kind DOUBLE = Kind.DOUBLE;
 
     /** The kind of literal: FLOAT or DOUBLE. */
     Kind kind();

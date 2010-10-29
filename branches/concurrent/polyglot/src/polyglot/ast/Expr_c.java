@@ -7,17 +7,13 @@
 
 package polyglot.ast;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import polyglot.dispatch.ConstantValueVisitor;
-import polyglot.dispatch.TypeChecker;
 import polyglot.frontend.Globals;
 import polyglot.frontend.Job;
 import polyglot.types.*;
+import polyglot.types.Ref.Handler;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.*;
 
 /**
  * An <code>Expr</code> represents any Java expression.  All expressions
@@ -26,11 +22,45 @@ import polyglot.visit.*;
 public abstract class Expr_c extends Term_c implements Expr
 {
     protected Ref<Type> typeRef;
+    protected Ref<Object> constantValueRef;
+
+    void updateType() {
+	if (this.typeRef != null && ! this.typeRef.forced())
+	     this.typeRef.setResolver(new Ref.Callable<Type>() {
+		public Type call() {
+		    Expr e = (Expr) Expr_c.this.checked();
+		    return e.type();
+		}
+	    }, jobClock());
+    }
+
+    void updateCV() {
+	if (this.constantValueRef != null && ! this.constantValueRef.forced())
+	    this.constantValueRef.setResolver(new Ref.Callable<Object>() {
+		public Object call() {
+		    Expr_c e = Expr_c.this;
+		    Job job = e.job;
+		    TypeSystem ts = Globals.TS();
+		    NodeFactory nf = Globals.NF();
+		    Object v = e.accept(new ConstantValueVisitor(job, ts, nf));
+		    return v;
+		}
+	    }, jobClock());
+    }
 
     public Expr_c(Position pos) {
 	super(pos);
 	TypeSystem ts = Globals.TS();
 	this.typeRef = Types.<Type>lazyRef(ts.unknownType(position()));
+	this.constantValueRef = Types.lazyRef(ConstantValueVisitor.NOT_CONSTANT);
+	updateType();
+	updateCV();
+	addCopyHook(new Handler<Node>() {
+	    public void handle(Node t) {
+		((Expr_c) t).updateType();
+		((Expr_c) t).updateCV();
+	    }
+	});
     }
 
     /**
@@ -39,22 +69,21 @@ public abstract class Expr_c extends Term_c implements Expr
      * correct type after type-checking.
      */
     public Ref<Type> typeRef() {
-    	return this.typeRef;
+	return this.typeRef;
     }
-    
+
     public Type type() {
 	return Types.get(this.typeRef);
     }
-    
+
     /** Set the type of the expression. */
     public Expr type(Type type) {
-    	Expr_c n = (Expr_c) copy();
-    	n.typeRef.update(type);
-    	return n;
+	this.typeRef.update(type);
+	return this;
     }
 
     public void dump(CodeWriter w) {
-        super.dump(w);
+	super.dump(w);
 
 	if (typeRef != null) {
 	    w.allowBreak(4, " ");
@@ -65,104 +94,54 @@ public abstract class Expr_c extends Term_c implements Expr
     }
 
     /** Get the precedence of the expression. */
-    public Precedence precedence() {
+    final public Precedence precedence() {
 	return Precedence.UNKNOWN;
     }
 
     public boolean isConstant() {
-	Job job = Globals.currentJob();
-	TypeSystem ts = Globals.TS();
-	NodeFactory nf = Globals.NF();
-	Object v = this.accept(new ConstantValueVisitor(job, ts, nf));
-	return v != ConstantValueVisitor.NOT_CONSTANT;
+	return constantValueRef.get() != ConstantValueVisitor.NOT_CONSTANT;
     }
 
     public Object constantValue() {
-	Job job = Globals.currentJob();
-	TypeSystem ts = Globals.TS();
-	NodeFactory nf = Globals.NF();
-	Object v = this.accept(new ConstantValueVisitor(job, ts, nf));
+	Object v = constantValueRef.get();
 	if (v == ConstantValueVisitor.NOT_CONSTANT)
 	    return null;
 	return v;
     }
 
     public String stringValue() {
-        return (String) constantValue();
+	return (String) constantValue();
     }
 
     public boolean booleanValue() {
-        return ((Boolean) constantValue()).booleanValue();
+	return ((Boolean) constantValue()).booleanValue();
     }
 
     public byte byteValue() {
-        return ((Byte) constantValue()).byteValue();
+	return ((Byte) constantValue()).byteValue();
     }
 
     public short shortValue() {
-        return ((Short) constantValue()).shortValue();
+	return ((Short) constantValue()).shortValue();
     }
 
     public char charValue() {
-        return ((Character) constantValue()).charValue();
+	return ((Character) constantValue()).charValue();
     }
 
     public int intValue() {
-        return ((Integer) constantValue()).intValue();
+	return ((Integer) constantValue()).intValue();
     }
 
     public long longValue() {
-        return ((Long) constantValue()).longValue();
+	return ((Long) constantValue()).longValue();
     }
 
     public float floatValue() {
-        return ((Float) constantValue()).floatValue();
+	return ((Float) constantValue()).floatValue();
     }
 
     public double doubleValue() {
-        return ((Double) constantValue()).doubleValue();
-    }
-
-    /**
-     * Correctly parenthesize the subexpression <code>expr<code> given
-     * the its precendence and the precedence of the current expression.
-     *
-     * If the sub-expression has the same precedence as this expression
-     * we do not parenthesize.
-     *
-     * @param expr The subexpression.
-     * @param w The output writer.
-     * @param pp The pretty printer.
-     */
-    public void printSubExpr(Expr expr, CodeWriter w, PrettyPrinter pp) {
-        printSubExpr(expr, true, w, pp);
-    }
-
-    /**
-     * Correctly parenthesize the subexpression <code>expr<code> given
-     * the its precendence and the precedence of the current expression.
-     *
-     * If the sub-expression has the same precedence as this expression
-     * we parenthesize if the sub-expression does not associate; e.g.,
-     * we parenthesis the right sub-expression of a left-associative
-     * operator.
-     *
-     * @param expr The subexpression.
-     * @param associative Whether expr is the left (right) child of a left-
-     * (right-) associative operator.
-     * @param w The output writer.
-     * @param pp The pretty printer.
-     */
-    public void printSubExpr(Expr expr, boolean associative,
-                             CodeWriter w, PrettyPrinter pp) {
-        if (! associative && precedence().equals(expr.precedence()) ||
-	    precedence().isTighter(expr.precedence())) {
-    		w.write("(");
-    		printBlock(expr, w, pp);
-    		w.write(")");
-	}
-        else {
-            print(expr, w, pp);
-        }
+	return ((Double) constantValue()).doubleValue();
     }
 }

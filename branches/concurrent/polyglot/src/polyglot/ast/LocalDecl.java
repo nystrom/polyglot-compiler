@@ -19,7 +19,7 @@ public interface LocalDecl extends ForInit, VarDecl, VarInit
     LocalDecl flags(FlagsNode flags);
 
     /** Set the declaration's type. */
-    LocalDecl type(TypeNode type);
+    LocalDecl typeNode(TypeNode type);
 
     /** Set the declaration's name. */
     LocalDecl name(Id name);

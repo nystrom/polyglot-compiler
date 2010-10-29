@@ -1,8 +1,8 @@
 class LabeledBreak {
     public static void main(String[] args) {
         int i;
-        // Polyglot says ++i is unreachable; javac says it's reachable,
-        // but the JLS doesn't say which is correct.
+        // Even though, ++i is unreachable, the JLS doesn't consider it a
+        // statement, so it should not complain.
         a: for (i=0; i<10; ++i) {
             break a;
         }

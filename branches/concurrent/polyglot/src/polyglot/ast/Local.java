@@ -8,6 +8,7 @@
 package polyglot.ast;
 
 import polyglot.types.LocalInstance;
+import polyglot.types.Ref;
 
 /** 
  * A local variable expression.
@@ -27,4 +28,6 @@ public interface Local extends NamedVariable
     LocalInstance localInstance();
     /** Set the type object for the local. */
     Local localInstance(LocalInstance li);
+    
+    Ref<LocalInstance> localInstanceRef();
 }

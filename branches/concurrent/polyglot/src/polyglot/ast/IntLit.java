@@ -7,7 +7,6 @@
 
 package polyglot.ast;
 
-import polyglot.util.Enum;
 
 /** 
  * An <code>IntLit</code> represents a literal in Java of an integer
@@ -16,12 +15,12 @@ import polyglot.util.Enum;
 public interface IntLit extends NumLit 
 {
     /** Integer literal kinds: int (e.g., 0) or long (e.g., 0L). */
-    public static class Kind extends Enum {
-        public Kind(String name) { super(name); }
+    public static enum Kind {
+	INT, LONG
     }
-
-    public static final Kind INT   = new Kind("int");
-    public static final Kind LONG  = new Kind("long");
+    
+    public static final Kind INT = Kind.INT;
+    public static final Kind LONG = Kind.LONG;
 
     /** Get the literal's value. */
     long value();

@@ -10,9 +10,7 @@ package polyglot.ast;
 
 import java.util.List;
 
-import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.PrettyPrinter;
 
 /**
  * A <code>Block</code> represents a Java block statement -- an immutable
@@ -20,18 +18,7 @@ import polyglot.visit.PrettyPrinter;
  */
 public class Block_c extends AbstractBlock_c implements Block
 {
-    public Block_c(Position pos, List statements) {
+    public Block_c(Position pos, List<Stmt> statements) {
 	super(pos, statements);
-    }
-
-    /** Write the block to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-	w.write("{");
-	w.unifiedBreak(4, 1, " ", 1);
-	w.begin(0);
-	super.prettyPrint(w, tr);
-	w.end();
-	w.unifiedBreak(0, 1, " ", 1);
-	w.write("}");
     }
 }

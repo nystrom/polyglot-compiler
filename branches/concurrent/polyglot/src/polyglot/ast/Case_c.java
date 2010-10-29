@@ -8,12 +8,8 @@
 
 package polyglot.ast;
 
-import java.util.List;
-
-import polyglot.types.*;
-import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>Case</code> is a representation of a Java <code>case</code>
@@ -82,16 +78,6 @@ public class Case_c extends Stmt_c implements Case
         return reconstruct(expr);
     }
 
-    public Type childExpectedType(Expr child, AscriptionVisitor av) {
-        TypeSystem ts = av.typeSystem();
-
-        if (child == expr) {
-            return ts.Int();
-        }
-
-        return child.type();
-    }
-
     public String toString() {
         if (expr == null) {
 	    return "default:";
@@ -100,30 +86,4 @@ public class Case_c extends Stmt_c implements Case
 	    return "case " + expr + ":";
 	}
     }
-
-    /** Write the statement to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-        if (expr == null) {
-	    w.write("default:");
-	}
-	else {
-	    w.write("case ");
-	    print(expr, w, tr);
-	    w.write(":");
-	}
-    }
-
-    public Term firstChild() {
-        if (expr != null) return expr;
-        return null;
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        if (expr != null) {
-            v.visitCFG(expr, this, EXIT);
-        }
-
-        return succs;
-    }
-
 }

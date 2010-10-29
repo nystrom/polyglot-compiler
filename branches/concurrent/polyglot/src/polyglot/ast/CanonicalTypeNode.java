@@ -15,5 +15,5 @@ import polyglot.types.Type;
  */
 public interface CanonicalTypeNode extends TypeNode
 {
-    public CanonicalTypeNode typeRef(Ref<? extends Type> type);
+    public CanonicalTypeNode typeRef(Ref<Type> type);
 }

@@ -8,12 +8,9 @@
 
 package polyglot.ast;
 
-import java.util.Collections;
-import java.util.List;
-
-import polyglot.util.CodeWriter;
+import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>Branch</code> is an immutable representation of a branch
@@ -73,28 +70,13 @@ public class Branch_c extends Stmt_c implements Branch
     }
 
     public String toString() {
-	return kind.toString() + (label != null ? " " + label.toString() : "");
-    }
-
-    /** Write the expression to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-	w.write(kind.toString());
-	if (label != null) {
-	    w.write(" " + label);
+	switch (kind) {
+	case BREAK:
+	    return "break" + (label != null ? " " + label.toString() : "");
+	case CONTINUE:
+	    return "continue" + (label != null ? " " + label.toString() : "");
+	default:
+	    throw new InternalCompilerError("Unknown branch kind.", position());
 	}
-	w.write(";");
-    }
-
-    /**
-     * Return the first (sub)term performed when evaluating this
-     * term.
-     */
-    public Term firstChild() {
-        return null;
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        v.visitBranchTarget(this);
-        return Collections.EMPTY_LIST;
     }
 }

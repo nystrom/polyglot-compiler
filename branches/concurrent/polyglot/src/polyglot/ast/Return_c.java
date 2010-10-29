@@ -8,12 +8,8 @@
 
 package polyglot.ast;
 
-import java.util.Collections;
-import java.util.List;
-
-import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.visit.*;
+import polyglot.util.Position;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>Return</code> represents a <code>return</code> statement in Java.
@@ -59,57 +55,8 @@ public class Return_c extends Stmt_c implements Return
 	return reconstruct(expr);
     }
   
-    public Type childExpectedType(Expr child, AscriptionVisitor av) {
-        if (child == expr) {
-            Context c = av.context();
-            CodeDef ci = c.currentCode();
-
-            if (ci instanceof MethodDef) {
-                MethodDef mi = (MethodDef) ci;
-
-                TypeSystem ts = av.typeSystem();
-
-                // If expr is an integral constant, we can relax the expected
-                // type to the type of the constant.
-                if (ts.numericConversionValid(mi.returnType().get(), child.constantValue(), c)) {
-                    return child.type();
-                }
-                else {
-                    return mi.returnType().get();
-                }
-            }
-        }
-
-        return child.type();
-    }
-
     public String toString() {
 	return "return" + (expr != null ? " " + expr : "") + ";";
     }
-
-    /** Write the statement to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-	w.write("return") ;
-	if (expr != null) {
-	    w.write(" ");
-	    print(expr, w, tr);
-	}
-	w.write(";");
-    }
-
-    public Term firstChild() {
-        if (expr != null) return expr;
-        return null;
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        if (expr != null) {
-            v.visitCFG(expr, this, EXIT);
-        }
-
-        v.visitReturn(this);
-        return Collections.EMPTY_LIST;
-    }
-    
 
 }

@@ -8,10 +8,7 @@
 
 package polyglot.ast;
 
-import polyglot.types.SemanticException;
-import polyglot.util.*;
-import polyglot.visit.ContextVisitor;
-import polyglot.visit.PrettyPrinter;
+import polyglot.util.Position;
 
 /** 
  * A <code>FloatLit</code> represents a literal in java of type
@@ -55,29 +52,6 @@ public class FloatLit_c extends Lit_c implements FloatLit
 
     public String toString() {
 	return Double.toString(value);
-    }
-
-    /** Write the expression to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-        if (kind == FLOAT) {
-	    w.write(Float.toString((float) value) + "F");
-	}
-	else if (kind == DOUBLE) {
-	    w.write(Double.toString(value));
-	}
-	else {
-	    throw new InternalCompilerError("Unrecognized FloatLit kind " +
-		kind);
-	}
-    }
-
-    public Precedence precedence() {
-        if (value < 0) {
-            return Precedence.UNARY;
-        }
-        else {
-            return Precedence.LITERAL;
-        }
     }
 
 }

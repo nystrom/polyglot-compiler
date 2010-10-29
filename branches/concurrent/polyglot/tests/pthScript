@@ -195,7 +195,8 @@ polyglot.frontend.JLExtensionInfo "-cp . -noserial" {
 	BadInner9.jl (Semantic, "Inner classes cannot declare static member classes");
 	BadInterface.jl (Semantic, "Interface methods must be public");
 	BadInterface2.jl (Semantic, "Could not find type"),
-	                 (Semantic, "Cannot implement");
+	                 (Semantic, "Could not find type"),
+	                 (Semantic, "Could not find type");
 	BadInterface3.jl (Semantic, "Cannot instantiate an interface");
 	BadMultipleVarDef.jl (Semantic, "Local variable .* multiply defined"),
 			     (Semantic, "Local variable .* multiply defined");
@@ -222,7 +223,7 @@ polyglot.frontend.JLExtensionInfo "-cp . -noserial" {
                                 (Semantic, "Circular inheritance");
 	Errors.jl (Semantic, "No valid method call");
 	Errors2.jl (Semantic, "Could not find type"), (Semantic, "Could not find type"); 
-	LabeledBreak2.jl (Semantic, "Unreachable statement"); 
+	LabeledBreak2.jl ;
         InitCheckerBug.jl ;
 	NoInit1.jl (Semantic, "Local variable .* may not have been initialized"); 
 	NoInit10.jl (Semantic, "Local variable .* may not have been initialized"); 
@@ -274,8 +275,8 @@ polyglot.frontend.JLExtensionInfo "-cp . -noserial" {
 	BadForwardRef.jl (Semantic, "Illegal forward ref"); 
 	BadForwardRef2.jl (Semantic, "Illegal forward ref"); 
 	BadForwardRef3.jl (Semantic, "Illegal forward ref"); 
-        Continue1.jl (Semantic, "Target.*not found"), (), (), ();
-        Continue2.jl (Semantic, "must be a loop"), (), (), ();
+        Continue1.jl (Semantic, ".*outside of a loop"), (), (), ();
+        Continue2.jl (Semantic, ".*not a loop label"), (), (), ();
 	ForwardRef4.jl (Semantic, "Illegal forward ref"); 
 	ForwardRef5.jl; 
 	// the following test has exactly 4 errors in it

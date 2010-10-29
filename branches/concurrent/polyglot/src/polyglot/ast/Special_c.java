@@ -8,12 +8,10 @@
 
 package polyglot.ast;
 
-import java.util.List;
-
-import polyglot.types.*;
 import polyglot.util.CodeWriter;
+import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>Special</code> is an immutable representation of a
@@ -31,11 +29,6 @@ public class Special_c extends Expr_c implements Special
 	assert(kind != null); // qualifier may be null
 	this.kind = kind;
 	this.qualifier = qualifier;
-    }
-
-    /** Get the precedence of the expression. */
-    public Precedence precedence() {
-	return Precedence.LITERAL;
     }
 
     /** Get the kind of the special expression, either this or super. */
@@ -79,34 +72,15 @@ public class Special_c extends Expr_c implements Special
 	return reconstruct(qualifier);
     }
 
-    public Term firstChild() {
-        if (qualifier != null) {
-            return qualifier;
-        }
-        
-        return null;
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        if (qualifier != null) {
-            v.visitCFG(qualifier, this, EXIT);
-        }
-        
-        return succs;
-    }
-
     public String toString() {
-	return (qualifier != null ? qualifier + "." : "") + kind;
-    }
-
-    /** Write the expression to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-	if (qualifier != null) {
-	    print(qualifier, w, tr);
-	    w.write(".");
+	switch (kind) {
+	case SUPER:
+	    return (qualifier != null ? qualifier + "." : "") + "super";
+	case THIS:
+	    return (qualifier != null ? qualifier + "." : "") + "this";
+	default:
+	    throw new InternalCompilerError("Unknown special kind.", position());
 	}
-
-	w.write(kind.toString());
     }
 
     public void dump(CodeWriter w) {

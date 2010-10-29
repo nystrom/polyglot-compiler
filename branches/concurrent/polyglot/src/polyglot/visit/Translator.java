@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.*;
 
 import polyglot.ast.*;
+import polyglot.dispatch.NewTranslator;
 import polyglot.frontend.Job;
 import polyglot.frontend.TargetFactory;
 import polyglot.types.*;
@@ -39,7 +40,7 @@ import polyglot.util.*;
  * </pre>
  * The <code>ast</code> must be either a SourceFile or a SourceCollection.
  */
-public class Translator extends PrettyPrinter implements Copy
+public class Translator implements Copy
 {
     protected Job job;
     protected NodeFactory nf;
@@ -61,10 +62,6 @@ public class Translator extends PrettyPrinter implements Copy
         this.ts = ts;
         this.context = ts.emptyContext();
     }
-    
-    
-
-
    
     /**
      * Return the job associated with this Translator.
@@ -109,32 +106,6 @@ public class Translator extends PrettyPrinter implements Copy
         return tr;
     }
     
-    /** Print an ast node using the given code writer.  This method should not
-     * be called directly to translate a source file AST; use
-     * <code>translate(Node)</code> instead.  This method should only be called
-     * by nodes to print their children.
-     */
-    public void print(Node parent, Node child, CodeWriter w) {
-        Translator tr = this;
-        
-        if (context != null) {
-            if (parent == null) {
-                Context c = child.del().enterScope(context);
-                tr = this.context(c);
-            }
-            else {
-                Context c = parent.del().enterChildScope(child, context);
-                tr = this.context(c);
-            }
-        }
-
-        child.del().translate(w, tr);
-        
-        if (context != null) {
-            child.addDecls(context);
-        }
-    }
-    
     /** Translate the entire AST. */
     public boolean translate(Node ast) {
         if (ast instanceof SourceFile) {
@@ -164,7 +135,7 @@ public class Translator extends PrettyPrinter implements Copy
     	NodeFactory nf = nodeFactory();
     	TargetFactory tf = this.tf;
     	int outputWidth = job.compiler().outputWidth();
-    	Collection outputFiles = job.compiler().outputFiles();
+    	Collection<String> outputFiles = job.compiler().outputFiles();
     	
     	// Find the public declarations in the file.  We'll use these to
     	// derive the names of the target files.  There will be one
@@ -172,7 +143,7 @@ public class Translator extends PrettyPrinter implements Copy
     	// declarations, we'll use the source file name to derive the
     	// target file name.
     	List<TopLevelDecl> exports = exports(sfn);
-    	
+
     	try {
     	    File of;
     	    CodeWriter w;
@@ -199,8 +170,10 @@ public class Translator extends PrettyPrinter implements Copy
     	    if (!opfPath.endsWith("$")) outputFiles.add(of.getPath());
     	    w = tf.outputCodeWriter(of, outputWidth);
     	    
-    	    writeHeader(sfn, w);
-    	    
+	    NewTranslator nt = makeTr(w);
+
+	    writeHeader(sfn, w, nt);
+
     	    for (Iterator<TopLevelDecl> i = sfn.decls().iterator(); i.hasNext(); ) {
     	        TopLevelDecl decl = i.next();
 
@@ -214,10 +187,10 @@ public class Translator extends PrettyPrinter implements Copy
     	            outputFiles.add(of.getPath());
     	            w = tf.outputCodeWriter(of, outputWidth);
     	            
-    	            writeHeader(sfn, w);
+    	            writeHeader(sfn, w, nt);
     	        }
     	        
-    	        translateTopLevelDecl(w, sfn, decl);
+    	        translateTopLevelDecl(w, nt, sfn, decl);
     	        
     	        if (i.hasNext()) {
     	            w.newline(0);
@@ -240,19 +213,22 @@ public class Translator extends PrettyPrinter implements Copy
      * @param source
      * @param decl
      */
-    protected void translateTopLevelDecl(CodeWriter w, SourceFile source, TopLevelDecl decl) {
+    protected void translateTopLevelDecl(CodeWriter w, NewTranslator nt, SourceFile source, TopLevelDecl decl) {
         Translator tr;
-        Context c = source.del().enterScope(context);
+        Context c = source.enterScope(context);
         tr = this.context(c);
-        decl.del().translate(w, tr);
+        nt.accept(decl);
     }
-
+    
+    NewTranslator makeTr(CodeWriter w) {
+	return new NewTranslator(this, w);
+    }
 	
     /** Write the package and import declarations for a source file. */
-    protected void writeHeader(SourceFile sfn, CodeWriter w) {
+    protected void writeHeader(SourceFile sfn, CodeWriter w, NewTranslator nt) {
 	if (sfn.package_() != null) {
 	    w.write("package ");
-	    sfn.package_().del().translate(w, this);
+	    nt.accept(sfn.package_());
 	    w.write(";");
 	    w.newline(0);
 	    w.newline(0);
@@ -261,7 +237,7 @@ public class Translator extends PrettyPrinter implements Copy
 	boolean newline = false;
 
 	for (Import imp : sfn.imports()) {
-	    imp.del().translate(w, this);
+	    nt.accept(imp);
 	    newline = true;
 	}
 

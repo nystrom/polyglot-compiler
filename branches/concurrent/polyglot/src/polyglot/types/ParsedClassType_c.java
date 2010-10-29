@@ -10,6 +10,7 @@ package polyglot.types;
 import java.util.*;
 
 import polyglot.frontend.*;
+import polyglot.types.ClassDef.Kind;
 import polyglot.util.*;
 
 /**
@@ -25,10 +26,18 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
 	super();
     }
     
+    public ParsedClassType_c(ClassDef def) {
+        this(def.typeSystem(), def.position(), Types.ref(def));
+    }
+
+    public ParsedClassType_c(TypeSystem ts, Position pos, Ref<? extends ClassDef> def) {
+        super(ts, pos, def);
+    }
+
     protected Flags flags;
     protected StructType container;
     
-    public StructType container() {
+    public Type container() {
         if (container == null) {
             return super.container();
         }
@@ -49,14 +58,6 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
     
     public Job job() {
         return def().job();
-    }
-    
-    public ParsedClassType_c(ClassDef def) {
-        this(def.typeSystem(), def.position(), Types.ref(def));
-    }
-
-    public ParsedClassType_c(TypeSystem ts, Position pos, Ref<? extends ClassDef> def) {
-        super(ts, pos, def);
     }
     
     public Source fromSource() {
@@ -158,12 +159,14 @@ public class ParsedClassType_c extends ClassType_c implements ParsedClassType
 
     /** Return an immutable list of interfaces */
     public List<Type> interfaces() {
-        return new TransformingList<Ref<? extends Type>, Type>(
-                                                    def().interfaces(),
-                                                    new DerefTransform<Type>());
+	return new FilteringList<Type>(new TransformingList<Ref<? extends Type>, Type>(def().interfaces(), new DerefTransform<Type>()), new Predicate<Type>() {
+	    public boolean isTrue(Type o) {
+		return o != null;
+	    }
+	});
     }
 
     public String toString() {
-        return def.getCached().toString();
+        return def.toString();
     }
 }

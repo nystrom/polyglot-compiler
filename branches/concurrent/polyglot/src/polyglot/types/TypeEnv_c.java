@@ -596,19 +596,17 @@ public class TypeEnv_c implements TypeEnv {
 
     public List<MethodInstance> overrides(MethodInstance mi) {
 	List<MethodInstance> l = new ArrayList<MethodInstance>();
-	StructType rt = mi.container();
+	Type rt = mi.container();
 
-	while (rt != null) {
+	while (rt instanceof StructType) {
 	    // add any method with the same name and formalTypes from rt
-	    l.addAll(rt.methods(mi.name(), mi.formalTypes(), context));
+	    l.addAll(((StructType) rt).methods(mi.name(), mi.formalTypes(), context));
 
-	    StructType sup = null;
+	    Type sup = null;
 
 	    if (rt instanceof ObjectType) {
 		ObjectType ot = (ObjectType) rt;
-		if (ot.superClass() instanceof StructType) {
-		    sup = (StructType) ot.superClass();
-		}
+		sup = ot.superClass();
 	    }
 
 	    rt = sup;
@@ -622,10 +620,12 @@ public class TypeEnv_c implements TypeEnv {
 	return implemented(mi, mi.container());
     }
 
-    public List<MethodInstance> implemented(MethodInstance mi, StructType st) {
-	if (st == null) {
+    public List<MethodInstance> implemented(MethodInstance mi, Type t) {
+	if (! (t instanceof StructType)) {
 	    return Collections.<MethodInstance> emptyList();
 	}
+	
+	StructType st = (StructType) t;
 
 	List<MethodInstance> l = new LinkedList<MethodInstance>();
 	l.addAll(st.methods(mi.name(), mi.formalTypes(), context));
@@ -640,11 +640,8 @@ public class TypeEnv_c implements TypeEnv {
 	    }
 
 	    List<Type> ints = rt.interfaces();
-	    for (Type t : ints) {
-		if (t instanceof StructType) {
-		    StructType rt2 = (StructType) t;
-		    l.addAll(implemented(mi, rt2));
-		}
+	    for (Type rt2 : ints) {
+		l.addAll(implemented(mi, rt2));
 	    }
 	}
 

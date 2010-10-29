@@ -8,12 +8,8 @@
 
 package polyglot.ast;
 
-import java.util.List;
-
-import polyglot.types.*;
-import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>Conditional</code> is a representation of a Java ternary
@@ -31,11 +27,6 @@ public class Conditional_c extends Expr_c implements Conditional
 	this.cond = cond;
 	this.consequent = consequent;
 	this.alternative = alternative;
-    }
-
-    /** Get the precedence of the expression. */
-    public Precedence precedence() { 
-	return Precedence.CONDITIONAL;
     }
 
     /** Get the conditional of the expression. */
@@ -95,46 +86,7 @@ public class Conditional_c extends Expr_c implements Conditional
 	return reconstruct(cond, consequent, alternative);
     }
 
-    public Type childExpectedType(Expr child, AscriptionVisitor av) {
-        TypeSystem ts = av.typeSystem();
-
-        if (child == cond) {
-            return ts.Boolean();
-        }
-
-        if (child == consequent || child == alternative) {
-            return type();
-        }
-
-        return child.type();
-    }
-
     public String toString() {
 	return cond + " ? " + consequent + " : " + alternative;
-    }
-
-    /** Write the expression to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr)
-    {
-	printSubExpr(cond, false, w, tr);
-        w.unifiedBreak(2);
-	w.write("? ");
-	printSubExpr(consequent, false, w, tr);
-        w.unifiedBreak(2);
-	w.write(": ");
-	printSubExpr(alternative, false, w, tr);
-    }
-
-    public Term firstChild() {
-        return cond;
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        v.visitCFG(cond, FlowGraph.EDGE_KEY_TRUE, consequent,
-                         ENTRY, FlowGraph.EDGE_KEY_FALSE, alternative, ENTRY);
-        v.visitCFG(consequent, this, EXIT);
-        v.visitCFG(alternative, this, EXIT);
-
-        return succs;
     }
 }

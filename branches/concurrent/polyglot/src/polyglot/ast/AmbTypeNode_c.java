@@ -8,81 +8,49 @@
 
 package polyglot.ast;
 
-import polyglot.frontend.Globals;
-import polyglot.frontend.Goal;
-import polyglot.types.*;
-import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * An <code>AmbTypeNode</code> is an ambiguous AST node composed of
  * dot-separated list of identifiers that must resolve to a type.
  */
 public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
-	protected Prefix prefix;
-	protected Id name;
+    protected Node child;
 
-//  protected Expr dummy;
-  
-  public AmbTypeNode_c(Position pos, Prefix qual,
-                       Id name) {
-    super(pos);
-    assert(name != null); // qual may be null
-    this.prefix = qual;
-    this.name = name;
-  }
-
-  public Id name() {
-      return this.name;
-  }
-  
-  public AmbTypeNode name(Id name) {
-      AmbTypeNode_c n = (AmbTypeNode_c) copy();
-      n.name = name;
-      return n;
-  }
-  
-  public Prefix prefix() {
-    return this.prefix;
-  }
-
-  public AmbTypeNode prefix(Prefix prefix) {
-    AmbTypeNode_c n = (AmbTypeNode_c) copy();
-    n.prefix = prefix;
-    return n;
-  }
-
-  protected AmbTypeNode_c reconstruct(Prefix qual, Id name) {
-    if (qual != this.prefix || name != this.name) {
-      AmbTypeNode_c n = (AmbTypeNode_c) copy();
-      n.prefix = qual;
-      n.name = name;
-      return n;
+    public AmbTypeNode_c(Position pos, Node child) {
+      super(pos);
+      assert(child != null);
+      this.child = child;
+    }
+    
+    public Node child() {
+        return this.child;
+    }
+    
+    public AmbTypeNode child(Node child) {
+	AmbTypeNode_c n = (AmbTypeNode_c) copy();
+        n.child = child;
+        return n;
     }
 
-    return this;
-  }
-
-  public Node visitChildren(NodeVisitor v) {
-      Prefix prefix = (Prefix) visitChild(this.prefix, v);
-      Id name = (Id) visitChild(this.name, v);
-      return reconstruct(prefix, name);
-  }
-  
-  public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-    if (prefix != null) {
-        print(prefix, w, tr);
-        w.write(".");
-	w.allowBreak(2, 3, "", 0);
+    /** Reconstruct the expression. */
+    protected AmbTypeNode_c reconstruct(Node child) {
+        if (child != this.child) {
+            AmbTypeNode_c n = (AmbTypeNode_c) copy();
+            n.child = child;
+            return n;
+        }
+        return this;
     }
-            
-    tr.print(this, name, w);
-  }
+    
+    /** Visit the children of the constructor. */
+    public Node visitChildren(NodeVisitor v) {
+        Node child = (Node) visitChild(this.child, v);
+        return reconstruct(child);
+    }
 
-  public String toString() {
-    return (prefix == null
-            ? name.toString()
-            : prefix.toString() + "." + name.toString()) + "{amb}";
-  }
+    public String toString() {
+      return child.toString() + "{amb}";
+    }
 }

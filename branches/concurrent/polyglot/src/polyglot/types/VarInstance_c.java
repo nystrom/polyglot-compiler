@@ -7,86 +7,23 @@ public class VarInstance_c<T extends VarDef> extends Use_c<T> implements VarInst
         super(ts, pos, def);
     }
 
-    boolean constantValueSet;
-    boolean isConstant;
-    Object constantValue;
-
     public Object constantValue() {
-        if (!constantValueSet && def.known()) {
-            isConstant = def().isConstant();
-            constantValue = def().constantValue();
-            constantValueSet = true;
-        }
-        return constantValue;
+	return def().constantValue();
     }
 
     public boolean isConstant() {
-    	if (!constantValueSet && def.known()) {
-            isConstant = def().isConstant();
-            constantValue = def().constantValue();
-            constantValueSet = true;
-        }
-        return isConstant;
+	return def().isConstant();
     }
-
-    public VarInstance<T> constantValue(Object o) {
-        VarInstance_c<T> v = (VarInstance_c<T>) copy();
-        v.constantValueSet = true;
-        v.isConstant = true;
-        v.constantValue = constantValue;
-        return v;
-    }
-
-    public VarInstance<T> notConstant() {
-        VarInstance_c<T> v = (VarInstance_c<T>) copy();
-        v.constantValueSet = true;
-        v.isConstant = false;
-        v.constantValue = null;
-        return v;
-    }
-
-    Flags flags;
 
     public Flags flags() {
-        if (flags == null) {
-            return def().flags();
-        }
-        return flags;
+	return def().flags();
     }
-
-    public VarInstance<T> flags(Flags flags) {
-        VarInstance_c<T> v = (VarInstance_c<T>) copy();
-        v.flags = flags;
-        return v;
-    }
-
-    Name name;
 
     public Name name() {
-        if (name == null) {
-            return def().name();
-        }
-        return name;
+	return def().name();
     }
-
-    public VarInstance<T> name(Name name) {
-        VarInstance_c<T> v = (VarInstance_c<T>) copy();
-        v.name = name;
-        return v;
-    }
-
-    protected Type type;
 
     public Type type() {
-        if (type == null) {
-            return Types.get(def().type());
-        }
-        return type;
-    }
-
-    public VarInstance<T> type(Type type) {
-        VarInstance_c<T> v = (VarInstance_c<T>) copy();
-        v.type = type;
-        return v;
+	return Types.get(def().type());
     }
 }

@@ -242,7 +242,7 @@ public class TypeSystem_c implements TypeSystem
     }
 
     public FieldDef fieldDef(Position pos,
-	    Ref<? extends StructType> container, Flags flags,
+	    Ref<? extends Type> container, Flags flags,
 	    Ref<? extends Type> type, Name name) {
 	assert_(container);
 	assert_(type);
@@ -278,7 +278,7 @@ public class TypeSystem_c implements TypeSystem
     }
 
     public ConstructorDef constructorDef(Position pos,
-	    Ref<? extends ClassType> container,
+	    Ref<? extends Type> container,
 	    Flags flags, List<Ref<? extends Type>> argTypes,
 	    List<Ref<? extends Type>> excTypes) {
 	assert_(container);
@@ -296,7 +296,7 @@ public class TypeSystem_c implements TypeSystem
     }
 
     public MethodDef methodDef(Position pos,
-	    Ref<? extends StructType> container, Flags flags,
+	    Ref<? extends Type> container, Flags flags,
 	    Ref<? extends Type> returnType, Name name,
 	    List<Ref<? extends Type>> argTypes, List<Ref<? extends Type>> excTypes) {
 
@@ -1606,10 +1606,10 @@ public class TypeSystem_c implements TypeSystem
 		QName name = getTransformedClassName(ct);
 
 		TypeSystem_c ts = this;
-		LazyRef<ClassDef> sym = Types.lazyRef(unknownClassDef(), null);
-		Goal resolver = Globals.Scheduler().LookupGlobalTypeDef(sym, name);
-		resolver.update(Goal.Status.SUCCESS);
-		sym.setResolver(resolver);
+		Ref<ClassDef> sym = Types.lazyRef(unknownClassDef());
+//		Goal resolver = Globals.Scheduler().LookupGlobalTypeDef(sym, name);
+//		resolver.update(Goal.Status.SUCCESS);
+//		sym.setResolver(resolver);
 		return sym;
 	    }
 	}
@@ -1642,6 +1642,22 @@ public class TypeSystem_c implements TypeSystem
 
     public UnknownQualifier unknownQualifier(Position pos) {
 	return unknownQualifier;
+    }
+
+    protected ErrorType errorType = new ErrorType_c(this);
+    protected ErrorPackage errorPackage = new ErrorPackage_c(this);
+    protected ErrorQualifier errorQualifier = new ErrorQualifier_c(this);
+    
+    public ErrorType errorType(Position pos) {
+	return errorType;
+    }
+    
+    public ErrorPackage errorPackage(Position pos) {
+	return errorPackage;
+    }
+    
+    public ErrorQualifier errorQualifier(Position pos) {
+	return errorQualifier;
     }
 
     public Package packageForName(Package prefix, Name name) throws SemanticException {

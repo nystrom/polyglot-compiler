@@ -7,6 +7,7 @@
 
 package polyglot.types;
 
+import funicular.Clock;
 import polyglot.frontend.*;
 import polyglot.frontend.Compiler;
 import polyglot.main.Report;
@@ -260,16 +261,16 @@ public class SourceClassResolver extends LoadedClassResolver
             return n;
         }
         
-        Goal g = scheduler.PreTypeCheck(job);
+        Futures.async(job);
 
-        if (! scheduler.reached(g)) {
-            try {
-                scheduler.attempt(g);
-            }
-            catch (CyclicDependencyException e) {
-                throw new InternalCompilerError("Could not initialize symbol table for " + source + "; cyclic dependency found.", e);
-            }
-        }
+        // Block until PreTypeCheck is reached
+        funicular.Clock c = (Clock) job.get("clock");
+        c.next();
+//        Goal g = scheduler.PreTypeCheck(job);
+//
+//        if (! scheduler.reached(g)) {
+//            scheduler.attempt(g);
+//        }
         
         n = ts.systemResolver().check(name);
         

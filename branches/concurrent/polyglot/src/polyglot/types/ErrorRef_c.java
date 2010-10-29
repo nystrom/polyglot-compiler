@@ -3,30 +3,26 @@
  */
 package polyglot.types;
 
+import polyglot.types.Ref.Callable;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 
-public class ErrorRef_c<T> extends TypeObject_c implements Ref<T> {
+public class ErrorRef_c<T> extends Ref_c<T> {
     String errorMessage;
-    
-      public ErrorRef_c(TypeSystem ts, Position pos, String errorMessage) {
-          super(ts, pos);
-          this.errorMessage = errorMessage;
-      }
-      
-      public T get() {
-          throw new InternalCompilerError(errorMessage, position());
-      }
-      
-      public T getCached() {
-          throw new InternalCompilerError(errorMessage, position());
-      }
-      
-      public boolean known() {
-          return false;
-      }
+    Position pos;
 
-      public void update(T v) {
-    	  throw new InternalCompilerError("Cannot update reference: " + errorMessage, position());
-      }
-  }
+    public ErrorRef_c(TypeSystem ts, Position pos, String errorMessage) {
+	this.pos = pos;
+	this.errorMessage = errorMessage;
+    }
+
+    @Override
+    public T get() {
+	throw new InternalCompilerError(errorMessage, pos);
+    }
+
+    @Override
+    public T getCached() {
+	throw new InternalCompilerError(errorMessage, pos);
+    }
+}

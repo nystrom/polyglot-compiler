@@ -10,12 +10,10 @@ package polyglot.ast;
 
 import java.util.*;
 
-import polyglot.dispatch.TypeChecker;
 import polyglot.frontend.Globals;
-import polyglot.frontend.Job;
 import polyglot.types.*;
 import polyglot.util.*;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>ConstructorCall_c</code> represents a direct call to a constructor.
@@ -34,10 +32,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	this.kind = kind;
 	this.qualifier = qualifier;
 	this.arguments = TypedList.copyAndCheck(arguments, Expr.class, true);
-
-	TypeSystem ts = Globals.TS();
-	ConstructorInstance ci = ts.createConstructorInstance(position(), new ErrorRef_c<ConstructorDef>(ts, position(), "Cannot get ConstructorDef before type-checking constructor call."));
-	this.setCi(Types.<ConstructorInstance>lazyRef(ci));
+	this.ci = Types.<ConstructorInstance>lazyRef();
     }
 
     /** Get the qualifier of the constructor call. */
@@ -82,14 +77,14 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 
     /** Get the constructor we are calling. */
     public ConstructorInstance constructorInstance() {
-	return Types.get(getCi());
+	return Types.get(constructorInstanceRef());
     }
 
     /** Set the constructor we are calling. */
     public ConstructorCall constructorInstance(ConstructorInstance ci) {
-	if (ci == this.getCi()) return this;
+	if (ci == this.constructorInstanceRef()) return this;
 	ConstructorCall_c n = (ConstructorCall_c) copy();
-	n.getCi().update(ci);
+	n.constructorInstanceRef().update(ci);
 	return n;
     }
 
@@ -120,96 +115,18 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	return reconstruct(qualifier, arguments);
     }
 
-    public Type childExpectedType(Expr child, AscriptionVisitor av) {
-	TypeSystem ts = av.typeSystem();
-
-	if (child == qualifier) {
-	    // FIXME: Can be more specific
-	    return ts.Object();
-	}
-
-	Iterator i = this.arguments.iterator();
-	Iterator j = constructorInstance().formalTypes().iterator();
-
-	while (i.hasNext() && j.hasNext()) {
-	    Expr e = (Expr) i.next();
-	    Type t = (Type) j.next();
-
-	    if (e == child) {
-		return t;
-	    }
-	}
-
-	return child.type();
-    }
-
     public String toString() {
-	return (qualifier != null ? qualifier + "." : "") + kind + "(...)";
-    }
-
-    /** Write the call to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-	if (qualifier != null) {
-	    print(qualifier, w, tr);
-	    w.write(".");
-	} 
-
-	w.write(kind + "(");
-
-	w.begin(0);
-
-	for (Iterator i = arguments.iterator(); i.hasNext(); ) {
-	    Expr e = (Expr) i.next();
-	    print(e, w, tr);
-
-	    if (i.hasNext()) {
-		w.write(",");
-		w.allowBreak(0);
-	    }
-	}
-
-	w.end();
-
-	w.write(");");
-    }
-
-    public Term firstChild() {
-	if (qualifier != null) {
-	    return qualifier;
-	} else {
-	    return listChild(arguments, null);
+	switch (kind) {
+	case SUPER:
+	    return (qualifier != null ? qualifier + "." : "") + "super" + "(...)";
+	case THIS:
+	    return (qualifier != null ? qualifier + "." : "") + "this" + "(...)";
+	default:
+	    throw new InternalCompilerError("Unknown constructor call kind.", position());
 	}
     }
 
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-	if (qualifier != null) {
-	    if (!arguments.isEmpty()) {
-		v.visitCFG(qualifier, listChild(arguments, null), ENTRY);
-		v.visitCFGList(arguments, this, EXIT);
-	    } else {
-		v.visitCFG(qualifier, this, EXIT);
-	    }
-	} else {
-	    if (!arguments.isEmpty()) {
-		v.visitCFGList(arguments, this, EXIT);
-	    }
-	}
-
-	return succs;
-    }
-
-    public List<Type> throwTypes(TypeSystem ts) {
-	List<Type> l = new ArrayList<Type>();
-	l.addAll(constructorInstance().throwTypes());
-	l.addAll(ts.uncheckedExceptions());
-	return l;
-    }
-
-    public void setCi(Ref<ConstructorInstance> ci) {
-	this.ci = ci;
-    }
-
-    public Ref<ConstructorInstance> getCi() {
+    public Ref<ConstructorInstance> constructorInstanceRef() {
 	return ci;
     }
 }

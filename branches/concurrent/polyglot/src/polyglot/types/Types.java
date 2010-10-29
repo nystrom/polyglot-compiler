@@ -1,38 +1,42 @@
 package polyglot.types;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import polyglot.util.InternalCompilerError;
 
 public class Types {
-
     public static <T> T get(Ref<T> ref) {
-        return ref != null ? ref.get() : null;
+	return ref != null ? ref.get() : null;
     }
-
+    
+    /** Return a reference to v. */
     public static <T> Ref<T> ref(T v) {
-	    if (v instanceof TypeObject)
-		    return (Ref<T>) new Ref_c((TypeObject) v);
-	    else if (v == null)
-		    return null;
-	    else {
-		    Ref<T> ref = lazyRef(v, new Runnable() {
-			    public void run() { }
-		    });
-		    ref.update(v);
-		    return ref;
-	    }
+	if (v == null)
+	    return null;
+	Ref_c<T> r = new Ref_c<T>(v);
+	return r;
     }
-
-    /** Create a lazy reference to a type object, with an initial value.
-     * @param defaultValue initial value
-     * @param resolver goal used to bring the reference up-to-date
-     * 
-     * ### resolver should be a map
-     */
-    public static <T> LazyRef<T> lazyRef(T defaultValue) {
-        return new LazyRef_c<T>(defaultValue);
+    public static <T> Ref<T> lazyRef() {
+        // future and clock not set
+	Ref_c<T> r = new Ref_c<T>();
+	return r;
     }
-
-    public static <T> LazyRef<T> lazyRef(T defaultValue, Runnable resolver) {
-        return new LazyRef_c<T>(defaultValue, resolver);
+    public static <T> Ref<T> lazyRef(T defaultValue) {
+        // future and clock not set
+        Ref_c<T> r = new Ref_c<T>();
+        r.updateSoftly(defaultValue);
+	return r;
     }
-
+    public static <T> Ref<T> lazyRef(T defaultValue, final Ref.Callable<T> resolver, funicular.Clock clock) {
+	Ref_c<T> r = new Ref_c<T>(resolver, clock);
+	r.updateSoftly(defaultValue);
+	return r;
+    }
+    public static <T> Ref<T> lazyRef(T defaultValue, final Runnable resolver, funicular.Clock clock) {
+	Ref_c<T> r = new Ref_c<T>();
+	r.updateSoftly(defaultValue);
+	r.setResolver(resolver, clock);
+	return r;
+    }
 }

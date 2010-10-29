@@ -8,11 +8,6 @@ public interface MethodInstance extends FunctionInstance<MethodDef>, MemberInsta
      */
     Name name();
 
-    MethodInstance name(Name name);
-    MethodInstance returnType(Type returnType);
-    MethodInstance formalTypes(List<Type> formalTypes);
-    MethodInstance throwTypes(List<Type> throwTypes);
-    
     /**
      * Get the list of methods this method (potentially) overrides, in order
      * from this class (i.e., including <code>this</code>) to super classes.
@@ -51,6 +46,4 @@ public interface MethodInstance extends FunctionInstance<MethodDef>, MemberInsta
      * @param context TODO
      */
     boolean isSameMethod(MethodInstance mi, Context context);
-
-    public MethodInstance returnTypeRef(Ref<? extends Type> returnType);
 }

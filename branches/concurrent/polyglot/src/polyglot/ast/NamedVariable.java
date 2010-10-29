@@ -16,9 +16,6 @@ import polyglot.types.VarInstance;
  */
 public interface NamedVariable extends Variable
 {
-    /** Return the access flags of the variable, or Flags.NONE */
-    public Flags flags();
-
     /** Return the type object for the variable. */
     public VarInstance varInstance();
 

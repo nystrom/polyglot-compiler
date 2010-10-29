@@ -77,15 +77,4 @@ public interface Binary extends Expr
      * Set the right child of the binary.
      */
     Binary right(Expr right);
-
-    /**
-     * Returns true if the binary might throw an arithmetic exception,
-     * such as division by zero.
-     */
-    boolean throwsArithmeticException();
-
-    /**
-     * Set the precedence of the expression.
-     */
-    Binary precedence(Precedence precedence);
 }

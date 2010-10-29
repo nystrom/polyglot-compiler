@@ -158,7 +158,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         return name;
     }
     
-    public void setContainer(Ref<? extends StructType> container) {
+    public void setContainer(Ref<? extends Type> container) {
         throw new InternalCompilerError("Call outer(container.def()) instead.");
     }
 
@@ -281,6 +281,11 @@ public class ClassDef_c extends Def_c implements ClassDef
     
     /** Return an immutable list of interfaces */
     public List<Ref<? extends Type>> interfaces() {
+	for (Iterator<Ref<? extends Type>> i = interfaces.iterator(); i.hasNext();) {
+	    Ref<? extends Type> tref = i.next();
+	    if (tref.forced() && tref.get() == null)
+		i.remove();
+	}
         return Collections.<Ref<? extends Type>>unmodifiableList(interfaces);
     }
     

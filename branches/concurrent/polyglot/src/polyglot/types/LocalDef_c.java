@@ -7,8 +7,6 @@
 
 package polyglot.types;
 
-import polyglot.main.Report;
-import polyglot.types.VarDef_c.ConstantValue;
 import polyglot.util.Position;
 
 /**

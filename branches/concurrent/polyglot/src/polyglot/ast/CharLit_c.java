@@ -8,10 +8,8 @@
 
 package polyglot.ast;
 
-import polyglot.types.SemanticException;
-import polyglot.util.*;
-import polyglot.visit.ContextVisitor;
-import polyglot.visit.PrettyPrinter;
+import polyglot.util.Position;
+import polyglot.util.StringUtil;
 
 /** 
  * An <code>CharLit</code> represents a literal in java of
@@ -37,12 +35,5 @@ public class CharLit_c extends NumLit_c implements CharLit
 
     public String toString() {
         return "'" + StringUtil.escape((char) value) + "'";
-    }
-
-    /** Write the expression to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-        w.write("'");
-	w.write(StringUtil.escape((char) value));
-        w.write("'");
     }
 }

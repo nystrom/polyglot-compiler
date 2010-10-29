@@ -24,7 +24,7 @@ public class ConstructorDef_c extends ProcedureDef_c
     protected ConstructorDef_c() { }
 
     public ConstructorDef_c(TypeSystem ts, Position pos,
-	                         Ref<? extends ClassType> container,
+	                         Ref<? extends Type> container,
 				 Flags flags, List<Ref<? extends Type>> formalTypes, List<Ref<? extends Type>> excTypes) {
         super(ts, pos, container, flags, formalTypes, excTypes);
     }
