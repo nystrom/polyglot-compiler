@@ -11,17 +11,23 @@ import polyglot.util.Enum;
 
 /**
  * A <code>Branch</code> is an immutable representation of a branch
- * statment in Java (a break or continue).
+ * statement in Java (a break or continue).
  */
 public interface Branch extends Stmt
 {
     /** Branch kind: either break or continue. */
-    public static class Kind extends Enum {
-        public Kind(String name) { super(name); }
+    static enum Kind {
+	BREAK("break"), CONTINUE("continue");
+
+	String name;
+
+	Kind(String name) {
+	    this.name = name;
+	}
     }
 
-    public static final Kind BREAK    = new Kind("break");
-    public static final Kind CONTINUE = new Kind("continue");
+    public static final Kind BREAK = Kind.BREAK;
+    public static final Kind CONTINUE = Kind.CONTINUE;
 
     /**
      * The kind of branch.

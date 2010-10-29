@@ -10,7 +10,6 @@ package polyglot.ast;
 import java.util.List;
 
 import polyglot.types.ConstructorDef;
-import polyglot.types.Flags;
 
 /**
  * A <code>ConstructorDecl</code> is an immutable representation of a

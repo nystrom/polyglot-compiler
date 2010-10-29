@@ -8,7 +8,8 @@
 
 package polyglot.ast;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 import polyglot.types.*;
 import polyglot.util.*;
@@ -172,109 +173,8 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
         return reconstruct(flags, name, formals, throwTypes, this.body);
     }
     
-    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
-	Context c = tc.context();
-	TypeSystem ts = tc.typeSystem();
-	
-	ClassType ct = c.currentClass();
-	
-	if (ct.flags().isInterface()) {
-	    throw new SemanticException("Cannot declare a constructor inside an interface.",
-	                                position());
-	}
-	
-	if (ct.isAnonymous()) {
-	    throw new SemanticException("Cannot declare a constructor inside an anonymous class.",
-	                                position());
-	}
-	
-	Name ctName = ct.name();
-	
-	if (! ctName.equals(name.id())) {
-	    throw new SemanticException("Constructor name \"" + name +
-	                                "\" does not match name of containing class \"" +
-	                                ctName + "\".", position());
-	}
-	
-	Flags flags = flags().flags();
-	
-	try {
-	    ts.checkConstructorFlags(flags);
-	}
-	catch (SemanticException e) {
-	    throw new SemanticException(e.getMessage(), position());
-	}
-	
-	if (body == null && ! flags.isNative()) {
-	    throw new SemanticException("Missing constructor body.",
-	                                position());
-	}
-	
-	if (body != null && flags.isNative()) {
-	    throw new SemanticException("A native constructor cannot have a body.", position());
-	}
-	
-	return this;
-    }
-
-    public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
-        return ec.push(new ExceptionChecker.CodeTypeReporter("Constructor " + ci.signature())).push(constructorDef().asInstance().throwTypes());
-    }
-
     public String toString() {
         return flags.flags().translate() + name + "(...)";
-    }
-
-    /** Write the constructor to an output file. */
-    public void prettyPrintHeader(CodeWriter w, PrettyPrinter tr) {
-        w.begin(0);
-        
-        tr.print(this, flags, w);
-        tr.print(this, name, w);
-        w.write("(");
-
-        w.begin(0);
-
-        for (Iterator i = formals.iterator(); i.hasNext(); ) {
-            Formal f = (Formal) i.next();
-            print(f, w, tr);
-
-            if (i.hasNext()) {
-                w.write(",");
-                w.allowBreak(0, " ");
-            }
-        }
-
-        w.end();
-        w.write(")");
-
-        if (! throwTypes().isEmpty()) {
-            w.allowBreak(6);
-            w.write("throws ");
-
-            for (Iterator i = throwTypes().iterator(); i.hasNext(); ) {
-                TypeNode tn = (TypeNode) i.next();
-                print(tn, w, tr);
-
-                if (i.hasNext()) {
-                    w.write(",");
-                    w.allowBreak(4, " ");
-                }
-            }
-        }
-
-        w.end();
-    }
-
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-        prettyPrintHeader(w, tr);
-
-        if (body != null) {
-            printSubStmt(body, w, tr);
-        }
-        else {
-            w.write(";");
-        }
     }
 
     public void dump(CodeWriter w) {
@@ -287,21 +187,4 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
             w.end();
         }
     }
-
-    public Term firstChild() {
-        return listChild(formals(), body() != null ? body() : null);
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        if (body() != null) {
-            v.visitCFGList(formals(), body(), ENTRY);
-            v.visitCFG(body(), this, EXIT);
-        }
-        else {
-            v.visitCFGList(formals(), this, EXIT);
-        }
-
-        return succs;
-    }
-
 }

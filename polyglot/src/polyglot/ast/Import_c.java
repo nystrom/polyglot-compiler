@@ -8,11 +8,8 @@
 
 package polyglot.ast;
 
-import polyglot.frontend.Globals;
-import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.visit.ContextVisitor;
-import polyglot.visit.PrettyPrinter;
+import polyglot.types.QName;
+import polyglot.util.Position;
 
 /**
  * An <code>Import</code> is an immutable representation of a Java
@@ -76,20 +73,5 @@ public class Import_c extends Node_c implements Import
 	return "import " + name + (kind == PACKAGE ? ".*" : "");
     }
 
-    /** Write the import to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-	if (! Globals.Options().fully_qualified_names) {
-	    w.write("import ");
-	    w.write(name.toString());
-
-	    if (kind == PACKAGE) {
-	        w.write(".*");
-	    }
-
-	    w.write(";");
-	    w.newline(0);
-	}
-    }
-    
 
 }

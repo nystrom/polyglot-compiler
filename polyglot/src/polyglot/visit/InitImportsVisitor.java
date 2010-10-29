@@ -21,7 +21,8 @@ public class InitImportsVisitor extends ErrorHandlingVisitor
         super(job, ts, nf);
     }
     
-    public NodeVisitor enterCall(Node n) throws SemanticException {
+    @Override
+    public Node override(Node n) {
         if (n instanceof SourceFile) {
             SourceFile sf = (SourceFile) n;
             
@@ -38,21 +39,13 @@ public class InitImportsVisitor extends ErrorHandlingVisitor
             
             InitImportsVisitor v = (InitImportsVisitor) copy();
             v.importTable = it;
-            return v;
-        }
-        
-        return this;
-    }
-    
-    public Node leaveCall(Node old, Node n, NodeVisitor v) throws SemanticException {
-        if (n instanceof SourceFile) {
-            SourceFile sf = (SourceFile) n;
-            InitImportsVisitor v_ = (InitImportsVisitor) v;
-            ImportTable it = v_.importTable;
+            
+            sf = (SourceFile) sf.visitChildren(v);
+
             return sf.importTable(it);
         }
         if (n instanceof Import) {
-            Import im = (Import) n;
+            Import im = (Import) n.visitChildren(this);
             
             if (im.kind() == Import.CLASS) {
                 this.importTable.addExplicitImport(im.name(), im.position());
@@ -61,7 +54,7 @@ public class InitImportsVisitor extends ErrorHandlingVisitor
                 this.importTable.addOnDemandImport(im.name(), im.position());
             }
         }
-
+    
         return n;
     }
 }

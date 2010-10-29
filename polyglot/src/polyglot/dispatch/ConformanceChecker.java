@@ -19,18 +19,17 @@ public class ConformanceChecker extends Visitor {
     }
 
     public Node visit(Node n) throws SemanticException {
-	return acceptChildren(n);
+	return n;
     }
-    Node visit(ClassBody_c n) throws SemanticException {
-	n.acceptChildren(this);
+    
+    public Node visit(ClassBody_c n) throws SemanticException {
 	duplicateFieldCheck(n);
 	duplicateConstructorCheck(n);
 	duplicateMethodCheck(n);
 	duplicateMemberClassCheck(n);
 	return n;
-
     }
-
+    
     private void duplicateMethodCheck(ClassBody_c n) throws SemanticException {
 	ClassDef type = n.context().currentClassDef();
 	
@@ -106,9 +105,7 @@ public class ConformanceChecker extends Visitor {
 	}
     }
 
-    Node visit(ClassDecl_c n) throws SemanticException {
-	n.acceptChildren(this);
-
+    public Node visit(ClassDecl_c n) throws SemanticException {
 	ClassType type = n.classDef().asType();
 	Name name = n.name().id();
 	
@@ -227,9 +224,7 @@ public class ConformanceChecker extends Visitor {
 	return n;
     }
 
-    Node visit(ConstructorDecl_c n) throws SemanticException {
-	n.acceptChildren(this);
-
+    public Node visit(ConstructorDecl_c n) throws SemanticException {
 	Context c = n.context();
 	
 	ClassType ct = c.currentClass();
@@ -274,9 +269,7 @@ public class ConformanceChecker extends Visitor {
 
     }
 
-    Node visit(FieldDecl_c n) throws SemanticException {
-	n.acceptChildren(this);
-
+    public Node visit(FieldDecl_c n) throws SemanticException {
 	
 	// Get the fi flags, not the node flags since the fi flags
 	// account for being nested within an interface.
@@ -318,9 +311,7 @@ public class ConformanceChecker extends Visitor {
 
     }
 
-    Node visit(MethodDecl_c n) throws SemanticException {
-	n.acceptChildren(this);
-
+    public Node visit(MethodDecl_c n) throws SemanticException {
 	// Get the mi flags, not the node flags since the mi flags
 	// account for being nested within an interface.
 	Flags flags = n.methodDef().flags();

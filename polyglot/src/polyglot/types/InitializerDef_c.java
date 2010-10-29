@@ -16,7 +16,7 @@ import polyglot.util.Position;
 public class InitializerDef_c extends Def_c
                                 implements InitializerDef
 {
-    protected Ref<? extends ClassType> container;
+    protected Ref<? extends Type> container;
     protected Flags flags;
 
     /** Used for deserializing types. */
@@ -29,7 +29,7 @@ public class InitializerDef_c extends Def_c
 	this.flags = flags;
     }
 
-    public Ref<? extends StructType> container() {
+    public Ref<? extends Type> container() {
         return container;
     }
     
@@ -45,8 +45,8 @@ public class InitializerDef_c extends Def_c
     /**
      * @param container The container to set.
      */
-    public void setContainer(Ref<? extends StructType> container) {
-        this.container = (Ref<? extends ClassType>) container;
+    public void setContainer(Ref<? extends Type> container) {
+        this.container = container;
     }
 
     public Flags flags() {

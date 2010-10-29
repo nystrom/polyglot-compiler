@@ -12,6 +12,7 @@ import java.util.*;
 import polyglot.frontend.Globals;
 import polyglot.main.Report;
 import polyglot.types.*;
+import polyglot.types.Ref.Callable;
 import polyglot.types.reflect.InnerClasses.Info;
 import polyglot.util.*;
 
@@ -283,19 +284,36 @@ public class ClassFileLazyClassInitializer {
         return defForName(name, null);
     }
     
-    protected Ref<ClassDef> defForName(String name, Flags flags) {
+    protected Ref<ClassDef> defForName(String name, final Flags flags) {
         if (Report.should_report(verbose, 2))
             Report.report(2, "resolving " + name);
         
-        LazyRef<ClassDef> sym = Types.lazyRef(ts.unknownClassDef(), null);
-        
-        if (flags == null) {
-            sym.setResolver(Globals.Scheduler().LookupGlobalTypeDef(sym, QName.make(name)));
-        }
-        else {
-            sym.setResolver(Globals.Scheduler().LookupGlobalTypeDefAndSetFlags(sym, QName.make(name), flags));
-        }
-        return sym;
+	final QName qname = QName.make(name);
+	Ref<ClassDef> sym = Types.<ClassDef>lazyRef(ts.unknownClassDef(), new Callable<ClassDef>() {
+	    public ClassDef call() {
+		try {
+		    TypeSystem ts = Globals.TS();
+		    Named n = ts.systemResolver().find(qname);
+		    if (n instanceof ClassType) {
+			ClassType ct = (ClassType) n;
+			ClassDef def = ct.def();
+			if (flags != null) {
+			    // The flags should be overwritten only for a member
+			    // class.
+			    assert def.isMember();
+			    def.setFlags(flags);
+			}
+			return def;
+		    }
+		}
+		catch (SemanticException e) {
+		    Globals.Compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, e.getMessage(), e.position());
+		}
+		return ts.unknownClassDef();
+	    }
+	}, clazz.clock());
+
+	return sym;
     }
     
     /**

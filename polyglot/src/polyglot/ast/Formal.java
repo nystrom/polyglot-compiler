@@ -7,7 +7,6 @@
 
 package polyglot.ast;
 
-import polyglot.types.Flags;
 import polyglot.types.LocalDef;
 
 /**
@@ -24,10 +23,10 @@ public interface Formal extends VarDecl
     public Formal flags(FlagsNode flags);
     
     /** Get the type node of the formal. */
-    public TypeNode type();
+    public TypeNode typeNode();
 
     /** Set the type node of the formal. */
-    public Formal type(TypeNode type);
+    public Formal typeNode(TypeNode type);
     
     /** Get the name of the formal. */
     public Id name();

@@ -41,6 +41,9 @@ public class ClassFile {
     protected File classFileSource;
     protected ExtensionInfo extensionInfo;
     
+    protected funicular.Clock clock;
+    protected funicular.Clock clock() { return clock; }
+    
     protected Map jlcInfoCache = new HashMap();
    
     protected static Collection verbose = ClassFileLoader.verbose;
@@ -51,9 +54,10 @@ public class ClassFile {
      * @param code
      *        A byte array containing the class data
      */
-    public ClassFile(File classFileSource, byte[] code, ExtensionInfo ext) {
+    public ClassFile(File classFileSource, byte[] code, ExtensionInfo ext, funicular.Clock clock) {
         this.classFileSource = classFileSource;
         this.extensionInfo = ext;
+        this.clock = clock;
 
         try {
             ByteArrayInputStream bin = new ByteArrayInputStream(code);

@@ -7,11 +7,8 @@
 
 package polyglot.ast;
 
-import polyglot.types.SemanticException;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.ContextVisitor;
-import polyglot.visit.PrettyPrinter;
 
 /**
  * A <code>BooleanLit</code> represents a boolean literal expression.
@@ -39,11 +36,6 @@ public class BooleanLit_c extends Lit_c implements BooleanLit
 
   public String toString() {
     return String.valueOf(value);
-  }
-
-  /** Write the expression to an output file. */
-  public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-    w.write(String.valueOf(value));
   }
 
   /** Dumps the AST. */

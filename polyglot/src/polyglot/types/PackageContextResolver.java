@@ -37,7 +37,7 @@ public class PackageContextResolver extends AbstractAccessControlResolver
 
     /**
      * Find a type object by name.
-     * @param name Name of the class or package to find.
+     * @param child Name of the class or package to find.
      * 
      */
     public Named find(Matcher<Named> matcher, Context context) throws SemanticException {

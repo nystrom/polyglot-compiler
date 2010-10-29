@@ -7,11 +7,15 @@
 
 package polyglot.types;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import polyglot.main.Report;
-import polyglot.util.*;
-import polyglot.util.Enum;
+import polyglot.util.CollectionUtil;
+import polyglot.util.InternalCompilerError;
 
 /**
  * This class maintains a context for looking up named variables, types,
@@ -28,17 +32,15 @@ public class Context_c implements Context
     protected Context outer;
     protected TypeSystem ts;
 
-    public static class Kind extends Enum {
-	public Kind(String name) {
-	    super(name);
-	}
+    static enum Kind {
+	BLOCK, CLASS, CODE, OUTER, SOURCE
     }
-    
-    public static final Kind BLOCK = new Kind("block");
-    public static final Kind CLASS = new Kind("class");
-    public static final Kind CODE = new Kind("code");
-    public static final Kind OUTER = new Kind("outer");
-    public static final Kind SOURCE = new Kind("source");
+
+    private static final polyglot.types.Context_c.Kind BLOCK = Kind.BLOCK;
+    private static final polyglot.types.Context_c.Kind CLASS = Kind.CLASS;
+    private static final polyglot.types.Context_c.Kind CODE = Kind.CODE;
+    private static final polyglot.types.Context_c.Kind OUTER = Kind.OUTER;
+    private static final polyglot.types.Context_c.Kind SOURCE = Kind.SOURCE;
     
     public Context_c(TypeSystem ts) {
         this.ts = ts;
@@ -58,7 +60,8 @@ public class Context_c implements Context
 
     public Object copy() {
         try {
-            return super.clone();
+            Context_c c = (Context_c) super.clone();
+            return c;
         }
         catch (CloneNotSupportedException e) {
             throw new InternalCompilerError("Java clone() weirdness.");
@@ -67,6 +70,7 @@ public class Context_c implements Context
     
     public Context freeze() {
         Context_c c = (Context_c) this.copy();
+        c.outer = outer != null ? outer.freeze() : null;
         c.types = types != null ? new HashMap(types) : null;
         c.vars = vars != null ? new HashMap(vars) : null;
         return c;
@@ -77,6 +81,8 @@ public class Context_c implements Context
         v.outer = this;
         v.types = null;
         v.vars = null;
+        v.breakLabels = null;
+        v.continueLabels = null;
         return v;
     }
 
@@ -88,9 +94,19 @@ public class Context_c implements Context
     protected ClassType type;
     protected ClassDef scope;
     protected CodeDef code;
+    protected Set<Name> breakLabels;
+    protected Set<Name> continueLabels;
     protected Map<Name,Named> types;
     protected Map<Name,VarInstance<?>> vars;
     protected boolean inCode;
+
+    public boolean hasBreakLabel(Name id) {
+	return (breakLabels != null && breakLabels.contains(id)) || (outer != null && outer.hasBreakLabel(id));
+    }
+
+    public boolean hasContinueLabel(Name id) {
+	return (continueLabels != null && continueLabels.contains(id)) || (outer != null && outer.hasContinueLabel(id));
+    }
 
     /**
      * Is the context static?
@@ -165,7 +181,7 @@ public class Context_c implements Context
      * Gets a local of a particular name.
      */
     public LocalInstance findLocal(Name name) throws SemanticException {
-	VarInstance vi = findVariableSilent(name);
+	VarInstance<?> vi = findVariableSilent(name);
 
 	if (vi instanceof LocalInstance) {
 	    return (LocalInstance) vi;
@@ -181,7 +197,7 @@ public class Context_c implements Context
         if (Report.should_report(TOPICS, 3))
           Report.report(3, "find-field-scope " + name + " in " + this);
 
-	VarInstance vi = findVariableInThisScope(name);
+	VarInstance<?> vi = findVariableInThisScope(name);
 
         if (vi instanceof FieldInstance) {
             if (Report.should_report(TOPICS, 3))
@@ -221,7 +237,7 @@ public class Context_c implements Context
      * Gets a field of a particular name.
      */
     public FieldInstance findField(Name name) throws SemanticException {
-	VarInstance vi = findVariableSilent(name);
+	VarInstance<?> vi = findVariableSilent(name);
 
 	if (vi instanceof FieldInstance) {
 	    FieldInstance fi = (FieldInstance) vi;
@@ -356,6 +372,17 @@ public class Context_c implements Context
         return v;
     }
 
+    public Context pushBreakLabel(Name id) {
+	Context_c v = push();
+	v.breakLabels = Collections.singleton(id);
+	return v;
+    }
+    public Context pushContinueLabel(Name id) {
+	Context_c v = push();
+	v.continueLabels = Collections.singleton(id);
+	return v;
+    }
+    
     /**
      * pushes an additional block-scoping level.
      */

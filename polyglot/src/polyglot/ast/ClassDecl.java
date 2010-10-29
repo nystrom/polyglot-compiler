@@ -10,7 +10,6 @@ package polyglot.ast;
 import java.util.List;
 
 import polyglot.types.ClassDef;
-import polyglot.types.Flags;
 
 /**
  * A <code>ClassDecl</code> represents a top-level, member, or local class

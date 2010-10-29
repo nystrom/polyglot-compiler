@@ -10,63 +10,17 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
     public MethodInstance_c(TypeSystem ts, Position pos, Ref<? extends MethodDef> def) {
         super(ts, pos, def);
     }
-    
-    protected Name name;
-    protected Flags flags;
-    protected StructType container;
-    
-    public MethodInstance container(StructType container) {
-        MethodInstance_c p = (MethodInstance_c) copy();
-        p.container = container;
-        return p;
+
+    public Type container() {
+	return Types.get(def().container());
     }
 
-    public StructType container() {
-        if (this.container == null) {
-            return Types.get(def().container());
-        }
-        return this.container;
-    }
-    
-    public MethodInstance flags(Flags flags) {
-        MethodInstance_c p = (MethodInstance_c) copy();
-        p.flags = flags;
-        return p;
-    }
-    
     public Flags flags() {
-        if (this.flags == null) { 
-            return def().flags();
-        }
-        return this.flags;
-    }
-    
-    public MethodInstance name(Name name) {
-        MethodInstance_c p = (MethodInstance_c) copy();
-        p.name = name;
-        return p;
+	return def().flags();
     }
 
     public Name name() {
-        if (this.name == null) { 
-            return def().name();
-        }
-        return this.name;
-    }
-    
-    public MethodInstance returnType(Type returnType) {
-        return (MethodInstance) super.returnType(returnType);
-    }
-    public MethodInstance returnTypeRef(Ref<? extends Type> returnType) {
-	return (MethodInstance) super.returnTypeRef(returnType);
-    }
-
-    public MethodInstance formalTypes(List<Type> formalTypes) {
-        return (MethodInstance) super.formalTypes(formalTypes);
-    }
-    
-    public MethodInstance throwTypes(List<Type> throwTypes) {
-        return (MethodInstance) super.throwTypes(throwTypes);
+	return def().name();
     }
     
     /** Returns true iff <this> is the same method as <m> */
@@ -80,7 +34,7 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
     
     @Override
     public String signature() {
-	return name() + super.signature();
+	return super.signature();
     }
 
     /**

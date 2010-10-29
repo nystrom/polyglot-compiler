@@ -11,10 +11,10 @@ package polyglot.ast;
 import java.util.Collections;
 import java.util.List;
 
-import polyglot.types.*;
-import polyglot.util.CodeWriter;
+import polyglot.types.Type;
+import polyglot.types.TypeSystem;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>Cast</code> is an immutable representation of a casting
@@ -31,11 +31,6 @@ public class Cast_c extends Expr_c implements Cast
 	assert(castType != null && expr != null);
 	this.castType = castType;
 	this.expr = expr;
-    }
-
-    /** Get the precedence of the expression. */
-    public Precedence precedence() {
-	return Precedence.CAST;
     }
 
     /** Get the cast type of the expression. */
@@ -81,55 +76,7 @@ public class Cast_c extends Expr_c implements Cast
 	return reconstruct(castType, expr);
     }
 
-    public Type childExpectedType(Expr child, AscriptionVisitor av) {
-        TypeSystem ts = av.typeSystem();
-
-        if (child == expr) {
-            if (castType.type().isReference()) {
-                return ts.Object();
-            }
-            else if (castType.type().isNumeric()) {
-                return ts.Double();
-            }
-            else if (castType.type().isBoolean()) {
-                return ts.Boolean();
-            }
-        }
-
-        return child.type();
-    }
-  
     public String toString() {
 	return "(" + castType + ") " + expr;
-    }
-
-    /** Write the expression to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr)
-    {
-	w.begin(0);
-	w.write("(");
-	print(castType, w, tr);
-	w.write(")");
-	w.allowBreak(2, " ");
-	printSubExpr(expr, w, tr);
-	w.end();
-    }
-
-    public Term firstChild() {
-        return expr;
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        v.visitCFG(expr, castType, ENTRY);
-        v.visitCFG(castType, this, EXIT);
-        return succs;
-    }
-
-    public List<Type> throwTypes(TypeSystem ts) {
-        if (expr.type().isReference()) {
-            return Collections.<Type>singletonList(ts.ClassCastException());
-        }
-
-        return Collections.EMPTY_LIST;
     }
 }

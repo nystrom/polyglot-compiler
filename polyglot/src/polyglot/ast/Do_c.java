@@ -8,12 +8,10 @@
 
 package polyglot.ast;
 
-import java.util.List;
-
-import polyglot.types.*;
-import polyglot.util.CodeWriter;
+import polyglot.types.Context;
+import polyglot.types.Name;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A immutable representation of a Java language <code>do</code> statement. 
@@ -76,47 +74,18 @@ public class Do_c extends Loop_c implements Do
 	return reconstruct((Stmt) body, cond);
     }
 
-    public Type childExpectedType(Expr child, AscriptionVisitor av) {
-        TypeSystem ts = av.typeSystem();
-
-        if (child == cond) {
-            return ts.Boolean();
-        }
-
-        return child.type();
+    public Context enterChildScope(Node child, Context c) {
+	if (child == this.body) {
+	    Name label = null;
+	    c = c.pushBreakLabel(label);
+	    c = c.pushContinueLabel(label);
+	}
+            
+        return super.enterChildScope(child, c);
     }
 
     public String toString() {
 	return "do " + body + " while (" + cond + ")";
-    }
-
-    /** Write the statement to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr)
-    {
-	w.write("do ");
-	printSubStmt(body, w, tr);
-	w.write("while(");
-	printBlock(cond, w, tr);
-	w.write("); ");
-    }
-
-
-    public Term firstChild() {
-        return body;
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        v.push(this).visitCFG(body, cond, ENTRY);
-
-        if (condIsConstantTrue()) {
-            v.visitCFG(cond, body, ENTRY);
-        }
-        else {
-            v.visitCFG(cond, FlowGraph.EDGE_KEY_TRUE, body, 
-                             ENTRY, FlowGraph.EDGE_KEY_FALSE, this, EXIT);
-        }
-
-        return succs;
     }
 
     public Term continueTarget() {

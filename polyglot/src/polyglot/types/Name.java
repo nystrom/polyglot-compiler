@@ -20,6 +20,10 @@ public class Name  implements Serializable {
     static HashMap<String,Name> internCache = new HashMap<String,Name>();
     static int count = 0;
     
+    public Name mangle() {
+	return this;
+    }
+    
     public static Name makeFresh() {
         return makeFresh("id");
     }

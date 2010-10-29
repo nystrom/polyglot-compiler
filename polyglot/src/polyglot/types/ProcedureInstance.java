@@ -20,7 +20,6 @@ public interface ProcedureInstance<T extends ProcedureDef> extends CodeInstance<
      * @see polyglot.types.Type
      */
     List<Type> formalTypes();
-    ProcedureInstance<T> formalTypes(List<Type> formalTypes);
 
     /**
      * List of declared exception types thrown.
@@ -28,7 +27,6 @@ public interface ProcedureInstance<T extends ProcedureDef> extends CodeInstance<
      * @see polyglot.types.Type
      */
     List<Type> throwTypes();
-    ProcedureInstance<T> throwTypes(List<Type> throwTypes);
 
     /**
      * Returns a String representing the signature of the procedure.

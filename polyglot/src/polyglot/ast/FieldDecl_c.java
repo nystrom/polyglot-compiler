@@ -8,13 +8,12 @@
 
 package polyglot.ast;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
-import polyglot.frontend.*;
 import polyglot.types.*;
-import polyglot.types.VarDef_c.ConstantValue;
 import polyglot.util.*;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>FieldDecl</code> is an immutable representation of the declaration
@@ -188,114 +187,9 @@ public class FieldDecl_c extends Term_c implements FieldDecl {
         return reconstruct(flags, type, name, this.init);
     }
 
-    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-        // Get the fi flags, not the node flags since the fi flags
-        // account for being nested within an interface.
-        Flags flags = fi.flags();
-
-        try {
-            ts.checkFieldFlags(flags);
-        }
-        catch (SemanticException e) {
-            throw new SemanticException(e.getMessage(), position());
-        }
-
-        Type fcontainer = Types.get(fieldDef().container());
-        
-        if (fcontainer.isClass()) {
-            ClassType container = fcontainer.toClass();
-
-            if (container.flags().isInterface()) {
-        	if (flags.isProtected() || flags.isPrivate()) {
-        	    throw new SemanticException("Interface members must be public.",
-        	                                position());
-        	}
-            }
-
-            // check that inner classes do not declare static fields, unless they
-            // are compile-time constants
-            if (flags.isStatic() &&
-        	    container.isInnerClass()) {
-        	// it's a static field in an inner class.
-        	if (!flags.isFinal() || init == null || !init.isConstant()) {
-        	    throw new SemanticException("Inner classes cannot declare " +
-        	                                "static fields, unless they are compile-time " +
-        	                                "constant fields.", this.position());
-        	}
-            }
-        }
-
-        return this;
-    }
-
-    public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
-        return ec.push(new ExceptionChecker.CodeTypeReporter("A field initializer"));
-    }
-
-    public Type childExpectedType(Expr child, AscriptionVisitor av) {
-        if (child == init) {
-            TypeSystem ts = av.typeSystem();
-
-            // If the RHS is an integral constant, we can relax the expected
-            // type to the type of the constant.
-            if (ts.numericConversionValid(type.type(), child.constantValue(), av.context())) {
-                return child.type();
-            }
-            else {
-                return type.type();
-            }
-        }
-
-        return child.type();
-    }
-
-    public Term firstChild() {
-        return type;
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        if (init != null) {
-            v.visitCFG(type, init, ENTRY);
-            v.visitCFG(init, this, EXIT);
-        } else {
-            v.visitCFG(type, this, EXIT);
-        }
-
-        return succs;
-    }
-
-
     public String toString() {
         return flags.flags().translate() + type + " " + name +
         (init != null ? " = " + init : "");
-    }
-
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-        boolean isInterface = fi != null && fi.container() != null &&
-        fi.container().get().toClass().flags().isInterface();
-
-        Flags f = flags.flags();
-
-        if (isInterface) {
-            f = f.clearPublic();
-            f = f.clearStatic();
-            f = f.clearFinal();
-        }
-
-        w.write(f.translate());
-        print(type, w, tr);
-        w.allowBreak(2, 2, " ", 1);
-        tr.print(this, name, w);
-
-        if (init != null) {
-            w.write(" =");
-            w.allowBreak(2, " ");
-            print(init, w, tr);
-        }
-
-        w.write(";");
     }
 
     public void dump(CodeWriter w) {

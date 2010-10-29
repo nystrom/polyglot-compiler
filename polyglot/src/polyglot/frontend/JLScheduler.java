@@ -13,16 +13,43 @@
  */
 package polyglot.frontend;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 
-import polyglot.ast.*;
+import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
+import polyglot.ast.SourceFile;
+import polyglot.ast.Term;
+import polyglot.bytecode.BytecodeTranslator;
+import polyglot.dispatch.BreakContinueSetup;
 import polyglot.dispatch.ConformanceChecker;
+import polyglot.dispatch.ConstructorCallChecker;
 import polyglot.dispatch.ErrorReporter;
-import polyglot.main.Version;
-import polyglot.types.*;
+import polyglot.dispatch.ExceptionChecker;
+import polyglot.dispatch.FwdReferenceChecker;
+import polyglot.dispatch.PassthruError;
+import polyglot.dispatch.ReachChecker;
+import polyglot.dispatch.ReachSetup;
+import polyglot.dispatch.ThrowSetup;
+import polyglot.dispatch.dataflow.InitChecker;
+import polyglot.interp.BytecodeCache;
+import polyglot.types.ClassType;
+import polyglot.types.Name;
+import polyglot.types.Named;
+import polyglot.types.ParsedClassType_c;
+import polyglot.types.QName;
+import polyglot.types.Ref;
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
+import polyglot.types.TypeSystem;
 import polyglot.util.ErrorInfo;
-import polyglot.util.ErrorQueue;
-import polyglot.visit.*;
+import polyglot.visit.ExceptionCheckerContext;
+import polyglot.visit.InitImportsVisitor;
+import polyglot.visit.NodeVisitor;
+import polyglot.visit.Translator;
 
 /**
  * Comment for <code>Scheduler</code>
@@ -35,238 +62,288 @@ public class JLScheduler extends Scheduler {
      * @param extInfo
      */
     public JLScheduler(ExtensionInfo extInfo) {
-        super(extInfo);
+	super(extInfo);
     }
 
     public List<Goal> goals(Job job) {
-        List<Goal> goals = new ArrayList<Goal>();
+	List<Goal> goals = new ArrayList<Goal>();
 
-        goals.add(Parsed(job));
-        goals.add(TypesInitialized(job));
-        goals.add(ImportTableInitialized(job));
-        
-        goals.add(PreTypeCheck(job));
-        goals.add(TypesInitializedForCommandLine());
-        goals.add(TypeChecked(job));
-        
-        goals.add(ConformanceChecked(job));
-        goals.add(ReachabilityChecked(job));
-        goals.add(ExceptionsChecked(job));
-        goals.add(ExitPathsChecked(job));
-        goals.add(InitializationsChecked(job));
-        goals.add(ConstructorCallsChecked(job));
-        goals.add(ForwardReferencesChecked(job));
-        goals.add(Serialized(job));
-        goals.add(CodeGenerated(job));
-        goals.add(End(job));
-        
-        return goals;
+	goals.add(CompileGoal(job));
+
+	if (Globals.Options().interpret || ! Globals.Options().output_source) {
+	    goals.add(BytecodeCached(job));
+	}
+	else if (Globals.Options().output_source) {
+	    goals.add(CodeGenerated(job));
+	}
+
+	goals.add(End(job));
+
+	return goals;
+    }
+    
+    public Goal CompileGoal(final Job job) {
+	return new SourceGoal_c("scala", job) {
+	    
+	    @Override
+	    public boolean runTask() {
+		return polyglot.Main$.MODULE$.runJob(job);
+	    }
+	}.intern(this);
     }
 
     public Goal Parsed(Job job) {
-    	return new ParserGoal(extInfo.compiler(), job).intern(this);
+	return new ParserGoal(extInfo.compiler(), job).intern(this);
     }    
 
     public Goal ImportTableInitialized(Job job) {
-        TypeSystem ts = job.extensionInfo().typeSystem();
-        NodeFactory nf = job.extensionInfo().nodeFactory();
-        Goal g = new VisitorGoal("ImportTableInitialized", job, new InitImportsVisitor(job, ts, nf));
-        Goal g2 = g.intern(this);
-//        if (g == g2) {
-//            g.addPrereq(TypesInitializedForCommandLine());
-//        }
-        return g2;
+	TypeSystem ts = job.extensionInfo().typeSystem();
+	NodeFactory nf = job.extensionInfo().nodeFactory();
+	Goal g = new VisitorGoal("ImportTableInitialized", job, new InitImportsVisitor(job, ts, nf));
+	Goal g2 = g.intern(this);
+	//        if (g == g2) {
+	//            g.addPrereq(TypesInitializedForCommandLine());
+	//        }
+	return g2;
     }
 
     public Goal TypesInitialized(Job job) {
-        // For this one, the goal is stored in the job.  This is called a lot from the system resolver and interning is expensive.
-        return job.TypesInitialized(this);
+	// For this one, the goal is stored in the job.  This is called a lot from the system resolver and interning is expensive.
+	return job.TypesInitialized(this);
     }
 
     public Goal TypesInitializedForCommandLine() {
-        TypeSystem ts = extInfo.typeSystem();
-        NodeFactory nf = extInfo.nodeFactory();
-        return new BarrierGoal("TypesInitializedForCommandLine", commandLineJobs()) {
-            public Goal prereqForJob(Job job) {
-                return PreTypeCheck(job);
-            }
-        }.intern(this);
+	TypeSystem ts = extInfo.typeSystem();
+	NodeFactory nf = extInfo.nodeFactory();
+	return new BarrierGoal("TypesInitializedForCommandLine", commandLineJobs()) {
+	    public Goal prereqForJob(Job job) {
+		return PreTypeCheck(job);
+	    }
+	}.intern(this);
     }
 
     public Goal PreTypeCheck(Job job) {
-    	TypeSystem ts = job.extensionInfo().typeSystem();
-    	NodeFactory nf = job.extensionInfo().nodeFactory();
-        return new VisitorGoal("PreTypeCheck", job, new ContextSetter(job, ts, nf)).intern(this);
+	TypeSystem ts = job.extensionInfo().typeSystem();
+	NodeFactory nf = job.extensionInfo().nodeFactory();
+	return new VisitorGoal("PreTypeCheck", job, new ContextSetter(job, ts, nf)).intern(this);
     }
-    
+
+    public Goal PreTypeCheck2(final Job job) {
+	final TypeSystem ts = job.extensionInfo().typeSystem();
+
+	final Map<Node, Ref<Collection<Name>>> breaks = new IdentityHashMap<Node, Ref<Collection<Name>>>();
+	final Map<Node, Ref<Collection<Name>>> continues = new IdentityHashMap<Node, Ref<Collection<Name>>>();
+	final Map<Node, Ref<Collection<Type>>> exceptions = new IdentityHashMap<Node, Ref<Collection<Type>>>();
+	final Map<Node, Ref<Boolean>> completes = new IdentityHashMap<Node, Ref<Boolean>>();
+
+	job.put("completes", completes);
+
+	return new VisitorGoal("PreTypeCheck2", job, new NodeVisitor() {
+	    @Override
+	    public Node leave(Node parent, Node old, Node n, NodeVisitor v) {
+
+
+		//		    /** True if the term is may complete normally. */
+		//		    public Ref<Boolean> completesRef();
+		//		    
+		//		    /** Labels that may break out of this term.  Result may include null for unlabeled break. */
+		//		    public Ref<Collection<Name>> breaksRef();
+		//		    /** Labels that may continue out of this term.  Result may include null for unlabeled continue. */
+		//		    public Ref<Collection<Name>> continuesRef();
+
+		n.accept(new BreakContinueSetup(ts, breaks, continues), parent);
+		n.accept(new ThrowSetup(ts, exceptions), parent);
+		n.accept(new ReachSetup(ts, breaks, continues, exceptions, completes), parent);
+		
+		if (n instanceof SourceFile) {
+		    n.visit(new NodeVisitor() {
+			public Node leave(Node old, Node n, NodeVisitor v) {
+			    if (n instanceof Term) {
+				Term t = (Term) n;
+				Ref<Collection<Type>> r = exceptions.get(n);
+				if (r != null)
+				    r.start();
+				Ref<Collection<Name>> r2 = breaks.get(n);
+				if (r2 != null)
+				    r2.start();
+				Ref<Collection<Name>> r3 = continues.get(n);
+				if (r3 != null)
+				    r3.start();
+				Ref<Boolean> r4 = completes.get(n);
+				if (r4 != null)
+				    r4.start();
+				t.reachableRef().start();
+			    }
+			    return n;
+			}
+		    });
+		}
+		
+		return n;
+	    }  
+	}).intern(this);
+    }
+
     public Goal TypeChecked(final Job job) {
-    	final TypeSystem ts = job.extensionInfo().typeSystem();
-    	final NodeFactory nf = job.extensionInfo().nodeFactory();
-    	return new VisitorGoal("TypeChecked", job, new NodeVisitor() {
-    	    @Override
-//    	    public Node override(Node parent, Node n) {
-//    		return n.checked();
-//    	    }
-    	    public Node leave(Node parent, Node old, Node n, NodeVisitor v) {
-    		Node m = n.checked();
-    		
-    		if (m instanceof SourceFile) {
-    		    m.accept(new ErrorReporter());
-    		}
-    		
-    		return m;
-    	    }
-    	}).intern(this);
+	final TypeSystem ts = job.extensionInfo().typeSystem();
+	final NodeFactory nf = job.extensionInfo().nodeFactory();
+	return new VisitorGoal("TypeChecked", job, new NodeVisitor() {
+	    @Override
+	    //    	    public Node override(Node parent, Node n) {
+	    //    		// FIXME: order very important here -- need to check cycles for supertypes BEFORE calling isSubtype
+	    //    		// so need to visit ClassDecl before anything else
+	    //    		
+	    //    		Node m = n.checked();
+	    //    		assert m != null;
+	    //    		
+	    //    		if (m instanceof SourceFile) {
+	    //    		    m.accept(new ErrorReporter());
+	    //    		}
+	    //    		
+	    //    		return m;
+	    //    	    }
+	    public Node leave(Node parent, Node old, Node n, NodeVisitor v) {
+		Node m = n.checked();
+		assert m != null;
+
+		if (m instanceof SourceFile) {
+		    m.accept(new ErrorReporter());
+		}
+
+		return m;
+	    }
+	}).intern(this);
     }
-    
+
+    public Goal EnsureNoErrors(final Job job) {
+	return new VisitorGoal("EnsureNoErrors", job, new NodeVisitor() {
+	    @Override
+	    public Node override(Node parent, Node n) {
+		n.accept(new ErrorReporter());
+		return n;
+	    }
+	}).intern(this);
+    }
+
     public Goal ConformanceChecked(final Job job) {
 	final TypeSystem ts = job.extensionInfo().typeSystem();
 	final NodeFactory nf = job.extensionInfo().nodeFactory();
 	return new VisitorGoal("ConformanceChecked", job, new NodeVisitor() {
-	 @Override
-	public Node override(Node n) {
-		Node m = n.accept(new ConformanceChecker(job, ts, nf));
-		m.accept(new ErrorReporter());
-		return m;
-	}   
+	    @Override
+	    public Node override(Node n) {
+		try {
+		    Node m = n.accept(new ConformanceChecker(job, ts, nf));
+		    m.accept(new ErrorReporter());
+		}
+		catch (PassthruError x) {
+		    if (x.getCause() instanceof SemanticException) {
+			SemanticException e = (SemanticException) x.getCause();
+			Globals.Compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, e.getMessage(), n.position());
+		    }
+		    else throw x;
+		}
+		return null;
+	    }   
 	}).intern(this);
     }
-    
-    public Goal ReachabilityChecked(Job job) {
-        TypeSystem ts = job.extensionInfo().typeSystem();
-        NodeFactory nf = job.extensionInfo().nodeFactory();
-        return new VisitorGoal("ReachChecked", job, new ReachChecker(job, ts, nf)).intern(this);
-    }
 
-    public Goal ExceptionsChecked(Job job) {
-        TypeSystem ts = job.extensionInfo().typeSystem();
-        NodeFactory nf = job.extensionInfo().nodeFactory();
-        return new VisitorGoal("ExceptionsChecked", job, new ExceptionChecker(job, ts, nf)).intern(this);
+    public Goal ExceptionsChecked(final Job job) {
+	final TypeSystem ts = job.extensionInfo().typeSystem();
+	final NodeFactory nf = job.extensionInfo().nodeFactory();
+	return new VisitorGoal("ExceptionsChecked", job, new NodeVisitor() {
+	    @Override
+	    public Node override(Node n) {
+		Node m = n.accept(new ExceptionChecker(job, ts, nf), new ExceptionCheckerContext(job, ts, nf));
+		m.accept(new ErrorReporter());
+		return m;
+	    }   
+	}).intern(this);
     }
-
-    public Goal ExitPathsChecked(Job job) {
-        TypeSystem ts = job.extensionInfo().typeSystem();
-        NodeFactory nf = job.extensionInfo().nodeFactory();
-        return new VisitorGoal("ExitChecked", job, new ExitChecker(job, ts, nf)).intern(this);
-    }
-
-    public Goal InitializationsChecked(Job job) {
-        TypeSystem ts = job.extensionInfo().typeSystem();
-        NodeFactory nf = job.extensionInfo().nodeFactory();
-        return new VisitorGoal("InitializationsChecked", job, new InitChecker(job, ts, nf)).intern(this);
-    }
-
-    public Goal ConstructorCallsChecked(Job job) {
-        TypeSystem ts = job.extensionInfo().typeSystem();
-        NodeFactory nf = job.extensionInfo().nodeFactory();
-        return new VisitorGoal("ContructorCallsChecked", job, new ConstructorCallChecker(job, ts, nf)).intern(this);
-    }
-
-    public Goal ForwardReferencesChecked(Job job) {
-        TypeSystem ts = job.extensionInfo().typeSystem();
-        NodeFactory nf = job.extensionInfo().nodeFactory();
-        return new VisitorGoal("ForwardRefsChecked", job, new FwdReferenceChecker(job, ts, nf)).intern(this);
-    }
-
-    public Goal Serialized(Job job) {
-    	Compiler compiler = job.extensionInfo().compiler();
-    	TypeSystem ts = job.extensionInfo().typeSystem();
-    	NodeFactory nf = job.extensionInfo().nodeFactory();
-    	if (compiler.serializeClassInfo()) {
-    		return new VisitorGoal("Serialized", job,
-    				new ClassSerializer(ts, nf, job.source().lastModified(), compiler.errorQueue(), extInfo.version())).intern(this);
-    	}
-    	else {
-    		return new SourceGoal_c("Serialized", job) {
-    			public boolean runTask() {
-    				return true;
-    			}
-            }.intern(this);
-        }
-    }
-
-    protected ClassSerializer createSerializer(TypeSystem ts, NodeFactory nf,
-            Date lastModified, ErrorQueue eq, Version version) {
-        return new ClassSerializer(ts, nf, lastModified, eq, version);
+    public Goal ReachChecked(final Job job) {
+	final TypeSystem ts = job.extensionInfo().typeSystem();
+	final NodeFactory nf = job.extensionInfo().nodeFactory();
+	final Map<Node, Ref<Boolean>> completes = (Map<Node, Ref<Boolean>>) job.get("completes");
+	job.put("completes", null);
+	
+	return new VisitorGoal("ReachChecked", job, new NodeVisitor() {
+	    @Override
+	    public Node override(Node n) {
+		Node m = n.accept(new ReachChecker(job, ts, nf, completes));
+		m.visit(new InitChecker());
+		Node m2 = m.accept(new FwdReferenceChecker(job, ts, nf), (Object) null);
+		Node m3 = m2.accept(new ConstructorCallChecker(job, ts, nf));
+		m3.accept(new ErrorReporter());
+		return m3;
+	    }   
+	}).intern(this);
     }
 
     public Goal CodeGenerated(Job job) {
-    	TypeSystem ts = extInfo.typeSystem();
-    	NodeFactory nf = extInfo.nodeFactory();
-    	return new OutputGoal(job, new Translator(job, ts, nf, extInfo.targetFactory()));
+	TypeSystem ts = extInfo.typeSystem();
+	NodeFactory nf = extInfo.nodeFactory();
+	return new OutputGoal(job, new Translator(job, ts, nf, extInfo.targetFactory()));
     }
 
-    @Override
-    public Goal LookupGlobalType(LazyRef<Type> sym) {
-        return new LookupGlobalType("LookupGlobalType", sym).intern(this);
+    // TODO: symbol cleanup
+    // Don't have direct pointers from FieldInstance to FieldDef (and all other Defs)
+    // Instead, indirect through symbol table.
+    // Don't copy data into FieldInstance.  FI is _always_ lazily constructed from an FD.
+    // FI is subst(sigma, FD).
+    // Then, can only modify defs.
+
+    // Should be able to do InnerClassRemover in just one pass over the AST with the inner class.
+    // Should not have to update users of the class.
+
+    // TODO: implement InnerClassRemover to be compatible with javac generated code.
+    // Problem is the InnerClasses attribute.  Do as annotations?
+
+    public Goal BytecodeCached(final QName className) {
+	final TypeSystem ts = extInfo.typeSystem();
+	final NodeFactory nf = extInfo.nodeFactory();
+
+	Goal g = new AbstractGoal_c("BytecodeCachedByName") {
+	    public String toString() {
+		return name + "(" + className + ")";
+	    }
+
+	    public boolean runTask() {
+		try {
+		    Named n = ts.systemResolver().find(className);
+		    if (n instanceof ClassType) {
+			ClassType ct = (ClassType) n;
+			Job job = ((ParsedClassType_c) ct).job();
+			if (job != null) {
+			    BytecodeCached(job).get();
+			    return true;
+			}
+		    }
+		}
+		catch (SemanticException e) {
+		    Globals.Compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, e.getMessage(), e.position());
+		}
+		return false;
+	    }
+	};
+
+	g = g.intern(this);
+	return g;
     }
 
-    @Override
-    public Goal LookupGlobalTypeDef(LazyRef<ClassDef> sym, QName className) {
-        return LookupGlobalTypeDefAndSetFlags(sym, className, null);
-    }
+    public Goal BytecodeCached(final Job job) {
+	final TypeSystem ts = extInfo.typeSystem();
+	final NodeFactory nf = extInfo.nodeFactory();
+	final BytecodeCache bc = extInfo.bytecodeCache();
 
-    @Override
-    public Goal LookupGlobalTypeDefAndSetFlags(LazyRef<ClassDef> sym,
-	    QName className, Flags flags) {
-        return new LookupGlobalTypeDefAndSetFlags(sym, className, flags).intern(this);
-    }
-    
-    public static class LookupGlobalType extends TypeObjectGoal_c<Type> {
-        public LookupGlobalType(String name, Ref<Type> v) {
-            super(name, v);
-            ref = Types.lazyRef(null);
-			Goal g = Globals.Scheduler().LookupGlobalTypeDef(ref, null);
-			ref.setResolver(g);
-        }
-        
-        LazyRef<ClassDef> ref;
-        
-        public boolean runTask() {
-        	ClassDef def = ref.get();
-        	v.update(def.asType());
-        	return true;
-        }
-    }
+	return new VisitorGoal("BytecodeTranslator", job, new NodeVisitor() {
+	    @Override
+	    public Node override(Node n) {
+		if (n instanceof SourceFile) {
+		    new BytecodeTranslator(job, ts, nf, bc).visit((SourceFile) job.ast());
+		    return n;
+		}
+		return null;
+	    }   
+	}).intern(this);
 
-    protected static class LookupGlobalTypeDefAndSetFlags extends TypeObjectGoal_c<ClassDef> {
-        protected QName className;
-        protected Flags flags;
-
-        private LookupGlobalTypeDefAndSetFlags(Ref<ClassDef> v, QName className, Flags flags) {
-            super(v);
-            this.className = className;
-            this.flags = flags;
-        }
-
-        public String toString() {
-            if (flags == null)
-                return name + "(" + className + ")";
-            else 
-                return name + "(" + className + ", " + flags + ")";
-        }
-
-        public boolean runTask() {
-        	LazyRef<ClassDef> ref = (LazyRef<ClassDef>) typeRef();
-        	try {
-        		TypeSystem ts = Globals.TS();
-			Named n = ts.systemResolver().find(QName.make(className));
-        		if (n instanceof ClassType) {
-        			ClassType ct = (ClassType) n;
-        			ClassDef def = ct.def();
-        			if (flags != null) {
-        				// The flags should be overwritten only for a member class.
-        				assert def.isMember();
-        				def.setFlags(flags);
-        			}
-        			ref.update(def);
-        			return true;
-        		}
-        	}
-        	catch (SemanticException e) {
-        		Globals.Compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, e.getMessage(), e.position());
-        	}
-        	return false;
-        }
     }
 }

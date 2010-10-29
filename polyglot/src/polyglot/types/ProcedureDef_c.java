@@ -19,7 +19,7 @@ import polyglot.util.TypedList;
 public abstract class ProcedureDef_c extends Def_c
                                        implements ProcedureDef
 {
-    protected Ref<? extends StructType> container;
+    protected Ref<? extends Type> container;
     protected Flags flags;
     protected List<Ref<? extends Type>> formalTypes;
     protected List<Ref<? extends Type>> throwTypes;
@@ -28,16 +28,16 @@ public abstract class ProcedureDef_c extends Def_c
     protected ProcedureDef_c() { }
 
     public ProcedureDef_c(TypeSystem ts, Position pos,
-            Ref<? extends StructType> container,
+            Ref<? extends Type> container,
 			       Flags flags, List<Ref<? extends Type>> formalTypes, List<Ref<? extends Type>> throwTypes) {
         super(ts, pos);
 	this.container = container;
 	this.flags = flags;
-	this.formalTypes = TypedList.copyAndCheck(formalTypes, Ref.class, true);
-	this.throwTypes = TypedList.copyAndCheck(throwTypes, Ref.class, true);
+	this.formalTypes = TypedList.copyAndCheck((List) formalTypes, Ref.class, true);
+	this.throwTypes = TypedList.copyAndCheck((List) throwTypes, Ref.class, true);
     }
     
-    public Ref<? extends StructType> container() {
+    public Ref<? extends Type> container() {
         return container;
     }
 
@@ -56,7 +56,7 @@ public abstract class ProcedureDef_c extends Def_c
     /**
      * @param container The container to set.
      */
-    public void setContainer(Ref<? extends StructType> container) {
+    public void setContainer(Ref<? extends Type> container) {
         this.container = container;
     }
     
@@ -71,13 +71,13 @@ public abstract class ProcedureDef_c extends Def_c
      * @param formalTypes The formalTypes to set.
      */
     public void setFormalTypes(List<Ref<? extends Type>> formalTypes) {
-        this.formalTypes = TypedList.copyAndCheck(formalTypes, Ref.class, true);
+        this.formalTypes = TypedList.copyAndCheck((List) formalTypes, Ref.class, true);
     }
     
     /**
      * @param throwTypes The throwTypes to set.
      */
     public void setThrowTypes(List<Ref<? extends Type>> throwTypes) {
-        this.throwTypes = TypedList.copyAndCheck(throwTypes, Ref.class, true);
+        this.throwTypes = TypedList.copyAndCheck((List) throwTypes, Ref.class, true);
     }
 }

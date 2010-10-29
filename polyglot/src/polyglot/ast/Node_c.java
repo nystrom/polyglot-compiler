@@ -10,14 +10,34 @@ package polyglot.ast;
 
 import java.io.OutputStream;
 import java.io.Writer;
-import java.util.*;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
-import polyglot.dispatch.*;
-import polyglot.frontend.*;
+import polyglot.dispatch.Dispatch;
+import polyglot.dispatch.NewPrettyPrinter;
+import polyglot.dispatch.PassthruError;
+import polyglot.dispatch.TypeChecker;
 import polyglot.frontend.Compiler;
-import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.visit.*;
+import polyglot.frontend.ExtensionInfo;
+import polyglot.frontend.Globals;
+import polyglot.frontend.Job;
+import polyglot.types.Context;
+import polyglot.types.Ref;
+import polyglot.types.SemanticException;
+import polyglot.types.TypeSystem;
+import polyglot.types.Types;
+import polyglot.types.Ref.Handler;
+import polyglot.util.CodeWriter;
+import polyglot.util.ErrorInfo;
+import polyglot.util.InternalCompilerError;
+import polyglot.util.Position;
+import polyglot.util.StringUtil;
+import polyglot.visit.DumpAst;
+import polyglot.visit.NodeVisitor;
+import funicular.Clock;
 
 /**
  * A <code>Node</code> represents an AST node.  All AST nodes must implement
@@ -28,15 +48,18 @@ import polyglot.visit.*;
 public abstract class Node_c implements Node
 {
     protected Position position;
-    protected JL del;
-    protected Ext ext;
     protected List<ErrorInfo> error;
-    
     protected Ref<Node> checked;
-    Job job;
+    protected Job job;
+
+    protected Clock jobClock() {
+        return (Clock) job.get("clock");
+    }
     
     public Node checked() {
-	return Types.get(checked);
+	Ref<Node> r = checkedRef();
+	assert r != null;
+	return Types.get(r);
     }
 
     public Ref<Node> checkedRef() {
@@ -54,11 +77,20 @@ public abstract class Node_c implements Node
     public Context context() {
 	return context;
     }
-
-    public int nodeId() {
-	return 0;
-    }
     
+    protected List<Handler<Node>> copyHooks;
+    
+    public void addCopyHook(Handler<Node> h) {
+	if (copyHooks == null || copyHooks.size() == 0)
+	    copyHooks = Collections.singletonList(h);
+	else if (copyHooks.size() == 1) {
+	    ArrayList<Handler<Node>> hs = new ArrayList<Handler<Node>>(copyHooks.size()+1);
+	    hs.addAll(copyHooks);
+	    hs.add(h);
+	    copyHooks = hs;
+	}
+    }
+
     public Node acceptChildren(final Object v, final Object... args) {
 	return visitChildren(new NodeVisitor() {
 	    public Node override(Node n) {
@@ -84,12 +116,21 @@ public abstract class Node_c implements Node
         this.position = pos;
         this.error = null;
         this.job = Globals.currentJob();
-        this.checked = Types.lazyRef(null);
+        assert job != null;
+        this.checked = Types.<Node>lazyRef(null);
         setChecked();
+        addCopyHook(new Handler<Node>() {
+	    public void handle(Node t) {
+		((Node_c) t).setChecked();
+	    }
+	});
     }
-    
+
+    // FIXME: should only spawn the ref AFTER TypesInitialized.
     public void setChecked() {
-        ((LazyRef<Node>) this.checked).setResolver(new Runnable() {
+	if (this.checked == null || this.checked.forced())
+	    return;
+        this.checked.setResolver(new Runnable() {
             public void run() {
         	Node_c n = Node_c.this;
         	try {
@@ -101,7 +142,11 @@ public abstract class Node_c implements Node
         	    n.checkedRef().update(m);
         	    m.checkedRef().update(m);
         	}
-        	catch (PassthruError e) {
+        	catch (PassthruError pe) {
+        	    Exception e = pe;
+        	    while (e.getCause() instanceof InvocationTargetException) {
+        		e = (Exception) e.getCause();
+        	    }
         	    if (e.getCause() instanceof SemanticException) {
         		SemanticException x = (SemanticException) e.getCause();
 			ErrorInfo error = new ErrorInfo(ErrorInfo.SEMANTIC_ERROR, x.getMessage() != null ? x.getMessage() : "unknown error",
@@ -114,7 +159,7 @@ public abstract class Node_c implements Node
         	    }
         	}
             }	   
-        });
+        }, jobClock());
     }
     
     public void init(Node node) {
@@ -127,89 +172,18 @@ public abstract class Node_c implements Node
         return this;
     }
 
-    public JL del() {
-        return del != null ? del : this;
-    }
-
-    public Node del(JL del) {
-        if (this.del == del) {
-            return this;
-        }
-
-        JL old = this.del;
-        this.del = null;
-
-        Node_c n = (Node_c) copy();
-
-        n.del = del != this ? del : null;
-
-        if (n.del != null) {
-            n.del.init(n);
-        }
-
-        this.del = old;
-
-        return n;
-    }
-
-    public Ext ext(int n) {
-        if (n < 1) throw new InternalCompilerError("n must be >= 1");
-        if (n == 1) return ext();
-        return ext(n-1).ext();
-    }
-
-    public Node ext(int n, Ext ext) {
-        if (n < 1)
-            throw new InternalCompilerError("n must be >= 1");
-        if (n == 1)
-            return ext(ext);
-
-        Ext prev = this.ext(n-1);
-        if (prev == null)
-            throw new InternalCompilerError("cannot set the nth extension if there is no (n-1)st extension");
-        return this.ext(n-1, prev.ext(ext));
-    }
-
-    public Ext ext() {
-        return ext;
-    }
-
-    public Node ext(Ext ext) {
-        if (this.ext == ext) {
-            return this;
-        }
-
-        Ext old = this.ext;
-        this.ext = null;
-
-        Node_c n = (Node_c) copy();
-
-        n.ext = ext;
-
-        if (n.ext != null) {
-            n.ext.init(n);
-        }
-
-        this.ext = old;
-
-        return n;
-    }
-
     public Object copy() {
         try {
             Node_c n = (Node_c) super.clone();
-
-            if (this.del != null) {
-                n.del = (JL) this.del.copy();
-                n.del.init(n);
+            
+            for (Handler<Node> h : n.copyHooks) {
+        	try {
+		    h.handle(n);
+		}
+		catch (Exception e) {
+		    throw new InternalCompilerError(e.getMessage(), n.position(), e);
+		}
             }
-
-            if (this.ext != null) {
-                n.ext = (Ext) this.ext.copy();
-                n.ext.init(n);
-            }
-
-            n.setChecked();
             
             return n;
         }
@@ -274,7 +248,7 @@ public abstract class Node_c implements Node
 		    "NodeVisitor.enter() returned null.");
 	    }
 
-	    n = this.del().visitChildren(v_);
+	    n = this.visitChildren(v_);
 
 	    if (n == null) {
 		throw new InternalCompilerError(
@@ -350,7 +324,7 @@ public abstract class Node_c implements Node
      *           <code>child</code>
      */
     public Context enterChildScope(Node child, Context c) { 
-        return child.del().enterScope(c); 
+        return child.enterScope(c); 
     }
 
     /**
@@ -358,29 +332,6 @@ public abstract class Node_c implements Node
      * visiting later sibling nodes.
      */
     public void addDecls(Context c) { }
-
-    // These methods override the methods in Ext_c.
-    // These are the default implementation of these passes.
-
-    public Type childExpectedType(Expr child, AscriptionVisitor av) {
-	return child.type();
-    }
-
-    public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
-	return ec.push();
-    }
-
-    public Node exceptionCheck(ExceptionChecker ec) throws SemanticException { 
-        List l = this.del().throwTypes(ec.typeSystem());
-        for (Iterator i = l.iterator(); i.hasNext(); ) {
-            ec.throwsException((Type)i.next(), position());
-        }
-    	return this;
-    }
-
-    public List<Type> throwTypes(TypeSystem ts) {
-       return Collections.EMPTY_LIST;
-    }
     
     /** Dump the AST for debugging. */
     public void dump(OutputStream os) {
@@ -404,71 +355,16 @@ public abstract class Node_c implements Node
     
     /** Pretty-print the AST for debugging. */
     public void prettyPrint(OutputStream os) {
-        try {
-            CodeWriter cw = Compiler.createCodeWriter(os);
-            this.del().prettyPrint(cw, new PrettyPrinter());
-            cw.flush();
-        }
-        catch (java.io.IOException e) { }
+	new NewPrettyPrinter(os).printAst(this);
     }
-    
+
     /** Pretty-print the AST for debugging. */
     public void prettyPrint(Writer w) {
-        try {
-            CodeWriter cw = Compiler.createCodeWriter(w);
-            this.del().prettyPrint(cw, new PrettyPrinter());
-            cw.flush();
-        }
-        catch (java.io.IOException e) { }
-    }
-
-    /** Pretty-print the AST using the given <code>CodeWriter</code>. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter pp) { }
-
-    public void printBlock(Node n, CodeWriter w, PrettyPrinter pp) {
-        w.begin(0);
-        print(n, w, pp);
-        w.end();
-    }
-
-    public void printSubStmt(Stmt stmt, CodeWriter w, PrettyPrinter pp) {
-        if (stmt instanceof Block) {
-            w.write(" ");
-            print(stmt, w, pp);
-        } else {
-            w.allowBreak(4, " ");
-            printBlock(stmt, w, pp);
-        }
-    }
-
-    public void print(Node child, CodeWriter w, PrettyPrinter pp) {
-        pp.print(this, child, w);
-    }
-    
-    /** Translate the AST using the given <code>CodeWriter</code>. */
-    public void translate(CodeWriter w, Translator tr) {
-        // By default, just rely on the pretty printer.
-        this.del().prettyPrint(w, tr);
+	new NewPrettyPrinter(w).printAst(this);
     }
 
     public void dump(CodeWriter w) {
         w.write(StringUtil.getShortNameComponent(getClass().getName()));
-
-        w.allowBreak(4, " ");
-        w.begin(0);
-        w.write("(del ");
-        if (del() == this) w.write("*");
-        else w.write(del().toString());
-	w.write(")");
-        w.end();
-
-        w.allowBreak(4, " ");
-        w.begin(0);
-        w.write("(ext ");
-	if (ext() == null) w.write("null");
-	else ext().dump(w);
-	w.write(")");
-        w.end();
 
         w.allowBreak(4, " ");
         w.begin(0);
@@ -491,7 +387,7 @@ public abstract class Node_c implements Node
                                         " either implement the method, or not invoke this method.");
     }
     public final Node copy(ExtensionInfo extInfo) throws SemanticException {
-        return this.del().copy(extInfo.nodeFactory());
+        return this.copy(extInfo.nodeFactory());
     }
 
 }

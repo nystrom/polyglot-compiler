@@ -116,4 +116,10 @@ public interface Context extends Resolver, Copy
 
     /** The current package, or null if not in a package. */
     Package package_();
+
+    boolean hasBreakLabel(Name label);
+    boolean hasContinueLabel(Name label);
+
+    Context pushBreakLabel(Name label);
+    Context pushContinueLabel(Name label);
 }

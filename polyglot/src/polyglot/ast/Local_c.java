@@ -8,12 +8,13 @@
 
 package polyglot.ast;
 
-import java.util.List;
-
-import polyglot.types.*;
+import polyglot.types.LocalInstance;
+import polyglot.types.Ref;
+import polyglot.types.Types;
+import polyglot.types.VarInstance;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /** 
  * A local variable expression.
@@ -21,17 +22,13 @@ import polyglot.visit.*;
 public class Local_c extends Expr_c implements Local
 {
   protected Id name;
-  protected LocalInstance li;
+  protected Ref<LocalInstance> li;
 
   public Local_c(Position pos, Id name) {
     super(pos);
     assert(name != null);
     this.name = name;
-  }
-
-  /** Get the precedence of the local. */
-  public Precedence precedence() { 
-    return Precedence.LITERAL;
+    this.li = Types.<LocalInstance>lazyRef();
   }
 
   /** Get the name of the local. */
@@ -46,27 +43,20 @@ public class Local_c extends Expr_c implements Local
       return n;
   }
   
-  /** Return the access flags of the variable. */
-  public Flags flags() {
-    return li.flags();
-  }
-
   /** Get the local instance of the local. */
   public VarInstance varInstance() {
-    return li;
+    return li.get();
   }
 
   /** Get the local instance of the local. */
   public LocalInstance localInstance() {
-    return li;
+    return li.get();
   }
 
   /** Set the local instance of the local. */
   public Local localInstance(LocalInstance li) {
-    if (li == this.li) return this;
-    Local_c n = (Local_c) copy();
-    n.li = li;
-    return n;
+      this.li.update(li);
+      return this;
   }
 
   /** Reconstruct the expression. */
@@ -86,21 +76,9 @@ public class Local_c extends Expr_c implements Local
       return reconstruct(name);
   }
 
-  public Term firstChild() {
-      return null;
-  }
-
-  public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-      return succs;
-  }
 
   public String toString() {
     return name.toString();
-  }
-
-  /** Write the local to an output file. */
-  public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-      tr.print(this, name, w);
   }
 
   /** Dumps the AST. */
@@ -113,5 +91,9 @@ public class Local_c extends Expr_c implements Local
 	w.write("(instance " + li + ")");
 	w.end();
     }
+  }
+
+  public Ref<LocalInstance> localInstanceRef() {
+      return li;
   }
 }

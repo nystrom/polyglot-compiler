@@ -8,32 +8,25 @@
 
 package polyglot.ast;
 
-import polyglot.types.*;
+import polyglot.types.Ref;
+import polyglot.types.Type;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.Translator;
 
 /**
  * A <code>CanonicalTypeNode</code> is a type node for a canonical type.
  */
 public class CanonicalTypeNode_c extends TypeNode_c implements CanonicalTypeNode
 {
-  public CanonicalTypeNode_c(Position pos, Ref<? extends Type> type) {
+  public CanonicalTypeNode_c(Position pos, Ref<Type> type) {
     super(pos);
     assert(type != null);
     this.type = type;
   }
   
-  public CanonicalTypeNode typeRef(Ref<? extends Type> type) {
+  public CanonicalTypeNode typeRef(Ref<Type> type) {
       return (CanonicalTypeNode) super.typeRef(type);
-  }
-  
-  public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-    if (type == null) {
-        w.write("<unknown-type>");
-    } else {
-        type.get().print(w);
-    }
   }
   
   /**

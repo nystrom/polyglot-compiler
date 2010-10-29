@@ -14,7 +14,7 @@ import java.util.List;
 import polyglot.types.*;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>Formal</code> represents a formal parameter for a procedure
@@ -60,12 +60,12 @@ public class Formal_c extends Term_c implements Formal
     }
 
     /** Get the type node of the formal. */
-    public TypeNode type() {
+    public TypeNode typeNode() {
 	return type;
     }
 
     /** Set the type node of the formal. */
-    public Formal type(TypeNode type) {
+    public Formal typeNode(TypeNode type) {
 	Formal_c n = (Formal_c) copy();
 	n.type = type;
 	return n;
@@ -119,23 +119,6 @@ public class Formal_c extends Term_c implements Formal
 
     public void addDecls(Context c) {
         c.addVariable(li.asInstance());
-    }
-
-    /** Write the formal to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-	print(flags, w, tr);
-	print(type, w, tr);
-        w.write(" ");
-        tr.print(this, name, w);
-    }
-
-    public Term firstChild() {
-        return type;
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        v.visitCFG(type, this, EXIT);        
-        return succs;
     }
 
     public void dump(CodeWriter w) {

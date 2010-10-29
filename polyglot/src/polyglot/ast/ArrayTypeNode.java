@@ -11,7 +11,7 @@ package polyglot.ast;
  * An <code>ArrayTypeNode</code> is a type node for a non-canonical
  * array type.
  */
-public interface ArrayTypeNode extends TypeNode, Ambiguous
+public interface ArrayTypeNode extends TypeNode
 {
     /**
      * Base of the array.

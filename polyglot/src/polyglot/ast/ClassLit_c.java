@@ -8,12 +8,8 @@
 
 package polyglot.ast;
 
-import java.util.List;
-
-import polyglot.types.SemanticException;
-import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>ClassLit</code> represents a class literal expression. 
@@ -52,15 +48,6 @@ public class ClassLit_c extends Lit_c implements ClassLit
     return null;
   }
 
-  public Term firstChild() {
-      return typeNode;
-  }
-
-  public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-      v.visitCFG(typeNode, this, EXIT);
-      return succs;
-  }
-
   public Node visitChildren(NodeVisitor v) {
     TypeNode tn = (TypeNode)visitChild(this.typeNode, v);
     return this.typeNode(tn);
@@ -68,14 +55,5 @@ public class ClassLit_c extends Lit_c implements ClassLit
 
   public String toString() {
     return typeNode.toString() + ".class";
-  }
-
-  /** Write the expression to an output file. */
-  public void prettyPrint(CodeWriter w, PrettyPrinter tr)
-  {
-    w.begin(0);
-    print(typeNode, w, tr);
-    w.write(".class");
-    w.end();
   }
 }

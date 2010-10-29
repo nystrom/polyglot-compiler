@@ -1,7 +1,11 @@
 package polyglot.dispatch;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import polyglot.util.InternalCompilerError;
 
@@ -123,7 +127,7 @@ public class Dispatch {
 	    return Result.EQUAL;
 	}
 
-	private static Method findMethod(Class<?> c, String name, Class<?> retType, Class[] argTypes) throws NoSuchMethodException {
+	static Method findMethod(Class<?> c, String name, Class<?> retType, Class[] argTypes) throws NoSuchMethodException {
 	    List<Method> matched = new ArrayList<Method>(1);
 	    findMethods(c, name, retType, argTypes, matched);
 	    if (matched.isEmpty())
@@ -185,7 +189,7 @@ public class Dispatch {
 	    }
 	}
 
-	private static Object[] flatten(Object[] args) {
+	static Object[] flatten(Object[] args) {
 	    int n = 0;
 	    boolean flatten = false;
 	    for (int i = 0; i < args.length; i++) {
@@ -222,14 +226,6 @@ public class Dispatch {
 	}
     }
 
-    static interface FunVisitor<S, T> {
-	public S visit(T x);
-    }
-
-    static interface VoidVisitor<T> {
-	public void visit(T x, Object... args);
-    }
-
     public static class Dispatcher {
 	String name;
 
@@ -249,6 +245,9 @@ public class Dispatch {
 	    }
 	    catch (NoSuchMethodException e) {
 		throw new InternalCompilerError(e);
+	    }
+	    catch (InvocationTargetException e) {
+		throw new PassthruError(e.getCause());
 	    }
 	    catch (Exception e) {
 		throw new PassthruError(e);

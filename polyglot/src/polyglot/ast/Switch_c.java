@@ -8,11 +8,13 @@
 
 package polyglot.ast;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
-import polyglot.types.*;
+import polyglot.types.Context;
+import polyglot.types.Name;
 import polyglot.util.*;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>Switch</code> is an immutable representation of a Java
@@ -70,6 +72,15 @@ public class Switch_c extends Stmt_c implements Switch
 	return this;
     }
 
+    public Context enterChildScope(Node child, Context c) {
+	if (child != this.expr) {
+	    Name label = null;
+	    c = c.pushBreakLabel(label);
+	}
+            
+        return super.enterChildScope(child, c);
+    }
+
     public Context enterScope(Context c) {
         return c.pushBlock();
     }
@@ -81,86 +92,8 @@ public class Switch_c extends Stmt_c implements Switch
 	return reconstruct(expr, elements);
     }
 
-    public Type childExpectedType(Expr child, AscriptionVisitor av) {
-        TypeSystem ts = av.typeSystem();
-
-        if (child == expr) {
-            return ts.Int();
-        }
-
-        return child.type();
-    }
-
     public String toString() {
 	return "switch (" + expr + ") { ... }";
     }
-
-    /** Write the statement to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-	w.write("switch (");
-	printBlock(expr, w, tr);
-	w.write(") {");
-        w.unifiedBreak(4);
-	w.begin(0);
-
-        boolean lastWasCase = false;
-        boolean first = true;
-
-	for (Iterator<SwitchElement> i = elements.iterator(); i.hasNext();) {
-            SwitchElement s = i.next();
-            if (s instanceof Case) {
-                if (lastWasCase) w.unifiedBreak(0);
-                else if (! first) w.unifiedBreak(0);
-                printBlock(s, w, tr);
-                lastWasCase = true;
-            }
-            else {
-                w.unifiedBreak(4);
-                print(s, w, tr);
-                lastWasCase = false;
-            }
-
-            first = false;
-	}
-
-	w.end();
-        w.unifiedBreak(0);
-	w.write("}");
-    }
-
-    public Term firstChild() {
-        return expr;
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        List<Term> cases = new ArrayList<Term>(elements.size()+1);
-        List<Integer> entry = new ArrayList<Integer>(elements.size()+1);
-        boolean hasDefault = false;
-
-        for (Iterator<SwitchElement> i = elements.iterator(); i.hasNext(); ) {
-            SwitchElement s = i.next();
-
-            if (s instanceof Case) {
-                cases.add(s);
-                entry.add(Integer.valueOf(ENTRY));
-                
-                if (((Case) s).expr() == null) {
-                    hasDefault = true;
-                }
-            }
-        }
-
-        // If there is no default case, add an edge to the end of the switch.
-        if (! hasDefault) {
-            cases.add(this);
-            entry.add(EXIT);
-        }
-
-        v.visitCFG(expr, FlowGraph.EDGE_KEY_OTHER, cases, entry);
-        v.push(this).visitCFGList(elements, this, EXIT);
-
-        return succs;
-    }
-    
 
 }

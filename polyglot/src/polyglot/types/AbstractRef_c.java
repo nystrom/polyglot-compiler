@@ -17,7 +17,7 @@ public abstract class AbstractRef_c<T> implements Ref<T>, Serializable {
         	this.known = false;
         }
 
-        public boolean known() {
+        public boolean forced() {
         	return known;
         }
 
@@ -37,7 +37,7 @@ public abstract class AbstractRef_c<T> implements Ref<T>, Serializable {
         
         /** Update the value to v only if there is not valid value for the view. */
         public void conditionalUpdate(T v) {
-        	if (! known()) {
+        	if (! forced()) {
         		update(v);
         	}
         }

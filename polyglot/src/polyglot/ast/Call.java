@@ -10,6 +10,7 @@ package polyglot.ast;
 import java.util.List;
 
 import polyglot.types.MethodInstance;
+import polyglot.types.Ref;
 
 /**
  * A <code>Call</code> is an immutable representation of a Java
@@ -73,4 +74,15 @@ public interface Call extends Expr, ProcedureCall
      * Set the type object of the method we are calling.
      */
     Call methodInstance(MethodInstance mi);
+    
+    /**
+     * The type object of the method we are calling.  This is, generally, only
+     * valid after the type-checking pass.
+     */
+    Ref<MethodInstance> methodInstanceRef();
+    
+    /**
+     * Set the type object of the method we are calling.
+     */
+    Call methodInstanceRef(Ref<MethodInstance> mi);
 }

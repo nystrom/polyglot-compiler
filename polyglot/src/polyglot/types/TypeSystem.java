@@ -108,7 +108,7 @@ public interface TypeSystem {
      * @param argTypes The constructor's formal parameter types.
      * @param excTypes The constructor's exception throw types.
      */
-    ConstructorDef constructorDef(Position pos, Ref<? extends ClassType> container,
+    ConstructorDef constructorDef(Position pos, Ref<? extends Type> container,
                                             Flags flags, List<Ref<? extends Type>> argTypes,
                                             List<Ref<? extends Type>> excTypes);
 
@@ -121,7 +121,7 @@ public interface TypeSystem {
      * @param argTypes The method's formal parameter types.
      * @param excTypes The method's exception throw types.
      */
-    MethodDef methodDef(Position pos, Ref<? extends StructType> container,
+    MethodDef methodDef(Position pos, Ref<? extends Type> container,
                                   Flags flags, Ref<? extends Type> returnType, Name name,
                                   List<Ref<? extends Type>> argTypes, List<Ref<? extends Type>> excTypes);
 
@@ -132,7 +132,7 @@ public interface TypeSystem {
      * @param type The field's type.
      * @param name The field's name.
      */
-    FieldDef fieldDef(Position pos, Ref<? extends StructType> container,
+    FieldDef fieldDef(Position pos, Ref<? extends Type> container,
                                 Flags flags, Ref<? extends Type> type, Name name);
 
     /** Create a local variable instance.
@@ -161,6 +161,10 @@ public interface TypeSystem {
 
     /** Get an unknown type qualifier. */
     UnknownQualifier unknownQualifier(Position pos);
+
+    public ErrorType errorType(Position pos);
+    public ErrorPackage errorPackage(Position pos);
+    public ErrorQualifier errorQualifier(Position pos);
 
     /**
      * Returns true iff child descends from ancestor or child == ancestor.

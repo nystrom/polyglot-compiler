@@ -36,7 +36,7 @@ public class ClassContextResolver extends AbstractAccessControlResolver {
     
     /**
      * Find a type object in the context of the class.
-     * @param name The name to search for.
+     * @param child The name to search for.
      */
     public Named find(Matcher<Named> matcher, Context context) throws SemanticException {
 	Name name = matcher.name();
