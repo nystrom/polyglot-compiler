@@ -29,6 +29,7 @@ public class ClassDecl_c extends Term_c implements ClassDecl
     protected List<TypeNode> interfaces;
     protected ClassBody body;
     protected ConstructorDef defaultCI;
+
     protected ClassDef type;
 
     public ClassDecl_c(Position pos, FlagsNode flags, Id name,
@@ -155,73 +156,6 @@ public class ClassDecl_c extends Term_c implements ClassDecl
         ClassDecl_c n = (ClassDecl_c) visitSignature(v);
         ClassBody body = (ClassBody) n.visitChild(n.body, v);
         return body == n.body ? n : n.body(body);
-    }
-
-    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
-	ClassDecl_c n = this;
-	n = n.preBuildTypes(tb);
-	n = n.buildTypesBody(tb);
-	n = n.postBuildTypes(tb);
-	return n;
-    }
-
-    private ClassDecl_c buildTypesBody(TypeBuilder tb) throws SemanticException {
-	ClassDecl_c n = this;
-	TypeBuilder tb2 = tb.pushClass(n.type);
-	ClassBody body = (ClassBody) n.visitChild(n.body, tb2);
-	n = (ClassDecl_c) n.body(body);
-	return n;
-    }
-    
-    public ClassDecl_c preBuildTypes(TypeBuilder tb) throws SemanticException {
-        tb = tb.pushClass(position(), flags.flags(), name.id());
-
-        ClassDef type = tb.currentClass();
-
-        // Member classes of interfaces are implicitly public and static.
-        if (type.isMember() && type.outer().get().flags().isInterface()) {
-            type.flags(type.flags().Public().Static());
-        }
-
-        // Member interfaces are implicitly static. 
-        if (type.isMember() && type.flags().isInterface()) {
-            type.flags(type.flags().Static());
-        }
-
-        // Interfaces are implicitly abstract. 
-        if (type.flags().isInterface()) {
-            type.flags(type.flags().Abstract());
-        }
-
-        ClassDecl_c n = this;
-        FlagsNode flags = (FlagsNode) n.visitChild(n.flags, tb);
-        Id name = (Id) n.visitChild(n.name, tb);
-
-        TypeNode superClass = (TypeNode) n.visitChild(n.superClass, tb);
-        List<TypeNode> interfaces = n.visitList(n.interfaces, tb);
-
-        n = n.reconstruct(flags, name, superClass, interfaces, n.body);
-        
-        n.setSuperClass(tb.typeSystem(), type);
-        n.setInterfaces(tb.typeSystem(), type);
-
-        n = (ClassDecl_c) n.classDef(type).flags(flags.flags(type.flags()));
-    
-        return n;
-    }
-    
-    public ClassDecl_c postBuildTypes(TypeBuilder tb) throws SemanticException {
-	ClassDecl_c n = (ClassDecl_c) this.copy();
-	
-        if (n.defaultConstructorNeeded()) {
-            ConstructorDecl cd = n.createDefaultConstructor(type, tb.typeSystem(), tb.nodeFactory());
-            TypeBuilder tb2 = tb.pushClass(n.type);
-            cd = (ConstructorDecl) tb2.visitEdge(n, cd);
-            n = (ClassDecl_c) n.body(n.body().addMember(cd));
-            n.defaultCI = cd.constructorDef();
-        }
-        
-        return n;
     }
 
     public Context enterChildScope(Node child, Context c) {
@@ -356,68 +290,6 @@ public class ClassDecl_c extends Term_c implements ClassDecl
                 Collections.EMPTY_LIST,
                 block);
         return cd;
-    }
-    
-    public Node typeCheckOverride(Node parent, ContextVisitor tc) throws SemanticException {
-    	ClassDecl_c n = this;
-    	
-    	NodeVisitor v = tc.enter(parent, n);
-    	
-    	if (v instanceof PruningVisitor) {
-    		return this;
-    	}
-    	
-    	TypeChecker childtc = (TypeChecker) v;
-    	n = (ClassDecl_c) n.typeCheckSupers(tc, childtc);
-    	n = (ClassDecl_c) n.typeCheckBody(parent, tc, childtc);
-    	
-    	return n;
-    }
-    
-    public Node typeCheckSupers(ContextVisitor tc, TypeChecker childtc) throws SemanticException {
-        ClassDecl_c n = this;
-
-        // ### This should be done somewhere else, but before entering the body.
-        Context c = tc.context();
-        type.inStaticContext(c.inStaticContext());
-
-        FlagsNode flags = n.flags;
-        Id name = n.name;
-        TypeNode superClass = n.superClass;
-        List<TypeNode> interfaces = n.interfaces;
-        ClassBody body = n.body;
-
-        flags = (FlagsNode) visitChild(n.flags, childtc);
-        name = (Id) visitChild(n.name, childtc);
-        superClass = (TypeNode) n.visitChild(n.superClass, childtc);
-        interfaces = n.visitList(n.interfaces, childtc);
-        
-        if (n.superClass() != null)
-            assert type.superType() == n.superClass().typeRef();
-        
-        n = n.reconstruct(flags, name, superClass, interfaces, body);
-        n.checkSupertypeCycles(tc.typeSystem());
-
-        return n;
-    }
-    
-    public Node typeCheckBody(Node parent, ContextVisitor tc, TypeChecker childtc) throws SemanticException {
-        ClassDecl_c old = this;
-
-        ClassDecl_c n = this;
-
-        FlagsNode flags = n.flags;
-        Id name = n.name;
-        TypeNode superClass = n.superClass;
-        List<TypeNode> interfaces = n.interfaces;
-        ClassBody body = n.body;
-
-        body = (ClassBody) n.visitChild(body, childtc);
-
-        n = n.reconstruct(flags, name, superClass, interfaces, body);
-        n = (ClassDecl_c) tc.leave(parent, old, n, childtc);
-
-        return n;
     }
     
     public Node conformanceCheck(ContextVisitor tc) throws SemanticException {

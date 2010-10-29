@@ -81,21 +81,6 @@ public class Cast_c extends Expr_c implements Cast
 	return reconstruct(castType, expr);
     }
 
-    /** Type check the expression. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException
-    {
-        TypeSystem ts = tc.typeSystem();
-
-        if (! ts.isCastValid(expr.type(), castType.type(), tc.context())) {
-	    throw new SemanticException("Cannot cast the expression of type \"" 
-					+ expr.type() + "\" to type \"" 
-					+ castType.type() + "\".",
-				        position());
-	}
-
-	return type(castType.type());
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         TypeSystem ts = av.typeSystem();
 
@@ -147,77 +132,4 @@ public class Cast_c extends Expr_c implements Cast
 
         return Collections.EMPTY_LIST;
     }
-    
-    public boolean isConstant() {
-	return expr.isConstant() && castType.type().isPrimitive();
-    }
-    
-    public Object constantValue() {
-        Object v = expr.constantValue();
-
-	if (v == null) {
-	    return null;
-	}
-	
-        if (v instanceof Boolean) {
-            if (castType.type().isBoolean()) return v;
-        }
-
-        if (v instanceof String) {
-            TypeSystem ts = castType.type().typeSystem();
-            if (castType.type().typeEquals(ts.String(), ts.emptyContext())) return v;
-        }
-
-        if (v instanceof Double) {
-            double vv = ((Double) v).doubleValue();
-
-            if (castType.type().isDouble()) return Double.valueOf((double) vv);
-            if (castType.type().isFloat()) return Float.valueOf((float) vv);
-            if (castType.type().isLong()) return Long.valueOf((long) vv);
-            if (castType.type().isInt()) return Integer.valueOf((int) vv);
-            if (castType.type().isChar()) return Character.valueOf((char) vv);
-            if (castType.type().isShort()) return Short.valueOf((short) vv);
-            if (castType.type().isByte()) return Byte.valueOf((byte) vv);
-        }
-
-        if (v instanceof Float) {
-            float vv = ((Float) v).floatValue();
-
-            if (castType.type().isDouble()) return Double.valueOf((double) vv);
-            if (castType.type().isFloat()) return Float.valueOf((float) vv);
-            if (castType.type().isLong()) return Long.valueOf((long) vv);
-            if (castType.type().isInt()) return Integer.valueOf((int) vv);
-            if (castType.type().isChar()) return Character.valueOf((char) vv);
-            if (castType.type().isShort()) return Short.valueOf((short) vv);
-            if (castType.type().isByte()) return Byte.valueOf((byte) vv);
-        }
-
-        if (v instanceof Number) {
-            long vv = ((Number) v).longValue();
-
-            if (castType.type().isDouble()) return Double.valueOf((double) vv);
-            if (castType.type().isFloat()) return Float.valueOf((float) vv);
-            if (castType.type().isLong()) return Long.valueOf((long) vv);
-            if (castType.type().isInt()) return Integer.valueOf((int) vv);
-            if (castType.type().isChar()) return Character.valueOf((char) vv);
-            if (castType.type().isShort()) return Short.valueOf((short) vv);
-            if (castType.type().isByte()) return Byte.valueOf((byte) vv);
-        }
-
-        if (v instanceof Character) {
-            char vv = ((Character) v).charValue();
-
-            if (castType.type().isDouble()) return Double.valueOf((double) vv);
-            if (castType.type().isFloat()) return Float.valueOf((float) vv);
-            if (castType.type().isLong()) return Long.valueOf((long) vv);
-            if (castType.type().isInt()) return Integer.valueOf((int) vv);
-            if (castType.type().isChar()) return Character.valueOf((char) vv);
-            if (castType.type().isShort()) return Short.valueOf((short) vv);
-            if (castType.type().isByte()) return Byte.valueOf((byte) vv);
-        }
-
-        // not a constant
-        return null;
-    }
-
 }

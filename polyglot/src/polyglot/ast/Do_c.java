@@ -76,20 +76,6 @@ public class Do_c extends Loop_c implements Do
 	return reconstruct((Stmt) body, cond);
     }
 
-    /** Type check the statement. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException
-    {
-        TypeSystem ts = tc.typeSystem();
-
-        if (! ts.typeEquals(cond.type(), ts.Boolean(), tc.context())) {
-	    throw new SemanticException(
-		"Condition of do statement must have boolean type.",
-		cond.position());
-	}
-
-	return this;
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         TypeSystem ts = av.typeSystem();
 

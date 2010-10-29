@@ -7,8 +7,6 @@
 
 package polyglot.util;
 
-import java.io.*;
-import java.util.StringTokenizer;
 
 /**
  * A <code>ErrorQueue</code> handles outputing error messages.

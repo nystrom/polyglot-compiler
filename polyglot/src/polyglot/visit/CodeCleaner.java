@@ -28,7 +28,7 @@ public class CodeCleaner extends NodeVisitor {
    **/
   public CodeCleaner(NodeFactory nf) {
     this.nf = nf;
-    this.alphaRen = new AlphaRenamer();
+    this.alphaRen = new AlphaRenamer(nf);
   }
 
   public Node leave( Node old, Node n, NodeVisitor v ) {

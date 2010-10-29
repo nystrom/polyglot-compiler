@@ -33,7 +33,7 @@ public class VarInstance_c<T extends VarDef> extends Use_c<T> implements VarInst
         VarInstance_c<T> v = (VarInstance_c<T>) copy();
         v.constantValueSet = true;
         v.isConstant = true;
-        v.constantValue = o;
+        v.constantValue = constantValue;
         return v;
     }
 

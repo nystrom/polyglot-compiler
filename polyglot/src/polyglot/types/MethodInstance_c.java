@@ -80,7 +80,7 @@ public class MethodInstance_c extends FunctionInstance_c<MethodDef> implements M
     
     @Override
     public String signature() {
-	return name + super.signature();
+	return name() + super.signature();
     }
 
     /**

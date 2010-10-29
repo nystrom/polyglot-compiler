@@ -10,6 +10,9 @@ package polyglot.ast;
 
 import java.util.*;
 
+import polyglot.dispatch.TypeChecker;
+import polyglot.frontend.Globals;
+import polyglot.frontend.Job;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -22,8 +25,8 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 {
     protected Kind kind;
     protected Expr qualifier;
-    protected List arguments;
-    protected ConstructorInstance ci;
+    protected List<Expr> arguments;
+    private Ref<ConstructorInstance> ci;
 
     public ConstructorCall_c(Position pos, Kind kind, Expr qualifier, List arguments) {
 	super(pos);
@@ -31,8 +34,12 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	this.kind = kind;
 	this.qualifier = qualifier;
 	this.arguments = TypedList.copyAndCheck(arguments, Expr.class, true);
+
+	TypeSystem ts = Globals.TS();
+	ConstructorInstance ci = ts.createConstructorInstance(position(), new ErrorRef_c<ConstructorDef>(ts, position(), "Cannot get ConstructorDef before type-checking constructor call."));
+	this.setCi(Types.<ConstructorInstance>lazyRef(ci));
     }
-    
+
     /** Get the qualifier of the constructor call. */
     public Expr qualifier() {
 	return this.qualifier;
@@ -75,14 +82,14 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 
     /** Get the constructor we are calling. */
     public ConstructorInstance constructorInstance() {
-        return ci;
+	return Types.get(getCi());
     }
 
     /** Set the constructor we are calling. */
     public ConstructorCall constructorInstance(ConstructorInstance ci) {
-        if (ci == this.ci) return this;
+	if (ci == this.getCi()) return this;
 	ConstructorCall_c n = (ConstructorCall_c) copy();
-	n.ci = ci;
+	n.getCi().update(ci);
 	return n;
     }
 
@@ -91,7 +98,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
      * this.
      */
     public Context enterScope(Context c) {
-        return c.pushStatic();
+	return c.pushStatic();
     }
 
     /** Reconstruct the constructor call. */
@@ -113,148 +120,27 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	return reconstruct(qualifier, arguments);
     }
 
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        TypeSystem ts = tb.typeSystem();
-
-        // Remove super() calls for java.lang.Object.
-        if (kind == SUPER && tb.currentClass() == ts.Object()) {
-            return tb.nodeFactory().Empty(position());
-        }
-
-        ConstructorCall_c n = (ConstructorCall_c) super.buildTypes(tb);
-
-        ConstructorInstance ci = ts.createConstructorInstance(position(), new ErrorRef_c<ConstructorDef>(ts, position(), "Cannot get ConstructorDef before type-checking constructor call."));
-        return n.constructorInstance(ci);
-    }
-
-    /** Type check the call. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-	ConstructorCall_c n = this;
-	
-	TypeSystem ts = tc.typeSystem();
-	Context c = tc.context();
-
-	ClassType ct = c.currentClass();
-	Type superType = ct.superClass();
-
-        // The qualifier specifies the enclosing instance of this inner class.
-        // The type of the qualifier must be the outer class of this
-        // inner class or one of its super types.
-        //
-        // Example:
-        //
-        // class Outer {
-        //     class Inner { }
-        // }
-        //
-        // class ChildOfInner extends Outer.Inner {
-        //     ChildOfInner() { (new Outer()).super(); }
-        // }
-        if (qualifier != null) {
-            if (kind != SUPER) {
-                throw new SemanticException("Can only qualify a \"super\"" +
-                                            "constructor invocation.",
-                                            position());
-            }
-            
-            if (!superType.isClass() || !superType.toClass().isInnerClass() ||
-                superType.toClass().inStaticContext()) {
-                throw new SemanticException("The class \"" + superType + "\"" +
-                    " is not an inner class, or was declared in a static " +
-                    "context; a qualified constructor invocation cannot " +
-                    "be used.", position());
-            }
-
-            Type qt = qualifier.type();
-
-            if (! qt.isClass() || !qt.isSubtype(superType.toClass().outer(), c)) {
-                throw new SemanticException("The type of the qualifier " +
-                    "\"" + qt + "\" does not match the immediately enclosing " +
-                    "class  of the super class \"" +
-                    superType.toClass().outer() + "\".", qualifier.position());
-            }
-        }
-
-	if (kind == SUPER) {
-	    if (! superType.isClass()) {
-	        throw new SemanticException("Super type of " + ct +
-		    " is not a class.", position());
-	    }
-	    
-	    Expr q = qualifier;
-
-            // If the super class is an inner class (i.e., has an enclosing
-            // instance of its container class), then either a qualifier 
-            // must be provided, or ct must have an enclosing instance of the
-            // super class's container class, or a subclass thereof.
-            if (q == null && superType.isClass() && superType.toClass().isInnerClass()) {
-                ClassType superContainer = superType.toClass().outer();
-                // ct needs an enclosing instance of superContainer, 
-                // or a subclass of superContainer.
-                ClassType e = ct;
-                
-                while (e != null) {
-                    if (e.isSubtype(superContainer, c) && ct.hasEnclosingInstance(e)) {
-                        NodeFactory nf = tc.nodeFactory();
-                        q = nf.This(position(), nf.CanonicalTypeNode(position(), e)).type(e);
-
-                        break; 
-                    }
-                    e = e.outer();
-                }
-                
-                if (e == null) {
-                    throw new SemanticException(ct + " must have an enclosing instance" +
-                        " that is a subtype of " + superContainer, position());
-                }               
-                if (e == ct) {
-                    throw new SemanticException(ct + " is a subtype of " + superContainer + 
-                        "; an enclosing instance that is a subtype of " + superContainer +
-                        " must be specified in the super constructor call.", position());
-                }
-            }
-
-            if (qualifier != q)
-                n = (ConstructorCall_c) n.qualifier(q);
-	}
-
-	List<Type> argTypes = new ArrayList<Type>();
-	
-	for (Iterator<Expr> iter = n.arguments.iterator(); iter.hasNext();) {
-	    Expr e = iter.next();
-	    argTypes.add(e.type());
-	}
-	
-	if (kind == SUPER) {
-	    ct = ct.superClass().toClass();
-	}
-	
-	ConstructorInstance ci = ts.findConstructor(ct, ts.ConstructorMatcher(ct, argTypes, c));
-
-	return n.constructorInstance(ci);
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
-        TypeSystem ts = av.typeSystem();
+	TypeSystem ts = av.typeSystem();
 
-        if (child == qualifier) {
-            // FIXME: Can be more specific
-            return ts.Object();
-        }
+	if (child == qualifier) {
+	    // FIXME: Can be more specific
+	    return ts.Object();
+	}
 
-        Iterator i = this.arguments.iterator();
-        Iterator j = ci.formalTypes().iterator();
+	Iterator i = this.arguments.iterator();
+	Iterator j = constructorInstance().formalTypes().iterator();
 
-        while (i.hasNext() && j.hasNext()) {
+	while (i.hasNext() && j.hasNext()) {
 	    Expr e = (Expr) i.next();
 	    Type t = (Type) j.next();
 
-            if (e == child) {
-                return t;
-            }
-        }
+	    if (e == child) {
+		return t;
+	    }
+	}
 
-        return child.type();
+	return child.type();
     }
 
     public String toString() {
@@ -288,34 +174,42 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
     }
 
     public Term firstChild() {
-        if (qualifier != null) {
-            return qualifier;
-        } else {
-            return listChild(arguments, null);
-        }
+	if (qualifier != null) {
+	    return qualifier;
+	} else {
+	    return listChild(arguments, null);
+	}
     }
 
     public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        if (qualifier != null) {
-            if (!arguments.isEmpty()) {
-                v.visitCFG(qualifier, listChild(arguments, null), ENTRY);
-                v.visitCFGList(arguments, this, EXIT);
-            } else {
-                v.visitCFG(qualifier, this, EXIT);
-            }
-        } else {
-            if (!arguments.isEmpty()) {
-                v.visitCFGList(arguments, this, EXIT);
-            }
-        }
+	if (qualifier != null) {
+	    if (!arguments.isEmpty()) {
+		v.visitCFG(qualifier, listChild(arguments, null), ENTRY);
+		v.visitCFGList(arguments, this, EXIT);
+	    } else {
+		v.visitCFG(qualifier, this, EXIT);
+	    }
+	} else {
+	    if (!arguments.isEmpty()) {
+		v.visitCFGList(arguments, this, EXIT);
+	    }
+	}
 
-        return succs;
+	return succs;
     }
 
     public List<Type> throwTypes(TypeSystem ts) {
-        List<Type> l = new ArrayList<Type>();
-        l.addAll(ci.throwTypes());
-        l.addAll(ts.uncheckedExceptions());
-        return l;
+	List<Type> l = new ArrayList<Type>();
+	l.addAll(constructorInstance().throwTypes());
+	l.addAll(ts.uncheckedExceptions());
+	return l;
+    }
+
+    public void setCi(Ref<ConstructorInstance> ci) {
+	this.ci = ci;
+    }
+
+    public Ref<ConstructorInstance> getCi() {
+	return ci;
     }
 }

@@ -70,39 +70,6 @@ public class AmbTypeNode_c extends TypeNode_c implements AmbTypeNode {
       return reconstruct(prefix, name);
   }
   
-  public Node disambiguate(ContextVisitor ar) throws SemanticException {
-      SemanticException ex;
-      
-      try {
-          Node n = ar.nodeFactory().disamb().disambiguate(this, ar, position(), prefix, name);
-
-          if (n instanceof TypeNode) {
-              TypeNode tn = (TypeNode) n;
-              LazyRef<Type> sym = (LazyRef<Type>) type;
-              sym.update(tn.typeRef().get());
-              
-              // Reset the resolver goal to one that can run when the ref is deserialized.
-              Goal resolver = Globals.Scheduler().LookupGlobalType(sym);
-              resolver.update(Goal.Status.SUCCESS);
-              sym.setResolver(resolver);
-              return n;
-          }
-
-          ex = new SemanticException("Could not find type \"" +
-                                     (prefix == null ? name.id() : prefix.toString() + "." + name.id()) +
-                                     "\".", position());
-      }
-      catch (SemanticException e) {
-          ex = e;
-      }
-
-      // Mark the type as an error, so we don't try looking it up again.
-      LazyRef<Type> sym = (LazyRef<Type>) type;
-      sym.update(ar.typeSystem().unknownType(position()));
-
-      throw ex;
-  }
-
   public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
     if (prefix != null) {
         print(prefix, w, tr);

@@ -19,6 +19,9 @@ import pao.parse.Lexer_c;
 import pao.types.PaoTypeSystem_c;
 import pao.visit.PaoBoxer;
 import polyglot.frontend.*;
+import polyglot.frontend.goals.*;
+import polyglot.frontend.goals.Goal;
+import polyglot.frontend.goals.Serialized;
 import polyglot.lex.Lexer;
 import polyglot.types.TypeSystem;
 import polyglot.util.ErrorQueue;
@@ -64,24 +67,37 @@ public class ExtensionInfo extends JLExtensionInfo {
             super(extInfo);
         }
 
-        public List<Goal> goals(Job job) {
-            List<Goal> goals = super.goals(job);
-
-            List<Goal> result = new ArrayList<Goal>();
-
-            for (Goal g : goals) {
-                if (g == Serialized(job))
-                    result.add(Rewrite(job));
-                result.add(g);
-            }
-
-            return result;
-        }
-
         public Goal Rewrite(final Job job) { 
             TypeSystem ts = job.extensionInfo().typeSystem();
             NodeFactory nf = job.extensionInfo().nodeFactory();
-            Goal g = new VisitorGoal("Rewrite", job, new PaoBoxer(job, ts, nf)).intern(this);
+
+            Goal g = internGoal(new VisitorGoal(job, new PaoBoxer(job, ts, nf)) {
+                public Collection prerequisiteGoals(Scheduler scheduler) {
+                    List l = new ArrayList();
+                    l.addAll(super.prerequisiteGoals(scheduler));
+                    l.add(scheduler.TypeChecked(job));
+                    l.add(scheduler.ConstantsChecked(job));
+                    l.add(scheduler.ReachabilityChecked(job));
+                    l.add(scheduler.ExceptionsChecked(job));
+                    l.add(scheduler.ExitPathsChecked(job));
+                    l.add(scheduler.InitializationsChecked(job));
+                    l.add(scheduler.ConstructorCallsChecked(job));
+                    l.add(scheduler.ForwardReferencesChecked(job));
+                    return l;
+                }
+            });
+            return g;
+        }
+
+        public Goal Serialized(final Job job) { 
+            Goal g = internGoal(new Serialized(job) {
+                public Collection prerequisiteGoals(Scheduler scheduler) {
+                    List l = new ArrayList();
+                    l.addAll(super.prerequisiteGoals(scheduler));
+                    l.add(Rewrite(job));
+                    return l;
+                }
+            });
             return g;
         }
     }

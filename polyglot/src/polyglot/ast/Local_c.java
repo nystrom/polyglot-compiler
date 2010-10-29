@@ -86,34 +86,6 @@ public class Local_c extends Expr_c implements Local
       return reconstruct(name);
   }
 
-  public Node buildTypes(TypeBuilder tb) throws SemanticException {
-      Local_c n = (Local_c) super.buildTypes(tb);
-
-      TypeSystem ts = tb.typeSystem();
-
-      LocalInstance li = ts.createLocalInstance(position(), new ErrorRef_c<LocalDef>(ts, position(), "Cannot get LocalDef before type-checking local variable."));
-      return n.localInstance(li);
-  }
-
-  /** Type check the local. */
-  public Node typeCheck(ContextVisitor tc) throws SemanticException {
-    Context c = tc.context();
-    LocalInstance li = c.findLocal(name.id());
-    
-    // if the local is defined in an outer class, then it must be final
-    if (!c.isLocal(li.name())) {
-        // this local is defined in an outer class
-        if (!li.flags().isFinal()) {
-            throw new SemanticException("Local variable \"" + li.name() + 
-                    "\" is accessed from an inner class, and must be declared " +
-                    "final.",
-                    this.position());                     
-        }
-    }
-    
-    return localInstance(li).type(li.type());
-  }
-
   public Term firstChild() {
       return null;
   }
@@ -142,16 +114,4 @@ public class Local_c extends Expr_c implements Local
 	w.end();
     }
   }
-  
-  public boolean isConstant() {
-    return li != null && li.isConstant();
-  }
-
-  public Object constantValue() {
-    if (! isConstant()) return null;
-    return li.constantValue();
-  }
-  
-
-
 }

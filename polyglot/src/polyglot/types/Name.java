@@ -24,7 +24,7 @@ public class Name  implements Serializable {
         return makeFresh("id");
     }
     
-    public static synchronized Name makeFresh(String prefix) {
+    public static Name makeFresh(String prefix) {
         return make(prefix + (count++));
     }
 

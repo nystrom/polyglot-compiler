@@ -62,23 +62,6 @@ public class IntLit_c extends NumLit_c implements IntLit
 	return n;
     }
 
-    /** Type check the expression. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-	Kind kind = kind();
-
-        if (kind == INT) {
-	    return type(ts.Int());
-	}
-	else if (kind == LONG) {
-	    return type(ts.Long());
-	}
-	else {
-	    throw new InternalCompilerError("Unrecognized IntLit kind " + kind);
-	}
-    }
-
     public String positiveToString() {
 	if (kind() == LONG) {
             if (boundary()) {
@@ -117,15 +100,6 @@ public class IntLit_c extends NumLit_c implements IntLit
 
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
         w.write(toString());
-    }
-
-    public Object constantValue() {
-	if (kind() == LONG) {
-            return Long.valueOf(value);
-	}
-	else {
-            return Integer.valueOf((int) value);
-	}
     }
 
     public Precedence precedence() {

@@ -32,13 +32,11 @@ public class FwdReferenceChecker extends ContextVisitor
     protected NodeVisitor enterCall(Node n) throws SemanticException {
         if (n instanceof FieldDecl) {
             FieldDecl fd = (FieldDecl)n;
-
+            declaredFields.add(fd.fieldDef());
+            
             FwdReferenceChecker frc = (FwdReferenceChecker)this.copy();
             frc.inInitialization = true;
             frc.inStaticInit = fd.flags().flags().isStatic();
-
-            frc.declaredFields = new HashSet<FieldDef>(declaredFields);
-            declaredFields.add(fd.fieldDef());
             return frc;
         }
         else if (n instanceof Initializer) {

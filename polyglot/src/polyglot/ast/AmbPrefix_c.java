@@ -71,22 +71,6 @@ public class AmbPrefix_c extends Node_c implements AmbPrefix
         return reconstruct(prefix, name);
     }
 
-    /** Disambiguate the prefix. */
-    public Node disambiguate(ContextVisitor ar) throws SemanticException {
-	Position pos = position();
-	Disamb disamb = ar.nodeFactory().disamb();
-	Node n = disamb.disambiguate(this, ar, pos, prefix, name);
-	if (n instanceof Prefix) {
-	    return n;
-	}
-	throw new SemanticException("Could not find " + (prefix != null ? prefix + "." : "") + name, pos);
-    }
-
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        // Didn't finish disambiguation; just return.
-        return this;
-    }
-
     /** Check exceptions thrown by the prefix. */
     public Node exceptionCheck(ExceptionChecker ec) throws SemanticException {
 	throw new InternalCompilerError(position(),

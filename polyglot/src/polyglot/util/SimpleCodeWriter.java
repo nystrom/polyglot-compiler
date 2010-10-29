@@ -33,7 +33,7 @@ public class SimpleCodeWriter extends CodeWriter {
         this(new PrintWriter(new OutputStreamWriter(o)), width_);
     }
 
-    protected class State {
+    protected static class State {
 	public int lmargin;
 	public boolean breakAll;
 

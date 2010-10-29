@@ -16,17 +16,13 @@ public class FileResource implements Resource {
 	return canonicalPath().hashCode();
     }
     
-    private String cachedCanonicalPath = null;
     private String canonicalPath() {
-	if (cachedCanonicalPath == null) {
 	try {
-	    cachedCanonicalPath = source.getCanonicalPath();
+	return source.getCanonicalPath();
 	}
 	catch (IOException e) {
-	    cachedCanonicalPath = source.getAbsolutePath();
+	    return source.getAbsolutePath();
 	}
-	}
-	return cachedCanonicalPath;
     }
 
     public boolean equals(Object o) {

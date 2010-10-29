@@ -328,17 +328,15 @@ public class CopyPropagator extends DataFlow {
 	if (t instanceof LocalAssign) {
 	    LocalAssign n = (LocalAssign)t;
 	    Assign.Operator op = n.operator();
-	    Expr left = n.local();
+	    Local left = n.local();
 	    Expr right = n.right();
 
-	    if (left instanceof Local) {
-		LocalDef to = ((Local)left).localInstance().def();
-		result.kill(to);
+	    LocalDef to = ((Local)left).localInstance().def();
+	    result.kill(to);
 
-		if (right instanceof Local && op == Assign.ASSIGN) {
-		    LocalDef from = ((Local)right).localInstance().def();
-		    result.add(from, to);
-		}
+	    if (right instanceof Local && op == Assign.ASSIGN) {
+		LocalDef from = ((Local)right).localInstance().def();
+		result.add(from, to);
 	    }
 	} else if (t instanceof Unary) {
 	    Unary n = (Unary)t;

@@ -66,11 +66,6 @@ public class ClassLit_c extends Lit_c implements ClassLit
     return this.typeNode(tn);
   }
 
-  /** Type check the expression. */
-  public Node typeCheck(ContextVisitor tc) throws SemanticException {
-    return type(tc.typeSystem().Class());
-  }
-
   public String toString() {
     return typeNode.toString() + ".class";
   }
@@ -83,17 +78,4 @@ public class ClassLit_c extends Lit_c implements ClassLit
     w.write(".class");
     w.end();
   }
-
-  /**
-   * According to the JLS 2nd Ed, sec 15.28, a class literal 
-   * is not a compile time constant.
-   */
-  public boolean isConstant() {
-    return false;
-  }
-
-  public Object constantValue() {
-    return null;
-  }
-
 }

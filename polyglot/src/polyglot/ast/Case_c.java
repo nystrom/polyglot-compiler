@@ -82,45 +82,6 @@ public class Case_c extends Stmt_c implements Case
         return reconstruct(expr);
     }
 
-    /** Type check the statement. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        if (expr == null) {
-	    return this;
-	}
-
-	TypeSystem ts = tc.typeSystem();
-
-	if (! ts.isImplicitCastValid(expr.type(), ts.Int(), tc.context()) && ! ts.isImplicitCastValid(expr.type(), ts.Char(), tc.context())) {
-	    throw new SemanticException(
-		"Case label must be an byte, char, short, or int.",
-		position());
-	}
-    
-	return this;
-    }
-    
-    public Node checkConstants(ContextVisitor tc) throws SemanticException {
-        if (expr == null) {
-            return this;
-        }
-        
-        if (expr.isConstant()) {
-            Object o = expr.constantValue();
-            
-            if (o instanceof Number && ! (o instanceof Long) &&
-                    ! (o instanceof Float) && ! (o instanceof Double)) {
-                
-                return value(((Number) o).longValue());
-            }
-            else if (o instanceof Character) {
-                return value(((Character) o).charValue());
-            }
-        }
-        
-        throw new SemanticException("Case label must be an integral constant.",
-                                    position());
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         TypeSystem ts = av.typeSystem();
 

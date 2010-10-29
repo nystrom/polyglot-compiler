@@ -56,8 +56,7 @@ public class Dispatch {
 	    if (c == null)
 		return;
 
-//	    Method[] methods = c.getDeclaredMethods();
-	    Method[] methods = c.getMethods();  // finds only public methods
+	    Method[] methods = c.getMethods();
 
 	    for (int i = 0; i < methods.length; i++) {
 		Method m = methods[i];
@@ -68,8 +67,8 @@ public class Dispatch {
 		}
 	    }
 
-//	     not needed, getMethods returns them all
-//	     findMethods(c.getSuperclass(), name, retType, argTypes, matched);
+	    // not needed, getMethods returns them all
+	    // findMethods(c.getSuperclass(), name, retType, argTypes, matched);
 	}
 
 	static enum Result {
@@ -223,6 +222,14 @@ public class Dispatch {
 	}
     }
 
+    static interface FunVisitor<S, T> {
+	public S visit(T x);
+    }
+
+    static interface VoidVisitor<T> {
+	public void visit(T x, Object... args);
+    }
+
     public static class Dispatcher {
 	String name;
 
@@ -238,7 +245,6 @@ public class Dispatch {
 		throw e;
 	    }
 	    catch (RuntimeException e) {
-		e.printStackTrace();
 		throw e;
 	    }
 	    catch (NoSuchMethodException e) {

@@ -15,8 +15,9 @@ package polyglot.frontend;
 
 import java.util.*;
 
-import polyglot.ast.Node;
-import polyglot.ast.NodeFactory;
+import polyglot.ast.*;
+import polyglot.dispatch.ConformanceChecker;
+import polyglot.dispatch.ErrorReporter;
 import polyglot.main.Version;
 import polyglot.types.*;
 import polyglot.util.ErrorInfo;
@@ -45,9 +46,8 @@ public class JLScheduler extends Scheduler {
         goals.add(ImportTableInitialized(job));
         
         goals.add(PreTypeCheck(job));
-        goals.add(TypesInitializedForCommandLineBarrier());
+        goals.add(TypesInitializedForCommandLine());
         goals.add(TypeChecked(job));
-        goals.add(ReassembleAST(job));
         
         goals.add(ConformanceChecked(job));
         goals.add(ReachabilityChecked(job));
@@ -83,10 +83,10 @@ public class JLScheduler extends Scheduler {
         return job.TypesInitialized(this);
     }
 
-    public Goal TypesInitializedForCommandLineBarrier() {
+    public Goal TypesInitializedForCommandLine() {
         TypeSystem ts = extInfo.typeSystem();
         NodeFactory nf = extInfo.nodeFactory();
-        return new BarrierGoal("TypesInitializedForCommandLineBarrier", commandLineJobs()) {
+        return new BarrierGoal("TypesInitializedForCommandLine", commandLineJobs()) {
             public Goal prereqForJob(Job job) {
                 return PreTypeCheck(job);
             }
@@ -96,38 +96,40 @@ public class JLScheduler extends Scheduler {
     public Goal PreTypeCheck(Job job) {
     	TypeSystem ts = job.extensionInfo().typeSystem();
     	NodeFactory nf = job.extensionInfo().nodeFactory();
-        return new VisitorGoal("PreTypeCheck", job, new TypeCheckPreparer(job, ts, nf, job.nodeMemo())).intern(this);
+        return new VisitorGoal("PreTypeCheck", job, new ContextSetter(job, ts, nf)).intern(this);
     }
     
-    public Goal ReassembleAST(final Job job) {
-    	final Map<Node, Node> memo = job.nodeMemo();
-    	return new VisitorGoal("ReassembleAST", job, new NodeVisitor() {
-    		public Node leave(Node old, Node n, NodeVisitor v) {
-    			Node m = memo.get(old);
-    			
-    			if (old == job.ast()) {
-    				memo.clear();
-    			}
-
-    			if (m != null) {
-    				return m;
-    			}
-
-    			return n;
+    public Goal TypeChecked(final Job job) {
+    	final TypeSystem ts = job.extensionInfo().typeSystem();
+    	final NodeFactory nf = job.extensionInfo().nodeFactory();
+    	return new VisitorGoal("TypeChecked", job, new NodeVisitor() {
+    	    @Override
+//    	    public Node override(Node parent, Node n) {
+//    		return n.checked();
+//    	    }
+    	    public Node leave(Node parent, Node old, Node n, NodeVisitor v) {
+    		Node m = n.checked();
+    		
+    		if (m instanceof SourceFile) {
+    		    m.accept(new ErrorReporter());
     		}
+    		
+    		return m;
+    	    }
     	}).intern(this);
     }
     
-    public Goal TypeChecked(Job job) {
-    	TypeSystem ts = job.extensionInfo().typeSystem();
-    	NodeFactory nf = job.extensionInfo().nodeFactory();
-    	return new VisitorGoal("TypeChecked", job, new TypeChecker(job, ts, nf, job.nodeMemo())).intern(this);
-    }
-    
-    public Goal ConformanceChecked(Job job) {
-	TypeSystem ts = job.extensionInfo().typeSystem();
-	NodeFactory nf = job.extensionInfo().nodeFactory();
-	return new VisitorGoal("ConformanceChecked", job, new ConformanceChecker(job, ts, nf)).intern(this);
+    public Goal ConformanceChecked(final Job job) {
+	final TypeSystem ts = job.extensionInfo().typeSystem();
+	final NodeFactory nf = job.extensionInfo().nodeFactory();
+	return new VisitorGoal("ConformanceChecked", job, new NodeVisitor() {
+	 @Override
+	public Node override(Node n) {
+		Node m = n.accept(new ConformanceChecker(job, ts, nf));
+		m.accept(new ErrorReporter());
+		return m;
+	}   
+	}).intern(this);
     }
     
     public Goal ReachabilityChecked(Job job) {
@@ -191,7 +193,7 @@ public class JLScheduler extends Scheduler {
     public Goal CodeGenerated(Job job) {
     	TypeSystem ts = extInfo.typeSystem();
     	NodeFactory nf = extInfo.nodeFactory();
-    	return new OutputGoal(job, new Translator(job, ts, nf, extInfo.targetFactory())).intern(this);
+    	return new OutputGoal(job, new Translator(job, ts, nf, extInfo.targetFactory()));
     }
 
     @Override
@@ -210,14 +212,6 @@ public class JLScheduler extends Scheduler {
         return new LookupGlobalTypeDefAndSetFlags(sym, className, flags).intern(this);
     }
     
-    public Goal EnsureNoErrors(Job job) {
-           return new SourceGoal_c("EnsureNoErrors", job) {
-               public boolean runTask() {
-                   return !job.reportedErrors();
-               }
-           }.intern(this);
-       }
-
     public static class LookupGlobalType extends TypeObjectGoal_c<Type> {
         public LookupGlobalType(String name, Ref<Type> v) {
             super(name, v);

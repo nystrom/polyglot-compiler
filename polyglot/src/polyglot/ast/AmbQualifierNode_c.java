@@ -9,6 +9,8 @@
 package polyglot.ast;
 
 
+import java.util.HashMap;
+
 import polyglot.frontend.*;
 import polyglot.types.*;
 import polyglot.util.*;
@@ -79,52 +81,11 @@ public class AmbQualifierNode_c extends Node_c implements AmbQualifierNode
 	return reconstruct(qual, name);
     }
 
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        TypeSystem ts = tb.typeSystem();
-        LazyRef<Qualifier> sym = Types.<Qualifier>lazyRef(ts.unknownQualifier(position()), new SetResolverGoal(tb.job()));
-        return qualifier(sym);
+    public Qualifier qualifier() {
+	return qualifierRef().get();
     }
-    
-	public Qualifier qualifier() {
-		return qualifierRef().get();
-	}
-	
-	public void setResolver(Node parent, final TypeCheckPreparer v) {
-		final LazyRef<Qualifier> r = (LazyRef<Qualifier>) qualifierRef();
-		TypeChecker tc = new TypeChecker(v.job(), v.typeSystem(), v.nodeFactory(), v.getMemo());
-		tc = (TypeChecker) tc.context(v.context().freeze());
-		r.setResolver(new TypeCheckTypeGoal(parent, this, tc, r, false));
-	}
 
-	public Node disambiguate(ContextVisitor ar) throws SemanticException {
-		SemanticException ex;
-		
-		try {
-			Node n = ar.nodeFactory().disamb().disambiguate(this, ar, position(), qual, name);
-
-			if (n instanceof QualifierNode) {
-				QualifierNode qn = (QualifierNode) n;
-				Qualifier q = qn.qualifierRef().get();
-				qualifier.update(q);
-				return n;
-			}
-
-			ex = new SemanticException("Could not find type or package \"" +
-					(qual == null ? name.toString() : qual.toString() + "." + name.toString()) +
-					"\".", position());
-		}
-		catch (SemanticException e) {
-			ex = e;
-		}
-
-		// Mark the type as an error, so we don't try looking it up again.
-		LazyRef<Qualifier> sym = (LazyRef<Qualifier>) qualifier;
-		sym.update(ar.typeSystem().unknownQualifier(position()));
-
-		throw ex;
-	}
-
-	public Node exceptionCheck(ExceptionChecker ec) throws SemanticException {
+    public Node exceptionCheck(ExceptionChecker ec) throws SemanticException {
 	throw new InternalCompilerError(position(),
 	    "Cannot exception check ambiguous node " + this + ".");
     } 

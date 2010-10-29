@@ -9,7 +9,7 @@ package polyglot.ast;
 
 import java.util.List;
 
-import polyglot.types.Type;
+import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.AscriptionVisitor;
 import polyglot.visit.NodeVisitor;
@@ -22,6 +22,9 @@ import polyglot.visit.NodeVisitor;
  */
 public interface Node extends JL, Copy
 {
+    public <T> T accept(Object v, Object... args);
+    public Node acceptChildren(Object v, Object... args);
+
     /**
      * Set the delegate of the node.
      */
@@ -62,8 +65,9 @@ public interface Node extends JL, Copy
     Node position(Position position);
     
     /** Return true if there an error in this node or its children. */
-    boolean error();
-    Node error(boolean flag);
+    boolean hasErrors();
+    List<ErrorInfo> errors();
+    Node addError(ErrorInfo error);
     
     /**
      * Visit the node.  This method is equivalent to
@@ -132,4 +136,10 @@ public interface Node extends JL, Copy
      * Dump the AST node for debugging purposes.
      */
     void dump(CodeWriter w);
+   
+    public Node checked();
+    public Ref<Node> checkedRef();
+    
+    public Node context(Context c);    
+    public Context context();
 }

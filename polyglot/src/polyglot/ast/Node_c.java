@@ -12,8 +12,9 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.util.*;
 
+import polyglot.dispatch.*;
+import polyglot.frontend.*;
 import polyglot.frontend.Compiler;
-import polyglot.frontend.ExtensionInfo;
 import polyglot.types.*;
 import polyglot.util.*;
 import polyglot.visit.*;
@@ -29,8 +30,47 @@ public abstract class Node_c implements Node
     protected Position position;
     protected JL del;
     protected Ext ext;
-    protected boolean error;
+    protected List<ErrorInfo> error;
+    
+    protected Ref<Node> checked;
+    Job job;
+    
+    public Node checked() {
+	return Types.get(checked);
+    }
 
+    public Ref<Node> checkedRef() {
+	return checked;
+    }
+    
+    protected Context context;
+    
+    public Node context(Context c) {
+	Node_c n = (Node_c) copy();
+	n.context = c;
+	return n;
+    }
+    
+    public Context context() {
+	return context;
+    }
+
+    public int nodeId() {
+	return 0;
+    }
+    
+    public Node acceptChildren(final Object v, final Object... args) {
+	return visitChildren(new NodeVisitor() {
+	    public Node override(Node n) {
+		return n.accept(v, args);
+	    }
+	});
+    }
+    
+    public <T> T accept(Object v, Object... args) {
+	return (T) new Dispatch.Dispatcher("visit").invoke(v, this, args);
+    }
+    
     public final int hashCode() {
     	return super.hashCode();
     }
@@ -42,14 +82,39 @@ public abstract class Node_c implements Node
     public Node_c(Position pos) {
     	assert(pos != null);
         this.position = pos;
-        this.error = false;
-    }
-
-    public Node setResolverOverride(Node parent, TypeCheckPreparer v) {
-    	return null;
+        this.error = null;
+        this.job = Globals.currentJob();
+        this.checked = Types.lazyRef(null);
+        setChecked();
     }
     
-    public void setResolver(Node parent, TypeCheckPreparer v) {
+    public void setChecked() {
+        ((LazyRef<Node>) this.checked).setResolver(new Runnable() {
+            public void run() {
+        	Node_c n = Node_c.this;
+        	try {
+		    Job job = n.job;
+		    TypeSystem ts = Globals.TS();
+		    NodeFactory nf = Globals.NF();
+        	    TypeChecker v = new TypeChecker(job, ts, nf);
+        	    Node m = n.accept(v, n.context());
+        	    n.checkedRef().update(m);
+        	    m.checkedRef().update(m);
+        	}
+        	catch (PassthruError e) {
+        	    if (e.getCause() instanceof SemanticException) {
+        		SemanticException x = (SemanticException) e.getCause();
+			ErrorInfo error = new ErrorInfo(ErrorInfo.SEMANTIC_ERROR, x.getMessage() != null ? x.getMessage() : "unknown error",
+							x.position() != null ? x.position() : n.position());
+			Node m = n.addError(error);
+        		n.checkedRef().update(m);
+        	    }
+        	    else {
+        		throw new InternalCompilerError(e.getCause());
+        	    }
+        	}
+            }	   
+        });
     }
     
     public void init(Node node) {
@@ -144,6 +209,8 @@ public abstract class Node_c implements Node
                 n.ext.init(n);
             }
 
+            n.setChecked();
+            
             return n;
         }
         catch (CloneNotSupportedException e) {
@@ -160,14 +227,24 @@ public abstract class Node_c implements Node
 	n.position = position;
 	return n;
     }
-
-    public boolean error() {
-        return error;
+    
+    public boolean hasErrors() {
+	return errors().size() > 0;
     }
 
-    public Node error(boolean flag) {
+    public List<ErrorInfo> errors() {
+	if (error == null)
+	    return Collections.EMPTY_LIST;
+	else
+	    return error;
+    }
+    
+    public Node addError(ErrorInfo error) {
         Node_c n = (Node_c) copy();
-        n.error = flag;
+        n.error = new ArrayList<ErrorInfo>((this.error != null ? this.error.size() : 0) + 1);
+        if (this.error != null)
+            n.error.addAll(this.error);
+        n.error.add(error);
         return n;
     }
     
@@ -284,43 +361,6 @@ public abstract class Node_c implements Node
 
     // These methods override the methods in Ext_c.
     // These are the default implementation of these passes.
-
-    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
-        return null;
-    }
-    
-    public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
-	return tb;
-    }
-
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-	return this;
-    }
-
-    public Node disambiguate(ContextVisitor ar) throws SemanticException {
-	return this;
-    }
-
-    /** Type check the AST. */
-    public Node typeCheckOverride(Node parent, ContextVisitor tc) throws SemanticException {
-        return null;
-    }
-    
-    public NodeVisitor typeCheckEnter(TypeChecker tc) throws SemanticException {
-	return tc;
-    }
-
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-	return this;
-    }
-    
-    public Node checkConstants(ContextVisitor tc) throws SemanticException {
-        return this;
-    }
-
-    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
-	return this;
-    }
 
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
 	return child.type();

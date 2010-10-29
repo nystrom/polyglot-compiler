@@ -418,7 +418,7 @@
 			<attribute name="Class-Path" value="java_cup.jar polyglot.jar ppg.jar" />
 		</manifest>
 
-                <jar destfile="${lib}/polyglot.jar" basedir="${classes}" manifest="${classes}/MANIFEST.MF" includes="polyglot/ast/**,polyglot/frontend/**,polyglot/lex/**,polyglot/main/**,polyglot/parse/**,polyglot/qq/**,polyglot/types/**,polyglot/util/**,polyglot/dispatch/**,polyglot/visit/**,ppg/**,polyglot/ext/param/**" />
+		<jar destfile="${lib}/polyglot.jar" basedir="${classes}" manifest="${classes}/MANIFEST.MF" includes="polyglot/ast/**,polyglot/frontend/**,polyglot/lex/**,polyglot/main/**,polyglot/parse/**,polyglot/qq/**,polyglot/types/**,polyglot/util/**,polyglot/visit/**,ppg/**,polyglot/ext/param/**" />
 
 		<delete file="${classes}/MANIFEST.MF" failonerror="false" />
 	</target>
@@ -661,7 +661,7 @@
 			<fileset file="${basedir}/META-INF/MANIFEST.MF.in" />
 		</copy>
 
-		<manifest file="${tmp}/META-INF/MANIFEST.MF" mode="update">
+		<manifest file="${tmp}/MANIFEST.MF" mode="update">
 			<attribute name="Built-By" value="${user.name}" />
 			<attribute name="Implementation-Version" value="${jl.version}" />
 			<attribute name="Built-Date" value="${jl.version.build}" />

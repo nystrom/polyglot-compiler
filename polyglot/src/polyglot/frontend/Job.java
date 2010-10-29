@@ -7,13 +7,15 @@
 
 package polyglot.frontend;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
+import polyglot.dispatch.TypeBuilder;
 import polyglot.types.TypeSystem;
 import polyglot.util.CodeWriter;
-import polyglot.visit.TypeBuilder;
+import polyglot.visit.*;
 
 /**
  * A <code>Job</code> encapsulates work done by the compiler for a single
@@ -33,9 +35,6 @@ public class Job
 
     /** The AST constructed from the source file. */
     protected Node ast;
-    
-    /** Map for memoizing nodes during type-checking. */
-    protected Map<Node,Node> nodeMemo;
 
     /** True if all passes run so far have been successful. */
     protected boolean status;
@@ -58,17 +57,6 @@ public class Job
         this.status = true;
         this.initialErrorCount = 0;
         this.reportedErrors = false;
-    }
-    
-    public Map<Node,Node> nodeMemo() {
-        if (nodeMemo == null) {
-            nodeMemo = new HashMap<Node,Node>();
-        }
-        return nodeMemo;
-    }
-    
-    public void setNodeMemo(Map<Node,Node> map) {
-        this.nodeMemo = map;
     }
     
     public JobExt ext() {
@@ -147,10 +135,16 @@ public class Job
     
     public Goal TypesInitialized(Scheduler scheduler) {
         if (TypesInitialized == null) {
-            Job job = this;
-            TypeSystem ts = job.extensionInfo().typeSystem();
-            NodeFactory nf = job.extensionInfo().nodeFactory();
-            TypesInitialized = new ForgivingVisitorGoal("TypesInitialized", job, new TypeBuilder(job, ts, nf)).intern(scheduler);
+            final Job job = this;
+            final TypeSystem ts = job.extensionInfo().typeSystem();
+            final NodeFactory nf = job.extensionInfo().nodeFactory();
+//            TypesInitialized = new VisitorGoal("TypesInitialized", job, new TypeBuilder(job, ts, nf)).intern(scheduler);
+            TypesInitialized = new VisitorGoal("TypesInitialized", job, new NodeVisitor() {
+        	@Override
+        	public Node override(Node n) {
+        	    return n.accept(new TypeBuilder(job, ts, nf), new TypeBuilderContext(job, ts, nf));
+        	}
+            }).intern(scheduler);
         }
         return TypesInitialized;
     }

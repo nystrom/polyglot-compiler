@@ -21,11 +21,6 @@ public class NullLit_c extends Lit_c implements NullLit
 	super(pos);
     }
 
-    /** Type check the expression. */
-    public Node typeCheck(ContextVisitor tc) {
-	return type(tc.typeSystem().Null());
-    }
-
     /** Get the value of the expression, as an object. */
     public Object objValue() {
 	return null;
@@ -39,9 +34,4 @@ public class NullLit_c extends Lit_c implements NullLit
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
 	w.write("null");
     }
-
-    public Object constantValue() {
-        return null;
-    }
-    
 }

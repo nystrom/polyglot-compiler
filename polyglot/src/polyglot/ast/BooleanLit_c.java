@@ -37,11 +37,6 @@ public class BooleanLit_c extends Lit_c implements BooleanLit
     return n;
   }
 
-  /** Type check the expression. */
-  public Node typeCheck(ContextVisitor tc) throws SemanticException {
-    return type(tc.typeSystem().Boolean());
-  }
-
   public String toString() {
     return String.valueOf(value);
   }
@@ -60,9 +55,4 @@ public class BooleanLit_c extends Lit_c implements BooleanLit
     w.write("(value " + value + ")");
     w.end();
   }
-
-  public Object constantValue() {
-    return Boolean.valueOf(value);
-  }
-
 }

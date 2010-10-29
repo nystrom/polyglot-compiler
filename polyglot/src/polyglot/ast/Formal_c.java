@@ -129,53 +129,6 @@ public class Formal_c extends Term_c implements Formal
         tr.print(this, name, w);
     }
 
-    /** Build type objects for the formal. */
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        Formal_c n = (Formal_c) super.buildTypes(tb);
-
-        TypeSystem ts = tb.typeSystem();
-
-        LocalDef li = ts.localDef(position(), flags().flags(), type.typeRef(), name.id());
-        
-        // Formal parameters are never compile-time constants.
-        li.setNotConstant();
-
-        return n.localDef(li);
-    }
-
-    /** Type check the formal. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        // Check if the variable is multiply defined.
-        Context c = tc.context();
-
-        LocalInstance outerLocal = null;
-
-        try {
-            outerLocal = c.findLocal(li.name());
-        }
-        catch (SemanticException e) {
-            // not found, so not multiply defined
-        }
-
-        if (outerLocal != null && ! li.equals(outerLocal.def()) && c.isLocal(li.name())) {
-            throw new SemanticException(
-                "Local variable \"" + name + "\" multiply defined.  "
-                    + "Previous definition at " + outerLocal.position() + ".",
-                position());
-        }
-
-	TypeSystem ts = tc.typeSystem();
-
-	try {
-	    ts.checkLocalFlags(flags().flags());
-	}
-	catch (SemanticException e) {
-	    throw new SemanticException(e.getMessage(), position());
-	}
-
-	return this;
-    }
-
     public Term firstChild() {
         return type;
     }

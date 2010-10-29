@@ -172,78 +172,66 @@ public class Translator extends PrettyPrinter implements Copy
     	// declarations, we'll use the source file name to derive the
     	// target file name.
     	List<TopLevelDecl> exports = exports(sfn);
-
-        CodeWriter w = null;
     	
     	try {
     	    File of;
+    	    CodeWriter w;
     	    
-            QName pkg = null;
-            
-            if (sfn.package_() != null) {
-                Package p = sfn.package_().package_().get();
-                pkg = p.fullName();
-            }
-            
-            TopLevelDecl first = null;
-            
-            if (exports.size() == 0) {
-                // Use the source name to derive a default output file name.
-                of = tf.outputFile(pkg, sfn.source());
-            }
-            else {
-                first = (TopLevelDecl) exports.get(0);
-                of = tf.outputFile(pkg, first.name().id(), sfn.source());
-            }
-            
-            String opfPath = of.getPath();
-            if (!opfPath.endsWith("$")) outputFiles.add(of.getPath());
-            w = tf.outputCodeWriter(of, outputWidth);
-            
-            writeHeader(sfn, w);
-            
-            for (Iterator<TopLevelDecl> i = sfn.decls().iterator(); i.hasNext(); ) {
-                TopLevelDecl decl = i.next();
+    	    QName pkg = null;
+    	    
+    	    if (sfn.package_() != null) {
+    	        Package p = sfn.package_().package_().get();
+    	        pkg = p.fullName();
+    	    }
+    	    
+    	    TopLevelDecl first = null;
+    	    
+    	    if (exports.size() == 0) {
+    	        // Use the source name to derive a default output file name.
+    	        of = tf.outputFile(pkg, sfn.source());
+    	    }
+    	    else {
+    	        first = (TopLevelDecl) exports.get(0);
+    	        of = tf.outputFile(pkg, first.name().id(), sfn.source());
+    	    }
+    	    
+    	    String opfPath = of.getPath();
+    	    if (!opfPath.endsWith("$")) outputFiles.add(of.getPath());
+    	    w = tf.outputCodeWriter(of, outputWidth);
+    	    
+    	    writeHeader(sfn, w);
+    	    
+    	    for (Iterator<TopLevelDecl> i = sfn.decls().iterator(); i.hasNext(); ) {
+    	        TopLevelDecl decl = i.next();
 
-                if (decl.flags().flags().isPublic() && decl != first) {
-                    // We hit a new exported declaration, open a new file.
-                    // But, first close the old file.
-                    w.flush();
-                    w.close();
-                    
-                    of = tf.outputFile(pkg, decl.name().id(), sfn.source());
-                    outputFiles.add(of.getPath());
-                    w = tf.outputCodeWriter(of, outputWidth);
-                    
-                    writeHeader(sfn, w);
-                }
-                
-                translateTopLevelDecl(w, sfn, decl);
-                
-                if (i.hasNext()) {
-                    w.newline(0);
-                }
-            }
-            
-            w.flush();
-            return true;
+    	        if (decl.flags().flags().isPublic() && decl != first) {
+    	            // We hit a new exported declaration, open a new file.
+    	            // But, first close the old file.
+    	            w.flush();
+    	            w.close();
+    	            
+    	            of = tf.outputFile(pkg, decl.name().id(), sfn.source());
+    	            outputFiles.add(of.getPath());
+    	            w = tf.outputCodeWriter(of, outputWidth);
+    	            
+    	            writeHeader(sfn, w);
+    	        }
+    	        
+    	        translateTopLevelDecl(w, sfn, decl);
+    	        
+    	        if (i.hasNext()) {
+    	            w.newline(0);
+    	        }
+    	    }
+    	    
+    	    w.flush();
+    	    return true;
     	}
     	catch (IOException e) {
     	    job.compiler().errorQueue().enqueue(ErrorInfo.IO_ERROR,
     	            "I/O error while translating: " + e.getMessage());
     	    return false;
     	}
-        finally {
-            if (w != null) {
-                try {
-                    w.close();
-                }
-                catch (IOException e) {
-                    job.compiler().errorQueue().enqueue(ErrorInfo.IO_ERROR,
-                        "I/O error while closing output file: " + e.getMessage());
-                }
-            }
-        }
     }
 
     /**

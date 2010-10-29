@@ -64,15 +64,11 @@ public class ClassBody_c extends Term_c implements ClassBody
         return reconstruct(members);
     }
 
-    public Node disambiguate(ContextVisitor ar) throws SemanticException {
-        return this;
-    }
-
     public String toString() {
         return "{ ... }";
     }
 
-    protected void duplicateFieldCheck(ContextVisitor tc) throws SemanticException {
+    public void duplicateFieldCheck(ContextVisitor tc) throws SemanticException {
         ClassDef type = tc.context().currentClassDef();
 
         ArrayList<FieldDef> l = new ArrayList<FieldDef>(type.fields());
@@ -90,7 +86,7 @@ public class ClassBody_c extends Term_c implements ClassBody
         }
     }
 
-    protected void duplicateConstructorCheck(ContextVisitor tc) throws SemanticException {
+    public void duplicateConstructorCheck(ContextVisitor tc) throws SemanticException {
         ClassDef type = tc.context().currentClassDef();
         TypeSystem ts = tc.typeSystem();
 
@@ -111,7 +107,7 @@ public class ClassBody_c extends Term_c implements ClassBody
         }
     }
 
-    protected void duplicateMethodCheck(ContextVisitor tc) throws SemanticException {
+    public void duplicateMethodCheck(ContextVisitor tc) throws SemanticException {
         ClassDef type = tc.context().currentClassDef();
 
         TypeSystem ts = tc.typeSystem();
@@ -133,7 +129,7 @@ public class ClassBody_c extends Term_c implements ClassBody
         }
     }
 
-    protected void duplicateMemberClassCheck(ContextVisitor tc) throws SemanticException {
+    public void duplicateMemberClassCheck(ContextVisitor tc) throws SemanticException {
         ClassDef type = tc.context().currentClassDef();
 
         ArrayList<Ref<? extends Type>> l = new ArrayList<Ref<? extends Type>>(type.memberClasses());

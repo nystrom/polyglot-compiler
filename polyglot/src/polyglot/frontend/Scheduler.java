@@ -16,6 +16,7 @@ package polyglot.frontend;
 import java.util.*;
 
 import polyglot.ast.Node;
+import polyglot.dispatch.ErrorReporter;
 import polyglot.frontend.Goal.Status;
 import polyglot.main.Report;
 import polyglot.types.*;
@@ -142,13 +143,13 @@ public abstract class Scheduler {
     }
     
     protected Goal PostCompiled() {
-	return new PostCompiled(extInfo).intern(this);
+	if (EndAll == null)
+	    EndAll = new PostCompiled(extInfo);
+	return EndAll;
     }
 
     protected Goal EndAll() {
-	if (EndAll == null)
-	    EndAll = PostCompiled();
-	return EndAll;
+	return PostCompiled();
     }
 
     protected Goal EndCommandLine() {
@@ -238,36 +239,6 @@ public abstract class Scheduler {
         
         return state == Goal.Status.SUCCESS;
     }
-
-    public static class State {
-        SystemResolver resolver;
-        State(SystemResolver resolver) {
-            this.resolver = resolver;
-        }
-    }
-    
-    public State pushGlobalState(Goal goal) {
-        TypeSystem ts = Globals.TS();
-//        SystemResolver resolver = ts.saveSystemResolver();
-        SystemResolver resolver = ts.systemResolver();
-        return new State(resolver);
-    }
-
-    public void popGlobalState(Goal goal, State s) {
-        TypeSystem ts = Globals.TS();
-        if (reached(goal)) {
-//            try {
-//                s.resolver.putAll(ts.systemResolver());
-//            }
-//            catch (SemanticException e) {
-//                ts.restoreSystemResolver(s.resolver);
-//                goal.setState(Goal.Status.FAIL);
-//            }
-        }
-        else {
-//            ts.restoreSystemResolver(s.resolver);
-        }
-    }
     
     protected static class Complete extends RuntimeException {
         protected Goal goal;
@@ -304,14 +275,14 @@ public abstract class Scheduler {
         boolean result = false;
 
         if (true || job == null || job.status()) {
-            Report.start_reporting(goal.name());
+            Report.should_report.push(goal.name());
 
             if (job != null) {
-				    // We're starting to run the pass. 
-				    // Record the initial error count.
-				    job.initialErrorCount = job.compiler().errorQueue().errorCount();
+        	// We're starting to run the pass. 
+        	// Record the initial error count.
+        	job.initialErrorCount = job.compiler().errorQueue().errorCount();
             }
-            
+
             Goal oldGoal = currentGoal;
             currentGoal = goal;
             
@@ -348,16 +319,16 @@ public abstract class Scheduler {
                 currentGoal = oldGoal;
                 
                 if (job != null) {
-				    // We've stopped running a pass. 
-				    // Check if the error count changed.
-				    int errorCount = job.compiler().errorQueue().errorCount();
-				
-				    if (errorCount > job.initialErrorCount) {
-				        job.reportedErrors = true;
-				    }
-				}
+                    // We've stopped running a pass. 
+                    // Check if the error count changed.
+                    int errorCount = job.compiler().errorQueue().errorCount();
 
-                Report.stop_reporting(goal.name());
+                    if (errorCount > job.initialErrorCount) {
+                	job.reportedErrors = true;
+                    }
+                }
+
+                Report.should_report.pop();
             }
 
             // pretty-print this pass if we need to.
@@ -473,8 +444,6 @@ public abstract class Scheduler {
     public abstract List<Goal> goals(Job job);
     
     public void addDependenciesForJob(Job job, boolean compile) {
-        ExtensionInfo extInfo = this.extInfo;
-
         List<Goal> goals = goals(job);
 
         Goal prev = null;
@@ -494,7 +463,7 @@ public abstract class Scheduler {
         
         if (compile) {
             shouldCompile.add(job);
-            EndAll().addPrereq(prev);
+//            EndAll().addPrereq(prev);
         }
     }
 
@@ -513,7 +482,7 @@ public abstract class Scheduler {
     public abstract Goal Parsed(Job job);
     public abstract Goal ImportTableInitialized(Job job);
     public abstract Goal TypesInitialized(Job job);
-    public abstract Goal TypesInitializedForCommandLineBarrier();
+    public abstract Goal TypesInitializedForCommandLine();
     public abstract Goal PreTypeCheck(Job job);
     public abstract Goal TypeChecked(Job job);
     public abstract Goal ReachabilityChecked(Job job);

@@ -540,12 +540,9 @@ public class TypeEnv_c implements TypeEnv {
 	}
 
 	if (type1.isArray() && type2.isArray()) {
-	    if (type1.toArray().base().isReference() && type2.toArray().base().isReference()) {
-		return ts.arrayOf(leastCommonAncestor(type1.toArray().base(), type2.toArray().base()));
-	    }
-	    else {
-		return ts.Object();
-	    }
+	    // XYZ
+	    assert false;
+	    return ts.arrayOf(leastCommonAncestor(type1.toArray().base(), type2.toArray().base()));
 	}
 
 	if (type1.isReference() && type2.isNull())

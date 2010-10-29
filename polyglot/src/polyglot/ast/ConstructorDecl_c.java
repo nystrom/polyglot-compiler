@@ -154,53 +154,7 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
         return body == n.body ? n : n.body(body);
     }
 
-    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
-        TypeSystem ts = tb.typeSystem();
-
-        ClassDef ct = tb.currentClass();
-        assert ct != null;
-
-        Flags flags = this.flags.flags();
-
-        if (ct.flags().isInterface()) {
-            flags = flags.Public().Abstract();
-        }
-
-        ConstructorDef ci = createConstructorDef(ts, ct, flags);
-        ct.addConstructor(ci);
-
-        TypeBuilder tbChk = tb.pushCode(ci);
-        
-        final TypeBuilder tbx = tb;
-        final ConstructorDef mix = ci;
-        
-        ConstructorDecl_c n = (ConstructorDecl_c) this.visitSignature(new NodeVisitor() {
-            int key = 0;
-            public Node override(Node n) {
-                return ConstructorDecl_c.this.visitChild(n, tbx.pushCode(mix));
-            }
-        });
-
-        List<Ref<? extends Type>> formalTypes = new ArrayList<Ref<? extends Type>>(n.formals().size());
-        for (Formal f : n.formals()) {
-             formalTypes.add(f.type().typeRef());
-        }
-
-        List<Ref<? extends Type>> throwTypes = new ArrayList<Ref<? extends Type>>(n.throwTypes().size());
-        for (TypeNode tn : n.throwTypes()) {
-            throwTypes.add(tn.typeRef());
-        }
-
-        ci.setFormalTypes(formalTypes);
-        ci.setThrowTypes(throwTypes);
-
-        Block body = (Block) n.visitChild(n.body, tbChk);
-        
-        n = (ConstructorDecl_c) n.body(body);
-        return n.constructorDef(ci);
-    }
-
-    protected ConstructorDef createConstructorDef(TypeSystem ts, ClassDef ct, Flags flags) {
+    public ConstructorDef createConstructorDef(TypeSystem ts, ClassDef ct, Flags flags) {
 	ConstructorDef ci = ts.constructorDef(position(), Types.ref(ct.asType()), flags,
                                               Collections.<Ref<? extends Type>>emptyList(), Collections.<Ref<? extends Type>>emptyList());
 	return ci;
@@ -216,30 +170,6 @@ public class ConstructorDecl_c extends Term_c implements ConstructorDecl
         List<Formal> formals = this.visitList(this.formals, v);
         List<TypeNode> throwTypes = this.visitList(this.throwTypes, v);
         return reconstruct(flags, name, formals, throwTypes, this.body);
-    }
-
-    /** Type check the declaration. */
-    public Node typeCheckBody(Node parent, TypeChecker tc, TypeChecker childtc) throws SemanticException {
-        ConstructorDecl_c n = this;
-        Block body = (Block) n.visitChild(n.body, childtc);
-        n = (ConstructorDecl_c) n.body(body);
-        return n;
-    }
-
-    /** Type check the constructor. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-
-        for (TypeNode tn : throwTypes()) {
-            Type t = tn.type();
-            if (! t.isThrowable()) {
-                throw new SemanticException("Type \"" + t +
-                                            "\" is not a subclass of \"" + ts.Throwable() + "\".",
-                                            tn.position());
-            }
-        }
-
-        return this;
     }
     
     public Node conformanceCheck(ContextVisitor tc) throws SemanticException {

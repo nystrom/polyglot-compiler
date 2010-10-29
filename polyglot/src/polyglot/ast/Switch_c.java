@@ -81,55 +81,6 @@ public class Switch_c extends Stmt_c implements Switch
 	return reconstruct(expr, elements);
     }
 
-    /** Type check the statement. */
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeSystem ts = tc.typeSystem();
-	Context context = tc.context();
-
-	if (! ts.isImplicitCastValid(expr.type(), ts.Int(), context) && ! ts.isImplicitCastValid(expr.type(), ts.Char(), context)) {
-            throw new SemanticException("Switch index must be an integer.",
-                                        position());
-        }
-        
-        return this;
-    }
-
-    public Node checkConstants(ContextVisitor tc) throws SemanticException {
-        Collection<Object> labels = new HashSet<Object>();
-
-        // Check for duplicate labels.
-        for (Iterator<SwitchElement> i = elements.iterator(); i.hasNext();) {
-            SwitchElement s = i.next();
-            
-            if (s instanceof Case) {
-                Case c = (Case) s;
-                Object key;
-                String str;
-                
-                if (c.isDefault()) {
-                    key = "default";
-                    str = "default";
-                }
-                else if (c.expr().isConstant()) {
-                    key = Long.valueOf(c.value());
-                    str = c.expr().toString() + " (" + c.value() + ")";
-                }
-                else {
-                    continue;
-                }
-                
-                if (labels.contains(key)) {
-                    throw new SemanticException("Duplicate case label: " +
-                                                str + ".", c.position());
-                }
-                
-                labels.add(key);
-            }
-        }
-        
-        return this;
-    }
-
     public Type childExpectedType(Expr child, AscriptionVisitor av) {
         TypeSystem ts = av.typeSystem();
 
@@ -202,7 +153,7 @@ public class Switch_c extends Stmt_c implements Switch
         // If there is no default case, add an edge to the end of the switch.
         if (! hasDefault) {
             cases.add(this);
-            entry.add(new Integer(EXIT));
+            entry.add(EXIT);
         }
 
         v.visitCFG(expr, FlowGraph.EDGE_KEY_OTHER, cases, entry);

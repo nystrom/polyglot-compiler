@@ -7,6 +7,13 @@
 
 package polyglot.ast;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import polyglot.dispatch.ConstantValueVisitor;
+import polyglot.dispatch.TypeChecker;
+import polyglot.frontend.Globals;
+import polyglot.frontend.Job;
 import polyglot.types.*;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
@@ -18,10 +25,12 @@ import polyglot.visit.*;
  */
 public abstract class Expr_c extends Term_c implements Expr
 {
-	protected Type type;
+    protected Ref<Type> typeRef;
 
     public Expr_c(Position pos) {
 	super(pos);
+	TypeSystem ts = Globals.TS();
+	this.typeRef = Types.<Type>lazyRef(ts.unknownType(position()));
     }
 
     /**
@@ -29,25 +38,28 @@ public abstract class Expr_c extends Term_c implements Expr
      * <code>UnknownType</code> before type-checking, but should return the
      * correct type after type-checking.
      */
+    public Ref<Type> typeRef() {
+    	return this.typeRef;
+    }
+    
     public Type type() {
-    	return this.type;
+	return Types.get(this.typeRef);
     }
     
     /** Set the type of the expression. */
     public Expr type(Type type) {
-    	if (type == this.type) return this;
     	Expr_c n = (Expr_c) copy();
-    	n.type = type;
+    	n.typeRef.update(type);
     	return n;
     }
 
     public void dump(CodeWriter w) {
         super.dump(w);
 
-	if (type != null) {
+	if (typeRef != null) {
 	    w.allowBreak(4, " ");
 	    w.begin(0);
-	    w.write("(type " + type + ")");
+	    w.write("(type " + typeRef + ")");
 	    w.end();
 	}
     }
@@ -58,11 +70,21 @@ public abstract class Expr_c extends Term_c implements Expr
     }
 
     public boolean isConstant() {
-        return false;
+	Job job = Globals.currentJob();
+	TypeSystem ts = Globals.TS();
+	NodeFactory nf = Globals.NF();
+	Object v = this.accept(new ConstantValueVisitor(job, ts, nf));
+	return v != ConstantValueVisitor.NOT_CONSTANT;
     }
 
     public Object constantValue() {
-        return null;
+	Job job = Globals.currentJob();
+	TypeSystem ts = Globals.TS();
+	NodeFactory nf = Globals.NF();
+	Object v = this.accept(new ConstantValueVisitor(job, ts, nf));
+	if (v == ConstantValueVisitor.NOT_CONSTANT)
+	    return null;
+	return v;
     }
 
     public String stringValue() {
@@ -99,10 +121,6 @@ public abstract class Expr_c extends Term_c implements Expr
 
     public double doubleValue() {
         return ((Double) constantValue()).doubleValue();
-    }
-
-    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        return type(tb.typeSystem().unknownType(position()));
     }
 
     /**
