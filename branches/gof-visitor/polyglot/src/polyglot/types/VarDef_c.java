@@ -7,6 +7,7 @@
 
 package polyglot.types;
 
+import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 
 /**
@@ -33,28 +34,28 @@ public abstract class VarDef_c extends Def_c implements VarDef
     }
 
     public static class ConstantValue {
-	private Object value;
-	private boolean isConstant;
-	public ConstantValue() {
-	    this.value = null;
-	    this.isConstant = false;
-	}
-	public ConstantValue(Object v) {
-	    this.value = v;
-	    this.isConstant = true;
-	}
-	public void setValue(Object value) {
-	    this.value = value;
-	}
-	public Object value() {
-	    return value;
-	}
-	public void setConstant(boolean isConstant) {
-	    this.isConstant = isConstant;
-	}
-	public boolean isConstant() {
-	    return isConstant;
-	}
+    	private Object value;
+    	private boolean isConstant;
+    	public ConstantValue() {
+    		this.value = null;
+    		this.isConstant = false;
+    	}
+    	public ConstantValue(Object v) {
+    		this.value = v;
+    		this.isConstant = true;
+    	}
+		public void setValue(Object value) {
+			this.value = value;
+		}
+		public Object value() {
+			return value;
+		}
+		public void setConstant(boolean isConstant) {
+			this.isConstant = isConstant;
+		}
+		public boolean isConstant() {
+			return isConstant;
+		}
     }
 
     public Object constantValue() {

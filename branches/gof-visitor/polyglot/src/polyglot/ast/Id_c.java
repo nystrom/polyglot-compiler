@@ -9,8 +9,8 @@
 package polyglot.ast;
 
 import polyglot.types.Name;
-import polyglot.util.CodeWriter;
-import polyglot.util.Position;
+import polyglot.util.*;
+import polyglot.visit.PrettyPrinter;
 
 /** A node that represents a simple identifier in the AST. */
 public class Id_c extends Node_c implements Id
@@ -37,6 +37,11 @@ public class Id_c extends Node_c implements Id
     Id_c n = (Id_c) copy();
     n.id = id;
     return n;
+  }
+
+  /** Write the name to an output file. */
+  public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+    w.write(id.toString());
   }
 
   public String toString() {

@@ -12,6 +12,7 @@ import java.util.*;
 
 import polyglot.types.*;
 import polyglot.util.Position;
+import polyglot.util.StringUtil;
 
 /**
  * This is a node factory that creates no nodes.  It, rather than
@@ -24,46 +25,70 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
 	return Id(pos, Name.make(name));
     }
     
-    public QualifiedName PrefixFromQualifiedName(Position pos, QName qualifiedName) {
+    public Prefix PrefixFromQualifiedName(Position pos, QName qualifiedName) {
 	if (qualifiedName.qualifier() == null)
-            return QualifiedName(pos, null, Id(pos, qualifiedName.name()));
+            return AmbPrefix(pos, null, Id(pos, qualifiedName.name()));
         
         Position pos2 = pos.truncateEnd(qualifiedName.name().toString().length()+1);
         
-        return QualifiedName(pos, PrefixFromQualifiedName(pos2, qualifiedName.qualifier()), Id(pos, qualifiedName.name()));
+        return AmbPrefix(pos, PrefixFromQualifiedName(pos2, qualifiedName.qualifier()), Id(pos, qualifiedName.name()));
     }
     
     public TypeNode TypeNodeFromQualifiedName(Position pos, QName qualifiedName) {
 	if (qualifiedName.qualifier() == null)
-            return AmbTypeNode(pos, Id(pos, qualifiedName.name()));
-        return AmbTypeNode(pos, PrefixFromQualifiedName(pos, qualifiedName));
+            return AmbTypeNode(pos, null, Id(pos, qualifiedName.name()));
+        
+        Position pos2 = pos.truncateEnd(qualifiedName.name().toString().length()+1);
+        
+        return AmbTypeNode(pos, QualifierNodeFromQualifiedName(pos2, qualifiedName.qualifier()), Id(pos, qualifiedName.name()));
     }
     
     public Receiver ReceiverFromQualifiedName(Position pos, QName qualifiedName) {
 	if (qualifiedName.qualifier() == null)
-	    return AmbReceiver(pos, Id(pos, qualifiedName.name()));
-        return AmbReceiver(pos, PrefixFromQualifiedName(pos, qualifiedName));
+	    return AmbReceiver(pos, null, Id(pos, qualifiedName.name()));
+        
+        Position pos2 = pos.truncateEnd(qualifiedName.name().toString().length()+1);
+        
+        return AmbReceiver(pos, PrefixFromQualifiedName(pos2, qualifiedName.qualifier()), Id(pos, qualifiedName.name()));
   
     }
     
     public Expr ExprFromQualifiedName(Position pos, QName qualifiedName) {
 	if (qualifiedName.qualifier() == null)
 	    return AmbExpr(pos, Id(pos, qualifiedName.name()));
-        return AmbExpr(pos, PrefixFromQualifiedName(pos, qualifiedName));
+        
+	Position pos2 = pos.truncateEnd(qualifiedName.name().toString().length()+1);
+        
+        return Field(pos, ReceiverFromQualifiedName(pos2, qualifiedName.qualifier()), Id(pos, qualifiedName.name()));
     }
     
     public QualifierNode QualifierNodeFromQualifiedName(Position pos, QName qualifiedName) {
 	if (qualifiedName.qualifier() == null)
-	    return AmbQualifierNode(pos, Id(pos, qualifiedName.name()));
-        return AmbQualifierNode(pos, PrefixFromQualifiedName(pos, qualifiedName));
+	    return AmbQualifierNode(pos, null, Id(pos, qualifiedName.name()));
+        
+	Position pos2 = pos.truncateEnd(qualifiedName.name().toString().length()+1);
+        
+        return AmbQualifierNode(pos, QualifierNodeFromQualifiedName(pos2, qualifiedName.qualifier()), Id(pos, qualifiedName.name()));
     }
     
     public CanonicalTypeNode CanonicalTypeNode(Position pos, Type type) {
         return CanonicalTypeNode(pos, Types.<Type>ref(type));
     }
 
-    public final QualifiedName QualifiedName(Position pos, Id name) {
-        return QualifiedName(pos, null, name);
+    public final AmbPrefix AmbPrefix(Position pos, Id name) {
+        return AmbPrefix(pos, null, name);
+    }
+
+    public final AmbReceiver AmbReceiver(Position pos, Id name) {
+        return AmbReceiver(pos, null, name);
+    }
+
+    public final AmbQualifierNode AmbQualifierNode(Position pos, Id name) {
+        return AmbQualifierNode(pos, null, name);
+    }
+
+    public final AmbTypeNode AmbTypeNode(Position pos, Id name) {
+        return AmbTypeNode(pos, null, name);
     }
 
     public final ArrayInit ArrayInit(Position pos) {
@@ -74,10 +99,40 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
         return Assert(pos, cond, null);
     }
 
-    public final Block Block(Position pos, Stmt... s) {
-	return Block(pos, Arrays.asList(s));
+    public final Block Block(Position pos) {
+	return Block(pos, Collections.<Stmt>emptyList());
     }
 
+    public final Block Block(Position pos, Stmt s1) {
+        List<Stmt> l = new ArrayList<Stmt>(1);
+	l.add(s1);
+	return Block(pos, l);
+    }
+
+    public final Block Block(Position pos, Stmt s1, Stmt s2) {
+        List<Stmt> l = new ArrayList<Stmt>(2);
+	l.add(s1);
+	l.add(s2);
+	return Block(pos, l);
+    }
+
+    public final Block Block(Position pos, Stmt s1, Stmt s2, Stmt s3) {
+        List<Stmt> l = new ArrayList<Stmt>(3);
+	l.add(s1);
+	l.add(s2);
+	l.add(s3);
+	return Block(pos, l);
+    }
+
+    public final Block Block(Position pos, Stmt s1, Stmt s2, Stmt s3, Stmt s4) {
+        List<Stmt> l = new ArrayList<Stmt>(4);
+	l.add(s1);
+	l.add(s2);
+	l.add(s3);
+	l.add(s4);
+	return Block(pos, l);
+    }
+    
     public final Branch Break(Position pos) {
 	return Branch(pos, Branch.BREAK, (Id) null);
     }
@@ -94,20 +149,80 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
         return Branch(pos, Branch.CONTINUE, label);
     }
 
-    public final Branch Branch(Position pos, polyglot.ast.Branch.Kind kind) {
+    public final Branch Branch(Position pos, Branch.Kind kind) {
 	return Branch(pos, kind, (Id) null);
     }
     
-    public final Call Call(Position pos, Id name, Expr... a1) {
-        return Call(pos, null, name, Arrays.asList(a1));
+    public final Call Call(Position pos, Id name) {
+        return Call(pos, null, name, Collections.<Expr>emptyList());
+    }
+
+    public final Call Call(Position pos, Id name, Expr a1) {
+        List<Expr> l = new ArrayList<Expr>(1);
+        l.add(a1);
+        return Call(pos, null, name, l);
+    }
+
+    public final Call Call(Position pos, Id name, Expr a1, Expr a2) {
+        List<Expr> l = new ArrayList<Expr>(2);
+        l.add(a1);
+        l.add(a2);
+        return Call(pos, null, name, l);
+    }
+
+    public final Call Call(Position pos, Id name, Expr a1, Expr a2, Expr a3) {
+        List<Expr> l = new ArrayList<Expr>(3);
+        l.add(a1);
+        l.add(a2);
+        l.add(a3);
+        return Call(pos, null, name, l);
+    }
+    
+    public final Call Call(Position pos, Id name, Expr a1, Expr a2, Expr a3, Expr a4) {
+        List<Expr> l = new ArrayList<Expr>(4);
+        l.add(a1);
+        l.add(a2);
+        l.add(a3);
+        l.add(a4);
+        return Call(pos, null, name, l);
     }
 
     public final Call Call(Position pos, Id name, List<Expr> args) {
         return Call(pos, null, name, args);
     }
     
-    public final Call Call(Position pos, Receiver target, Id name, Expr... a1) {
-        return Call(pos, target, name, Arrays.asList(a1));
+    public final Call Call(Position pos, Receiver target, Id name) {
+        return Call(pos, target, name, Collections.<Expr>emptyList());
+    }
+
+    public final Call Call(Position pos, Receiver target, Id name, Expr a1) {
+        List<Expr> l = new ArrayList<Expr>(1);
+        l.add(a1);
+        return Call(pos, target, name, l);
+    }
+    
+    public final Call Call(Position pos, Receiver target, Id name, Expr a1, Expr a2) {
+        List<Expr> l = new ArrayList<Expr>(2);
+        l.add(a1);
+        l.add(a2);
+        return Call(pos, target, name, l);
+    }
+
+    public final Call Call(Position pos, Receiver target, Id name, Expr a1, Expr a2, Expr a3) {
+        List<Expr> l = new ArrayList<Expr>(3);
+        l.add(a1);
+        l.add(a2);
+        l.add(a3);
+        return Call(pos, target, name, l);
+    }
+    
+    public final Call Call(Position pos, Receiver target, Id name, Expr a1, Expr a2, Expr a3, Expr a4) {
+        List<Expr> l = new ArrayList<Expr>(4);
+        l.add(a1);
+        l.add(a2);
+        l.add(a3);
+        l.add(a4);
+        return Call(pos, target, name, l);
     }
 
     public final Case Default(Position pos) {
@@ -130,7 +245,7 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
 	return ConstructorCall(pos, ConstructorCall.SUPER, outer, args);
     }
 
-    public final ConstructorCall ConstructorCall(Position pos, polyglot.ast.ConstructorCall.Kind kind, List<Expr> args) {
+    public final ConstructorCall ConstructorCall(Position pos, ConstructorCall.Kind kind, List<Expr> args) {
 	return ConstructorCall(pos, kind, null, args);
     }
 
@@ -206,7 +321,7 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
         return Special(pos, Special.SUPER, outer);
     }
 
-    public final Special Special(Position pos, polyglot.ast.Special.Kind kind) {
+    public final Special Special(Position pos, Special.Kind kind) {
         return Special(pos, kind, null);
     }
 
@@ -214,7 +329,7 @@ public abstract class AbstractNodeFactory_c implements NodeFactory
         return Try(pos, tryBlock, catchBlocks, null);
     }
 
-    public final Unary Unary(Position pos, Expr expr, polyglot.ast.Unary.Operator op) {
+    public final Unary Unary(Position pos, Expr expr, Unary.Operator op) {
         return Unary(pos, op, expr);
     }
 }

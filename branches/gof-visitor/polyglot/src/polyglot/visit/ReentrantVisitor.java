@@ -20,6 +20,7 @@ public class ReentrantVisitor extends NodeVisitor {
         return job;
     }
     
+    
     @Override
     public Node visitEdge(Node parent, Node child) {
 //        Map<Node,Node> subst = job.astMap();

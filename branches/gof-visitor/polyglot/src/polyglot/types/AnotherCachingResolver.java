@@ -7,18 +7,10 @@
 
 package polyglot.types;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 import polyglot.main.Report;
-import polyglot.util.CollectionUtil;
-import polyglot.util.Copy;
-import polyglot.util.InternalCompilerError;
+import polyglot.util.*;
 
 /**
  * A <code>CachingResolver</code> memoizes another Resolver
@@ -37,7 +29,6 @@ public class AnotherCachingResolver implements Resolver, Copy {
 	this.inner = inner;
 	this.cacheNotFound = cacheNotFound;
 	this.cache = new LinkedHashMap<Object, Object>();
-//	this.cache = new ConcurrentHashMap<Object, Object>();
     }
 
     public AnotherCachingResolver(Resolver inner) {
@@ -51,7 +42,7 @@ public class AnotherCachingResolver implements Resolver, Copy {
     public Object copy() {
 	try {
 	   AnotherCachingResolver r = (AnotherCachingResolver) super.clone();
-	    r.cache = new ConcurrentHashMap<Object, Object>(this.cache);
+	    r.cache = new HashMap<Object, Object>(this.cache);
 	    return r;
 	}
 	catch (CloneNotSupportedException e) {

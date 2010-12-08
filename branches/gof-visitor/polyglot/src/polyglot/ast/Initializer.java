@@ -7,6 +7,7 @@
 
 package polyglot.ast;
 
+import polyglot.types.Flags;
 import polyglot.types.InitializerDef;
 
 /**

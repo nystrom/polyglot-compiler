@@ -46,7 +46,9 @@ public interface Assign extends Expr
      * statically to keep Polyglot backward compatible.
      * @param nf TODO
      */
-    Expr left();
+    Expr left(NodeFactory nf);
+
+    Type leftType();	
 
     /**
      * The assignment's operator.
@@ -67,4 +69,6 @@ public interface Assign extends Expr
      * Set the right child (source) of the assignment.
      */
     Assign right(Expr right);
+    
+    boolean throwsArithmeticException();
 }

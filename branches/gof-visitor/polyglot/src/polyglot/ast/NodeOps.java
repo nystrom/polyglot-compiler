@@ -13,8 +13,8 @@ import java.util.List;
 
 import polyglot.frontend.ExtensionInfo;
 import polyglot.types.*;
-import polyglot.visit.ExceptionCheckerContext;
-import polyglot.visit.NodeVisitor;
+import polyglot.util.CodeWriter;
+import polyglot.visit.*;
 
 /**
  * A <code>Node</code> represents an AST node.  All AST nodes must implement
@@ -62,6 +62,67 @@ public interface NodeOps
      */
     void addDecls(Context c);
 
+    /**
+     * Check that exceptions are properly propagated throughout the AST.
+     *
+     * This method is called by the <code>enter()</code> method of the
+     * visitor.  The * method should perform work that should be done
+     * before visiting the children of the node.  The method may return
+     * <code>this</code> or a new copy of the node on which
+     * <code>visitChildren()</code> and <code>leave()</code> will be
+     * invoked.
+     *
+     * @param ec The visitor.
+     */
+    NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException;
+
+    /**
+     * Check that exceptions are properly propagated throughout the AST.
+     *
+     * This method is called by the <code>leave()</code> method of the
+     * visitor.  The method should perform work that should be done
+     * after visiting the children of the node.  The method may return
+     * <code>this</code> or a new copy of the node which will be
+     * installed as a child of the node's parent.
+     *
+     * @param ec The visitor.
+     */
+    Node exceptionCheck(ExceptionChecker ec) throws SemanticException;
+
+    /** 
+     * List of Types of exceptions that might get thrown.  The result is
+     * not necessarily correct until after type checking. 
+     */
+    List<Type> throwTypes(TypeSystem ts);
+
+    /** Dump the AST for debugging. */
+    public void dump(OutputStream os);
+    
+    /** Dump the AST for debugging. */
+    public void dump(Writer w);
+    
+    /** Pretty-print the AST for debugging. */
+    public void prettyPrint(OutputStream os);
+    
+    /** Pretty-print the AST for debugging. */
+    public void prettyPrint(Writer w);
+ 
+    /**
+     * Pretty-print the AST using the given code writer.
+     *
+     * @param w The code writer to which to write.
+     * @param pp The pretty printer.  This is <i>not</i> a visitor.
+     */
+    void prettyPrint(CodeWriter w, PrettyPrinter pp);
+
+    /**
+     * Translate the AST using the given code writer.
+     *
+     * @param w The code writer to which to write.
+     * @param tr The translation pass.  This is <i>not</i> a visitor.
+     */
+    void translate(CodeWriter w, Translator tr);
+    
     /**
      * Produce a copy of this node using the given NodeFactory.
      */

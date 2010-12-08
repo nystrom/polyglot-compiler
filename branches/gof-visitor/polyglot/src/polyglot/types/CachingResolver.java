@@ -8,7 +8,6 @@
 package polyglot.types;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import polyglot.main.Report;
 import polyglot.util.*;
@@ -28,8 +27,7 @@ public class CachingResolver implements TopLevelResolver, Copy {
     public CachingResolver(TopLevelResolver inner, boolean cacheNotFound) {
 	this.inner = inner;
         this.cacheNotFound = cacheNotFound;
-//	this.cache = new LinkedHashMap<QName, Object>();
-        this.cache = new ConcurrentHashMap<QName, Object>();
+	this.cache = new LinkedHashMap<QName, Object>();
     }
 
     public CachingResolver(TopLevelResolver inner) {
@@ -48,7 +46,7 @@ public class CachingResolver implements TopLevelResolver, Copy {
     public Object copy() {
         try {
             CachingResolver r = (CachingResolver) super.clone();
-            r.cache = new ConcurrentHashMap<QName, Object>(this.cache);
+            r.cache = new HashMap<QName, Object>(this.cache);
             return r;
         }
         catch (CloneNotSupportedException e) {

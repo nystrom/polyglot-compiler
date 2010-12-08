@@ -8,8 +8,11 @@
 
 package polyglot.ast;
 
-import polyglot.util.Position;
-import polyglot.visit.NodeVisitor;
+import java.util.List;
+
+import polyglot.types.SemanticException;
+import polyglot.util.*;
+import polyglot.visit.*;
 
 /**
  * An <code>AmbExpr</code> is an ambiguous AST node composed of a single
@@ -17,29 +20,36 @@ import polyglot.visit.NodeVisitor;
  */
 public class AmbExpr_c extends Expr_c implements AmbExpr
 {
-  protected Node child;
+  protected Id name;
 
-  public AmbExpr_c(Position pos, Node child) {
+  public AmbExpr_c(Position pos, Id name) {
     super(pos);
-    assert(child != null);
-    this.child = child;
+    assert(name != null);
+    this.name = name;
+  }
+
+  /** Get the precedence of the field. */
+  public Precedence precedence() {
+    return Precedence.LITERAL;
   }
   
-  public Node child() {
-      return this.child;
+  /** Get the name of the expression. */
+  public Id name() {
+      return this.name;
   }
   
-  public AmbExpr child(Node child) {
+  /** Set the name of the expression. */
+  public AmbExpr name(Id id) {
       AmbExpr_c n = (AmbExpr_c) copy();
-      n.child = child;
+      n.name = id;
       return n;
   }
 
   /** Reconstruct the expression. */
-  protected AmbExpr_c reconstruct(Node child) {
-      if (child != this.child) {
+  protected AmbExpr_c reconstruct(Id name) {
+      if (name != this.name) {
           AmbExpr_c n = (AmbExpr_c) copy();
-          n.child = child;
+          n.name = name;
           return n;
       }
       return this;
@@ -47,11 +57,38 @@ public class AmbExpr_c extends Expr_c implements AmbExpr
   
   /** Visit the children of the constructor. */
   public Node visitChildren(NodeVisitor v) {
-      Node child = (Node) visitChild(this.child, v);
-      return reconstruct(child);
+      Id name = (Id) visitChild(this.name, v);
+      return reconstruct(name);
+  }
+
+  /** Check exceptions thrown by the expression. */
+  public Node exceptionCheck(ExceptionChecker ec) throws SemanticException {
+    throw new InternalCompilerError(position(),
+                                    "Cannot exception check ambiguous node "
+                                    + this + ".");
+  } 
+
+  /** Write the expression to an output file. */
+  public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+      tr.print(this, name, w);
   }
 
   public String toString() {
-    return child.toString() + "{amb}";
+    return name.toString() + "{amb}";
+  }
+
+  /**
+   * Return the first (sub)term performed when evaluating this
+   * term.
+   */
+  public Term firstChild() {
+      return null;
+  }
+
+  /**
+   * Visit this term in evaluation order.
+   */
+  public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+      return succs;
   }
 }

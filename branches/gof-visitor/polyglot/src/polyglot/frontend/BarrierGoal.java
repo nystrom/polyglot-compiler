@@ -19,12 +19,12 @@ public abstract class BarrierGoal extends AbstractGoal_c {
     
     public abstract Goal prereqForJob(Job job);
     
-    public List<Goal> prereqGoals() {
+    public List<Goal> prereqs() {
         List<Goal> l = new ArrayList<Goal>();
         for (Job job : jobs) {
             l.add(prereqForJob(job));
         }
-        l.addAll(super.prereqGoals());
+        l.addAll(super.prereqs());
         return l;
     }
     

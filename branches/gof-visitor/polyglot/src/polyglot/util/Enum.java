@@ -8,8 +8,10 @@
 package polyglot.util;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.IOException;
+import java.util.*;
 
 /** An enumerated type.  Enums are interned and can be compared with ==. */
 public class Enum implements Internable, Serializable

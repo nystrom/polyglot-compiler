@@ -8,13 +8,12 @@
 
 package polyglot.ast;
 
+import java.util.Collections;
 import java.util.List;
 
-import polyglot.types.Type;
-import polyglot.types.TypeSystem;
-import polyglot.util.CollectionUtil;
-import polyglot.util.Position;
-import polyglot.visit.NodeVisitor;
+import polyglot.types.*;
+import polyglot.util.*;
+import polyglot.visit.*;
 
 /**
  * A <code>Throw</code> is an immutable representation of a <code>throw</code>
@@ -60,8 +59,43 @@ public class Throw_c extends Stmt_c implements Throw
 	return reconstruct(expr);
     }
 
+    public Type childExpectedType(Expr child, AscriptionVisitor av) {
+        TypeSystem ts = av.typeSystem();
+
+        if (child == expr) {
+            return ts.Throwable();
+        }
+
+        return child.type();
+    }
+
     public String toString() {
 	return "throw " + expr + ";";
     }
+
+    /** Write the statement to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+	w.write("throw ");
+	print(expr, w, tr);
+	w.write(";");
+    }
+
+    public Term firstChild() {
+        return expr;
+    }
+
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        v.visitCFG(expr, this, EXIT);
+
+        // Throw edges will be handled by visitor.
+        return Collections.EMPTY_LIST;
+    }
+
+    public List<Type> throwTypes(TypeSystem ts) {
+        // if the exception that a throw statement is given to throw is null,
+        // then a NullPointerException will be thrown.
+        return CollectionUtil.list(expr.type(), ts.NullPointerException());
+    }
+    
 
 }

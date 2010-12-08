@@ -11,9 +11,8 @@ package polyglot.ast;
 import java.util.*;
 
 import polyglot.types.Context;
-import polyglot.util.InternalCompilerError;
-import polyglot.util.Position;
-import polyglot.visit.NodeVisitor;
+import polyglot.util.*;
+import polyglot.visit.*;
 
 /**
  * A local class declaration statement.  The node is just a wrapper around
@@ -52,6 +51,22 @@ public class LocalClassDecl_c extends Stmt_c implements LocalClassDecl
 	return this;
     }
 
+    /**
+     * Return the first (sub)term performed when evaluating this
+     * term.
+     */
+    public Term firstChild() {
+        return decl();
+    }
+
+    /**
+     * Visit this term in evaluation order.
+     */
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        v.visitCFG(decl(), this, EXIT);
+        return succs;
+    }
+
     /** Visit the children of the statement. */
     public Node visitChildren(NodeVisitor v) {
         Node decl = visitChild(this.decl, v);
@@ -81,5 +96,12 @@ public class LocalClassDecl_c extends Stmt_c implements LocalClassDecl
     public String toString() {
 	return decl.toString();
     }
+
+    /** Write the statement to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+        printBlock(decl, w, tr);
+	w.write(";");
+    }
+    
 
 }

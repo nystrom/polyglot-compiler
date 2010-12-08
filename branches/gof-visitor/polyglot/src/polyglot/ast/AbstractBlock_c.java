@@ -12,7 +12,7 @@ import java.util.*;
 
 import polyglot.types.Context;
 import polyglot.util.*;
-import polyglot.visit.NodeVisitor;
+import polyglot.visit.*;
 
 /**
  * A <code>Block</code> represents a Java block statement -- an immutable
@@ -69,12 +69,38 @@ public abstract class AbstractBlock_c extends Stmt_c implements Block
 
     /** Visit the children of the block. */
     public Node visitChildren(NodeVisitor v) {
-        List<Stmt> statements = (List<Stmt>) visitList(this.statements, v);
+        List<Stmt> statements = visitList(this.statements, v);
 	return reconstruct(statements);
     }
 
     public Context enterScope(Context c) {
 	return c.pushBlock();
+    }
+
+    /** Write the block to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+	w.begin(0);
+
+	for (Iterator<Stmt> i = statements.iterator(); i.hasNext(); ) {
+	    Stmt n = i.next();
+	    
+	    printBlock(n, w, tr);
+
+	    if (i.hasNext()) {
+		w.newline();
+	    }
+	}
+
+	w.end();
+    }
+
+    public Term firstChild() {
+        return listChild(statements, null);
+    }
+
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        v.visitCFGList(statements, this, EXIT);
+        return succs;
     }
 
     public String toString() {

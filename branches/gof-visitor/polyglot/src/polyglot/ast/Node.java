@@ -9,10 +9,9 @@ package polyglot.ast;
 
 import java.util.List;
 
-import polyglot.types.Context;
-import polyglot.types.Ref;
-import polyglot.types.Ref.Handler;
+import polyglot.types.*;
 import polyglot.util.*;
+import polyglot.visit.AscriptionVisitor;
 import polyglot.visit.NodeVisitor;
 
 /**
@@ -23,10 +22,38 @@ import polyglot.visit.NodeVisitor;
  */
 public interface Node extends JL, Copy
 {
-    public void addCopyHook(Handler<Node> h);
-
     public <T> T accept(Object v, Object... args);
     public Node acceptChildren(Object v, Object... args);
+
+    /**
+     * Set the delegate of the node.
+     */
+    Node del(JL del);
+
+    /**
+     * Get the node's delegate.
+     */
+    JL del();
+
+    /**
+     * Set the extension of the node.
+     */
+    Node ext(Ext ext);
+
+    /**
+     * Get the node's extension.
+     */
+    Ext ext();
+
+    /**
+     * Set the node's nth extension, n &gt;= 1.
+     */
+    Node ext(int n, Ext ext);
+
+    /**
+     * Get the node's nth extension, n &gt;= 1.
+     */
+    Ext ext(int n);
 
     /**
      * Get the position of the node in the source file.  Returns null if
@@ -89,6 +116,22 @@ public interface Node extends JL, Copy
      */
     public List visitList(List l, NodeVisitor v);
 
+    /**
+     * Get the expected type of a child expression of <code>this</code>.
+     * The expected type is determined by the context in that the child occurs
+     * (e.g., for <code>x = e</code>, the expected type of <code>e</code> is
+     * the declared type of <code>x</code>.
+     *
+     * The expected type should impose the least constraints on the child's
+     * type that are allowed by the parent node.
+     *
+     * @param child A child expression of this node.
+     * @param av An ascription visitor.
+     * @return The expected type of <code>child</code>.
+     */
+    Type childExpectedType(Expr child, AscriptionVisitor av);
+
+    
     /**
      * Dump the AST node for debugging purposes.
      */

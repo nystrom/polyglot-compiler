@@ -30,23 +30,26 @@ public interface NodeFactory
     Id Id(Position pos, Name id);
     Id Id(Position pos, String id); // for backward compat
     
-    AmbExpr AmbExpr(Position pos, Node name);
+    AmbExpr AmbExpr(Position pos, Id name);
     Expr ExprFromQualifiedName(Position pos, QName qualifiedName);
     
     // type or expr
-    AmbReceiver AmbReceiver(Position pos, Node child);
+    AmbReceiver AmbReceiver(Position pos, Id name);
+    AmbReceiver AmbReceiver(Position pos, Prefix prefix, Id name);
     Receiver ReceiverFromQualifiedName(Position pos, QName qualifiedName);
     
     // package or type
-    AmbQualifierNode AmbQualifierNode(Position pos, Node child);
+    AmbQualifierNode AmbQualifierNode(Position pos, Id name);
+    AmbQualifierNode AmbQualifierNode(Position pos, Prefix qual, Id name);
     QualifierNode QualifierNodeFromQualifiedName(Position pos, QName qualifiedName);
     
     // package or type or expr
-    QualifiedName QualifiedName(Position pos, Id name);
-    QualifiedName QualifiedName(Position pos, Node prefix, Id name);
-    QualifiedName PrefixFromQualifiedName(Position pos, QName qualifiedName);
+    AmbPrefix AmbPrefix(Position pos, Id name);
+    AmbPrefix AmbPrefix(Position pos, Prefix prefix, Id name);
+    Prefix PrefixFromQualifiedName(Position pos, QName qualifiedName);
     
-    AmbTypeNode AmbTypeNode(Position pos, Node child);
+    AmbTypeNode AmbTypeNode(Position pos, Id name);
+    AmbTypeNode AmbTypeNode(Position pos, Prefix qualifier, Id name);
     TypeNode TypeNodeFromQualifiedName(Position pos, QName qualifiedName);
     
     ArrayTypeNode ArrayTypeNode(Position pos, TypeNode base);
@@ -60,11 +63,19 @@ public interface NodeFactory
     Assert Assert(Position pos, Expr cond);
     Assert Assert(Position pos, Expr cond, Expr errorMessage);
 
-    Assign Assign(Position pos, Expr target, polyglot.ast.Assign.Operator op, Expr source);
+    Assign Assign(Position pos, Expr target, Assign.Operator op, Expr source);
+    LocalAssign LocalAssign(Position pos, Local target, Assign.Operator op, Expr source);
+    FieldAssign FieldAssign(Position pos, Receiver target, Id name, Assign.Operator op, Expr source);
+    ArrayAccessAssign ArrayAccessAssign(Position pos, Expr array, Expr index, Assign.Operator op, Expr source);
+    AmbAssign AmbAssign(Position pos, Expr target, Assign.Operator op, Expr source);
 
-    Binary Binary(Position pos, Expr left, polyglot.ast.Binary.Operator op, Expr right);
+    Binary Binary(Position pos, Expr left, Binary.Operator op, Expr right);
 
-    Block Block(Position pos, Stmt... s);
+    Block Block(Position pos);
+    Block Block(Position pos, Stmt s1);
+    Block Block(Position pos, Stmt s1, Stmt s2);
+    Block Block(Position pos, Stmt s1, Stmt s2, Stmt s3);
+    Block Block(Position pos, Stmt s1, Stmt s2, Stmt s3, Stmt s4);
     Block Block(Position pos, List<Stmt> statements);
 
     SwitchBlock SwitchBlock(Position pos, List<Stmt> statements);
@@ -77,13 +88,21 @@ public interface NodeFactory
     Branch Continue(Position pos);
     Branch Continue(Position pos, Id label);
 
-    Branch Branch(Position pos, polyglot.ast.Branch.Kind kind);
-    Branch Branch(Position pos, polyglot.ast.Branch.Kind kind, Id label);
+    Branch Branch(Position pos, Branch.Kind kind);
+    Branch Branch(Position pos, Branch.Kind kind, Id label);
 
-    Call Call(Position pos, Id name, Expr... args);
+    Call Call(Position pos, Id name);
+    Call Call(Position pos, Id name, Expr a1);
+    Call Call(Position pos, Id name, Expr a1, Expr a2);
+    Call Call(Position pos, Id name, Expr a1, Expr a2, Expr a3);
+    Call Call(Position pos, Id name, Expr a1, Expr a2, Expr a3, Expr a4);
     Call Call(Position pos, Id name, List<Expr> args);
     
-    Call Call(Position pos, Receiver target, Id name, Expr... args);
+    Call Call(Position pos, Receiver target, Id name);
+    Call Call(Position pos, Receiver target, Id name, Expr a1);
+    Call Call(Position pos, Receiver target, Id name, Expr a1, Expr a2);
+    Call Call(Position pos, Receiver target, Id name, Expr a1, Expr a2, Expr a3);
+    Call Call(Position pos, Receiver target, Id name, Expr a1, Expr a2, Expr a3, Expr a4);
     Call Call(Position pos, Receiver target, Id name, List<Expr> args);
 
     Case Default(Position pos);
@@ -108,16 +127,9 @@ public interface NodeFactory
     ConstructorCall ThisCall(Position pos, Expr outer, List<Expr> args);
     ConstructorCall SuperCall(Position pos, List<Expr> args);
     ConstructorCall SuperCall(Position pos, Expr outer, List<Expr> args);
-    ConstructorCall ConstructorCall(Position pos, polyglot.ast.ConstructorCall.Kind kind, List<Expr> args);
-    ConstructorCall ConstructorCall(Position pos, polyglot.ast.ConstructorCall.Kind kind,
+    ConstructorCall ConstructorCall(Position pos, ConstructorCall.Kind kind, List<Expr> args);
+    ConstructorCall ConstructorCall(Position pos, ConstructorCall.Kind kind,
 	                            Expr outer, List<Expr> args);
-//    ConstructorCall ThisCall(Position pos, Expr... args);
-//    ConstructorCall ThisCall(Position pos, Expr outer, Expr...  args);
-//    ConstructorCall SuperCall(Position pos, Expr...  args);
-//    ConstructorCall SuperCall(Position pos, Expr outer, Expr...  args);
-//    ConstructorCall ConstructorCall(Position pos, ConstructorCall.Kind kind, Expr... args);
-//    ConstructorCall ConstructorCall(Position pos, ConstructorCall.Kind kind,
-//	    Expr outer, Expr... args);
 
     ConstructorDecl ConstructorDecl(Position pos, FlagsNode flags, Id name,
             List<Formal> formals, List<TypeNode> throwTypes,
@@ -135,7 +147,7 @@ public interface NodeFactory
     Field Field(Position pos, Id name);
     Field Field(Position pos, Receiver target, Id name);
 
-    FloatLit FloatLit(Position pos, polyglot.ast.FloatLit.Kind kind, double value);
+    FloatLit FloatLit(Position pos, FloatLit.Kind kind, double value);
 
     For For(Position pos, List<ForInit> inits, Expr cond, List<ForUpdate> iters, Stmt body);
 
@@ -144,13 +156,13 @@ public interface NodeFactory
     If If(Position pos, Expr cond, Stmt consequent);
     If If(Position pos, Expr cond, Stmt consequent, Stmt alternative);
 
-    Import Import(Position pos, polyglot.ast.Import.Kind kind, QName name);
+    Import Import(Position pos, Import.Kind kind, QName name);
 
     Initializer Initializer(Position pos, FlagsNode flags, Block body);
 
     Instanceof Instanceof(Position pos, Expr expr, TypeNode type);
 
-    IntLit IntLit(Position pos, polyglot.ast.IntLit.Kind kind, long value);
+    IntLit IntLit(Position pos, IntLit.Kind kind, long value);
 
     Labeled Labeled(Position pos, Id label, Stmt body);
 
@@ -194,8 +206,8 @@ public interface NodeFactory
 
     Special Super(Position pos);
     Special Super(Position pos, TypeNode outer);
-    Special Special(Position pos, polyglot.ast.Special.Kind kind);
-    Special Special(Position pos, polyglot.ast.Special.Kind kind, TypeNode outer);
+    Special Special(Position pos, Special.Kind kind);
+    Special Special(Position pos, Special.Kind kind, TypeNode outer);
 
     StringLit StringLit(Position pos, String value);
 
@@ -208,13 +220,13 @@ public interface NodeFactory
     Try Try(Position pos, Block tryBlock, List<Catch> catchBlocks);
     Try Try(Position pos, Block tryBlock, List<Catch> catchBlocks, Block finallyBlock);
 
-    PackageNode PackageNode(Position pos, Ref<Package> p);
+    PackageNode PackageNode(Position pos, Ref<? extends Package> p);
 
-    Unary Unary(Position pos, polyglot.ast.Unary.Operator op, Expr expr);
-    Unary Unary(Position pos, Expr expr, polyglot.ast.Unary.Operator op);
+    Unary Unary(Position pos, Unary.Operator op, Expr expr);
+    Unary Unary(Position pos, Expr expr, Unary.Operator op);
 
     While While(Position pos, Expr cond, Stmt body);
 
     CanonicalTypeNode CanonicalTypeNode(Position position,
-            Ref<Type> type);
+            Ref<? extends Type> type);
 }

@@ -13,8 +13,7 @@ import java.util.List;
 
 import polyglot.types.*;
 import polyglot.util.*;
-import polyglot.visit.ExceptionCheckerContext;
-import polyglot.visit.NodeVisitor;
+import polyglot.visit.*;
 
 /**
  * An <code>Initializer</code> is an immutable representation of an
@@ -112,6 +111,19 @@ public class Initializer_c extends Term_c implements Initializer
 	return c.pushCode(ii);
     }
 
+    /**
+     * Return the first (sub)term performed when evaluating this
+     * term.
+     */
+    public Term firstChild() {
+        return body();
+    }
+
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        v.visitCFG(body(), this, EXIT);
+        return succs;
+    }
+
     public InitializerDef createInitializerDef(TypeSystem ts, ClassDef ct, Flags flags) {
 	InitializerDef ii = ts.initializerDef(position(), Types.ref(ct.asType()), flags);
 	return ii;
@@ -119,6 +131,68 @@ public class Initializer_c extends Term_c implements Initializer
 
     public Node visitSignature(NodeVisitor v) {
         return this;
+    }
+
+    public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
+        if (initializerDef().flags().isStatic()) {
+            return ec.push(new ExceptionChecker.CodeTypeReporter("A static initializer block"));
+        }
+        
+        if (!initializerDef().container().get().toClass().isAnonymous()) {
+            ec = ec.push(new ExceptionChecker.CodeTypeReporter("An instance initializer block"));
+
+            // An instance initializer of a named class may not throw
+            // a checked exception unless that exception or one of its 
+            // superclasses is explicitly declared in the throws clause
+            // of each contructor or its class, and the class has at least
+            // one explicitly declared constructor.
+            SubtypeSet allowed = null;
+            Type throwable = ec.typeSystem().Throwable();
+            ClassType container = initializerDef().container().get().toClass();
+            for (ConstructorInstance ci : container.constructors()) {
+                if (allowed == null) {
+                    allowed = new SubtypeSet(throwable);
+                    allowed.addAll(ci.throwTypes());
+                }
+                else {
+                    // intersect allowed with ci.throwTypes()
+                    SubtypeSet other = new SubtypeSet(throwable);
+                    other.addAll(ci.throwTypes());
+                    SubtypeSet inter = new SubtypeSet(throwable);
+                    for (Type t : allowed) {
+                        if (other.contains(t)) {
+                            // t or a supertype is thrown by other.
+                            inter.add(t);
+                        }
+                    }
+                    for (Type t : other) {
+                        if (allowed.contains(t)) {
+                            // t or a supertype is thrown by the allowed.
+                            inter.add(t);
+                        }
+                    }
+                    allowed = inter;
+                }
+            }
+            // allowed is now an intersection of the throw types of all
+            // constructors
+            
+            ec = ec.push(allowed);
+            
+            
+            return ec;
+        }
+
+        return ec.push();
+    }
+
+
+    /** Write the initializer to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+	w.begin(0);
+	print(flags, w, tr);
+	print(body, w, tr);
+	w.end();
     }
 
     public void dump(CodeWriter w) {

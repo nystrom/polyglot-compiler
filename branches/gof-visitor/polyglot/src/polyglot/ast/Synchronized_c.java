@@ -8,8 +8,12 @@
 
 package polyglot.ast;
 
+import java.util.List;
+
+import polyglot.types.*;
+import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.NodeVisitor;
+import polyglot.visit.*;
 
 /**
  * An immutable representation of a Java language <code>synchronized</code>
@@ -71,7 +75,37 @@ public class Synchronized_c extends Stmt_c implements Synchronized
 	return reconstruct(expr, body);
     }
 
+    public Type childExpectedType(Expr child, AscriptionVisitor av) {
+        TypeSystem ts = av.typeSystem();
+
+        if (child == expr) {
+            return ts.Object();
+        }
+
+        return child.type();
+    }
+
     public String toString() {
 	return "synchronized (" + expr + ") { ... }";
     }
+
+    /** Write the statement to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+	w.write("synchronized (");
+	printBlock(expr, w, tr);
+	w.write(") ");
+	printSubStmt(body, w, tr);
+    }
+
+    public Term firstChild() {
+        return expr;
+    }
+
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        v.visitCFG(expr, body, ENTRY);
+        v.visitCFG(body, this, EXIT);
+        return succs;
+    }
+    
+
 }

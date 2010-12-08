@@ -11,8 +11,12 @@ package polyglot.ast;
  * An <code>AmbReceiver</code> is an ambiguous AST node composed of
  * dot-separated list of identifiers that must resolve to a receiver.
  */
-public interface AmbReceiver extends Receiver
+public interface AmbReceiver extends Ambiguous, Receiver
 {
-    Node child();
-    AmbReceiver child(Node child);
+    /**
+     * Prefix of the receiver.
+     */
+    Prefix prefix();
+
+    Id nameNode();
 }

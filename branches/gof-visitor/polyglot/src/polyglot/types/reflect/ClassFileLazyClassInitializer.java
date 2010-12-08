@@ -12,7 +12,6 @@ import java.util.*;
 import polyglot.frontend.Globals;
 import polyglot.main.Report;
 import polyglot.types.*;
-import polyglot.types.Ref.Callable;
 import polyglot.types.reflect.InnerClasses.Info;
 import polyglot.util.*;
 
@@ -84,7 +83,7 @@ public class ClassFileLazyClassInitializer {
 
         // Set the ClassType's package.
         if (!packageName.equals("")) {
-            ct.setPackage(Types_noFuture.ref(ts.packageForName(QName.make(packageName))));
+            ct.setPackage(Types.ref(ts.packageForName(QName.make(packageName))));
         }
 
         // This is the "C$I$J" part.
@@ -175,10 +174,8 @@ public class ClassFileLazyClassInitializer {
      * @return An array type.
      */
     protected Ref<? extends Type> arrayOf(Type t, int dims) {
-    	return arrayOf(Types_noFuture.<Type>ref(t), dims);
+        return arrayOf(Types.<Type>ref(t), dims);
     }
-    
-    
     
     /**
      * Return an array type.
@@ -191,7 +188,7 @@ public class ClassFileLazyClassInitializer {
             return t;
         }
         else {
-            return Types_noFuture.<Type>ref(ts.arrayOf(t, dims));
+            return Types.<Type>ref(ts.arrayOf(t, dims));
         }
     }
 
@@ -286,36 +283,19 @@ public class ClassFileLazyClassInitializer {
         return defForName(name, null);
     }
     
-    protected Ref<ClassDef> defForName(String name, final Flags flags) {
+    protected Ref<ClassDef> defForName(String name, Flags flags) {
         if (Report.should_report(verbose, 2))
             Report.report(2, "resolving " + name);
         
-	final QName qname = QName.make(name);
-	Ref<ClassDef> sym = Types_noFuture.<ClassDef>lazyRef(ts.unknownClassDef(), new Callable<ClassDef>() {
-	    public ClassDef call() {
-		try {
-		    TypeSystem ts = Globals.TS();
-		    Named n = ts.systemResolver().find(qname);
-		    if (n instanceof ClassType) {
-			ClassType ct = (ClassType) n;
-			ClassDef def = ct.def();
-			if (flags != null) {
-			    // The flags should be overwritten only for a member
-			    // class.
-			    assert def.isMember();
-			    def.setFlags(flags);
-			}
-			return def;
-		    }
-		}
-		catch (SemanticException e) {
-		    Globals.Compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, e.getMessage(), e.position());
-		}
-		return ts.unknownClassDef();
-	    }
-	}, clazz.clock());
-
-	return sym;
+        LazyRef<ClassDef> sym = Types.lazyRef(ts.unknownClassDef(), null);
+        
+        if (flags == null) {
+            sym.setResolver(Globals.Scheduler().LookupGlobalTypeDef(sym, QName.make(name)));
+        }
+        else {
+            sym.setResolver(Globals.Scheduler().LookupGlobalTypeDefAndSetFlags(sym, QName.make(name), flags));
+        }
+        return sym;
     }
     
     /**
@@ -328,7 +308,7 @@ public class ClassFileLazyClassInitializer {
     }
 
     protected Ref<? extends Type> typeForName(String name, Flags flags) {
-        return Types_noFuture.<Type>ref(ts.createClassType(position(), defForName(name, flags)));
+        return Types.<Type>ref(ts.createClassType(position(), defForName(name, flags)));
     }
 
     public void initTypeObject() {
@@ -542,7 +522,7 @@ public class ClassFileLazyClassInitializer {
             }
         }
     
-        return ts.methodDef(ct.position(), Types_noFuture.ref(ct.asType()),
+        return ts.methodDef(ct.position(), Types.ref(ct.asType()),
                                  ts.flagsForBits(method.getModifiers()),
                                  returnType, Name.make(name), argTypes, excTypes);
       }
@@ -580,7 +560,7 @@ public class ClassFileLazyClassInitializer {
             }
         }
         
-        return ts.constructorDef(mi.position(), Types_noFuture.ref(ct.asType()), mi.flags(),
+        return ts.constructorDef(mi.position(), Types.ref(ct.asType()), mi.flags(),
                                       formals, mi.throwTypes());
     }
 
@@ -594,7 +574,7 @@ public class ClassFileLazyClassInitializer {
       String name = (String) constants[field.getName()].value();
       String type = (String) constants[field.getType()].value();
     
-      FieldDef fi = ts.fieldDef(ct.position(), Types_noFuture.ref(ct.asType()),
+      FieldDef fi = ts.fieldDef(ct.position(), Types.ref(ct.asType()),
                                           ts.flagsForBits(field.getModifiers()),
                                           typeForString(type), Name.make(name));
     

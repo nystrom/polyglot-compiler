@@ -8,12 +8,11 @@
 
 package polyglot.ast;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import polyglot.types.*;
 import polyglot.util.*;
-import polyglot.visit.NodeVisitor;
+import polyglot.visit.*;
 
 /**
  * A <code>NewArray</code> represents a new array expression such as <code>new
@@ -118,8 +117,70 @@ public class NewArray_c extends Expr_c implements NewArray
 	return reconstruct(baseType, dims, init);
     }
 
+    public Type childExpectedType(Expr child, AscriptionVisitor av) {
+        if (child == init) {
+            return this.type();
+        }
+
+        return child.type();
+    }
+
     public String toString() {
 	return "new " + baseType + "[...]";
     }
+
+    /** Write the expression to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+	w.write("new ");
+	print(baseType, w, tr);
+
+	for (Iterator i = dims.iterator(); i.hasNext();) {
+	  Expr e = (Expr) i.next();
+	  w.write("[");
+	  printBlock(e, w, tr);
+	  w.write("]");
+	}
+
+	for (int i = 0; i < addDims; i++) {
+	    w.write("[]");
+	}
+
+	if (init != null) {
+	    w.write(" ");
+	    print(init, w, tr);
+	}
+    }
+
+    public Term firstChild() {
+        return baseType;
+    }
+
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        if (init != null) {
+            v.visitCFG(baseType, listChild(dims, init), ENTRY);
+            v.visitCFGList(dims, init, ENTRY);
+            v.visitCFG(init, this, EXIT);
+        } else {
+            v.visitCFG(baseType, listChild(dims, null), ENTRY);
+            v.visitCFGList(dims, this, EXIT);
+        }
+        
+        return succs;
+    }
+    
+    public List<Type> throwTypes(TypeSystem ts) {
+        if (dims != null && !dims.isEmpty()) {
+            // if dimension expressions are given, then
+            // a NegativeArraySizeException may be thrown.
+            try {
+                return CollectionUtil.list(ts.typeForName(QName.make("java.lang.NegativeArraySizeException")));
+            }
+            catch (SemanticException e) {
+                throw new InternalCompilerError("Cannot find class java.lang.NegativeArraySizeException", e);
+            }
+        }
+        return Collections.EMPTY_LIST;
+    }
+    
 
 }

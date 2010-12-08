@@ -8,13 +8,11 @@
 
 package polyglot.ast;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-import polyglot.types.Context;
-import polyglot.types.Name;
+import polyglot.types.*;
 import polyglot.util.*;
-import polyglot.visit.NodeVisitor;
+import polyglot.visit.*;
 
 /**
  * An immutable representation of a Java language <code>for</code>
@@ -109,19 +107,65 @@ public class For_c extends Loop_c implements For
 	return reconstruct(inits, cond, iters, (Stmt) body);
     }
 
-    
-    public Context enterChildScope(Node child, Context c) {
-	if (child == this.body) {
-	    Name label = null;
-	    c = c.pushBreakLabel(label);
-	    c = c.pushContinueLabel(label);
-	}
-            
-        return super.enterChildScope(child, c);
-    }
-
     public Context enterScope(Context c) {
 	return c.pushBlock();
+    }
+
+    public Type childExpectedType(Expr child, AscriptionVisitor av) {
+        TypeSystem ts = av.typeSystem();
+
+        if (child == cond) {
+            return ts.Boolean();
+        }
+
+        return child.type();
+    }
+
+    /** Write the statement to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+	w.write("for (");
+	w.begin(0);
+
+	if (inits != null) {
+            boolean first = true;
+	    for (Iterator i = inits.iterator(); i.hasNext(); ) {
+		ForInit s = (ForInit) i.next();
+	        printForInit(s, w, tr, first);
+                first = false;
+
+		if (i.hasNext()) {
+		    w.write(",");
+		    w.allowBreak(2, " ");
+		}
+	    }
+	}
+
+	w.write(";"); 
+	w.allowBreak(0);
+
+	if (cond != null) {
+	    printBlock(cond, w, tr);
+	}
+
+	w.write (";");
+	w.allowBreak(0);
+	
+	if (iters != null) {
+	    for (Iterator i = iters.iterator(); i.hasNext();) {
+		ForUpdate s = (ForUpdate) i.next();
+		printForUpdate(s, w, tr);
+		
+		if (i.hasNext()) {
+		    w.write(",");
+		    w.allowBreak(2, " ");
+		}
+	    }
+	}
+
+	w.end();
+	w.write(")");
+
+	printSubStmt(body, w, tr);
     }
 
     public String toString() {
@@ -146,4 +190,46 @@ public class For_c extends Loop_c implements For
 	sb.append(body());
 	return sb.toString();
     }
+
+    private void printForInit(ForInit s, CodeWriter w, PrettyPrinter tr, boolean printType) {
+        boolean oldSemiColon = tr.appendSemicolon(false);
+        boolean oldPrintType = tr.printType(printType);
+        printBlock(s, w, tr);
+        tr.printType(oldPrintType);
+        tr.appendSemicolon(oldSemiColon);
+    }
+
+    private void printForUpdate(ForUpdate s, CodeWriter w, PrettyPrinter tr) {
+        boolean oldSemiColon = tr.appendSemicolon(false);
+        printBlock(s, w, tr);
+        tr.appendSemicolon(oldSemiColon);
+    }
+
+    public Term firstChild() {
+        return listChild(inits, cond != null ? (Term) cond : body);
+    }
+
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        v.visitCFGList(inits, cond != null ? (Term) cond : body, ENTRY);
+
+        if (cond != null) {
+            if (condIsConstantTrue()) {
+                v.visitCFG(cond, body, ENTRY);
+            }
+            else {
+                v.visitCFG(cond, FlowGraph.EDGE_KEY_TRUE, body, 
+                                 ENTRY, FlowGraph.EDGE_KEY_FALSE, this, EXIT);
+            }
+        }
+
+        v.push(this).visitCFG(body, continueTarget(), ENTRY);
+        v.visitCFGList(iters, cond != null ? (Term) cond : body, ENTRY);
+
+        return succs;
+    }
+
+    public Term continueTarget() {
+        return listChild(iters, cond != null ? (Term) cond : body);
+    }
+
 }

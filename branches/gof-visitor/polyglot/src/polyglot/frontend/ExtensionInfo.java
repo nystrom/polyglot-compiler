@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.Reader;
 
 import polyglot.ast.NodeFactory;
-import polyglot.interp.BytecodeCache;
 import polyglot.main.Options;
 import polyglot.types.TypeSystem;
 import polyglot.types.reflect.ClassFile;
@@ -69,9 +68,6 @@ public interface ExtensionInfo {
 
     /** Produce a node factory for this language extension. */
     NodeFactory nodeFactory();
-    
-    /** Produce a bytecode cache for this language extension. */
-    BytecodeCache bytecodeCache();
 
     /** Produce a source factory for this language extension. */
     SourceLoader sourceLoader();
@@ -94,7 +90,7 @@ public interface ExtensionInfo {
     Parser parser(Reader reader, FileSource source, ErrorQueue eq);
 
     /** Create class file */ 
-    ClassFile createClassFile(File classFileSource, byte[] code, funicular.Clock clock);
+    ClassFile createClassFile(File classFileSource, byte[] code);
 
     /** Create file source for a file. The main purpose is to allow
         the character encoding to be defined. */

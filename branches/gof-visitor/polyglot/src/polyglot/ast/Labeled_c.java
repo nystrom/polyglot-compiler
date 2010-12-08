@@ -11,11 +11,9 @@ package polyglot.ast;
 import java.util.ArrayList;
 import java.util.List;
 
-import polyglot.types.Context;
-import polyglot.types.Name;
-import polyglot.types.TypeSystem;
+import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.NodeVisitor;
+import polyglot.visit.*;
 
 /**
  * Am immutable representation of a Java statement with a label.  A labeled
@@ -89,22 +87,25 @@ public class Labeled_c extends Stmt_c implements Labeled
         
 	return reconstruct(label, (Stmt) statement);
     }
-    
-    public Context enterChildScope(Node child, Context c) {
-	if (child == this.statement) {
-	    Name label = this.label.id();
-	    if (child instanceof Loop) {
-		c = c.pushContinueLabel(label);
-	    }
-	    c = c.pushBreakLabel(label);
-	}
-            
-        return super.enterChildScope(child, c);
-    }
-
 
     public String toString() {
 	return label + ": " + statement;
     }
+
+    /** Write the statement to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+	w.write(label + ": ");
+	print(statement, w, tr);
+    }
+
+    public Term firstChild() {
+        return statement;
+    }
+
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        v.push(this).visitCFG(statement, this, EXIT);
+        return succs;
+    }
+    
 
 }
