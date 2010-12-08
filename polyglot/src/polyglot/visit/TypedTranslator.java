@@ -8,7 +8,10 @@
 package polyglot.visit;
 
 import polyglot.ast.Node;
-import polyglot.dispatch.NewTranslator;
+import polyglot.ast.NodeFactory;
+import polyglot.frontend.Job;
+import polyglot.frontend.TargetFactory;
+import polyglot.types.TypeSystem;
 import polyglot.util.CodeWriter;
 import polyglot.util.InternalCompilerError;
 
@@ -21,17 +24,17 @@ import polyglot.util.InternalCompilerError;
  * TypedTranslator should be used when the output AST is expected to be
  * (or required to be) type-checked before code generation.
  */
-public class TypedTranslator extends NewTranslator {
-    
-    public TypedTranslator(Translator tr, CodeWriter w) {
-	super(tr, w);
-    }
+public class TypedTranslator extends Translator {
 
-    public void print(Node parent, Node child) {
-        if (tr.context() == null) {
+    public TypedTranslator(Job job, TypeSystem ts, NodeFactory nf, TargetFactory tf) {
+        super(job, ts, nf, tf);
+    }
+    
+    public void print(Node parent, Node child, CodeWriter w) {
+        if (context == null) {
             throw new InternalCompilerError("Null context found during type-directed code generation.", child.position());
         }
         
-        super.print(parent, child);
+        super.print(parent, child, w);
     }
 }

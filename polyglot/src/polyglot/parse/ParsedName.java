@@ -37,26 +37,38 @@ public class ParsedName {
 
     // expr
     public Expr toExpr() {
-	return nf.AmbExpr(pos, toPrefix());
+        if (prefix == null) {
+            return nf.AmbExpr(pos, name);
+        }
+
+        return nf.Field(pos, prefix.toReceiver(), name);
     }
 
     // expr or type
     public Receiver toReceiver() {
-	return nf.AmbReceiver(pos, toPrefix());
+        if (prefix == null) {
+            return nf.AmbReceiver(pos, name);
+        }
+
+        return nf.AmbReceiver(pos, prefix.toPrefix(), name);
     }
 
     // expr, type, or package
-    public Node toPrefix() {
+    public Prefix toPrefix() {
         if (prefix == null) {
-            return nf.QualifiedName(pos, null, name);
+            return nf.AmbPrefix(pos, name);
         }
 
-        return nf.QualifiedName(pos, prefix.toPrefix(), name);
+        return nf.AmbPrefix(pos, prefix.toPrefix(), name);
     }
 
     // type or package
     public QualifierNode toQualifier() {
-	return nf.AmbQualifierNode(pos, toPrefix());
+        if (prefix == null) {
+            return nf.AmbQualifierNode(pos, name);
+        }
+
+        return nf.AmbQualifierNode(pos, prefix.toQualifier(), name);
     }
 
     // package
@@ -71,7 +83,11 @@ public class ParsedName {
 
     // type
     public TypeNode toType() {
-        return nf.AmbTypeNode(pos, toPrefix());
+        if (prefix == null) {
+            return nf.AmbTypeNode(pos, name);
+        }
+
+        return nf.AmbTypeNode(pos, prefix.toQualifier(), name);
     }
 
     public String toString() {

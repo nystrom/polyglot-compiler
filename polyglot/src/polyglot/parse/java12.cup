@@ -75,7 +75,7 @@ parser Grm extends BaseParser {:
   public List variableDeclarators(TypeNode a, List b, FlagsNode flags)
     throws Exception
   {
-    List l = TypedList.copy(new LinkedList<LocalDecl>(), LocalDecl.class, false);
+    List l = new TypedList(new LinkedList(), LocalDecl.class, false);
     for (Iterator i = b.iterator(); i.hasNext(); ) {
 	VarDeclarator d = (VarDeclarator) i.next();
 	l.add(nf.LocalDecl(pos(d), flags, array(a, d.dims),
@@ -445,19 +445,19 @@ import_declarations_opt ::=
         import_declarations:a 
             {: RESULT = a; :} 
     |
-            {: RESULT = TypedList.copy(new LinkedList<Import>(), Import.class); :}
+            {: RESULT = new TypedList(new LinkedList(), Import.class, false); :}
     ;
 type_declarations_opt   ::=
                     // List of TopLevelDecl
         type_declarations:a 
             {: RESULT = a; :} 
     |   
-            {: RESULT = TypedList.copy(new LinkedList<TopLevelDecl>(), TopLevelDecl.class, false); :}
+            {: RESULT = new TypedList(new LinkedList(), TopLevelDecl.class, false); :}
     ;
 import_declarations ::=
                     // List of Import
         import_declaration:a
-            {: List l = TypedList.copy(new LinkedList<Import>(), Import.class, false); 
+            {: List l = new TypedList(new LinkedList(), Import.class, false); 
                l.add(a);
                RESULT = l; :}
     |   import_declarations:a import_declaration:b
@@ -467,7 +467,7 @@ import_declarations ::=
 type_declarations ::=
                     // List of TopLevelDecl
         type_declaration:a
-            {: List l = TypedList.copy(new LinkedList<TopLevelDecl>(), TopLevelDecl.class, false); 
+            {: List l = new TypedList(new LinkedList(), TopLevelDecl.class, false); 
                if (a != null)
                    l.add(a);
                RESULT = l; :}
@@ -577,14 +577,14 @@ interfaces ::=
     ;
 interfaces_opt::=
                     // List of TypeNode
-            {: RESULT = TypedList.copy(new LinkedList<TypeNode>(), TypeNode.class, false); :}
+            {: RESULT = new TypedList(new LinkedList(), TypeNode.class, false); :}
     |   interfaces:a
             {: RESULT = a; :} 
     ;
 interface_type_list ::=
                     // List of TypeNode
         interface_type:a 
-            {: List l = TypedList.copy(new LinkedList<TypeNode>(), TypeNode.class, false);
+            {: List l = new TypedList(new LinkedList(), TypeNode.class, false);
                l.add(a);
                RESULT = l; :}
     |   interface_type_list:a COMMA interface_type:b
@@ -598,7 +598,7 @@ class_body ::=
     ;
 class_body_declarations_opt ::=
                     // List of ClassMember
-            {: RESULT = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false); :}
+            {: RESULT = new TypedList(new LinkedList(), ClassMember.class, false); :}
     |   class_body_declarations:a
             {: RESULT = a; :}
     ;
@@ -615,25 +615,25 @@ class_body_declaration ::=
         class_member_declaration:a
             {: RESULT = a; :}
     |   static_initializer:a
-            {: List l = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false);
+            {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
                l.add(a);
                RESULT = l; :}
     |   constructor_declaration:a
-            {: List l = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false);
+            {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
                l.add(a);
                RESULT = l; :}
     |   block:a
-            {: List l = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false);
+            {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
                l.add(parser.nf.Initializer(parser.pos(a), parser.nf.FlagsNode(parser.pos(a), Flags.NONE), a));
                RESULT = l; :}
     |   SEMICOLON
-            {: List l = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false);
+            {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
                RESULT = l; :}
     |   error SEMICOLON:a
-            {: List l = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false);
+            {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
                RESULT = l; :}
     |   error LBRACE:a
-            {: List l = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false);
+            {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
                RESULT = l; :}
     ;
 class_member_declaration ::=
@@ -641,18 +641,18 @@ class_member_declaration ::=
         field_declaration:a
             {: RESULT = a; :}
     |   method_declaration:a
-            {: List l = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false);
+            {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
                l.add(a);
                RESULT = l; :}
         /* repeat the prod for 'class_declaration' here: */
     |   modifiers_opt:a CLASS:n identifier:b
                     super_opt:c interfaces_opt:d class_body:e
-            {: List l = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false);
+            {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
                l.add(parser.nf.ClassDecl(parser.pos(n, e),
                         a, b, c, d, e));
                RESULT = l; :}
     |   interface_declaration:a
-            {: List l = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false);
+            {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
                l.add(a);
                RESULT = l; :}
     ;
@@ -661,7 +661,7 @@ class_member_declaration ::=
 field_declaration ::=
                     // List of ClassMember
         modifiers_opt:a type:b variable_declarators:c SEMICOLON:e
-            {: List l = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false);
+            {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
                for (Iterator i = c.iterator(); i.hasNext(); ) {
                    VarDeclarator d = (VarDeclarator) i.next();
                    l.add(parser.nf.FieldDecl(parser.pos(b, e),
@@ -673,7 +673,7 @@ field_declaration ::=
 variable_declarators ::=
                     // List of VarDeclarator
         variable_declarator:a
-            {: List l = TypedList.copy(new LinkedList<VarDeclarator>(), VarDeclarator.class, false);
+            {: List l = new TypedList(new LinkedList(), VarDeclarator.class, false);
                l.add(a);
                RESULT = l; :}
     |   variable_declarators:a COMMA variable_declarator:b
@@ -725,14 +725,14 @@ method_header ::=
     ;
 formal_parameter_list_opt ::=        
                     // List of Formal
-            {: RESULT = TypedList.copy(new LinkedList<Formal>(), Formal.class, false); :} 
+            {: RESULT = new TypedList(new LinkedList(), Formal.class, false); :} 
     |   formal_parameter_list:a
             {: RESULT = a; :}
     ;
 formal_parameter_list ::=
                     // List of Formal
         formal_parameter:a
-            {: List l = TypedList.copy(new LinkedList<Formal>(), Formal.class, false);
+            {: List l = new TypedList(new LinkedList(), Formal.class, false);
                l.add(a);
                RESULT = l; :}
     |   formal_parameter_list:a COMMA formal_parameter:b
@@ -750,7 +750,7 @@ formal_parameter ::=
     ;
 throws_opt ::=                
                     // List of TypeNode
-            {: RESULT = TypedList.copy(new LinkedList<TypeNode>(), TypeNode.class, false); :}
+            {: RESULT = new TypedList(new LinkedList(), TypeNode.class, false); :}
     |   throws:a
             {: RESULT = a; :}
     ;
@@ -762,7 +762,7 @@ throws ::=
 class_type_list ::=
                     // List of TypeNode
         class_type:a
-            {: List l = TypedList.copy(new LinkedList<TypeNode>(), TypeNode.class, false);
+            {: List l = new TypedList(new LinkedList(), TypeNode.class, false);
                l.add(a);
                RESULT = l; :}
     |   class_type_list:a COMMA class_type:b
@@ -795,7 +795,7 @@ constructor_declaration ::=
 constructor_body ::=
                     // Block
         LBRACE:n explicit_constructor_invocation:a block_statements:b RBRACE:d
-            {: List l = TypedList.copy(new LinkedList<Stmt>(), Stmt.class, false);
+            {: List l = new TypedList(new LinkedList(), Stmt.class, false);
                l.add(a);
                l.addAll(b);
                RESULT = parser.nf.Block(parser.pos(n, d), l); :}
@@ -835,14 +835,14 @@ interface_declaration ::=
     ;
 extends_interfaces_opt ::=
                     // List of TypeNode
-            {: RESULT = TypedList.copy(new LinkedList<TypeNode>(), TypeNode.class, false); :}
+            {: RESULT = new TypedList(new LinkedList(), TypeNode.class, false); :}
     |   extends_interfaces:a
             {: RESULT = a; :}
     ;
 extends_interfaces ::=
                     // List of TypeNode
         EXTENDS interface_type:a
-            {: List l = TypedList.copy(new LinkedList<TypeNode>(), TypeNode.class, false);
+            {: List l = new TypedList(new LinkedList(), TypeNode.class, false);
                l.add(a);
                RESULT = l; :}
     |   extends_interfaces:a COMMA interface_type:b
@@ -856,7 +856,7 @@ interface_body ::=
     ;
 interface_member_declarations_opt ::=
                     // List of ClassMember
-            {: RESULT = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false); :}
+            {: RESULT = new TypedList(new LinkedList(), ClassMember.class, false); :}
     |   interface_member_declarations:a
             {: RESULT = a; :}
     ;
@@ -873,15 +873,15 @@ interface_member_declaration ::=
         constant_declaration:a
             {: RESULT = a; :}
     |   abstract_method_declaration:a
-            {: List l = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false);
+            {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
                l.add(a);
                RESULT = l; :}
     |   class_declaration:a 
-            {: List l = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false);
+            {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
                l.add(a);
                RESULT = l; :}
     |   interface_declaration:a
-            {: List l = TypedList.copy(new LinkedList<ClassMember>(), ClassMember.class, false);
+            {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
                l.add(a);
                RESULT = l; :}
     |   SEMICOLON
@@ -913,7 +913,7 @@ array_initializer ::=
 variable_initializers ::=
                     // List of Expr
         variable_initializer:a
-            {: List l = TypedList.copy(new LinkedList<Expr>(), Expr.class, false);
+            {: List l = new TypedList(new LinkedList(), Expr.class, false);
            l.add(a);
            RESULT = l; :}
     |   variable_initializers:a COMMA variable_initializer:b
@@ -932,14 +932,14 @@ block ::=
     ;
 block_statements_opt ::=
                     // List of Stmt
-            {: RESULT = TypedList.copy(new LinkedList<Stmt>(), Stmt.class, false); :}
+            {: RESULT = new TypedList(new LinkedList(), Stmt.class, false); :}
     |   block_statements:a
             {: RESULT = a; :}
     ;
 block_statements ::=
                     // List of Stmt
         block_statement:a
-            {: List l = TypedList.copy(new LinkedList<Stmt>(), Stmt.class, false);
+            {: List l = new TypedList(new LinkedList(), Stmt.class, false);
                l.addAll(a);
                RESULT = l; :}
     |   block_statements:a block_statement:b
@@ -951,11 +951,11 @@ block_statement ::=
         local_variable_declaration_statement:a
             {: RESULT = a; :}
     |   statement:a
-            {: List l = TypedList.copy(new LinkedList<Stmt>(), Stmt.class, false);
+            {: List l = new TypedList(new LinkedList(), Stmt.class, false);
                l.add(a);
                RESULT = l; :}
     |   class_declaration:a
-            {: List l = TypedList.copy(new LinkedList<Stmt>(), Stmt.class, false);
+            {: List l = new TypedList(new LinkedList(), Stmt.class, false);
                l.add(parser.nf.LocalClassDecl(parser.pos(a), a));
                RESULT = l; :}
     ;
@@ -1103,7 +1103,7 @@ switch_block ::=
     |   LBRACE switch_labels:a RBRACE
             {: RESULT = a; :}
     |   LBRACE RBRACE
-            {: RESULT = TypedList.copy(new LinkedList<SwitchElement>(), SwitchElement.class, false); :}
+            {: RESULT = new TypedList(new LinkedList(), SwitchElement.class, false); :}
     ;
 switch_block_statement_groups ::=
                     // List of SwitchElement
@@ -1116,7 +1116,7 @@ switch_block_statement_groups ::=
 switch_block_statement_group ::=
                     // List of SwitchElement
         switch_labels:a block_statements:b
-            {: List l = TypedList.copy(new LinkedList<SwitchElement>(), SwitchElement.class, false);
+            {: List l = new TypedList(new LinkedList(), SwitchElement.class, false);
                l.addAll(a); 
                l.add(parser.nf.SwitchBlock(parser.pos(a, b), b));
                RESULT = l; :}
@@ -1124,7 +1124,7 @@ switch_block_statement_group ::=
 switch_labels ::=
                     // List of Case
         switch_label:a
-            {: List l = TypedList.copy(new LinkedList<Case>(), Case.class, false);
+            {: List l = new TypedList(new LinkedList(), Case.class, false);
                l.add(a);
                RESULT = l; :}
     |   switch_labels:a switch_label:b
@@ -1168,7 +1168,7 @@ for_statement_no_short_if ::=
     ;
 for_init_opt ::=
                     // List of ForInit
-            {: RESULT = TypedList.copy(new LinkedList<ForInit>(), ForInit.class, false); :}
+            {: RESULT = new TypedList(new LinkedList(), ForInit.class, false); :}
     |   for_init:a
             {: RESULT = a; :}
     ;
@@ -1177,13 +1177,13 @@ for_init ::=
         statement_expression_list:a
             {: RESULT = a; :}
     |   local_variable_declaration:a
-            {: List l = TypedList.copy(new LinkedList<ForInit>(), ForInit.class, false);
+            {: List l = new TypedList(new LinkedList(), ForInit.class, false);
                l.addAll(a);
                RESULT = l; :}
     ;
 for_update_opt ::=
                     // List of ForUpdate
-            {: RESULT = TypedList.copy(new LinkedList<ForUpdate>(), ForUpdate.class, false); :}
+            {: RESULT = new TypedList(new LinkedList(), ForUpdate.class, false); :}
     |   for_update:a
             {: RESULT = a; :}
     ;
@@ -1195,7 +1195,7 @@ for_update ::=
 statement_expression_list ::=
                     // List of Stmt
         statement_expression:a
-            {: List l = TypedList.copy(new LinkedList<Eval>(), Eval.class, false);
+            {: List l = new TypedList(new LinkedList(), Eval.class, false);
                l.add(parser.nf.Eval(parser.pos(a), a));
                RESULT = l; :}
     |   statement_expression_list:a COMMA statement_expression:b
@@ -1251,14 +1251,14 @@ try_statement ::=
     ;
 catches_opt ::=
                     // List of Catch
-            {: RESULT = TypedList.copy(new LinkedList<Catch>(), Catch.class, false); :}
+            {: RESULT = new TypedList(new LinkedList(), Catch.class, false); :}
     |   catches:a
             {: RESULT = a; :}
     ;
 catches ::=
                     // List of Catch
         catch_clause:a
-            {: List l = TypedList.copy(new LinkedList<Catch>(), Catch.class, false);
+            {: List l = new TypedList(new LinkedList(), Catch.class, false);
                l.add(a);
                RESULT = l; :}
     |   catches:a catch_clause:b
@@ -1342,14 +1342,14 @@ class_instance_creation_expression ::=
     ;
 argument_list_opt ::=
                     // List of Expr
-            {: RESULT = TypedList.copy(new LinkedList<Expr>(), Expr.class, false); :}
+            {: RESULT = new TypedList(new LinkedList(), Expr.class, false); :}
     |   argument_list:a
             {: RESULT = a; :}
     ;
 argument_list ::=
                     // List of Expr
         expression:a
-            {: List l = TypedList.copy(new LinkedList<Expr>(), Expr.class, false);
+            {: List l = new TypedList(new LinkedList(), Expr.class, false);
                l.add(a);
                RESULT = l; :}
     |   argument_list:a COMMA expression:b
@@ -1374,7 +1374,7 @@ array_creation_expression ::=
 dim_exprs ::=
                     // List of Expr
         dim_expr:a
-            {: List l = TypedList.copy(new LinkedList<Expr>(), Expr.class, false);
+            {: List l = new TypedList(new LinkedList(), Expr.class, false);
                l.add(a);
                RESULT = l; :}
     |   dim_exprs:a dim_expr:b

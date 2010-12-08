@@ -8,8 +8,12 @@
 
 package polyglot.ast;
 
-import polyglot.util.Position;
-import polyglot.visit.NodeVisitor;
+import java.util.List;
+
+import polyglot.frontend.Globals;
+import polyglot.types.*;
+import polyglot.util.*;
+import polyglot.visit.*;
 
 /**
  * An <code>Assert</code> is an assert statement.
@@ -62,6 +66,22 @@ public class Assert_c extends Stmt_c implements Assert
 	return this;
     }
 
+    public Type childExpectedType(Expr child, AscriptionVisitor av) {
+        TypeSystem ts = av.typeSystem();
+
+        if (child == cond) {
+            return ts.Boolean();
+        }
+
+        /*
+        if (child == errorMessage) {
+            return ts.String();
+        }
+        */
+
+        return child.type();
+    }
+
     /** Visit the children of the statement. */
     public Node visitChildren(NodeVisitor v) {
 	Expr cond = (Expr) visitChild(this.cond, v);
@@ -74,4 +94,43 @@ public class Assert_c extends Stmt_c implements Assert
                 (errorMessage != null
                     ? ": " + errorMessage.toString() : "") + ";";
     }
+
+    /** Write the statement to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+        w.write("assert ");
+	print(cond, w, tr);
+
+        if (errorMessage != null) {
+            w.write(": ");
+            print(errorMessage, w, tr);
+        }
+
+        w.write(";");
+    }
+
+    public void translate(CodeWriter w, Translator tr) {
+        if (! Globals.Options().assertions) {
+            w.write(";");
+        }
+        else {
+            prettyPrint(w, tr);
+        }
+    }
+
+    public Term firstChild() {
+        return cond;
+    }
+
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        if (errorMessage != null) {
+            v.visitCFG(cond, errorMessage, ENTRY);
+            v.visitCFG(errorMessage, this, EXIT);
+        }
+        else {
+            v.visitCFG(cond, this, EXIT);
+        }
+
+        return succs;
+    }
+
 }

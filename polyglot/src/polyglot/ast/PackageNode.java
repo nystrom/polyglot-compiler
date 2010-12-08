@@ -7,17 +7,17 @@
 
 package polyglot.ast;
 
-import polyglot.types.Package;
 import polyglot.types.Ref;
+import polyglot.types.Package;
 
 /**
  * A <code>PackageNode</code> is the syntactic representation of a 
  * Java package within the abstract syntax tree.
  */
-public interface PackageNode extends Node, QualifierNode
+public interface PackageNode extends Node, Prefix, QualifierNode
 {
     /** The package type object. */
-    Ref<Package> package_();
+    Ref<? extends Package> package_();
     /** Set the package type object. */
-    PackageNode package_(Ref<Package> p);
+    PackageNode package_(Ref<? extends Package> p);
 }

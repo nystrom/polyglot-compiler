@@ -12,6 +12,6 @@ package polyglot.ast;
  * receiver of a method or of a field access.  Usually, this is just
  * expressions and types.
  */
-public interface Receiver extends Node, Typed
+public interface Receiver extends Prefix, Typed
 {
 }

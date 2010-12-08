@@ -10,8 +10,8 @@ package polyglot.ast;
 
 
 import polyglot.types.Flags;
-import polyglot.util.CodeWriter;
-import polyglot.util.Position;
+import polyglot.util.*;
+import polyglot.visit.PrettyPrinter;
 
 public class FlagsNode_c extends Node_c implements FlagsNode
 {
@@ -36,6 +36,11 @@ public class FlagsNode_c extends Node_c implements FlagsNode
     FlagsNode_c n = (FlagsNode_c) copy();
     n.flags = flags;
     return n;
+  }
+
+  /** Write the name to an output file. */
+  public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+    w.write(flags.translate());
   }
 
   public String toString() {

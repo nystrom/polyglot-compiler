@@ -7,6 +7,7 @@
 
 package polyglot.ast;
 
+import polyglot.util.Enum;
 
 /**
  * A <code>Special</code> is an immutable representation of a
@@ -17,12 +18,12 @@ package polyglot.ast;
 public interface Special extends Expr 
 {    
     /** Special expression kind: either "super" or "this". */
-    static enum Kind {
-	SUPER, THIS
+    public static class Kind extends Enum {
+        public Kind(String name) { super(name); }
     }
 
-    public static final Kind SUPER =  Kind.SUPER;
-    public static final Kind THIS =  Kind.THIS;
+    public static final Kind SUPER = new Kind("super");
+    public static final Kind THIS  = new Kind("this");
 
     /** Get the kind of expression: SUPER or THIS. */
     Kind kind();

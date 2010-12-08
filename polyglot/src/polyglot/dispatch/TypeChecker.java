@@ -1,143 +1,17 @@
 package polyglot.dispatch;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import polyglot.ast.AmbExpr_c;
-import polyglot.ast.AmbQualifierNode_c;
-import polyglot.ast.AmbReceiver_c;
-import polyglot.ast.AmbTypeNode;
-import polyglot.ast.AmbTypeNode_c;
-import polyglot.ast.ArrayAccess_c;
-import polyglot.ast.ArrayInit;
-import polyglot.ast.ArrayInit_c;
-import polyglot.ast.ArrayTypeNode_c;
-import polyglot.ast.Assert_c;
-import polyglot.ast.Assign;
-import polyglot.ast.Assign_c;
-import polyglot.ast.Binary;
-import polyglot.ast.Binary_c;
-import polyglot.ast.Block_c;
-import polyglot.ast.BooleanLit_c;
-import polyglot.ast.Branch_c;
-import polyglot.ast.Call;
-import polyglot.ast.Call_c;
-import polyglot.ast.CanonicalTypeNode;
-import polyglot.ast.CanonicalTypeNode_c;
-import polyglot.ast.Case;
-import polyglot.ast.Case_c;
-import polyglot.ast.Cast;
-import polyglot.ast.Cast_c;
-import polyglot.ast.Catch_c;
-import polyglot.ast.CharLit_c;
-import polyglot.ast.ClassBody;
-import polyglot.ast.ClassBody_c;
-import polyglot.ast.ClassDecl_c;
-import polyglot.ast.ClassLit_c;
-import polyglot.ast.Conditional_c;
-import polyglot.ast.ConstructorCall;
-import polyglot.ast.ConstructorCall_c;
-import polyglot.ast.ConstructorDecl_c;
-import polyglot.ast.Do_c;
-import polyglot.ast.Empty_c;
-import polyglot.ast.Eval_c;
-import polyglot.ast.Expr;
-import polyglot.ast.Field;
-import polyglot.ast.FieldDecl_c;
-import polyglot.ast.Field_c;
-import polyglot.ast.FlagsNode;
-import polyglot.ast.FlagsNode_c;
-import polyglot.ast.FloatLit;
-import polyglot.ast.FloatLit_c;
-import polyglot.ast.ForInit;
-import polyglot.ast.For_c;
-import polyglot.ast.Formal_c;
-import polyglot.ast.Id;
-import polyglot.ast.Id_c;
-import polyglot.ast.If_c;
-import polyglot.ast.Import;
-import polyglot.ast.Import_c;
-import polyglot.ast.Initializer_c;
-import polyglot.ast.Instanceof_c;
-import polyglot.ast.IntLit;
-import polyglot.ast.IntLit_c;
-import polyglot.ast.Labeled_c;
-import polyglot.ast.LocalClassDecl_c;
-import polyglot.ast.LocalDecl;
-import polyglot.ast.LocalDecl_c;
-import polyglot.ast.Local_c;
-import polyglot.ast.MethodDecl_c;
-import polyglot.ast.NamedVariable;
-import polyglot.ast.New;
-import polyglot.ast.NewArray_c;
-import polyglot.ast.New_c;
-import polyglot.ast.Node;
-import polyglot.ast.NodeFactory;
-import polyglot.ast.Node_c;
-import polyglot.ast.NullLit_c;
-import polyglot.ast.PackageNode;
-import polyglot.ast.PackageNode_c;
-import polyglot.ast.ProcedureCall;
-import polyglot.ast.QualifiedName;
-import polyglot.ast.QualifiedName_c;
-import polyglot.ast.QualifierNode;
-import polyglot.ast.Receiver;
-import polyglot.ast.Return_c;
-import polyglot.ast.SourceFile_c;
-import polyglot.ast.Special;
-import polyglot.ast.Special_c;
-import polyglot.ast.StringLit_c;
-import polyglot.ast.SwitchBlock_c;
-import polyglot.ast.SwitchElement;
-import polyglot.ast.Switch_c;
-import polyglot.ast.Throw_c;
-import polyglot.ast.TopLevelDecl;
-import polyglot.ast.Try_c;
-import polyglot.ast.TypeNode;
-import polyglot.ast.Unary;
-import polyglot.ast.Unary_c;
-import polyglot.ast.Variable;
-import polyglot.ast.While_c;
-import polyglot.frontend.Job;
-import polyglot.types.ClassDef;
-import polyglot.types.ClassType;
-import polyglot.types.CodeDef;
-import polyglot.types.ConstructorDef;
-import polyglot.types.ConstructorInstance;
-import polyglot.types.Context;
-import polyglot.types.ErrorType;
-import polyglot.types.FieldDef;
-import polyglot.types.FieldInstance;
-import polyglot.types.Flags;
-import polyglot.types.FunctionDef;
-import polyglot.types.InitializerDef;
-import polyglot.types.LocalInstance;
-import polyglot.types.MethodDef;
-import polyglot.types.MethodInstance;
-import polyglot.types.Name;
-import polyglot.types.Named;
-import polyglot.types.NoClassException;
-import polyglot.types.NoMemberException;
+import polyglot.ast.*;
+import polyglot.frontend.*;
+import polyglot.types.*;
 import polyglot.types.Package;
-import polyglot.types.QName;
-import polyglot.types.Qualifier;
-import polyglot.types.Ref;
-import polyglot.types.Resolver;
-import polyglot.types.SemanticException;
-import polyglot.types.Type;
-import polyglot.types.TypeSystem;
-import polyglot.types.Types;
-import polyglot.types.UnknownType;
-import polyglot.types.VarInstance;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 import polyglot.visit.ContextVisitor;
 
 public class TypeChecker extends Visitor {
+
     Job job;
     TypeSystem ts;
     NodeFactory nf;
@@ -157,178 +31,166 @@ public class TypeChecker extends Visitor {
 	return m;
     }
 
-
-    public Expr convert(Expr e, Type t, Context c) {
-	if (! ts.isSubtype(e.type(), t, c)) {
-	     CanonicalTypeNode tn = nf.CanonicalTypeNode(e.position(), Types.ref(t));
-	     Cast cast = (Cast) nf.Cast(e.position(), tn, e).type(t);
-	     return setContext(cast, c);
-	}
-	return e;
-    }
-    
-    public List<Expr> convert(List<Expr> es, List<Type> ts, Context c) {
-	ArrayList<Expr> es2 = new ArrayList<Expr>();
-	for (int i = 0; i < es.size(); i++) {
-	    es2.add(convert(es.get(i), ts.get(i), c));
-	}
-	return es2;
-    }
-
-    public Expr convertToString(Expr e, Context c) {
-	CanonicalTypeNode tn = nf.CanonicalTypeNode(e.position(), Types.ref(ts.String()));
-	Id id = nf.Id(e.position(), Name.make("valueOf"));
-	Call call = nf.Call(e.position(), tn, id, e);
-	call = setContext(call, c);
-	return (Expr) accept(call);
-    }
-
     public Node visit(Node_c n, Context context) throws SemanticException {
 	System.out.println("missing node " + n + " instanceof " + n.getClass().getName());
 	return (Node_c) acceptChildren(n);
     }
 
     public Node visit(NewArray_c n, Context context) throws SemanticException {
-	Type baseType = n.baseType().type();
-	
-	if (baseType instanceof ErrorType) {
-	    return n.type(ts.errorType(n.position()));
-	}
-	
-	List<Expr> dims = new ArrayList<Expr>();
 	for (Expr expr : n.dims()) {
 	    if (! ts.isImplicitCastValid(expr.type(), ts.Int(), context)) {
-		throw new SemanticException("Array dimension must be an integer.", expr.position());
+		throw new SemanticException("Array dimension must be an integer.",
+		                            expr.position());
 	    }
-
-	    dims.add(convert(expr, ts.Int(), context));
 	}
 
-	n = (NewArray_c) n.dims(dims);
-
-	Type type = ts.arrayOf(baseType, n.dims().size() + n.additionalDims());
+	Type type = ts.arrayOf(n.baseType().type(), n.dims().size() + n.additionalDims());
 
 	ArrayInit init = n.init();
 	if (init != null) {
-	    init = typeCheckElements(context, type, init);
-	    n = (NewArray_c) n.init(init);
+	    typeCheckElements(context, type, init);
 	}
 
 	return n.type(type);
     }
 
-    private ArrayInit typeCheckElements(Context context, Type type, ArrayInit init) throws SemanticException {
-	if (!type.isArray()) {
-	    throw new SemanticException("Cannot initialize " + type + " with " + init.type() + ".", init.position());
+    private void typeCheckElements(Context context, Type type, ArrayInit init) throws SemanticException {
+	if (! type.isArray()) {
+	    throw new SemanticException("Cannot initialize " + type +
+	                                " with " + init.type() + ".", init.position());
 	}
 
 	// Check if we can assign each individual element.
 	Type t = type.toArray().base();
 
-	List<Expr> es = new ArrayList<Expr>();
-
 	for (Expr e : init.elements()) {
 	    Type s = e.type();
 
 	    if (e instanceof ArrayInit) {
-		ArrayInit e2 = typeCheckElements(context, t, (ArrayInit) e);
-		es.add(e2);
+		typeCheckElements(context, t, (ArrayInit) e);
 		continue;
 	    }
 
 	    if (! ts.isImplicitCastValid(s, t, context) &&
 		    ! ts.typeEquals(s, t, context) &&
 		    ! ts.numericConversionValid(t, e.constantValue(), context)) {
-		throw new SemanticException("Cannot assign " + s + " to " + t + ".", e.position());
+		throw new SemanticException("Cannot assign " + s +
+		                            " to " + t + ".", e.position());
 	    }
-
-	    es.add(convert(e, t, context));
 	}
+    }
 
-	return init.elements(es);
+    public Node visit(LocalAssign_c n, Context context) throws SemanticException {
+	return visit((Assign_c) n, context);
+    }
+
+    public Node visit(FieldAssign_c n, Context context) throws SemanticException {
+	return visit((Assign_c) n, context);
+    }
+
+    public Node visit(ArrayAccessAssign_c n, Context context) throws SemanticException {
+	return visit((Assign_c) n, context);
     }
 
     public Node visit(Assign_c n, Context context) throws SemanticException {
 	n = (Assign_c) acceptChildren(n);
 
-	Type t = n.left().type();
+	Assign_c n1 = typeCheckLeft(n, context);
+
+	Type t = n1.leftType();
 
 	if (t == null)
 	    t = ts.unknownType(n.position());
 
-	Expr right = n.right();
-	Assign.Operator op = n.operator();
+	Expr right = n1.right();
+	Assign.Operator op = n1.operator();
 
 	Type s = right.type();
-	
-	if (t instanceof ErrorType || s instanceof ErrorType) {
-	    return n.type(ts.errorType(n.position()));
-	}
 
-	if (op == Assign.ASSIGN) {
+	if (op == Assign_c.ASSIGN) {
 	    if (!ts.isImplicitCastValid(s, t, context) && !ts.typeEquals(s, t, context) && !ts.numericConversionValid(t, right.constantValue(), context)) {
 
 		throw new SemanticException("Cannot assign " + s + " to " + t + ".", n.position());
 	    }
 
-	    return n.right(convert(right, t, context)).type(t);
+	    return n1.type(t);
 	}
 
-	if (op == Assign.ADD_ASSIGN) {
+	if (op == Assign_c.ADD_ASSIGN) {
 	    // t += s
 	    if (ts.typeEquals(t, ts.String(), context) && ts.canCoerceToString(s, context)) {
-		return n.right(convertToString(right, context)).type(ts.String());
+		return n1.type(ts.String());
 	    }
 
 	    if (t.isNumeric() && s.isNumeric()) {
-		return n.right(convert(right, ts.promote(t, s), context)).type(ts.promote(t, s));
+		return n1.type(ts.promote(t, s));
 	    }
 
-	    throw new SemanticException("The " + op + " operator must have numeric or String operands.", n.position());
+	    throw new SemanticException("The " + op + " operator must have " + "numeric or String operands.", n.position());
 	}
 
-	if (op == Assign.SUB_ASSIGN || op == Assign.MUL_ASSIGN || op == Assign.DIV_ASSIGN || op == Assign.MOD_ASSIGN) {
+	if (op == Assign_c.SUB_ASSIGN || op == Assign_c.MUL_ASSIGN || op == Assign_c.DIV_ASSIGN || op == Assign_c.MOD_ASSIGN) {
 	    if (t.isNumeric() && s.isNumeric()) {
-		return n.right(convert(right, ts.promote(t, s), context)).type(ts.promote(t, s));
+		return n1.type(ts.promote(t, s));
 	    }
 
-	    throw new SemanticException("The " + op + " operator must have numeric operands.", n.position());
+	    throw new SemanticException("The " + op + " operator must have " + "numeric operands.", n.position());
 	}
 
-	if (op == Assign.BIT_AND_ASSIGN || op == Assign.BIT_OR_ASSIGN || op == Assign.BIT_XOR_ASSIGN) {
+	if (op == Assign_c.BIT_AND_ASSIGN || op == Assign_c.BIT_OR_ASSIGN || op == Assign_c.BIT_XOR_ASSIGN) {
 	    if (t.isBoolean() && s.isBoolean()) {
-		return n.type(ts.Boolean());
+		return n1.type(ts.Boolean());
 	    }
 
 	    if (ts.isImplicitCastValid(t, ts.Long(), context) && ts.isImplicitCastValid(s, ts.Long(), context)) {
-		return n.right(convert(right, ts.promote(t, s), context)).type(ts.promote(t, s));
+		return n1.type(ts.promote(t, s));
 	    }
 
-	    throw new SemanticException("The " + op + " operator must have integral or boolean operands.", n.position());
+	    throw new SemanticException("The " + op + " operator must have " + "integral or boolean operands.", n.position());
 	}
 
-	if (op == Assign.SHL_ASSIGN || op == Assign.SHR_ASSIGN || op == Assign.USHR_ASSIGN) {
+	if (op == Assign_c.SHL_ASSIGN || op == Assign_c.SHR_ASSIGN || op == Assign_c.USHR_ASSIGN) {
 	    if (ts.isImplicitCastValid(t, ts.Long(), context) && ts.isImplicitCastValid(s, ts.Long(), context)) {
 		// Only promote the left of a shift.
-		return n.right(convert(right, ts.promote(t), context)).type(ts.promote(t));
+		return n1.type(ts.promote(t));
 	    }
 
-	    throw new SemanticException("The " + op + " operator must have integral operands.", n.position());
+	    throw new SemanticException("The " + op + " operator must have " + "integral operands.", n.position());
 	}
 
 	throw new InternalCompilerError("Unrecognized assignment operator " + op + ".");
     }
 
+    private Assign_c typeCheckLeft(Assign_c n, Context context) throws SemanticException {
+	if (n instanceof LocalAssign_c) {
+	    LocalAssign_c a = (LocalAssign_c) n;
+	    return (Assign_c) a;
+	}
+	else if (n instanceof FieldAssign_c) {
+	    FieldAssign_c a = (FieldAssign_c) n;
+	    Field left = (Field) a.left(nf);
+	    left = (Field) visit((Field_c) left, context);
+	    FieldAssign_c n1 = (FieldAssign_c) a.target(left.target());
+	    n1 = (FieldAssign_c) n1.name(left.name());
+	    return (Assign_c) n1.fieldInstance(left.fieldInstance());
+	}
+	else if (n instanceof ArrayAccessAssign_c) {
+	    ArrayAccessAssign_c a = (ArrayAccessAssign_c) n;
+	    Type at = a.array().type();
+	    if (!at.isArray())
+		throw new SemanticException("Target of array assignment is not an array element.", a.array().position());
+	    Type it = a.index().type();
+	    if (!it.isInt())
+		throw new SemanticException("Array element must be indexed by an int.", a.index().position());
+	    return a;
+	}
+	return n;
+    }
+
     public Node visit(ArrayAccess_c n, Context context) throws SemanticException {
 	n = (ArrayAccess_c) acceptChildren(n);
 
-	Type arrayType = n.array().type();
-	
-	if (arrayType instanceof ErrorType || n.index().type() instanceof ErrorType) {
-	    return n.type(ts.errorType(n.position()));
-	}
-	
-	if (! arrayType.isArray()) {
+	if (!n.array().type().isArray()) {
 	    throw new SemanticException("Subscript can only follow an array type.", n.position());
 	}
 
@@ -336,7 +198,7 @@ public class TypeChecker extends Visitor {
 	    throw new SemanticException("Array subscript must be an integer.", n.position());
 	}
 
-	return n.index(convert(n.index(), ts.Int(), context)).type(n.array().type().toArray().base());
+	return n.type(n.array().type().toArray().base());
     }
 
     public Node visit(ArrayInit_c n, Context context) throws SemanticException {
@@ -364,16 +226,12 @@ public class TypeChecker extends Visitor {
     public Node visit(Assert_c n, Context context) throws SemanticException {
 	n = (Assert_c) acceptChildren(n);
 
-	if (n.cond().type() instanceof ErrorType) {
-	    return n.type(ts.errorType(n.position()));
-	}
-
 	if (!n.cond().type().isBoolean()) {
-	    throw new SemanticException("Condition of assert statement must have boolean type.", n.cond().position());
+	    throw new SemanticException("Condition of assert statement " + "must have boolean type.", n.cond().position());
 	}
 
 	if (n.errorMessage() != null && ts.typeEquals(n.errorMessage().type(), ts.Void(), context)) {
-	    throw new SemanticException("Error message in assert statement must have a value.", n.errorMessage().position());
+	    throw new SemanticException("Error message in assert statement " + "must have a value.", n.errorMessage().position());
 	}
 
 	return n;
@@ -384,12 +242,8 @@ public class TypeChecker extends Visitor {
 
 	Type l = n.left().type();
 	Type r = n.right().type();
-	
-	if (l instanceof ErrorType || r instanceof ErrorType) {
-	    return n.type(ts.errorType(n.position()));
-	}
 
-	if (n.operator() == Binary.GT || n.operator() == Binary.LT || n.operator() == Binary.GE || n.operator() == Binary.LE) {
+	if (n.operator() == Binary_c.GT || n.operator() == Binary_c.LT || n.operator() == Binary_c.GE || n.operator() == Binary_c.LE) {
 	    if (!l.isNumeric()) {
 		throw new SemanticException("The " + n.operator() + " operator must have numeric operands, not type " + l + ".", n.left().position());
 	    }
@@ -398,21 +252,18 @@ public class TypeChecker extends Visitor {
 		throw new SemanticException("The " + n.operator() + " operator must have numeric operands, not type " + r + ".", n.right().position());
 	    }
 
-	    return n.left(convert(n.left(), ts.promote(l, r), context)).right(convert(n.right(), ts.promote(l, r), context)).type(ts.Boolean());
+	    return n.type(ts.Boolean());
 	}
 
-	if (n.operator() == Binary.EQ || n.operator() == Binary.NE) {
+	if (n.operator() == Binary_c.EQ || n.operator() == Binary_c.NE) {
 	    if (!ts.isCastValid(l, r, context) && !ts.isCastValid(r, l, context)) {
 		throw new SemanticException("The " + n.operator() + " operator must have operands of similar type.", n.position());
 	    }
 
-	    if (l.isNumeric() && r.isNumeric())
-		return n.left(convert(n.left(), ts.promote(l, r), context)).right(convert(n.right(), ts.promote(l, r), context)).type(ts.Boolean());
-
 	    return n.type(ts.Boolean());
 	}
 
-	if (n.operator() == Binary.COND_OR || n.operator() == Binary.COND_AND) {
+	if (n.operator() == Binary_c.COND_OR || n.operator() == Binary_c.COND_AND) {
 	    if (!l.isBoolean()) {
 		throw new SemanticException("The " + n.operator() + " operator must have boolean operands, not type " + l + ".", n.left().position());
 	    }
@@ -424,26 +275,26 @@ public class TypeChecker extends Visitor {
 	    return n.type(ts.Boolean());
 	}
 
-	if (n.operator() == Binary.ADD) {
+	if (n.operator() == Binary_c.ADD) {
 	    if (ts.isSubtype(l, ts.String(), context) || ts.isSubtype(r, ts.String(), context)) {
 		if (!ts.canCoerceToString(r, context)) {
-		    throw new SemanticException("Cannot coerce an expression of type " + r + " to a String.", n.right().position());
+		    throw new SemanticException("Cannot coerce an expression " + "of type " + r + " to a String.", n.right().position());
 		}
 		if (!ts.canCoerceToString(l, context)) {
-		    throw new SemanticException("Cannot coerce an expression of type " + l + " to a String.", n.left().position());
+		    throw new SemanticException("Cannot coerce an expression " + "of type " + l + " to a String.", n.left().position());
 		}
 
-		return n.left(convertToString(n.left(), context)).right(convertToString(n.right(), context)).type(ts.String());
+		return n.precedence(Precedence.STRING_ADD).type(ts.String());
 	    }
 	}
 
-	if (n.operator() == Binary.BIT_AND || n.operator() == Binary.BIT_OR || n.operator() == Binary.BIT_XOR) {
+	if (n.operator() == Binary_c.BIT_AND || n.operator() == Binary_c.BIT_OR || n.operator() == Binary_c.BIT_XOR) {
 	    if (l.isBoolean() && r.isBoolean()) {
 		return n.type(ts.Boolean());
 	    }
 	}
 
-	if (n.operator() == Binary.ADD) {
+	if (n.operator() == Binary_c.ADD) {
 	    if (!l.isNumeric()) {
 		throw new SemanticException("The " + n.operator() + " operator must have numeric or String operands, not type " + l + ".", n.left()
 		                            .position());
@@ -453,24 +304,21 @@ public class TypeChecker extends Visitor {
 		throw new SemanticException("The " + n.operator() + " operator must have numeric or String operands, not type " + r + ".", n.right()
 		                            .position());
 	    }
-
-	    return n.left(convert(n.left(), ts.promote(l, r), context)).right(convert(n.right(), ts.promote(l, r), context)).type(ts.promote(l, r));
 	}
 
-	if (n.operator() == Binary.BIT_AND || n.operator() == Binary.BIT_OR || n.operator() == Binary.BIT_XOR) {
+	if (n.operator() == Binary_c.BIT_AND || n.operator() == Binary_c.BIT_OR || n.operator() == Binary_c.BIT_XOR) {
 	    if (!ts.isImplicitCastValid(l, ts.Long(), context)) {
-		throw new SemanticException("The " + n.operator() + " operator must have numeric or boolean operands, not type " + l + ".", n.left().position());
+		throw new SemanticException("The " + n.operator() + " operator must have numeric or boolean operands, not type " + l + ".", n.left()
+		                            .position());
 	    }
 
 	    if (!ts.isImplicitCastValid(r, ts.Long(), context)) {
 		throw new SemanticException("The " + n.operator() + " operator must have numeric or boolean operands, not type " + r + ".", n.right()
 		                            .position());
 	    }
-
-	    return n.left(convert(n.left(), ts.promote(l, r), context)).right(convert(n.right(), ts.promote(l, r), context)).type(ts.promote(l, r));
 	}
 
-	if (n.operator() == Binary.SUB || n.operator() == Binary.MUL || n.operator() == Binary.DIV || n.operator() == Binary.MOD) {
+	if (n.operator() == Binary_c.SUB || n.operator() == Binary_c.MUL || n.operator() == Binary_c.DIV || n.operator() == Binary_c.MOD) {
 	    if (!l.isNumeric()) {
 		throw new SemanticException("The " + n.operator() + " operator must have numeric operands, not type " + l + ".", n.left().position());
 	    }
@@ -478,11 +326,9 @@ public class TypeChecker extends Visitor {
 	    if (!r.isNumeric()) {
 		throw new SemanticException("The " + n.operator() + " operator must have numeric operands, not type " + r + ".", n.right().position());
 	    }
-
-	    return n.left(convert(n.left(), ts.promote(l, r), context)).right(convert(n.right(), ts.promote(l, r), context)).type(ts.promote(l, r));
 	}
 
-	if (n.operator() == Binary.SHL || n.operator() == Binary.SHR || n.operator() == Binary.USHR) {
+	if (n.operator() == Binary_c.SHL || n.operator() == Binary_c.SHR || n.operator() == Binary_c.USHR) {
 	    if (!ts.isImplicitCastValid(l, ts.Long(), context)) {
 		throw new SemanticException("The " + n.operator() + " operator must have numeric operands, not type " + l + ".", n.left().position());
 	    }
@@ -490,9 +336,11 @@ public class TypeChecker extends Visitor {
 	    if (!ts.isImplicitCastValid(r, ts.Long(), context)) {
 		throw new SemanticException("The " + n.operator() + " operator must have numeric operands, not type " + r + ".", n.right().position());
 	    }
+	}
 
+	if (n.operator() == Binary_c.SHL || n.operator() == Binary_c.SHR || n.operator() == Binary_c.USHR) {
 	    // For shift, only promote the left operand.
-	    return n.left(convert(n.left(), ts.promote(l), context)).right(convert(n.right(), ts.Int(), context)).type(ts.promote(l));
+	    return n.type(ts.promote(l));
 	}
 
 	return n.type(ts.promote(l, r));
@@ -501,53 +349,45 @@ public class TypeChecker extends Visitor {
     public Node visit(Unary_c n, Context context) throws SemanticException {
 	n = (Unary_c) acceptChildren(n);
 
-	Type t = n.expr().type();
+	if (n.operator() == Unary_c.POST_INC || n.operator() == Unary_c.POST_DEC || n.operator() == Unary_c.PRE_INC || n.operator() == Unary_c.PRE_DEC) {
 
-	if (t instanceof ErrorType) {
-	    return n.type(ts.errorType(n.position()));
-	}
-
-	if (n.operator() == Unary.POST_INC || n.operator() == Unary.POST_DEC || n.operator() == Unary.PRE_INC || n.operator() == Unary.PRE_DEC) {
-	    if (!t.isNumeric()) {
+	    if (!n.expr().type().isNumeric()) {
 		throw new SemanticException("Operand of " + n.operator() + " operator must be numeric.", n.expr().position());
 	    }
-	    
+
 	    if (!(n.expr() instanceof Variable)) {
 		throw new SemanticException("Operand of " + n.operator() + " operator must be a variable.", n.expr().position());
 	    }
-	    
-	    
-	    if (n.expr() instanceof NamedVariable) {
-		if (((NamedVariable) n.expr()).varInstance().flags().isFinal()) {
-		    throw new SemanticException("Operand of " + n.operator() + " operator must be a non-final variable.", n.expr().position());
-		}
+
+	    if (((Variable) n.expr()).flags().isFinal()) {
+		throw new SemanticException("Operand of " + n.operator() + " operator must be a non-final variable.", n.expr().position());
 	    }
 
-	    return n.type(t);
+	    return n.type(n.expr().type());
 	}
 
-	if (n.operator() == Unary.BIT_NOT) {
-	    if (!ts.isImplicitCastValid(t, ts.Long(), context)) {
+	if (n.operator() == Unary_c.BIT_NOT) {
+	    if (!ts.isImplicitCastValid(n.expr().type(), ts.Long(), context)) {
 		throw new SemanticException("Operand of " + n.operator() + " operator must be numeric.", n.expr().position());
 	    }
 
-	    return n.expr(convert(n.expr(), ts.promote(t), context)).type(ts.promote(t));
+	    return n.type(ts.promote(n.expr().type()));
 	}
 
-	if (n.operator() == Unary.NEG || n.operator() == Unary.POS) {
-	    if (!t.isNumeric()) {
+	if (n.operator() == Unary_c.NEG || n.operator() == Unary_c.POS) {
+	    if (!n.expr().type().isNumeric()) {
 		throw new SemanticException("Operand of " + n.operator() + " operator must be numeric.", n.expr().position());
 	    }
 
-	    return n.expr(convert(n.expr(), ts.promote(t), context)).type(ts.promote(t));
+	    return n.type(ts.promote(n.expr().type()));
 	}
 
-	if (n.operator() == Unary.NOT) {
-	    if (!t.isBoolean()) {
+	if (n.operator() == Unary_c.NOT) {
+	    if (!n.expr().type().isBoolean()) {
 		throw new SemanticException("Operand of " + n.operator() + " operator must be boolean.", n.expr().position());
 	    }
 
-	    return n.type(t);
+	    return n.type(n.expr().type());
 	}
 
 	return n;
@@ -556,63 +396,50 @@ public class TypeChecker extends Visitor {
     public Node visit(While_c n, Context context) throws SemanticException {
 	n = (While_c) acceptChildren(n);
 
-	if (!(n.cond().type() instanceof ErrorType)) {
-	    if (!ts.typeEquals(n.cond().type(), ts.Boolean(), context)) {
-		throw new SemanticException("Condition of while statement must have boolean type.", n.cond().position());
-	    }
+	if (!ts.typeEquals(n.cond().type(), ts.Boolean(), context)) {
+	    throw new SemanticException("Condition of while statement must have boolean type.", n.cond().position());
 	}
 
-	return n.type(ts.Void());
+	return n;
     }
 
     public Node visit(Do_c n, Context context) throws SemanticException {
 	n = (Do_c) acceptChildren(n);
 
-	if (!(n.cond().type() instanceof ErrorType)) {
-	    if (!ts.typeEquals(n.cond().type(), ts.Boolean(), context)) {
-		throw new SemanticException("Condition of do statement must have boolean type.", n.cond().position());
-	    }
+	if (!ts.typeEquals(n.cond().type(), ts.Boolean(), context)) {
+	    throw new SemanticException("Condition of do statement must have boolean type.", n.cond().position());
 	}
 
-	return n.type(ts.Void());
+	return n;
     }
 
     public Node visit(If_c n, Context context) throws SemanticException {
 	n = (If_c) acceptChildren(n);
 
-	if (!(n.cond().type() instanceof ErrorType)) {
-	    if (!ts.typeEquals(n.cond().type(), ts.Boolean(), context)) {
-		throw new SemanticException("Condition of if statement must have boolean type.", n.cond().position());
-	    }
+	if (!ts.typeEquals(n.cond().type(), ts.Boolean(), context)) {
+	    throw new SemanticException("Condition of if statement must have boolean type.", n.cond().position());
 	}
 
-	return n.type(ts.Void());
+	return n;
     }
 
     public Node visit(Empty_c n, Context context) throws SemanticException {
-	n = (Empty_c) acceptChildren(n);
-	return n.type(ts.Void());
+	return (Empty_c) acceptChildren(n);
     }
-
     public Node visit(Eval_c n, Context context) throws SemanticException {
-	n = (Eval_c) acceptChildren(n);
-	return n.type(ts.Void());
+	return (Eval_c) acceptChildren(n);
     }
-
     public Node visit(Labeled_c n, Context context) throws SemanticException {
-	n = (Labeled_c) acceptChildren(n);
-	return n.type(ts.Void());
+	return (Labeled_c) acceptChildren(n);
     }
 
     public Node visit(Switch_c n, Context context) throws SemanticException {
 	n = (Switch_c) acceptChildren(n);
 
-	if (!(n.expr().type() instanceof ErrorType)) {
-	    if (!ts.isImplicitCastValid(n.expr().type(), ts.Int(), context) && !ts.isImplicitCastValid(n.expr().type(), ts.Char(), context)) {
-		throw new SemanticException("Switch index must be an integer.", n.position());
-	    }
+	if (!ts.isImplicitCastValid(n.expr().type(), ts.Int(), context) && !ts.isImplicitCastValid(n.expr().type(), ts.Char(), context)) {
+	    throw new SemanticException("Switch index must be an integer.", n.position());
 	}
-	
+
 	Collection<Object> labels = new HashSet<Object>();
 
 	// Check for duplicate labels.
@@ -642,8 +469,7 @@ public class TypeChecker extends Visitor {
 	    }
 	}
 
-	n = (Switch_c) n.expr(convert(n.expr(), ts.Int(), context));
-	return n.type(ts.Void());
+	return n;
     }
 
     public Node visit(Call_c n, Context context) throws SemanticException {
@@ -654,21 +480,14 @@ public class TypeChecker extends Visitor {
 	List<Type> argTypes = new ArrayList<Type>(n.arguments().size());
 
 	for (Expr e : n.arguments()) {
-	    if (e.type() instanceof ErrorType) {
-		return n.methodInstance(errorMI(n)).type(ts.errorType(n.position()));
-	    }
 	    argTypes.add(e.type());
 	}
-	
+
 	if (n.target() == null) {
 	    return typeCheckNullTarget(n, context, argTypes);
 	}
 
 	Type targetType = n.target().type();
-	if (targetType instanceof ErrorType) {
-	    return n.methodInstance(errorMI(n)).type(ts.errorType(n.position()));
-	}
-
 	MethodInstance mi = ts.findMethod(targetType, ts.MethodMatcher(targetType, n.name().id(), argTypes, c));
 
 	/*
@@ -678,71 +497,24 @@ public class TypeChecker extends Visitor {
 	boolean staticContext = (n.target() instanceof TypeNode);
 
 	if (staticContext && !mi.flags().isStatic()) {
-	    throw new SemanticException("Cannot call non-static method " + n.name().id() + " of " + n.target().type() + " in static context.",
+	    throw new SemanticException("Cannot call non-static method " + n.name().id() + " of " + n.target().type() + " in static " + "context.",
 	                                n.position());
 	}
 
 	// If the target is super, but the method is abstract, then
 	// complain.
 	if (n.target() instanceof Special && ((Special) n.target()).kind() == Special.SUPER && mi.flags().isAbstract()) {
-	    throw new SemanticException("Cannot call an abstract method of the super class", n.position());
+	    throw new SemanticException("Cannot call an abstract method " + "of the super class", n.position());
 	}
 
 	Call_c call = (Call_c) n.methodInstance(mi).type(mi.returnType());
 
-	checkCallConsistency(c, call);
-
-	return call.arguments(convert(call.arguments(), mi.formalTypes(), context));
-    }
-
-    private MethodInstance errorMI(Call n) {
-	Position pos = n.position();
-	List<Ref<? extends Type>> l = new ArrayList<Ref<? extends Type>>();
-	Ref<ErrorType> errorTypeRef = Types.ref(ts.errorType(pos));
-	for (int i = 0; i < n.arguments().size(); i++)
-	    l.add(errorTypeRef);
-	MethodDef errorMD = ts.methodDef(pos, errorTypeRef, Flags.NONE, errorTypeRef, n.name().id(), l, Collections.EMPTY_LIST);
-	return ts.createMethodInstance(pos, Types.ref(errorMD));
-    }
-    
-    private ConstructorInstance errorCI(ProcedureCall n) {
-	Position pos = n.position();
-	List<Ref<? extends Type>> l = new ArrayList<Ref<? extends Type>>();
-	Ref<ErrorType> errorTypeRef = Types.ref(ts.errorType(pos));
-	for (int i = 0; i < n.arguments().size(); i++)
-	    l.add(errorTypeRef);
-	ConstructorDef errorCD = ts.constructorDef(pos, errorTypeRef, Flags.NONE, l, Collections.EMPTY_LIST);
-	return ts.createConstructorInstance(pos, Types.ref(errorCD));
-    }
-
-    private FieldInstance errorFI(Field n) {
-	Position pos = n.position();
-	List<Ref<? extends Type>> l = new ArrayList<Ref<? extends Type>>();
-	Ref<ErrorType> errorTypeRef = Types.ref(ts.errorType(pos));
-	FieldDef errorFD = ts.fieldDef(pos, errorTypeRef, Flags.NONE, errorTypeRef, n.name().id());
-	return ts.createFieldInstance(pos, Types.ref(errorFD));
-    }
-
-    private void checkCallConsistency(Context c, Call_c call) throws SemanticException {
-	// If we found a method, the call must type check, so no need to check
+	// If we found a method, the call must type check, so no need to
+	// check
 	// the arguments here.
-	if (call.isTargetImplicit()) {
-	    // the target is implicit. Check that the
-	    // method found in the target type is the
-	    // same as the method found in the context.
+	call.checkConsistency(c);
 
-	    // as exception will be thrown if no appropriate method
-	    // exists. 
-	    MethodInstance ctxtMI = c.findMethod(c.typeSystem().MethodMatcher(null, call.name().id(), call.methodInstance().formalTypes(), c));
-
-	    // cannot perform this check due to the context's findMethod returning a 
-	    // different method instance than the typeSystem in some situations
-	    //          if (!c.typeSystem().equals(ctxtMI, mi)) {
-	    //              throw new InternalCompilerError("Method call " + this + " has an " +
-	    //                   "implicit target, but the name " + name + " resolves to " +
-	    //                   ctxtMI + " in " + ctxtMI.container() + " instead of " + mi+ " in " + mi.container(), position());
-	    //          }
-	}
+	return call;
     }
 
     private Node typeCheckNullTarget(Call_c n, Context context, List<Type> argTypes) throws SemanticException {
@@ -786,14 +558,6 @@ public class TypeChecker extends Visitor {
     public Node visit(Cast_c n, Context context) throws SemanticException {
 	n = (Cast_c) acceptChildren(n);
 
-	if (n.expr().type() instanceof ErrorType) {
-	    return n.type(ts.errorType(n.position()));
-	}
-	
-	if (n.castType().type() instanceof ErrorType) {
-	    return n.type(ts.errorType(n.position()));
-	}
-	
 	if (!ts.isCastValid(n.expr().type(), n.castType().type(), context)) {
 	    throw new SemanticException("Cannot cast the expression of type \"" + n.expr().type() + "\" to type \"" + n.castType().type() + "\".",
 	                                n.position());
@@ -813,34 +577,22 @@ public class TypeChecker extends Visitor {
 	for (ForInit s : n.inits()) {
 	    if (s instanceof LocalDecl) {
 		LocalDecl d = (LocalDecl) s;
-		Type dt = d.typeNode().type();
-		
-		if (dt instanceof ErrorType) {
-		    return n.type(ts.Void());
-		}
-
+		Type dt = d.type().type();
 		if (t == null) {
 		    t = dt;
 		}
-		else {
-		    if (!t.typeEquals(dt, context)) {
-			throw new InternalCompilerError("Local variable declarations in a for loop initializer must all "
-			                                + "be the same type, in this case " + t + ", not " + dt + ".", d.position());
-		    }
+		else if (!t.typeEquals(dt, context)) {
+		    throw new InternalCompilerError("Local variable " + "declarations in a for loop initializer must all "
+		                                    + "be the same type, in this case " + t + ", not " + dt + ".", d.position());
 		}
 	    }
 	}
 
-	if (n.cond() != null) {
-	    if (n.cond().type() instanceof ErrorType) {
-		return n.type(ts.Void());
-	    }
-	    if (!ts.isImplicitCastValid(n.cond().type(), ts.Boolean(), context)) {
-	        throw new SemanticException("The condition of a for statement must have boolean type.", n.cond().position());
-	    }
+	if (n.cond() != null && !ts.isImplicitCastValid(n.cond().type(), ts.Boolean(), context)) {
+	    throw new SemanticException("The condition of a for statement must have boolean type.", n.cond().position());
 	}
 
-	return n.type(ts.Void());
+	return n;
     }
 
     public Node visit(LocalDecl_c n, Context context) throws SemanticException {
@@ -859,11 +611,11 @@ public class TypeChecker extends Visitor {
 	    // not found, so not multiply defined
 	}
 
-	if (outerLocal != null && outerLocal.def() != n.localDef() && c.isLocal(n.localDef().name())) {
-	    throw new SemanticException("Local variable \"" + n.name() + "\" multiply defined.  Previous definition at " + outerLocal.position() + ".",
-					n.position());
+	if (outerLocal != null && c.isLocal(n.localDef().name())) {
+	    throw new SemanticException(
+	                                "Local variable \"" + n.name() + "\" multiply defined.  " + "Previous definition at " + outerLocal.position() + ".",
+	                                n.position());
 	}
-	
 	n = (LocalDecl_c) acceptChildren(n);
 
 	try {
@@ -875,17 +627,13 @@ public class TypeChecker extends Visitor {
 
 	if (n.init() != null) {
 	    if (n.init() instanceof ArrayInit) {
-		ArrayInit init = (ArrayInit) n.init();
-		init = typeCheckElements(context, n.typeNode().type(), init);
-		n = (LocalDecl_c) n.init(init);
+		typeCheckElements(context, n.type().type(), (ArrayInit) n.init());
 	    }
 	    else {
-		if (!(n.init().type() instanceof ErrorType) && !(n.typeNode().type() instanceof ErrorType)) {
-		    if (!ts.isImplicitCastValid(n.init().type(), n.typeNode().type(), context) && !ts.typeEquals(n.init().type(), n.typeNode().type(), context)
-			    && !ts.numericConversionValid(n.typeNode().type(), n.init().constantValue(), context)) {
-			throw new SemanticException("The type of the variable initializer \"" + n.init().type() + "\" does not match that of "
-			                            + "the declaration \"" + n.typeNode().type() + "\".", n.init().position());
-		    }
+		if (!ts.isImplicitCastValid(n.init().type(), n.type().type(), context) && !ts.typeEquals(n.init().type(), n.type().type(), context)
+			&& !ts.numericConversionValid(n.type().type(), n.init().constantValue(), context)) {
+		    throw new SemanticException("The type of the variable " + "initializer \"" + n.init().type() + "\" does not match that of "
+		                                + "the declaration \"" + n.type().type() + "\".", n.init().position());
 		}
 	    }
 	}
@@ -910,7 +658,7 @@ public class TypeChecker extends Visitor {
 	if (!c.isLocal(li.name())) {
 	    // this local is defined in an outer class
 	    if (!li.flags().isFinal()) {
-		throw new SemanticException("Local variable \"" + li.name() + "\" is accessed from an inner class, and must be declared final.",
+		throw new SemanticException("Local variable \"" + li.name() + "\" is accessed from an inner class, and must be declared " + "final.",
 		                            n.position());
 	    }
 	}
@@ -934,7 +682,7 @@ public class TypeChecker extends Visitor {
 		t = n.qualifier().type().toClass();
 
 		if (!c.currentClass().hasEnclosingInstance(t)) {
-		    throw new SemanticException("The nested class \"" + c.currentClass() + "\" does not have an enclosing instance of type \"" + t
+		    throw new SemanticException("The nested class \"" + c.currentClass() + "\" does not have " + "an enclosing instance of type \"" + t
 		                                + "\".", n.qualifier().position());
 		}
 	    }
@@ -945,14 +693,14 @@ public class TypeChecker extends Visitor {
 
 	if (t == null || (c.inStaticContext() && ts.typeEquals(t, c.currentClass(), c))) {
 	    // trying to access "this" or "super" from a static context.
-	    throw new SemanticException("Cannot access a non-static member or refer to \"this\" or \"super\" from a static context.",
+	    throw new SemanticException("Cannot access a non-static " + "member or refer to \"this\" or \"super\" " + "from a static context.",
 	                                n.position());
 	}
 
-	if (n.kind() == Special.THIS) {
+	if (n.kind() == Special_c.THIS) {
 	    return n.type(t);
 	}
-	else if (n.kind() == Special.SUPER) {
+	else if (n.kind() == Special_c.SUPER) {
 	    return n.type(t.superClass());
 	}
 
@@ -968,11 +716,6 @@ public class TypeChecker extends Visitor {
 
 	ClassType ct = c.currentClass();
 	Type superType = ct.superClass();
-	
-	if (n.kind() == ConstructorCall.SUPER && superType instanceof ErrorType) {
-	    return n1.constructorInstance(errorCI(n)).type(ts.Void());
-	}
-
 
 	// The qualifier specifies the enclosing instance of this inner
 	// class.
@@ -989,24 +732,24 @@ public class TypeChecker extends Visitor {
 	// ChildOfInner() { (new Outer()).super(); }
 	// }
 	if (n.qualifier() != null) {
-	    if (n.kind() != ConstructorCall.SUPER) {
-		throw new SemanticException("Can only qualify a \"super\"constructor invocation.", n.position());
+	    if (n.kind() != ConstructorCall_c.SUPER) {
+		throw new SemanticException("Can only qualify a \"super\"" + "constructor invocation.", n.position());
 	    }
 
 	    if (!superType.isClass() || !superType.toClass().isInnerClass() || superType.toClass().inStaticContext()) {
-		throw new SemanticException("The class \"" + superType + "\" is not an inner class, or was declared in a static "
-		                            + "context; a qualified constructor invocation cannot be used.", n.position());
+		throw new SemanticException("The class \"" + superType + "\"" + " is not an inner class, or was declared in a static "
+		                            + "context; a qualified constructor invocation cannot " + "be used.", n.position());
 	    }
 
 	    Type qt = n.qualifier().type();
 
 	    if (!qt.isClass() || !qt.isSubtype(superType.toClass().outer(), c)) {
-		throw new SemanticException("The type of the qualifier \"" + qt + "\" does not match the immediately enclosing "
+		throw new SemanticException("The type of the qualifier " + "\"" + qt + "\" does not match the immediately enclosing "
 		                            + "class  of the super class \"" + superType.toClass().outer() + "\".", n.qualifier().position());
 	    }
 	}
 
-	if (n.kind() == ConstructorCall.SUPER) {
+	if (n.kind() == ConstructorCall_c.SUPER) {
 	    if (!superType.isClass()) {
 		throw new SemanticException("Super type of " + ct + " is not a class.", n.position());
 	    }
@@ -1034,7 +777,7 @@ public class TypeChecker extends Visitor {
 		}
 
 		if (e == null) {
-		    throw new SemanticException(ct + " must have an enclosing instance that is a subtype of " + superContainer, n.position());
+		    throw new SemanticException(ct + " must have an enclosing instance" + " that is a subtype of " + superContainer, n.position());
 		}
 		if (e == ct) {
 		    throw new SemanticException(ct + " is a subtype of " + superContainer + "; an enclosing instance that is a subtype of "
@@ -1050,38 +793,34 @@ public class TypeChecker extends Visitor {
 
 	for (Expr e : n1.arguments()) {
 	    argTypes.add(e.type());
-	    
-	    if (e.type() instanceof ErrorType) {
-		return n1.constructorInstance(errorCI(n)).type(ts.Void());
-	    }
 	}
 
-	if (n.kind() == ConstructorCall.SUPER) {
+	if (n.kind() == ConstructorCall_c.SUPER) {
 	    ct = ct.superClass().toClass();
 	}
 
 	ConstructorInstance ci = ts.findConstructor(ct, ts.ConstructorMatcher(ct, argTypes, c));
 
-	n1 = (ConstructorCall_c) n1.constructorInstance(ci);
-
-	n1 = (ConstructorCall_c) n1.arguments(convert(n1.arguments(), ci.formalTypes(), context));
-	
-	return n1.type(ts.Void());
+	return n1.constructorInstance(ci);
     }
 
     public Node visit(New_c n, Context context) throws SemanticException {
-	New_c n1 = typeCheckHeader(n, context);
+	New_c n1 = typeCheckerHeader(n, context);
 
 	ClassBody body = (ClassBody) accept(n1.body());
 	n1 = (New_c) n1.body(body);
 
-	n1 = (New_c) tcNew(n, n1, context);
-	
-	ConstructorInstance ci = n1.constructorInstance();
-	return n1.arguments(convert(n1.arguments(), ci.formalTypes(), context));
+	return tcNew(n, n1, context);
     }
 
     public Node tcNew(New_c old, New_c n, Context context) throws SemanticException {
+
+	List<Type> argTypes = new ArrayList<Type>(n.arguments().size());
+
+	for (Expr e : n.arguments()) {
+	    argTypes.add(e.type());
+	}
+
 	typeCheckFlags(n);
 	typeCheckNested(n);
 
@@ -1089,14 +828,6 @@ public class TypeChecker extends Visitor {
 	ConstructorInstance ci;
 
 	if (!ct.flags().isInterface()) {
-	    List<Type> argTypes = new ArrayList<Type>(n.arguments().size());
-	    
-	    for (Expr e : n.arguments()) {
-		argTypes.add(e.type());
-		if (e.type() instanceof ErrorType) {
-		    return n.constructorInstance(errorCI(n)).type(ct);
-		}
-	    }
 	    Context c = context;
 	    if (n.anonType() != null) {
 		c = c.pushClass(n.anonType(), n.anonType().asType());
@@ -1124,20 +855,27 @@ public class TypeChecker extends Visitor {
 
 	if (n.body() == null) {
 	    if (ct.flags().isInterface()) {
-		throw new SemanticException("Cannot instantiate an interface.", n.position());
+		throw new SemanticException(
+		                            "Cannot instantiate an interface.", n.position());
 	    }
 
 	    if (ct.flags().isAbstract()) {
-		throw new SemanticException("Cannot instantiate an abstract class.", n.position());
+		throw new SemanticException(
+		                            "Cannot instantiate an abstract class.", n.position());
 	    }
 	}
 	else {
 	    if (ct.flags().isFinal()) {
-		throw new SemanticException("Cannot create an anonymous subclass of a final class.", n.position());
+		throw new SemanticException(
+		                            "Cannot create an anonymous subclass of a final class.",
+		                            n.position());
 	    }
 
-	    if (ct.flags().isInterface() && !n.arguments().isEmpty()) {
-		throw new SemanticException("Cannot pass arguments to an anonymous class that implements an interface.", n.arguments().get(0).position());
+	    if (ct.flags().isInterface() && ! n.arguments().isEmpty()) {
+		throw new SemanticException(
+		                            "Cannot pass arguments to an anonymous class that " +
+		                            "implements an interface.",
+		                            n.arguments().get(0).position());
 	    }
 	}
     }
@@ -1149,8 +887,10 @@ public class TypeChecker extends Visitor {
 	    // Get the qualifier type first.
 	    Type qt = n.qualifier().type();
 
-	    if (!qt.isClass()) {
-		throw new SemanticException("Cannot instantiate member class of a non-class type.", n.qualifier().position());
+	    if (! qt.isClass()) {
+		throw new SemanticException(
+		                            "Cannot instantiate member class of a non-class type.",
+		                            n.qualifier().position());
 	    }
 
 	    // Disambiguate the type node as a member of the qualifier type.
@@ -1159,7 +899,9 @@ public class TypeChecker extends Visitor {
 	    // According to JLS2 15.9.1, the class type being
 	    // instantiated must be inner.
 	    if (! ct.isInnerClass()) {
-		throw new SemanticException("Cannot provide a containing instance for non-inner class " + ct.fullName() + ".", n.qualifier().position());
+		throw new SemanticException(
+		                            "Cannot provide a containing instance for non-inner class " +
+		                            ct.fullName() + ".", n.qualifier().position());
 	    }
 	}
 	else {
@@ -1168,14 +910,16 @@ public class TypeChecker extends Visitor {
 	    if (ct.isMember()) {
 		for (ClassType t = ct; t.isMember(); t = t.outer()) {
 		    if (! t.flags().isStatic()) {
-			throw new SemanticException("Cannot allocate non-static member class \"" + t + "\".", n.position());
+			throw new SemanticException(
+			                            "Cannot allocate non-static member class \"" +
+			                            t + "\".", n.position());
 		    }
 		}
 	    }
 	}
     }
 
-    private New_c typeCheckHeader(New_c n, Context context) throws SemanticException {
+    private New_c typeCheckerHeader(New_c n, Context context) throws SemanticException {
 	n = typeCheckObjectType(context, n);
 
 	Expr qualifier = n.qualifier();
@@ -1183,22 +927,22 @@ public class TypeChecker extends Visitor {
 	List<Expr> arguments = n.arguments();
 	ClassBody body = n.body();
 
-//	if (body != null) {
-//	    Ref<? extends Type> ct = tn.typeRef();
-//	    ClassDef anonType = n.anonType();
-//
-//	    assert anonType != null;
-//
-//	    if (!ct.get().toClass().flags().isInterface()) {
-//		anonType.superType(ct);
-//	    }
-//	    else {
-//		anonType.superType(Types.<Type> ref(ts.Object()));
-//		assert anonType.interfaces().isEmpty() || anonType.interfaces().get(0) == ct;
-//		if (anonType.interfaces().isEmpty())
-//		    anonType.addInterface(ct);
-//	    }
-//	}
+	if (body != null) {
+	    Ref<? extends Type> ct = tn.typeRef();
+	    ClassDef anonType = n.anonType();
+
+	    assert anonType != null;
+
+	    if (!ct.get().toClass().flags().isInterface()) {
+		anonType.superType(ct);
+	    }
+	    else {
+		anonType.superType(Types.<Type> ref(ts.Object()));
+		assert anonType.interfaces().isEmpty() || anonType.interfaces().get(0) == ct;
+		if (anonType.interfaces().isEmpty())
+		    anonType.addInterface(ct);
+	    }
+	}
 
 	arguments = (List<Expr>) accept(arguments);
 
@@ -1239,7 +983,7 @@ public class TypeChecker extends Visitor {
 	else {
 	    qualifier = (Expr) accept(n.qualifier());
 
-	    if (tn instanceof AmbTypeNode && ((AmbTypeNode) tn).child() instanceof QualifiedName && ((QualifiedName) ((AmbTypeNode) tn).child()).prefix() == null) {
+	    if (tn instanceof AmbTypeNode && ((AmbTypeNode) tn).prefix() == null) {
 		// We have to disambiguate the type node as if it were a
 		// member of the
 		// static type, outer, of the qualifier. For Java this is
@@ -1253,7 +997,7 @@ public class TypeChecker extends Visitor {
 		// handle
 		// this complexity.
 
-		Name name = ((QualifiedName) ((AmbTypeNode) tn).child()).name().id();
+		Name name = ((AmbTypeNode) tn).name().id();
 		assert name != null;
 
 		if (!qualifier.type().isClass()) {
@@ -1338,20 +1082,12 @@ public class TypeChecker extends Visitor {
     public Node visit(Case_c n, Context context) throws SemanticException {
 	n = (Case_c) acceptChildren(n);
 
-	n = (Case_c) n.type(ts.Void());
-	
 	if (n.expr() == null) {
 	    return n;
 	}
 
-	Type t = n.expr().type();
-
-	if (t instanceof ErrorType) {
-	    return n;
-	}
-
-	if (! t.isIntOrLess()) {
-	    throw new SemanticException("Case label must be a 32-bit integer or narrower.", n.position());
+	if (!ts.isImplicitCastValid(n.expr().type(), ts.Int(), context) && !ts.isImplicitCastValid(n.expr().type(), ts.Char(), context)) {
+	    throw new SemanticException("Case label must be an byte, char, short, or int.", n.position());
 	}
 
 	if (n.expr().isConstant()) {
@@ -1370,8 +1106,7 @@ public class TypeChecker extends Visitor {
     }
 
     public Node visit(Block_c n, Context context) throws SemanticException {
-	n = (Block_c) acceptChildren(n);
-	return n.type(ts.Void());
+	return (Block_c) acceptChildren(n);
     }
 
     public Node visit(Conditional_c n, Context context) throws SemanticException {
@@ -1382,14 +1117,8 @@ public class TypeChecker extends Visitor {
 	Type t1 = e1.type();
 	Type t2 = e2.type();
 
-	if (t1 instanceof ErrorType || t2 instanceof ErrorType) {
-	    return n.type(ts.errorType(n.position()));
-	}
-
-	if (!(n.cond().type() instanceof ErrorType)) {
-	    if (!n.cond().type().isBoolean()) {
-		throw new SemanticException("Condition of ternary expression must be of type boolean.", n.cond().position());
-	    }
+	if (!n.cond().type().isBoolean()) {
+	    throw new SemanticException("Condition of ternary expression must be of type boolean.", n.cond().position());
 	}
 
 	// From the JLS, section:
@@ -1407,11 +1136,8 @@ public class TypeChecker extends Visitor {
 	    // - If one of the operands is of type byte and the other is of
 	    // type short, then the type of the conditional expression is
 	    // short.
-	    if (t1.isByte() && t2.isShort()) {
-		return n.consequent(convert(n.consequent(), ts.Short(), context)).type(ts.Short());
-	    }
-	    if (t1.isShort() && t2.isByte()) {
-		return n.alternative(convert(n.alternative(), ts.Short(), context)).type(ts.Short());
+	    if (t1.isByte() && t2.isShort() || t1.isShort() && t2.isByte()) {
+		return n.type(ts.Short());
 	    }
 
 	    // - If one of the operands is of type T where T is byte, short,
@@ -1422,11 +1148,11 @@ public class TypeChecker extends Visitor {
 	    // conditional expression is T.
 
 	    if (t1.isIntOrLess() && t2.isInt() && ts.numericConversionValid(t1, e2.constantValue(), context)) {
-		return n.alternative(convert(e2, t1, context)).type(t1);
+		return n.type(t1);
 	    }
 
 	    if (t2.isIntOrLess() && t1.isInt() && ts.numericConversionValid(t2, e1.constantValue(), context)) {
-		return n.consequent(convert(e1, t2, context)).type(t2);
+		return n.type(t2);
 	    }
 
 	    // - Otherwise, binary numeric promotion (Sec. 5.6.2) is applied
@@ -1436,8 +1162,7 @@ public class TypeChecker extends Visitor {
 	    // promoted type of the second and third operands. Note that
 	    // binary
 	    // numeric promotion performs value set conversion (Sec. 5.1.8).
-	
-	    return n.consequent(convert(e1, ts.promote(t1, t2), context)).alternative(convert(e2, ts.promote(t1, t2), context)).type(ts.promote(t1, t2));
+	    return n.type(ts.promote(t1, t2));
 	}
 
 	// If one of the second and third operands is of the null type and
@@ -1460,56 +1185,52 @@ public class TypeChecker extends Visitor {
 
 	if (t1.isReference() && t2.isReference()) {
 	    if (ts.isImplicitCastValid(t1, t2, context)) {
-		return n.consequent(convert(e1, t2, context)).type(t2);
+		return n.type(t2);
 	    }
 	    if (ts.isImplicitCastValid(t2, t1, context)) {
-		return n.consequent(convert(e2, t1, context)).type(t1);
+		return n.type(t1);
 	    }
 	}
 
 	throw new SemanticException("Could not determine type of ternary conditional expression; cannot assign " + t1 + " to " + t2 + " or vice versa.",
-	                           n.position());
+	                            n.position());
     }
 
-    public Node visit(QualifiedName_c n, Context context) throws SemanticException {
-	n = (QualifiedName_c) acceptChildren(n);
+    public Node visit(AmbPrefix_c n, Context context) throws SemanticException {
+	n = (AmbPrefix_c) acceptChildren(n);
 
 	Position pos = n.position();
-	Node n1 = disamb(n, context, n.prefix(), n.name());
+	Node n1 = disamb(n, context, n.prefix(), n.nameNode());
 	n1 = copyAttributesFrom(n1, n);
 
-	if (n1 != null) {
+	if (n1 instanceof Prefix) {
 	    if (n1 != n)
 		n1 = n1.accept(this, context);
 	    return n1;
 	}
-	throw new SemanticException("Could not find " + n, pos);
+	throw new SemanticException("Could not find " + (n.prefix() != null ? n.prefix() + "." : "") + n.nameNode(), pos);
     }
-    
-    public Node visit(Id_c n, Context context) throws SemanticException {
-	return acceptChildren(n);
-    }
-    
+
     public Node visit(AmbExpr_c n, Context context) throws SemanticException {
 	n = (AmbExpr_c) acceptChildren(n);
 
-	Node n1 = n.child();
+	Position pos = n.position();
+	Node n1 = disamb(n, context, null, n.name());
+	n1 = copyAttributesFrom(n1, n);
 
 	if (n1 instanceof Expr) {
+	    if (n1 != n)
+		n1 = n1.accept(this, context);
 	    return n1;
 	}
 
-	throw new SemanticException("Could not find variable \"" + n.child() + "\".", n.position());
+	throw new SemanticException("Could not find field or local " + "variable \"" + n.name() + "\".", pos);
     }
 
     public Node visit(Field_c n, Context context) throws SemanticException {
 	n = (Field_c) acceptChildren(n);
 
 	Context c = context;
-	
-	if (n.target().type() instanceof ErrorType) {
-	    return n.fieldInstance(errorFI(n)).type(ts.errorType(n.position()));
-	}
 
 	FieldInstance fi = ts.findField(n.target().type(), ts.FieldMatcher(n.target().type(), n.name().id(), c));
 
@@ -1531,25 +1252,53 @@ public class TypeChecker extends Visitor {
 
 	SemanticException ex;
 
-	    Node n1 = n.child();
+	try {
+	    Prefix prefix = n.prefix();
+	    Id name = n.name();
+
+	    assert name != null : "null name for " + n;
+
+	    Node n1 = disamb(n, context, prefix, name);
+	    n1 = copyAttributesFrom(n1, n);
 
 	    if (n1 instanceof TypeNode) {
 		TypeNode tn = (TypeNode) n1;
-		Ref<Type> sym = n.typeRef();
+		LazyRef<Type> sym = (LazyRef<Type>) n.typeRef();
 		sym.update(tn.typeRef().get());
+
+		// Reset the resolver goal to one that can run when the ref
+		// is deserialized.
+		Goal resolver = Globals.Scheduler().LookupGlobalType(sym);
+		resolver.update(Goal.Status.SUCCESS);
+		sym.setResolver(resolver);
+
+
+		if (n1 != n)
+		    n1 = n1.accept(this, context);
+
 		return n1;
 	    }
 
-	    ex = new SemanticException("Could not find type \"" + n + "\".", n.position());
+	    ex = new SemanticException("Could not find type \"" + (n.prefix() == null ? n.name().id() : n.prefix().toString() + "." + n.name().id())
+	                               + "\".", n.position());
+	}
+	catch (SemanticException e) {
+	    ex = e;
+	}
 
 	// Mark the type as an error, so we don't try looking it up again.
-	Ref<Type> sym = n.typeRef();
+	LazyRef<Type> sym = (LazyRef<Type>) n.typeRef();
 	sym.update(this.ts.unknownType(n.position()));
 
 	throw ex;
     }
 
-    private Node disamb(QualifiedName n, Context context, Node prefix, Id name) throws SemanticException {
+    private Node disamb(Ambiguous n, Context context, Prefix prefix, Id name) throws SemanticException {
+	if (prefix instanceof Ambiguous) {
+	    throw new SemanticException(
+	    "Cannot disambiguate node with ambiguous prefix.");
+	}
+
 	Node result = null;
 
 	if (prefix instanceof PackageNode) {
@@ -1568,14 +1317,13 @@ public class TypeChecker extends Visitor {
 	    result = disambNoPrefix(n.position(), prefix, name, n, context);
 	}
 
+	assert ! (result instanceof Ambiguous);
 	return result;
     }
 
-    private Node disambNoPrefix(Position pos, Node prefix, Id name, QualifiedName amb, Context c) throws SemanticException {
+    private Node disambNoPrefix(Position pos, Prefix prefix, Id name, Ambiguous amb, Context c) throws SemanticException {
 	if (exprOk(amb)) {
 	    // First try local variables and fields.
-	    assert c != null : "null context";
-	    assert name != null : "null name";
 	    VarInstance vi = c.findVariableSilent(name.id());
 
 	    if (vi != null) {
@@ -1625,9 +1373,9 @@ public class TypeChecker extends Visitor {
 	return null;
     }
 
-    private boolean packageOk(QualifiedName amb) {
+    private boolean packageOk(Ambiguous amb) {
 	return ! (amb instanceof Receiver) &&
-	(amb instanceof QualifierNode || amb instanceof Node);
+	(amb instanceof QualifierNode || amb instanceof Prefix);
     }
 
     private Node disambVarInstance(VarInstance vi, Position pos, Id name, Context c) throws SemanticException {
@@ -1636,6 +1384,7 @@ public class TypeChecker extends Visitor {
 	    FieldInstance fi = (FieldInstance) vi;
 	    Receiver r = makeMissingFieldTarget(c, pos, name, fi);
 	    n = nf.Field(pos, r, name).fieldInstance(fi).targetImplicit(true);
+	    return n;
 	}
 	else if (vi instanceof LocalInstance) {
 	    LocalInstance li = (LocalInstance) vi;
@@ -1677,29 +1426,22 @@ public class TypeChecker extends Visitor {
 	return r;
     }
 
-    private TypeNode makeTypeNode(Type type, final Position pos, QualifiedName amb) {
+    private TypeNode makeTypeNode(Type type, Position pos, Ambiguous amb) {
 	if (amb instanceof TypeNode) {
 	    TypeNode tn = (TypeNode) amb;
-	    Ref<Type> sym = tn.typeRef();
-	    sym.update(type);
+	    if (tn.typeRef() instanceof LazyRef) {
+		LazyRef<Type> sym = (LazyRef<Type>) tn.typeRef();
+		sym.update(type);
 
-	    final QName name = ((ClassType) type).fullName();
+		// Reset the resolver goal to one that can run when the ref is deserialized.
+		Goal resolver = Globals.Scheduler().LookupGlobalType(sym);
+		resolver.update(Goal.Status.SUCCESS);
+		sym.setResolver(resolver);
 
-	    // Reset the resolver goal to one that can run when the ref is deserialized.
-	    sym.setResolver(new Ref. Callable<Type>() {
-		public Type call() {
-		    try {
-			return (Type) ts.systemResolver().find(name);
-		    }
-		    catch (SemanticException e) {
-			return ts.errorType(pos);
-		    }
-		}
-	    }, null);
-
-	    TypeNode n = nf.CanonicalTypeNode(pos, sym);
-	    n = (TypeNode) setContext(n, amb.context());
-	    return n;
+		TypeNode n = nf.CanonicalTypeNode(pos, sym);
+		n = (TypeNode) setContext(n, amb.context());
+		return n;
+	    }
 	}
 
 	TypeNode n = nf.CanonicalTypeNode(pos, type);
@@ -1707,20 +1449,20 @@ public class TypeChecker extends Visitor {
 	return n;
     }
 
-    private boolean typeOk(QualifiedName amb) {
+    private boolean typeOk(Ambiguous amb) {
 	return ! (amb instanceof Expr) &&
 	(amb instanceof TypeNode || amb instanceof QualifierNode ||
-		amb instanceof Receiver || amb instanceof QualifiedName);
+		amb instanceof Receiver || amb instanceof Prefix);
     }
 
-    private boolean exprOk(QualifiedName amb) {
+    private boolean exprOk(Ambiguous amb) {
 	return ! (amb instanceof QualifierNode) &&
 	! (amb instanceof TypeNode) &&
 	(amb instanceof Expr || amb instanceof Receiver ||
-		amb instanceof QualifiedName);
+		amb instanceof Prefix);
     }
 
-    private Node disambExprPrefix(Position pos, Id name, QualifiedName amb, Context c, Expr e) throws SemanticException {
+    private Node disambExprPrefix(Position pos, Id name, Ambiguous amb, Context c, Expr e) throws SemanticException {
 	// Must be a non-static field.
 	if (exprOk(amb)) {
 	    Node n = nf.Field(pos, e, name);
@@ -1731,7 +1473,7 @@ public class TypeChecker extends Visitor {
 	return null;
     }
 
-    private Node disambTypeNodePrefix(Position pos, Node prefix, Id name, QualifiedName amb, Context c, TypeNode tn) throws SemanticException {
+    private Node disambTypeNodePrefix(Position pos, Prefix prefix, Id name, Ambiguous amb, Context c, TypeNode tn) throws SemanticException {
 	// Try static fields.
 	Type t = tn.type();
 
@@ -1771,7 +1513,7 @@ public class TypeChecker extends Visitor {
 	return null;
     }
 
-    private Node disambPackagePrefix(Position pos, Id name, QualifiedName amb, Context c, PackageNode pn) throws SemanticException {
+    private Node disambPackagePrefix(Position pos, Id name, Ambiguous amb, Context c, PackageNode pn) throws SemanticException {
 	Resolver pc = ts.packageContextResolver(pn.package_().get());
 
 	Named n;
@@ -1814,67 +1556,74 @@ public class TypeChecker extends Visitor {
 
 	SemanticException ex;
 
-	Node n1 = n.child();
+	try {
+	    Node n1 = disamb(n, context, n.prefix(), n.name());
+	    n1 = copyAttributesFrom(n1, n);
 
-	if (n1 instanceof QualifierNode) {
-	    QualifierNode qn = (QualifierNode) n1;
-	    Qualifier q = qn.qualifierRef().get();
-	    Ref<Qualifier> sym = n.qualifierRef();
-	    sym.update(q);
-	    return n1;
+	    if (n1 instanceof QualifierNode) {
+		QualifierNode qn = (QualifierNode) n1;
+		Qualifier q = qn.qualifierRef().get();
+		LazyRef<Qualifier> sym = (LazyRef<Qualifier>) n.qualifierRef();
+		sym.update(q);
+
+		if (n1 != n)
+		    n1 = n1.accept(this, context);
+
+		return n1;
+	    }
+
+	    ex = new SemanticException("Could not find type or package \""
+	                               + (n.qualifier() == null ? n.name().toString() : n.prefix().toString() + "." + n.name().toString()) + "\".", n.position());
+	}
+	catch (SemanticException e) {
+	    ex = e;
 	}
 
-	ex = new SemanticException("Could not find type or package \"" + n + "\".", n.position());
-
 	// Mark the type as an error, so we don't try looking it up again.
-	Ref<Qualifier> sym = n.qualifierRef();
-	sym.update(this.ts.errorQualifier(n.position()));
+	LazyRef<Qualifier> sym = (LazyRef<Qualifier>) n.qualifierRef();
+	sym.update(this.ts.unknownQualifier(n.position()));
 
 	throw ex;
     }
 
     public Node visit(AmbReceiver_c n, Context context) throws SemanticException {
-	n = (AmbReceiver_c) acceptChildren(n, context);
+	Node n1 = visit((AmbPrefix_c) n, context);
 
-	if (n.child() instanceof Receiver) {
-	    return n.child();
+	if (n1 instanceof Receiver) {
+	    return n1;
 	}
 
-	throw new SemanticException("Could not find type or variable \"" + n + "\".", n.position());
+	throw new SemanticException("Could not find type, field, or " + "local variable \""
+	                            + (n.prefix() == null ? n.nameNode().toString() : n.prefix().toString() + "." + n.nameNode().toString()) + "\".", n.position());
     }
 
     public Node visit(ArrayTypeNode_c n, Context context) throws SemanticException {
 	n = (ArrayTypeNode_c) acceptChildren(n);
-	CanonicalTypeNode n1 = nf.CanonicalTypeNode(n.position(), n.typeRef());
-	if (! n.type().isArray())
-	    throw new SemanticException("Invalid array type " + n.type() + ".", n.position());
+	CanonicalTypeNode n1 = nf.CanonicalTypeNode(n.position(), ts.arrayOf(n.position(), n.base().typeRef()));
 	n1 = (CanonicalTypeNode) copyAttributesFrom(n1, n);
-	return accept(n1);
+	return n1;
     }
 
-    private <T extends Node> T copyAttributesFrom(T neu, Node old) {
-//	if (neu == null)
-//	    return null;
-//	Context context = old.context();
-//	neu = (T) setContext(neu, context);
+    private Node copyAttributesFrom(Node neu, Node old) {
+	if (neu == null)
+	    return null;
+	Context context = old.context();
+	neu = setContext(neu, context);
 	return neu;
     }
 
-    private <T extends Node> T setContext(T n, Context context) {
+    private Node setContext(Node n, Context context) {
 	if (n == null)
 	    return null;
 
 	ContextVisitor v = new ContextVisitor(job, ts, nf) {
 	    @Override
 	    protected Node leaveCall(Node n) throws SemanticException {
-		if (n.context() != null) {
-		    return n;
-		}
 		return n.context(context().freeze());
 	    }
 	};
 	v = v.context(context);
-	n = (T) n.visit(v);
+	n = n.visit(v);
 	return n;
     }
 
@@ -1894,59 +1643,76 @@ public class TypeChecker extends Visitor {
     }
 
     public Node visit(Try_c n, Context context) throws SemanticException {
-	n = (Try_c) acceptChildren(n);
-	return n.type(ts.Void());
+	return (Try_c) acceptChildren(n);
     }
 
     public Node visit(Branch_c n, Context context) throws SemanticException {
-	switch (n.kind()) {
-	case BREAK:
-	    if (n.labelNode() != null) {
-		if (! context.hasBreakLabel(n.labelNode().id()))
-		    throw new SemanticException("Label " + n.labelNode().id() + " is not a loop or switch label.", n.labelNode().position());
-	    }
-	    else {
-		if (! context.hasBreakLabel(null))
-		    throw new SemanticException("Cannot have a break statement outside of a loop or switch.", n.position());
-	    }
-	    break;
-	case CONTINUE:
-	    if (n.labelNode() != null) {
-		if (! context.hasContinueLabel(n.labelNode().id()))
-		    throw new SemanticException("Label " + n.labelNode().id() + " is not a loop label.", n.labelNode().position());
-	    }
-	    else {
-		if (! context.hasContinueLabel(null))
-		    throw new SemanticException("Cannot have a continue statement outside of a loop.", n.position());
-	    }
-	    break;
-	}
-
-	n = (Branch_c) acceptChildren(n);
-	return n.type(ts.Void());
+	return (Branch_c) acceptChildren(n);
     }
 
     public Node visit(Catch_c n, Context context) throws SemanticException {
 	n = (Catch_c) acceptChildren(n);
 
-	if (!(n.catchType() instanceof ErrorType)) {
-	    if (!n.catchType().isThrowable()) {
-	        throw new SemanticException("Can only throw subclasses of \"" + ts.Throwable() + "\".", n.formal().position());
-	    }
+	if (!n.catchType().isThrowable()) {
+	    throw new SemanticException("Can only throw subclasses of \"" + ts.Throwable() + "\".", n.formal().position());
+
 	}
 
-	return n.type(ts.Void());
+	return n;
+    }
+
+    public Node visit(AmbAssign_c n, Context context) throws SemanticException {
+	assert n != null;
+	assert n.left() != null;
+	assert n.operator() != null;
+	assert n.right() != null;
+
+	n = (AmbAssign_c) acceptChildren(n);
+	
+	assert n != null;
+	assert n.left() != null;
+	assert n.operator() != null;
+	assert n.right() != null;
+
+	if (n.left() instanceof Local) {
+	    LocalAssign a = nf.LocalAssign(n.position(), (Local) n.left(), n.operator(), n.right());
+	    a = (LocalAssign) copyAttributesFrom(a, n);
+	    return a.accept(this, context);
+	}
+	else if (n.left() instanceof Field) {
+	    FieldAssign a = nf.FieldAssign(n.position(), ((Field) n.left()).target(), ((Field) n.left()).name(), n.operator(), n.right());
+	    a = (FieldAssign) copyAttributesFrom(a, n);
+	    a = a.targetImplicit(((Field) n.left()).isTargetImplicit());
+	    a = a.fieldInstance(((Field) n.left()).fieldInstance());
+	    return a.accept(this, context);
+	}
+	else if (n.left() instanceof ArrayAccess) {
+	    ArrayAccessAssign a = nf.ArrayAccessAssign(n.position(), ((ArrayAccess) n.left()).array(), ((ArrayAccess) n.left()).index(), n.operator(),
+	                                               n.right());
+	    a = (ArrayAccessAssign) copyAttributesFrom(a, n);
+	    return a.accept(this, context);
+	}
+
+	// LHS is still ambiguous. The pass should get rerun later.
+	return n;
+	// throw new
+	// SemanticException("Could not disambiguate left side of assignment!",
+	// n.position());
     }
 
     public Node visit(FlagsNode_c n, Context context) throws SemanticException {
 	return (FlagsNode_c) acceptChildren(n);
     }
 
+    public Node visit(Id_c n, Context context) throws SemanticException {
+	return (Id_c) acceptChildren(n);
+    }
+
     public Node visit(Import_c n, Context context) throws SemanticException {
 	n = (Import_c) acceptChildren(n);
 
 	// Make sure the imported name exists.
-	if (n.kind() == Import.PACKAGE && ts.systemResolver().packageExists(n.name()))
+	if (n.kind() == Import_c.PACKAGE && ts.systemResolver().packageExists(n.name()))
 	    return n;
 
 	Named n1;
@@ -1973,8 +1739,6 @@ public class TypeChecker extends Visitor {
     public Node visit(Return_c n, Context context) throws SemanticException {
 	n = (Return_c) acceptChildren(n);
 
-	n = (Return_c) n.type(ts.Void());
-	
 	Context c = context;
 
 	CodeDef ci = c.currentCode();
@@ -1995,13 +1759,8 @@ public class TypeChecker extends Visitor {
 	    FunctionDef fi = (FunctionDef) ci;
 	    Type returnType = Types.get(fi.returnType());
 
-	    
 	    if (returnType == null) {
 		throw new InternalCompilerError("Null return type for " + fi);
-	    }
-
-	    if (returnType instanceof ErrorType) {
-		throw new SemanticException();
 	    }
 
 	    if (returnType instanceof UnknownType) {
@@ -2020,12 +1779,8 @@ public class TypeChecker extends Visitor {
 		throw new SemanticException("Must return a value from " + fi + ".", n.position());
 	    }
 
-	    if (n.expr().type() instanceof ErrorType) {
-		throw new SemanticException();
-	    }
-
 	    if (ts.isImplicitCastValid(n.expr().type(), returnType, c)) {
-		return n.expr(convert(n.expr(), returnType, c));
+		return n;
 	    }
 
 	    if (ts.numericConversionValid(returnType, n.expr().constantValue(), c)) {
@@ -2045,13 +1800,11 @@ public class TypeChecker extends Visitor {
     public Node visit(Throw_c n, Context context) throws SemanticException {
 	n = (Throw_c) acceptChildren(n);
 
-	if (!(n.expr().type() instanceof ErrorType)) {
-	    if (!n.expr().type().isThrowable()) {
-	        throw new SemanticException("Can only throw subclasses of \"" + this.ts.Throwable() + "\".", n.expr().position());
-	    }
+	if (!n.expr().type().isThrowable()) {
+	    throw new SemanticException("Can only throw subclasses of \"" + this.ts.Throwable() + "\".", n.expr().position());
 	}
 
-	return n.type(ts.Void());
+	return n;
     }
 
     public Node visit(MethodDecl_c n, Context context) throws SemanticException {
@@ -2072,21 +1825,15 @@ public class TypeChecker extends Visitor {
 
 	if (n.init() != null && !(n.init().type() instanceof UnknownType)) {
 	    if (n.init() instanceof ArrayInit) {
-		ArrayInit init = (ArrayInit) n.init();
-		init = typeCheckElements(context, n.type().type(), init);
-		n = (FieldDecl_c) n.init(init);
+		typeCheckElements(context, n.type().type(), (ArrayInit) n.init());
 	    }
 	    else {
-		if (!(n.init().type() instanceof ErrorType)) {
-		    if (!ts.isImplicitCastValid(n.init().type(), n.type().type(), context) && !ts.typeEquals(n.init().type(), n.type().type(), context)
-		    	&& !ts.numericConversionValid(n.type().type(), n.init().constantValue(), context)) {
+		if (!ts.isImplicitCastValid(n.init().type(), n.type().type(), context) && !ts.typeEquals(n.init().type(), n.type().type(), context)
+			&& !ts.numericConversionValid(n.type().type(), n.init().constantValue(), context)) {
 
-		        throw new SemanticException("The type of the variable initializer \"" + n.init().type() + "\" does not match that of "
-		                                    + "the declaration \"" + n.type().type() + "\".", n.init().position());
-		    }
+		    throw new SemanticException("The type of the variable " + "initializer \"" + n.init().type() + "\" does not match that of "
+		                                + "the declaration \"" + n.type().type() + "\".", n.init().position());
 		}
-
-		n = (FieldDecl_c) n.init(convert(n.init(), n.type().type(), context));
 	    }
 	}
 
@@ -2118,8 +1865,7 @@ public class TypeChecker extends Visitor {
     }
 
     public Node visit(SwitchBlock_c n, Context context) throws SemanticException {
-	n = (SwitchBlock_c) acceptChildren(n);
-	return n.type(ts.Void());
+	return (SwitchBlock_c) acceptChildren(n);
     }
 
     public Node visit(LocalClassDecl_c n, Context context) throws SemanticException {
@@ -2129,10 +1875,10 @@ public class TypeChecker extends Visitor {
     public Node visit(IntLit_c n, Context context) throws SemanticException {
 	polyglot.ast.IntLit.Kind kind = n.kind();
 
-	if (kind == IntLit.INT) {
+	if (kind == IntLit_c.INT) {
 	    return n.type(ts.Int());
 	}
-	else if (kind == IntLit.LONG) {
+	else if (kind == IntLit_c.LONG) {
 	    return n.type(ts.Long());
 	}
 	else {
@@ -2143,10 +1889,10 @@ public class TypeChecker extends Visitor {
     public Node visit(FloatLit_c n, Context context) throws SemanticException {
 	polyglot.ast.FloatLit.Kind kind = n.kind();
 
-	if (kind == FloatLit.FLOAT) {
+	if (kind == FloatLit_c.FLOAT) {
 	    return n.type(ts.Float());
 	}
-	else if (kind == FloatLit.DOUBLE) {
+	else if (kind == FloatLit_c.DOUBLE) {
 	    return n.type(ts.Double());
 	}
 	else {
@@ -2177,10 +1923,6 @@ public class TypeChecker extends Visitor {
     public Node visit(Instanceof_c n, Context context) throws SemanticException {
 	n = (Instanceof_c) acceptChildren(n);
 
-	if (n.expr().type() instanceof ErrorType || n.compareType().type() instanceof ErrorType) {
-	    return n.type(ts.Boolean());
-	}
-	
 	if (! n.compareType().type().isReference()) {
 	    throw new SemanticException(
 	                                "Type operand " + n.compareType().type() + " must be a reference type.",
@@ -2197,32 +1939,60 @@ public class TypeChecker extends Visitor {
     }
 
     public Node visit(ClassDecl_c n, Context context) throws SemanticException {
-	n = (ClassDecl_c) acceptChildren(n, context);
-	
-	checkSuperTypes(n);
-	
+	ClassDecl_c n1 = typeCheckSupers(context, n);
+
+	ClassBody body = (ClassBody) accept(n1.body());
+	Node n2 = (ClassDecl_c) n1.body(body);
+
+	return n2;
+    }
+
+    private ClassDecl_c typeCheckSupers(Context context, ClassDecl_c n) throws SemanticException {
+	n.classDef().inStaticContext(context.inStaticContext());
+
+	FlagsNode flags = n.flags();
+	Id name = n.name();
+	TypeNode superClass = n.superClass();
+	List<TypeNode> interfaces = n.interfaces();
+
+	flags = (FlagsNode) accept(n.flags());
+	name = (Id) accept(n.name());
+	superClass = (TypeNode) accept(n.superClass());
+	interfaces = (List<TypeNode>) accept(n.interfaces());
+
+	if (n.superClass() != null)
+	    assert n.classDef().superType() == n.superClass().typeRef();
+
+	n = (ClassDecl_c) n.flags(flags);
+	n = (ClassDecl_c) n.name(name);
+	n = (ClassDecl_c) n.superClass(superClass);
+	n = (ClassDecl_c) n.interfaces(interfaces);
+
+	checkSupertypeCycles(n);
+
 	return n;
     }
 
-    private void checkSuperTypes(ClassDecl_c n) throws SemanticException {
+    private void checkSupertypeCycles(ClassDecl_c n) throws SemanticException {
 	Ref<? extends Type> stref = n.classDef().superType();
 	if (stref != null) {
 	    Type t = stref.get();
-	    if (t instanceof ErrorType)
+	    if (t instanceof UnknownType)
 		throw new SemanticException(); // already reported
-	    if (!t.isClass() || t.toClass().flags().isInterface()) {
-		throw new SemanticException("Cannot extend type " + t + "; not a class.", n.superClass() != null ? n.superClass().position() : n.position());
-	    }
+		if (!t.isClass() || t.toClass().flags().isInterface()) {
+		    throw new SemanticException("Cannot extend type " + t + "; not a class.", n.superClass() != null ? n.superClass().position() : n.position());
+		}
+		ts.checkCycles((ReferenceType) t);
 	}
 
 	for (Ref<? extends Type> tref : n.classDef().interfaces()) {
 	    Type t = tref.get();
-	    if (t instanceof ErrorType)
-		throw new SemanticException(); // already reported
+	    //		assert !(t instanceof UnknownType);
 	    if (!t.isClass() || !t.toClass().flags().isInterface()) {
 		String s = n.classDef().flags().isInterface() ? "extend" : "implement";
 		throw new SemanticException("Cannot " + s + " type " + t + "; not an interface.", n.position());
 	    }
+	    ts.checkCycles((ReferenceType) t);
 	}
     }
 
@@ -2241,7 +2011,7 @@ public class TypeChecker extends Visitor {
 	// check that inner classes do not declare static initializers
 	if (flags.isStatic() && n.initializerDef().container().get().toClass().isInnerClass()) {
 	    // it's a static initializer in an inner class.
-	    throw new SemanticException("Inner classes cannot declare static initializers.", n.position());
+	    throw new SemanticException("Inner classes cannot declare " + "static initializers.", n.position());
 	}
 
 	return n;
@@ -2249,7 +2019,6 @@ public class TypeChecker extends Visitor {
 
     public Node visit(Formal_c n, Context context) throws SemanticException {
 	n = (Formal_c) acceptChildren(n);
-	
 	// Check if the variable is multiply defined.
 	Context c = context;
 
@@ -2263,8 +2032,9 @@ public class TypeChecker extends Visitor {
 	}
 
 	if (outerLocal != null && !n.localDef().equals(outerLocal.def()) && c.isLocal(n.localDef().name())) {
-	    throw new SemanticException("Local variable \"" + n.name() + "\" multiply defined.  Previous definition at " + outerLocal.position() + ".",
-					n.position());
+	    throw new SemanticException(
+	                                "Local variable \"" + n.name() + "\" multiply defined.  " + "Previous definition at " + outerLocal.position() + ".",
+	                                n.position());
 	}
 
 	try {

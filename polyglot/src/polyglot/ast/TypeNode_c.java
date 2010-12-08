@@ -7,8 +7,14 @@
 
 package polyglot.ast;
 
+import java.util.HashMap;
+import java.util.List;
+
+import polyglot.frontend.SetResolverGoal;
 import polyglot.types.*;
+import polyglot.util.CodeWriter;
 import polyglot.util.Position;
+import polyglot.visit.*;
 
 /**
  * A <code>TypeNode</code> is the syntactic representation of a 
@@ -23,19 +29,19 @@ public abstract class TypeNode_c extends Term_c implements TypeNode
      * disambiguated, the reference should be updated rather than a new
      * reference created.
      */
-    protected Ref< Type> type;
+    protected Ref<? extends Type> type;
 
     public TypeNode_c(Position pos) {
     	super(pos);
     }
     
     /** Get the type as a qualifier. */
-    public Ref< Qualifier> qualifierRef() {
-        return (Ref<Qualifier>) (Ref) typeRef();
+    public Ref<? extends Qualifier> qualifierRef() {
+        return typeRef();
     }
 
     /** Get the type this node encapsulates. */
-    public Ref< Type> typeRef() {
+    public Ref<? extends Type> typeRef() {
 	return this.type;
     }
 
@@ -44,11 +50,19 @@ public abstract class TypeNode_c extends Term_c implements TypeNode
     }
 
     /** Set the type this node encapsulates. */
-    public TypeNode typeRef(Ref<Type> type) {
+    public TypeNode typeRef(Ref<? extends Type> type) {
 	TypeNode_c n = (TypeNode_c) copy();
 	assert(type != null);
 	n.type = type;
 	return n;
+    }
+
+    public Term firstChild() {
+        return null;
+    }
+
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        return succs;
     }
 
     public String toString() {
@@ -59,6 +73,8 @@ public abstract class TypeNode_c extends Term_c implements TypeNode
 	    return "<unknown type>";
 	}
     }
+
+    public abstract void prettyPrint(CodeWriter w, PrettyPrinter tr);
 
     public String nameString() {
         Type t = type();

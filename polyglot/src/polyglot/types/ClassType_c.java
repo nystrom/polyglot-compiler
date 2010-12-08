@@ -26,7 +26,6 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
 
     public ClassType_c(TypeSystem ts, Position pos, Ref<? extends ClassDef> def) {
         super(ts, pos);
-        assert def != null;
         this.def = def;
     }
     
@@ -52,7 +51,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
         return memberCache;
     }
     
-    public synchronized Object copy() {
+    public Object copy() {
         ClassType_c n = (ClassType_c) super.copy();
         n.memberCache = null;
         return n;
@@ -70,7 +69,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     public abstract Name name();
 
     /** Get the container class if a member class. */
-    public Type container() {
+    public StructType container() {
         if (! isMember())
             throw new InternalCompilerError("Non-member class " + this + " cannot have container classes.");
         if (outer() == null)
@@ -148,7 +147,7 @@ public abstract class ClassType_c extends ReferenceType_c implements ClassType
     public abstract Type superClass();
     
     /** Get a list of all the class's MemberInstances. */
-    public synchronized List<MemberInstance<?>> members() {
+    public List<MemberInstance<?>> members() {
         List<MemberInstance<?>> l = new ArrayList<MemberInstance<?>>();
         l.addAll(methods());
         l.addAll(fields());

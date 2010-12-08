@@ -8,8 +8,13 @@
 
 package polyglot.ast;
 
+import java.util.List;
+
+import polyglot.types.Type;
+import polyglot.types.TypeSystem;
+import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.NodeVisitor;
+import polyglot.visit.*;
 
 /**
  * An <code>Eval</code> is a wrapper for an expression in the context of
@@ -48,6 +53,16 @@ public class Eval_c extends Stmt_c implements Eval
 	return this;
     }
 
+    public Type childExpectedType(Expr child, AscriptionVisitor av) {
+        TypeSystem ts = av.typeSystem();
+
+        if (child == expr) {
+            return ts.Void();
+        }
+
+        return child.type();
+    }
+
     /** Visit the children of the statement. */
     public Node visitChildren(NodeVisitor v) {
 	Expr expr = (Expr) visitChild(this.expr, v);
@@ -57,4 +72,27 @@ public class Eval_c extends Stmt_c implements Eval
     public String toString() {
 	return "eval(" + expr.toString() + ");";
     }
+
+    /** Write the statement to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+	boolean semi = tr.appendSemicolon(true);
+
+	print(expr, w, tr);
+
+	if (semi) {
+	    w.write(";");
+	}
+
+	tr.appendSemicolon(semi);
+    }
+
+    public Term firstChild() {
+        return expr;
+    }
+
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        v.visitCFG(expr, this, EXIT);
+        return succs;
+    }
+
 }

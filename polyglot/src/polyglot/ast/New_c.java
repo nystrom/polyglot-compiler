@@ -10,11 +10,11 @@ package polyglot.ast;
 
 import java.util.*;
 
-import polyglot.frontend.Globals;
+import polyglot.dispatch.TypeChecker;
+import polyglot.frontend.*;
 import polyglot.types.*;
 import polyglot.util.*;
-import polyglot.visit.ExceptionCheckerContext;
-import polyglot.visit.NodeVisitor;
+import polyglot.visit.*;
 
 /**
  * A <code>New</code> is an immutable representation of the use of the
@@ -40,7 +40,10 @@ public class New_c extends Expr_c implements New
         this.tn = tn;
 	this.arguments = TypedList.copyAndCheck(arguments, Expr.class, true);
 	this.body = body;
-	this.ci = Types.<ConstructorInstance>lazyRef();
+	
+	TypeSystem ts = Globals.TS();
+	ConstructorInstance ci = ts.createConstructorInstance(position(), new ErrorRef_c<ConstructorDef>(ts, position(), "Cannot get ConstructorDef before type-checking constructor call."));
+	this.setCi(Types.<ConstructorInstance>lazyRef(ci));
     }
 
     public List<Def> defs() {
@@ -90,13 +93,13 @@ public class New_c extends Expr_c implements New
     }
 
     public ConstructorInstance constructorInstance() {
-	return Types.get(this.ci);
+	return Types.get(this.getCi());
     }
 
     public New constructorInstance(ConstructorInstance ci) {
-        if (ci == this.ci) return this;
+        if (ci == this.getCi()) return this;
 	New_c n = (New_c) copy();
-	n.constructorInstanceRef().update(ci);
+	n.getCi().update(ci);
 	return n;
     }
 
@@ -150,12 +153,150 @@ public class New_c extends Expr_c implements New
         return super.enterChildScope(child, c);
     }
 
+    public Type childExpectedType(Expr child, AscriptionVisitor av) {
+        if (child == qualifier) {
+            StructType t = constructorInstance().container();
+                     
+            if (t.isClass() && t.toClass().isMember()) {
+                t = t.toClass().container();
+                return t;
+            }
+
+            return child.type();
+        }
+
+        Iterator<Expr> i = this.arguments.iterator();
+        Iterator<Type> j = constructorInstance().formalTypes().iterator();
+
+        while (i.hasNext() && j.hasNext()) {
+	    Expr e = i.next();
+	    Type t = j.next();
+
+            if (e == child) {
+                return t;
+            }
+        }
+
+        return child.type();
+    }
+
+    public Node exceptionCheck(ExceptionChecker ec) throws SemanticException {
+	// something didn't work in the type check phase, so just ignore it.
+	if (getCi() == null) {
+	    throw new InternalCompilerError(position(),
+		"Null constructor instance after type check.");
+	}
+
+	for (Iterator i = constructorInstance().throwTypes().iterator(); i.hasNext(); ) {
+	    Type t = (Type) i.next();
+	    ec.throwsException(t, position());
+	}
+
+	return super.exceptionCheck(ec);
+    }
+
+    /** Get the precedence of the expression. */
+    public Precedence precedence() {
+        return Precedence.LITERAL;
+    }
+
     public String toString() {
 	return (qualifier != null ? (qualifier.toString() + ".") : "") +
             "new " + tn + "(...)" + (body != null ? " " + body : "");
     }
 
-    public Ref<ConstructorInstance> constructorInstanceRef() {
+    protected void printQualifier(CodeWriter w, PrettyPrinter tr) {
+        if (qualifier != null) {
+            print(qualifier, w, tr);
+            w.write(".");
+        }
+    }
+
+    protected void printArgs(CodeWriter w, PrettyPrinter tr) {
+	w.write("(");
+	w.allowBreak(2, 2, "", 0);
+	w.begin(0);
+
+	for (Iterator<Expr> i = arguments.iterator(); i.hasNext();) {
+	    Expr e = i.next();
+
+	    print(e, w, tr);
+
+	    if (i.hasNext()) {
+		w.write(",");
+		w.allowBreak(0);
+	    }
+	}
+
+	w.end();
+	w.write(")");
+    }
+
+    protected void printBody(CodeWriter w, PrettyPrinter tr) {
+	if (body != null) {
+	    w.write(" {");
+	    print(body, w, tr);
+            w.write("}");
+	}
+    }
+
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+        printQualifier(w, tr);
+	w.write("new ");
+       
+	// We need to be careful when pretty printing "new" expressions for
+        // member classes.  For the expression "e.new C()" where "e" has
+        // static type "T", the TypeNode for "C" is actually the type "T.C".
+        // But, if we print "T.C", the post compiler will try to lookup "T"
+        // in "T".  Instead, we print just "C".
+        if (qualifier != null) {
+            w.write(tn.nameString());
+        }
+        else {
+            print(tn, w, tr);
+        }
+        
+        printArgs(w, tr);
+        printBody(w, tr);
+    }
+    
+    public Term firstChild() {
+        return qualifier != null ? (Term) qualifier : tn;
+    }
+
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        if (qualifier != null) {
+            v.visitCFG(qualifier, tn, ENTRY);
+        }
+        
+        if (body() != null) {
+            v.visitCFG(tn, listChild(arguments, body()), ENTRY);
+            v.visitCFGList(arguments, body(), ENTRY);
+            v.visitCFG(body(), this, EXIT);
+        } else {
+            if (!arguments.isEmpty()) {
+                v.visitCFG(tn, listChild(arguments, null), ENTRY);
+                v.visitCFGList(arguments, this, EXIT);
+            } else {
+                v.visitCFG(tn, this, EXIT);
+            }
+        }
+
+        return succs;
+    }
+
+    public List<Type> throwTypes(TypeSystem ts) {
+      List<Type> l = new ArrayList<Type>();
+      l.addAll(constructorInstance().throwTypes());
+      l.addAll(ts.uncheckedExceptions());
+      return l;
+    }
+
+    public void setCi(Ref<ConstructorInstance> ci) {
+	this.ci = ci;
+    }
+
+    public Ref<ConstructorInstance> getCi() {
 	return ci;
     }
 

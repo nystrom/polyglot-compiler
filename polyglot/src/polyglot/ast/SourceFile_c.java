@@ -8,14 +8,12 @@
 
 package polyglot.ast;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import polyglot.frontend.Source;
-import polyglot.types.Context;
-import polyglot.types.ImportTable;
+import polyglot.types.*;
 import polyglot.util.*;
-import polyglot.visit.NodeVisitor;
+import polyglot.visit.*;
 
 /**
  * A <code>SourceFile</code> is an immutable representations of a Java
@@ -32,14 +30,10 @@ public class SourceFile_c extends Node_c implements SourceFile
 
     public SourceFile_c(Position pos, PackageNode package_, List<Import> imports, List<TopLevelDecl> decls) {
 	super(pos);
-	System.out.println("creating SourceFile");
-//	assert(imports != null && decls != null && ! decls.isEmpty()); // package_ may be null, imports empty
-	System.out.println("creating SourceFile 2");
+	assert(imports != null && decls != null && ! decls.isEmpty()); // package_ may be null, imports empty
 	this.package_ = package_;
 	this.imports = TypedList.copyAndCheck(imports, Import.class, true);
 	this.decls = TypedList.copyAndCheck(decls, TopLevelDecl.class, true);
-	
-	System.out.println("created " + this);
     }
 
     /** Get the source of the source file. */
@@ -129,6 +123,34 @@ public class SourceFile_c extends Node_c implements SourceFile
 
     public String toString() {
         return "<<<< " + source + " >>>>";
+    }
+
+    /** Write the source file to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+        w.write("<<<< " + source + " >>>>");
+        w.newline(0);
+
+	if (package_ != null) {
+	    w.write("package ");
+	    print(package_, w, tr);
+	    w.write(";");
+	    w.newline(0);
+	    w.newline(0);
+	}
+
+	for (Iterator<Import> i = imports.iterator(); i.hasNext(); ) {
+	    Import im = (Import) i.next();
+	    print(im, w, tr);
+	}
+	 
+	if (! imports.isEmpty()) {
+	    w.newline(0);
+	}
+
+	for (Iterator<TopLevelDecl> i = decls.iterator(); i.hasNext(); ) {
+	    TopLevelDecl d = (TopLevelDecl) i.next();
+	    print(d, w, tr);
+	}
     }
 
     public void dump(CodeWriter w) {

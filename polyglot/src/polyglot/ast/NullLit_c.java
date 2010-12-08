@@ -7,7 +7,10 @@
 
 package polyglot.ast;
 
+import polyglot.util.CodeWriter;
 import polyglot.util.Position;
+import polyglot.visit.ContextVisitor;
+import polyglot.visit.PrettyPrinter;
 
 /**
  * The Java literal <code>null</code>.
@@ -25,5 +28,10 @@ public class NullLit_c extends Lit_c implements NullLit
 
     public String toString() {
 	return "null";
+    }
+
+    /** Write the expression to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+	w.write("null");
     }
 }

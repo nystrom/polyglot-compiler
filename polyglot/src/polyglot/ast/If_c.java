@@ -8,8 +8,12 @@
 
 package polyglot.ast;
 
+import java.util.List;
+
+import polyglot.types.*;
+import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.NodeVisitor;
+import polyglot.visit.*;
 
 /**
  * An immutable representation of a Java language <code>if</code> statement.
@@ -91,8 +95,68 @@ public class If_c extends Stmt_c implements If
 	return reconstruct(cond, (Stmt) consequent, (Stmt) alternative);
     }
 
+    public Type childExpectedType(Expr child, AscriptionVisitor av) {
+        TypeSystem ts = av.typeSystem();
+
+        if (child == cond) {
+            return ts.Boolean();
+        }
+
+        return child.type();
+    }
+
     public String toString() {
 	return "if (" + cond + ") " + consequent +
 	    (alternative != null ? " else " + alternative : "");
     }
+
+    /** Write the statement to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {    
+	w.write("if (");
+	printBlock(cond, w, tr);
+	w.write(")");
+       
+	printSubStmt(consequent, w, tr);
+
+	if (alternative != null) {
+	    if (consequent instanceof Block) {
+		// allow the "} else {" formatting
+		w.write(" ");
+	    } else {
+		w.allowBreak(0, " ");
+	    }
+
+            if (alternative instanceof Block) {
+		w.write ("else ");
+		print(alternative, w, tr);
+	    } else {
+		w.begin(4);
+		w.write("else");
+		printSubStmt(alternative, w, tr);
+		w.end();
+	    }
+	}
+    }
+
+    public Term firstChild() {
+        return cond;
+    }
+
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        if (alternative == null) {
+            v.visitCFG(cond, FlowGraph.EDGE_KEY_TRUE, consequent, 
+                             ENTRY, FlowGraph.EDGE_KEY_FALSE, this, EXIT);
+            v.visitCFG(consequent, this, EXIT);
+        }
+        else {
+            v.visitCFG(cond, FlowGraph.EDGE_KEY_TRUE, consequent,
+                             ENTRY, FlowGraph.EDGE_KEY_FALSE, alternative, ENTRY);
+            v.visitCFG(consequent, this, EXIT);
+            v.visitCFG(alternative, this, EXIT);
+        }
+
+        return succs;
+    }
+    
+
 }

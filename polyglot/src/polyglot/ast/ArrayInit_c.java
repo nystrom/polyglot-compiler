@@ -8,10 +8,12 @@
 
 package polyglot.ast;
 
+import java.util.Iterator;
 import java.util.List;
 
+import polyglot.types.*;
 import polyglot.util.*;
-import polyglot.visit.NodeVisitor;
+import polyglot.visit.*;
 
 /**
  * An <code>ArrayInit</code> is an immutable representation of
@@ -58,7 +60,66 @@ public class ArrayInit_c extends Expr_c implements ArrayInit
 	return reconstruct(elements);
     }
 
+    public Type childExpectedType(Expr child, AscriptionVisitor av) {
+		if (elements.isEmpty()) {
+            return child.type();
+        }
+
+        Type t = av.toType();
+
+        if (! t.isArray()) {
+            throw new InternalCompilerError("Type of array initializer must " +
+                                            "be an array.", position());
+        }
+
+        t = t.toArray().base();
+
+        TypeSystem ts = av.typeSystem();
+
+	for (Iterator i = elements.iterator(); i.hasNext(); ) {
+	    Expr e = (Expr) i.next();
+
+            if (e == child) {
+                if (ts.numericConversionValid(t, e.constantValue(), av.context())) {
+                    return child.type();
+                }
+                else {
+                    return t;
+                }
+            }
+        }
+
+        return child.type();
+    }
+
     public String toString() {
 	return "{ ... }";
+    }
+
+    /** Write the initializer to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+	w.write("{ ");
+
+	for (Iterator<Expr> i = elements.iterator(); i.hasNext(); ) {
+	    Expr e = i.next();
+	    
+	    print(e, w, tr);
+
+	    if (i.hasNext()) {
+		w.write(",");
+                w.allowBreak(0, " ");
+	    }
+	}
+
+	w.write(" }");
+    }
+
+    public Term firstChild() {
+        return listChild(elements, null);
+    }
+
+    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
+        v.visitCFGList(elements, this, EXIT);
+        return succs;
     }
 }

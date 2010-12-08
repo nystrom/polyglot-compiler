@@ -9,7 +9,6 @@ package polyglot.types;
 
 import java.util.List;
 
-import polyglot.ast.Branch.Kind;
 import polyglot.frontend.Job;
 import polyglot.frontend.Source;
 import polyglot.util.Enum;
@@ -31,20 +30,16 @@ public interface ClassDef extends MemberDef
     public void inStaticContext(boolean inStaticContext);
     public boolean inStaticContext();
     
-    static enum Kind {
-	TOP_LEVEL("top-level"), MEMBER("member"), LOCAL("local"), ANONYMOUS("anonymous");
-
-	String name;
-
-	Kind(String name) {
-	    this.name = name;
-	}
+    public static class Kind extends Enum {
+        public Kind(String name) {
+            super(name);
+        }
     }
 
-    public static final Kind TOP_LEVEL =  Kind.TOP_LEVEL;
-    public static final Kind MEMBER =  Kind.MEMBER;
-    public static final Kind LOCAL =  Kind.LOCAL;
-    public static final Kind ANONYMOUS =  Kind.ANONYMOUS;
+    public static final Kind TOP_LEVEL = new Kind("top-level");
+    public static final Kind MEMBER = new Kind("member");
+    public static final Kind LOCAL = new Kind("local");
+    public static final Kind ANONYMOUS = new Kind("anonymous");
 
     /** Get the class's kind. */
     Kind kind();

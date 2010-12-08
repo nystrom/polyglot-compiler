@@ -10,15 +10,12 @@ package polyglot.frontend;
 import java.util.HashMap;
 import java.util.Map;
 
-import jsr166y.Phaser;
-
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
 import polyglot.dispatch.TypeBuilder;
 import polyglot.types.TypeSystem;
 import polyglot.util.CodeWriter;
-import polyglot.visit.NodeVisitor;
-import polyglot.visit.TypeBuilderContext;
+import polyglot.visit.*;
 
 /**
  * A <code>Job</code> encapsulates work done by the compiler for a single
@@ -30,7 +27,8 @@ import polyglot.visit.TypeBuilderContext;
  */
 public class Job
 {
-    protected Map<Object,Object> store;
+    /** Field used for storing extension-specific information. */
+    protected JobExt ext;
 
     /** The language extension used for this job. */
     protected ExtensionInfo lang;
@@ -50,9 +48,9 @@ public class Job
     /** The <code>Source</code> that this <code>Job</code> represents. */
     protected Source source;
 
-    public Job(ExtensionInfo lang, Source source, Node ast) {
-	this.lang = lang;
-	this.store = new HashMap<Object, Object>();
+    public Job(ExtensionInfo lang, JobExt ext, Source source, Node ast) {
+        this.lang = lang;
+        this.ext = ext;
         this.source = source;
         this.ast = ast;
 
@@ -61,12 +59,8 @@ public class Job
         this.reportedErrors = false;
     }
     
-    public void put(Object key, Object value) {
-	store.put(key, value);
-    }
-    
-    public Object get(Object key) {
-	return store.get(key);
+    public JobExt ext() {
+      return ext;
     }
 
     /** Get the state's AST. */

@@ -17,14 +17,14 @@ public abstract class AllBarrierGoal extends AbstractGoal_c {
     
     public abstract Goal prereqForJob(Job job);
     
-    public List<Goal> prereqGoals() {
+    public List<Goal> prereqs() {
         List<Goal> l = new ArrayList<Goal>();
         for (Job job : scheduler.jobs()) {
             Goal g = prereqForJob(job);
 	    if (g != null)
 		l.add(g);
         }
-        l.addAll(super.prereqGoals());
+        l.addAll(super.prereqs());
         return l;
     }
     

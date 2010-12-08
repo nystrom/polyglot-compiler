@@ -8,6 +8,7 @@
 package polyglot.ast;
 
 import polyglot.types.QName;
+import polyglot.util.Enum;
 
 /**
  * An <code>Import</code> is an immutable representation of a Java
@@ -23,12 +24,12 @@ public interface Import extends Node
      * PACKAGE is a bit of a misnomer, since we can import p.C.*, where p.C
      * is a class.  This puts the nested classes of p.C in scope.
      */
-    public static enum Kind {
-	CLASS, PACKAGE
+    public static class Kind extends Enum {
+        public Kind(String name) { super(name); }
     }
-    
-    public static final Kind CLASS = Kind.CLASS;
-    public static final Kind PACKAGE = Kind.PACKAGE;
+
+    public static final Kind CLASS   = new Kind("class");
+    public static final Kind PACKAGE = new Kind("package");
 
     /** Get the name of the class or package to import. */
     QName name();
