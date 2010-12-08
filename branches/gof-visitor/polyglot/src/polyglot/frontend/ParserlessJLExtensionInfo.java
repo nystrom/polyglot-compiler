@@ -11,6 +11,7 @@ import java.io.Reader;
 
 import polyglot.ast.NodeFactory;
 import polyglot.ast.NodeFactory_c;
+import polyglot.interp.BytecodeCache;
 import polyglot.main.Version;
 import polyglot.types.LoadedClassResolver;
 import polyglot.types.MemberClassResolver;
@@ -78,6 +79,11 @@ public abstract class ParserlessJLExtensionInfo extends AbstractExtensionInfo {
     /** Create the node factory for this extension. */
     protected NodeFactory createNodeFactory() {
         return new NodeFactory_c();
+    }
+    
+    /** Create the node factory for this extension. */
+    protected BytecodeCache createBytecodeCache() {
+	return new BytecodeCache();
     }
 
     public JobExt jobExt() {

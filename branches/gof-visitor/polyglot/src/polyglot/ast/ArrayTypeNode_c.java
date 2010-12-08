@@ -8,9 +8,11 @@
 
 package polyglot.ast;
 
-import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.visit.*;
+import polyglot.types.SemanticException;
+import polyglot.util.InternalCompilerError;
+import polyglot.util.Position;
+import polyglot.visit.ExceptionCheckerContext;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>TypeNode</code> represents the syntactic representation of a
@@ -51,14 +53,9 @@ public class ArrayTypeNode_c extends TypeNode_c implements ArrayTypeNode
 	return reconstruct(base);
     }
 
-    public Node exceptionCheck(ExceptionChecker ec) throws SemanticException {
+    public Node exceptionCheck(ExceptionCheckerContext ec) throws SemanticException {
 	throw new InternalCompilerError(position(),
 	    "Cannot exception check ambiguous node " + this + ".");
-    }
-
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-        print(base, w, tr);
-        w.write("[]");
     }
 
     public String toString() {

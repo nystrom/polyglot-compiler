@@ -9,10 +9,6 @@ package polyglot.ast;
 
 import java.util.List;
 
-import polyglot.types.SemanticException;
-import polyglot.types.Type;
-import polyglot.visit.ContextVisitor;
-
 /**
  * An <code>ArrayInit</code> is an immutable representation of
  * an array initializer, such as { 3, 1, { 4, 1, 5 } }.  Note that

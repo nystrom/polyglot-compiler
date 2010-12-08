@@ -8,11 +8,8 @@
 
 package polyglot.ast;
 
-import java.util.List;
-
-import polyglot.types.SemanticException;
-import polyglot.util.*;
-import polyglot.visit.*;
+import polyglot.util.Position;
+import polyglot.visit.NodeVisitor;
 
 /**
  * An <code>AmbExpr</code> is an ambiguous AST node composed of a single
@@ -20,36 +17,29 @@ import polyglot.visit.*;
  */
 public class AmbExpr_c extends Expr_c implements AmbExpr
 {
-  protected Id name;
+  protected Node child;
 
-  public AmbExpr_c(Position pos, Id name) {
+  public AmbExpr_c(Position pos, Node child) {
     super(pos);
-    assert(name != null);
-    this.name = name;
-  }
-
-  /** Get the precedence of the field. */
-  public Precedence precedence() {
-    return Precedence.LITERAL;
+    assert(child != null);
+    this.child = child;
   }
   
-  /** Get the name of the expression. */
-  public Id name() {
-      return this.name;
+  public Node child() {
+      return this.child;
   }
   
-  /** Set the name of the expression. */
-  public AmbExpr name(Id id) {
+  public AmbExpr child(Node child) {
       AmbExpr_c n = (AmbExpr_c) copy();
-      n.name = id;
+      n.child = child;
       return n;
   }
 
   /** Reconstruct the expression. */
-  protected AmbExpr_c reconstruct(Id name) {
-      if (name != this.name) {
+  protected AmbExpr_c reconstruct(Node child) {
+      if (child != this.child) {
           AmbExpr_c n = (AmbExpr_c) copy();
-          n.name = name;
+          n.child = child;
           return n;
       }
       return this;
@@ -57,38 +47,11 @@ public class AmbExpr_c extends Expr_c implements AmbExpr
   
   /** Visit the children of the constructor. */
   public Node visitChildren(NodeVisitor v) {
-      Id name = (Id) visitChild(this.name, v);
-      return reconstruct(name);
-  }
-
-  /** Check exceptions thrown by the expression. */
-  public Node exceptionCheck(ExceptionChecker ec) throws SemanticException {
-    throw new InternalCompilerError(position(),
-                                    "Cannot exception check ambiguous node "
-                                    + this + ".");
-  } 
-
-  /** Write the expression to an output file. */
-  public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-      tr.print(this, name, w);
+      Node child = (Node) visitChild(this.child, v);
+      return reconstruct(child);
   }
 
   public String toString() {
-    return name.toString() + "{amb}";
-  }
-
-  /**
-   * Return the first (sub)term performed when evaluating this
-   * term.
-   */
-  public Term firstChild() {
-      return null;
-  }
-
-  /**
-   * Visit this term in evaluation order.
-   */
-  public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-      return succs;
+    return child.toString() + "{amb}";
   }
 }

@@ -16,12 +16,15 @@ package polyglot.frontend;
 import java.util.*;
 
 import polyglot.ast.Node;
-import polyglot.dispatch.ErrorReporter;
+import polyglot.dispatch.ASTDumper;
+import polyglot.dispatch.NewPrettyPrinter;
 import polyglot.frontend.Goal.Status;
 import polyglot.main.Report;
 import polyglot.types.*;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Option;
+import polyglot.visit.Interpreted;
+import polyglot.visit.OutputBytecode;
 import polyglot.visit.PostCompiled;
 
 
@@ -92,6 +95,7 @@ public abstract class Scheduler {
         this.extInfo = extInfo;
         this.jobs = new LinkedHashMap<Source, Option<Job>>();
         this.currentGoal = null;
+        this.currentJob = null;
     }
     
     public Collection<Job> commandLineJobs() {
@@ -116,20 +120,20 @@ public abstract class Scheduler {
     }
 
     public List<Goal> prerequisites(Goal goal) {
-        return goal.prereqs();
+        return goal.prereqGoals();
     }
     
     Goal EndAll;
     
     public Goal End(Job job) {
-	    return new SourceGoal_c("End", job) {
-		    public boolean runTask() {
-			    // The job has finished.  Let's remove it from the job map
-			    // so it can be garbage collected, and free up the AST.
-			    completeJob(job);
-			    return true;
-		    }
-	    }.intern(this);
+	return new SourceGoal_c("End", job) {
+	    public boolean runTask() {
+		// The job has finished.  Let's remove it from the job map
+		// so it can be garbage collected, and free up the AST.
+		completeJob(job);
+		return true;
+	    }
+	}.intern(this);
     }
     
     Collection<Job> shouldCompile = new LinkedHashSet<Job>();
@@ -142,14 +146,65 @@ public abstract class Scheduler {
         return shouldCompile.contains(job);
     }
     
+    
+    Goal DummyEndAll = null;
+    
+    protected Goal DummyEndAll() {
+	if (DummyEndAll == null)
+	    DummyEndAll = new AllBarrierGoal("DummyEndAll", this) {
+	    @Override
+	    public Goal prereqForJob(Job job) {
+		if (scheduler.shouldCompile(job)) {
+		    return scheduler.End(job);
+		}
+		else {
+		    return new SourceGoal_c("DummyEnd", job) {
+			public boolean runTask() { return true; }
+		    }.intern(scheduler);
+		}
+	    }
+	};
+	return DummyEndAll;
+    }
+    
+    protected Goal OutputBytecode() {
+	if (Globals.Options().interpret || Globals.Options().output_source) {
+	    return DummyEndAll();
+	}
+	if (EndAll == null)
+	    EndAll = new OutputBytecode(extInfo);
+	return EndAll;
+    }
     protected Goal PostCompiled() {
+	if (Globals.Options().interpret || ! Globals.Options().output_source) {
+	    return DummyEndAll();
+	}
 	if (EndAll == null)
 	    EndAll = new PostCompiled(extInfo);
 	return EndAll;
     }
+    
+    protected Goal Interpreted() {
+	if (! Globals.Options().interpret) {
+	    return DummyEndAll();
+	}
+	if (EndAll == null)
+	    EndAll = new Interpreted(extInfo);
+	return EndAll;
+    }
 
     protected Goal EndAll() {
-	return PostCompiled();
+	if (! Globals.Options().interpret) {
+            if (! Globals.Options().output_source) {
+        	return OutputBytecode();
+            }
+            else {
+        	return PostCompiled();
+            }
+	}
+	else {
+	    return Interpreted();
+	}
     }
 
     protected Goal EndCommandLine() {
@@ -169,13 +224,7 @@ public abstract class Scheduler {
      * should be empty at return.
      */ 
     public boolean runToCompletion(Goal endGoal) {
-    	boolean okay = false;
-
-    	try {
-    		okay = attempt(endGoal);
-    	}
-    	catch (CyclicDependencyException e) {
-    	}
+	boolean okay = attempt(endGoal);
 
         if (Report.should_report(Report.frontend, 1))
             Report.report(1, "Finished all passes for " + this.getClass().getName() + " -- " +
@@ -219,17 +268,16 @@ public abstract class Scheduler {
     	return currentGoal;
     }
     
+    public Job currentJob;
+    
     public Job currentJob() {
-    	if (currentGoal instanceof SourceGoal_c)
-    		return ((SourceGoal_c) currentGoal).job();
-    	return null;
+        return currentJob;
     }
     
     /**
      * Run passes until the <code>goal</code> is attempted.  Returns true iff the goal is reached.
-     * @throws CyclicDependencyException 
      */ 
-    public boolean attempt(Goal goal) throws CyclicDependencyException {
+    public boolean attempt(Goal goal) {
         assert currentGoal() == null
         || currentGoal().getCached() == Goal.Status.RUNNING
         || currentGoal().getCached() == Goal.Status.RUNNING_RECURSIVE
@@ -239,29 +287,21 @@ public abstract class Scheduler {
         
         return state == Goal.Status.SUCCESS;
     }
-    
-    protected static class Complete extends RuntimeException {
-        protected Goal goal;
-
-        Complete(Goal goal) {
-            this.goal = goal;
-        }
-    }
-    
+        
     /**         
      * Run the pass <code>pass</code>.  All subgoals of the pass's goal
      * required to start the pass should be satisfied.  Running the pass
      * may not satisfy the goal, forcing it to be retried later with new
      * subgoals.
      */
-    protected boolean runPass(Goal goal) throws CyclicDependencyException {
+    protected boolean runPass(Goal goal) {
         Job job = goal instanceof SourceGoal ? ((SourceGoal) goal).job() : null;
                 
         if (extInfo.getOptions().disable_passes.contains(goal.name())) {
             if (Report.should_report(Report.frontend, 1))
                 Report.report(1, "Skipping pass " + goal);
             
-            goal.update(Goal.Status.SUCCESS);
+            goal.updateSoftly(Goal.Status.SUCCESS);
             return true;
         }
         
@@ -284,7 +324,9 @@ public abstract class Scheduler {
             }
 
             Goal oldGoal = currentGoal;
+            Job oldJob = currentJob;
             currentGoal = goal;
+            currentJob = (currentGoal instanceof SourceGoal_c) ? ((SourceGoal_c) currentGoal).job() : null;
             
             long t = System.currentTimeMillis();
             String key = goal.toString();
@@ -299,7 +341,7 @@ public abstract class Scheduler {
                     extInfo.getStats().accumulate(key + " reached", 1);
                     extInfo.getStats().accumulate("total goal reached", 1);
 
-                    goal.update(Status.SUCCESS);
+                    goal.updateSoftly(Status.SUCCESS);
 
                     if (Report.should_report(Report.frontend, 1))
                         Report.report(1, "Completed pass for " + goal);
@@ -317,7 +359,8 @@ public abstract class Scheduler {
                 extInfo.getStats().accumulate(key, t);
 
                 currentGoal = oldGoal;
-                
+                currentJob = oldJob;
+
                 if (job != null) {
                     // We've stopped running a pass. 
                     // Check if the error count changed.
@@ -338,7 +381,7 @@ public abstract class Scheduler {
                 System.err.println("Pretty-printing AST for " + job +
                                    " after " + goal.name());
 
-                job.ast().prettyPrint(System.err);
+                new NewPrettyPrinter(System.err).printAst(job.ast());
             }
 
             // dump this pass if we need to.
@@ -348,7 +391,7 @@ public abstract class Scheduler {
                 System.err.println("Dumping AST for " + job +
                                    " after " + goal.name());
                 
-                job.ast().dump(System.err);
+                new ASTDumper(System.err).dumpAst(job.ast());
             }
         }   
 
@@ -472,7 +515,7 @@ public abstract class Scheduler {
      * In general, this method should only be called by <code>addJob</code>.
      */
     protected Job createSourceJob(Source source, Node ast) {
-        return new Job(extInfo, extInfo.jobExt(), source, ast);
+        return new Job(extInfo, source, ast);
     }
 
     public String toString() {
@@ -485,18 +528,10 @@ public abstract class Scheduler {
     public abstract Goal TypesInitializedForCommandLine();
     public abstract Goal PreTypeCheck(Job job);
     public abstract Goal TypeChecked(Job job);
-    public abstract Goal ReachabilityChecked(Job job);
     public abstract Goal ExceptionsChecked(Job job);
-    public abstract Goal ExitPathsChecked(Job job);
-    public abstract Goal InitializationsChecked(Job job);
-    public abstract Goal ConstructorCallsChecked(Job job);
-    public abstract Goal ForwardReferencesChecked(Job job);
-    public abstract Goal Serialized(Job job);
     public abstract Goal CodeGenerated(Job job);
 
-    public abstract Goal LookupGlobalType(LazyRef<Type> sym);
-    public abstract Goal LookupGlobalTypeDef(LazyRef<ClassDef> sym, QName name);
-    public abstract Goal LookupGlobalTypeDefAndSetFlags(LazyRef<ClassDef> sym, QName name, Flags flags);
+    public abstract Goal BytecodeCached(QName sym);
 }
 
 

@@ -9,7 +9,6 @@ package polyglot.ast;
 
 import java.util.List;
 
-import polyglot.types.Flags;
 import polyglot.types.MethodDef;
 
 /**

@@ -8,8 +8,10 @@
 
 package polyglot.visit;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
@@ -32,12 +34,14 @@ public class TypeBuilderContext implements Copy
     protected Package package_;
     protected ClassDef type; // last class pushed.
     protected Def def;
-
+    protected boolean inStaticContext;
+    
     public TypeBuilderContext(Job job, TypeSystem ts, NodeFactory nf) {
         this.job = job;
         this.ts = ts;
         this.nf = nf;
         this.outer = null;
+        this.inStaticContext = true;
     }
     
     public Object copy() {
@@ -82,6 +86,7 @@ public class TypeBuilderContext implements Copy
     public TypeSystem typeSystem() {
         return ts;
     }
+    
 
     /**
     @deprecated */
@@ -123,6 +128,15 @@ public class TypeBuilderContext implements Copy
         return tb;
     }
     
+
+    public TypeBuilderContext pushStatic(boolean flag) {
+	if (flag == inStaticContext)
+	    return this;
+	TypeBuilderContext tb = push();
+	tb.inStaticContext = flag;
+	return tb;
+    }
+
     public TypeBuilderContext pushDef(Def def) {
         TypeBuilderContext tb = push();
         tb.def = def;
@@ -299,5 +313,9 @@ public class TypeBuilderContext implements Copy
                 (inCode ? " inCode" : "") +
                 (global ? " global" : "") +
                 (outer == null ? ")" : " " + outer.context() + ")");
+    }
+
+    public boolean inStaticContext() {
+	return inStaticContext;
     }
 }

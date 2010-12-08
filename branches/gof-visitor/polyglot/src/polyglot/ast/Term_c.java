@@ -7,12 +7,14 @@
 
 package polyglot.ast;
 
+import java.util.Collection;
 import java.util.List;
 
-import polyglot.types.SemanticException;
-import polyglot.util.*;
-import polyglot.visit.CFGBuilder;
-import polyglot.visit.ExceptionChecker;
+import polyglot.types.Ref;
+import polyglot.types.Type;
+import polyglot.types.Types;
+import polyglot.util.Position;
+import polyglot.util.SubtypeSet;
 
 /**
  * A <code>Term</code> represents any Java expression or statement on which
@@ -20,16 +22,25 @@ import polyglot.visit.ExceptionChecker;
  */
 public abstract class Term_c extends Node_c implements Term
 {
+    private Ref<Boolean> reachableRef;
+    private Ref<Collection<Type>> throwsRef;
+
     public Term_c(Position pos) {
 	super(pos);
+	reachableRef = Types.<Boolean> lazyRef(null);
+	throwsRef = Types.<Collection<Type>> lazyRef(null);
     }
     
-    protected boolean reachable;
+    public Ref<Boolean> reachableRef() { return reachableRef; }
+    public Ref<Collection<Type>> throwsRef() { return throwsRef; }
 
+    public final Term firstChild() { return null; }
+    
+    class CFGBuilder { }
     /**
      * Visit this term in evaluation order.
      */
-    public abstract List<Term> acceptCFG(CFGBuilder v, List<Term> succs);
+    public final List<Term> acceptCFG(CFGBuilder v, List<Term> succs) { return succs; }
 
     /**
      * Return true if this term is eachable.  This attribute is not
@@ -38,28 +49,9 @@ public abstract class Term_c extends Node_c implements Term
      * @see polyglot.visit.ReachChecker
      */
     public boolean reachable() {
-        return reachable;
+        return reachableRef.get();
     }
 
-    /**
-     * Set the reachability of this term.
-     */
-    public Term reachable(boolean reachability) {
-        if (this.reachable == reachability) {
-            return this;
-        }
-        
-        Term_c t = (Term_c) copy();
-        t.reachable = reachability;
-        return t;
-    }
-
-    /** Utility function to get the first entry of a list, or else alt. */
-    public static Term listChild(List<? extends Term> l, Term alt) {
-        Term c = (Term) CollectionUtil.firstOrElse(l, alt);
-        return c;
-    }
-    
     protected SubtypeSet exceptions;
     
     public SubtypeSet exceptions() {
@@ -70,11 +62,5 @@ public abstract class Term_c extends Node_c implements Term
         Term_c n = (Term_c) copy();
         n.exceptions = new SubtypeSet(exceptions);
         return n;
-    }
-    
-    public Node exceptionCheck(ExceptionChecker ec) throws SemanticException {
-        Term t = (Term) super.exceptionCheck(ec);
-        //System.out.println("exceptions for " + t + " = " + ec.throwsSet());
-        return t.exceptions(ec.throwsSet());
     }
 }

@@ -255,66 +255,8 @@ public class MethodDecl_c extends Term_c implements MethodDecl
         }
     }
 
-    public NodeVisitor exceptionCheckEnter(ExceptionChecker ec) throws SemanticException {
-        return ec.push(new ExceptionChecker.CodeTypeReporter("Method " + mi.signature())).push(methodDef().asInstance().throwTypes());
-    }
-
     public String toString() {
 	return flags.flags().translate() + returnType + " " + name + "(...)";
-    }
-
-    /** Write the method to an output file. */
-    public void prettyPrintHeader(CodeWriter w, PrettyPrinter tr) {
-	w.begin(0);
-	print(flags, w, tr);
-	print(returnType, w, tr);
-	w.allowBreak(2, 2, " ", 1);
-	w.write(name + "(");
-
-	w.allowBreak(2, 2, "", 0);
-	w.begin(0);
-
-	for (Iterator<Formal> i = formals.iterator(); i.hasNext(); ) {
-	    Formal f = i.next();
-	    
-	    print(f, w, tr);
-
-	    if (i.hasNext()) {
-		w.write(",");
-		w.allowBreak(0, " ");
-	    }
-	}
-
-	w.end();
-	w.write(")");
-
-	if (! throwTypes().isEmpty()) {
-	    w.allowBreak(6);
-	    w.write("throws ");
-
-	    for (Iterator i = throwTypes().iterator(); i.hasNext(); ) {
-	        TypeNode tn = (TypeNode) i.next();
-		print(tn, w, tr);
-
-		if (i.hasNext()) {
-		    w.write(",");
-		    w.allowBreak(4, " ");
-		}
-	    }
-	}
-
-	w.end();
-    }
-
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-        prettyPrintHeader(w, tr);
-
-	if (body != null) {
-	    printSubStmt(body, w, tr);
-	}
-	else {
-	    w.write(";");
-	}
     }
 
     public void dump(CodeWriter w) {
@@ -331,24 +273,6 @@ public class MethodDecl_c extends Term_c implements MethodDecl
         w.begin(0);
         w.write("(name " + name + ")");
         w.end();
-    }
-
-    public Term firstChild() {
-        return listChild(formals(), returnType());
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        v.visitCFGList(formals(), returnType(), ENTRY);
-        
-        if (body() == null) {
-            v.visitCFG(returnType(), this, EXIT);
-        }
-        else {
-            v.visitCFG(returnType(), body(), ENTRY);
-            v.visitCFG(body(), this, EXIT);
-        }
-        
-        return succs;
     }
 
     private static final Collection TOPICS = 
