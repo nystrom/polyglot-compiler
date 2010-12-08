@@ -23,7 +23,7 @@ public interface VarDecl extends Term
     FlagsNode flags();
 
     /** Get the declaration's type. */
-    TypeNode type();
+    TypeNode typeNode();
 
     /** Get the declaration's name. */
     Id name();

@@ -104,7 +104,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         return sourceKind == SourceKind.SOURCE;
     }
 
-    public void setFromSourceFile() {
+    public synchronized void setFromSourceFile() {
         sourceKind = SourceKind.SOURCE;
     }
 
@@ -112,7 +112,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         return sourceKind == SourceKind.ENCODED;
     }
 
-    public void setFromEncodedClassFile() {
+    public synchronized void setFromEncodedClassFile() {
         sourceKind = SourceKind.ENCODED;
     }
 
@@ -120,7 +120,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         return sourceKind == SourceKind.JAVA;
     }
 
-    public void setFromJavaClassFile() {
+    public synchronized void setFromJavaClassFile() {
         sourceKind = SourceKind.JAVA;
     }
 
@@ -130,7 +130,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         return job;
     }
     
-    public void setJob(Job job) {
+    public synchronized void setJob(Job job) {
         this.job = job;
     }
     
@@ -138,7 +138,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         return kind;
     }
 
-    public void inStaticContext(boolean inStaticContext) {
+    public synchronized void inStaticContext(boolean inStaticContext) {
         this.inStaticContext = inStaticContext;
     }
 
@@ -158,7 +158,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         return name;
     }
     
-    public void setContainer(Ref<? extends StructType> container) {
+    public synchronized void setContainer(Ref<? extends Type> container) {
         throw new InternalCompilerError("Call outer(container.def()) instead.");
     }
 
@@ -179,7 +179,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         return flags;
     }
     
-    public void setFlags(Flags flags) {
+    public synchronized void setFlags(Flags flags) {
         this.flags = flags;
     }
 
@@ -187,11 +187,11 @@ public class ClassDef_c extends Def_c implements ClassDef
 	this.flags = flags;
     }
 
-    public void kind(Kind kind) {
+    public synchronized void kind(Kind kind) {
         this.kind = kind;
     }
 
-    public void outer(Ref<ClassDef> outer) {
+    public synchronized void outer(Ref<ClassDef> outer) {
         if (outer != null && kind() == TOP_LEVEL)
             throw new InternalCompilerError("Top-level classes cannot have outer classes.");
         this.outer = outer;
@@ -201,61 +201,61 @@ public class ClassDef_c extends Def_c implements ClassDef
         return Types.<ClassType>ref(ts.createClassType(position(), this.outer));
     }
     
-    public void name(Name name) {
+    public synchronized void name(Name name) {
         if (kind() == ANONYMOUS)
             throw new InternalCompilerError("Anonymous classes cannot have names.");
         this.name = name;
     }
 
-    public void position(Position pos) {
+    public synchronized void position(Position pos) {
 	this.position = pos;
     }
 
-    public void setPackage(Ref<? extends Package> p) {
+    public synchronized void setPackage(Ref<? extends Package> p) {
 	this.package_ = p;
     }
 
-    public void superType(Ref<? extends Type> t) {
+    public synchronized void superType(Ref<? extends Type> t) {
 	this.superType = t;
     }
 
-    public void addInterface(Ref<? extends Type> t) {
+    public synchronized void addInterface(Ref<? extends Type> t) {
 	interfaces.add(t);
     }
 
-    public void addMethod(MethodDef mi) {
+    public synchronized void addMethod(MethodDef mi) {
 	methods.add(mi);
     }
 
-    public void addConstructor(ConstructorDef ci) {
+    public synchronized void addConstructor(ConstructorDef ci) {
 	constructors.add(ci);
     }
 
-    public void addField(FieldDef fi) {
+    public synchronized void addField(FieldDef fi) {
 	fields.add(fi);
     }
 
-    public void addMemberClass(Ref<? extends ClassType> t) {
+    public synchronized void addMemberClass(Ref<? extends ClassType> t) {
 	memberClasses.add(t);
     }
 
-    public void setConstructors(List<? extends ConstructorDef> l) {
+    public synchronized void setConstructors(List<? extends ConstructorDef> l) {
         this.constructors = new ArrayList<ConstructorDef>(l);
     }
 
-    public void setFields(List<? extends FieldDef> l) {
+    public synchronized void setFields(List<? extends FieldDef> l) {
         this.fields = new ArrayList<FieldDef>(l);
     }
 
-    public void setInterfaces(List<Ref<? extends Type>> l) {
+    public synchronized void setInterfaces(List<Ref<? extends Type>> l) {
         this.interfaces = new ArrayList<Ref<? extends Type>>(l);
     }
 
-    public void setMemberClasses(List<Ref<? extends ClassType>> l) {
+    public synchronized void setMemberClasses(List<Ref<? extends ClassType>> l) {
         this.memberClasses = new ArrayList<Ref<? extends ClassType>>(l);
     }
 
-    public void setMethods(List<? extends MethodDef> l) {
+    public synchronized void setMethods(List<? extends MethodDef> l) {
         this.methods = new ArrayList<MethodDef>(l);
     }
     
@@ -281,6 +281,11 @@ public class ClassDef_c extends Def_c implements ClassDef
     
     /** Return an immutable list of interfaces */
     public List<Ref<? extends Type>> interfaces() {
+	for (Iterator<Ref<? extends Type>> i = interfaces.iterator(); i.hasNext();) {
+	    Ref<? extends Type> tref = i.next();
+	    if (tref.forced() && tref.get() == null)
+		i.remove();
+	}
         return Collections.<Ref<? extends Type>>unmodifiableList(interfaces);
     }
     
@@ -318,7 +323,7 @@ public class ClassDef_c extends Def_c implements ClassDef
         }
     }
 
-    public void needSerialization(boolean b) {
+    public synchronized void needSerialization(boolean b) {
         needSerialization = b;
     }
     

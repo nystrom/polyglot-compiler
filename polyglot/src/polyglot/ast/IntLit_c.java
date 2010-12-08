@@ -8,11 +8,7 @@
 
 package polyglot.ast;
 
-import polyglot.types.SemanticException;
-import polyglot.types.TypeSystem;
-import polyglot.util.*;
-import polyglot.visit.ContextVisitor;
-import polyglot.visit.PrettyPrinter;
+import polyglot.util.Position;
 
 /**
  * An <code>IntLit</code> represents a literal in Java of an integer
@@ -97,19 +93,5 @@ public class IntLit_c extends NumLit_c implements IntLit
             return Long.toString((int) value);
 	}
     }
-
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-        w.write(toString());
-    }
-
-    public Precedence precedence() {
-        if (value < 0L && ! boundary()) {
-            return Precedence.UNARY;
-        }
-        else {
-            return Precedence.LITERAL;
-        }
-    }
-    
 
 }

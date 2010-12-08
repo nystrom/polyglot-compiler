@@ -34,6 +34,10 @@ public class Options {
     public String bootclasspath = null;
     public boolean assertions = false;
     
+    public String main_class = null;
+    public boolean interpret = false;
+    public boolean output_source = true;
+    
     public boolean compile_command_line_only = false;
 
     public String[] source_ext = null; // e.g., java, jl, pj
@@ -179,6 +183,28 @@ public class Options {
         {
             i++;
             output_directory = new File(args[i]);
+            i++;
+        }
+	else if (args[i].equals("-outputjava")) {
+	    i++;
+            output_source = true;
+            i++;
+        }
+	else if (args[i].equals("-outputbytecode")) {
+	    i++;
+	    output_source = false;
+	    i++;
+	}
+        else if (args[i].equals("-interpret") ||
+        	args[i].equals("-i")) {
+            i++;
+            main_class = args[i];
+            interpret = true;
+            i++;
+        }
+        else if (args[i].equals("-main")) {
+            i++;
+            main_class = args[i];
             i++;
         }
         else if (args[i].equals("-classpath") ||
@@ -381,6 +407,8 @@ public class Options {
         usageForFlag(out, "-disable <pass>", "disable pass <pass>");
 //        usageForFlag(out, "-scramble [seed]", "scramble the ast (for testing)");
         usageForFlag(out, "-noserial", "disable class serialization");
+        usageForFlag(out, "-interpret <main-class>", "invoke main() in the given class and do not output code");
+        usageForFlag(out, "-outputbytecode", "output java bytecode");
         usageForFlag(out, "-nooutput", "delete output files after compilation");
         usageForFlag(out, "-c", "compile only to .java");
         usageForFlag(out, "-post <compiler>", 

@@ -1,9 +1,9 @@
 package polyglot.dispatch;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import polyglot.ast.*;
+import polyglot.ast.Node;
+import polyglot.ast.Node_c;
 import polyglot.frontend.Globals;
 import polyglot.util.ErrorInfo;
 import polyglot.util.InternalCompilerError;
@@ -13,32 +13,29 @@ public class ErrorReporter {
     public ErrorReporter() {
     }
 
-    public Node accept(Node n) {
+    public void accept(Node n) {
 	if (n == null)
-	    return null;
+	    return;
 	
 	try {
-	    Node m = n.accept(this);
-	    return m;
+	    n.accept(this);
 	}
 	catch (PassthruError e) {
 	    throw new InternalCompilerError(e.getCause());
 	}
     }
 
-    public List<? extends Node> accept(List<? extends Node> l) {
-	List result = new ArrayList();
+    public void accept(List<? extends Node> l) {
 	for (Node n : l) {
-	    Node n2 = accept(n);
-	    result.add(n2);
+	    accept(n);
 	}
-	return result;
     }
 
     public Node acceptChildren(Node n) {
 	return n.visitChildren(new NodeVisitor() {
 	    public Node override(Node n) {
-		return ErrorReporter.this.accept(n);
+		ErrorReporter.this.accept(n);
+		return n;
 	    }
 	});
     }

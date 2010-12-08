@@ -2,7 +2,7 @@ package polyglot.dispatch;
 
 public class PassthruError extends RuntimeException {
 
-    public PassthruError(Exception e) {
+    public PassthruError(Throwable e) {
 	super(e);
     }
 }

@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.Reader;
 
 import polyglot.ast.NodeFactory;
+import polyglot.interp.BytecodeCache;
 import polyglot.main.Options;
 import polyglot.main.Version;
 import polyglot.types.TypeSystem;
@@ -26,6 +27,7 @@ public abstract class AbstractExtensionInfo implements ExtensionInfo {
     private Options options;
     protected TypeSystem ts = null;
     protected NodeFactory nf = null;
+    protected BytecodeCache bc = null;
     protected SourceLoader source_loader = null;
     protected TargetFactory target_factory = null;
     protected Stats stats;
@@ -149,6 +151,17 @@ public abstract class AbstractExtensionInfo implements ExtensionInfo {
 	}
 	return nf;
     }
+    
+    /** Create the node factory for this extension. */
+    protected abstract BytecodeCache createBytecodeCache();
+    
+    /** Get the AST node factory for this extension. */
+    public final BytecodeCache bytecodeCache() {
+	if (bc == null) {
+	    bc = createBytecodeCache();
+	}
+	return bc;
+    }
 
     /**
      * Get the job extension for this language extension.  The job
@@ -167,8 +180,8 @@ public abstract class AbstractExtensionInfo implements ExtensionInfo {
         return getClass().getName();
     }
 
-    public ClassFile createClassFile(File classFileSource, byte[] code){
-        return new ClassFile(classFileSource, code, this);
+    public ClassFile createClassFile(File classFileSource, byte[] code, funicular.Clock clock){
+        return new ClassFile(classFileSource, code, this, clock);
     }
 
     public FileSource createFileSource(File f, boolean user)

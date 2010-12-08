@@ -8,12 +8,10 @@
 
 package polyglot.ast;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 
-import polyglot.types.SemanticException;
 import polyglot.util.*;
-import polyglot.visit.ContextVisitor;
-import polyglot.visit.PrettyPrinter;
 
 /** 
  * A <code>StringLit</code> represents an immutable instance of a 
@@ -50,43 +48,12 @@ public class StringLit_c extends Lit_c implements StringLit
     }
 
     protected int MAX_LENGTH = 60;
- 
-    /** Write the expression to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-        List l = breakupString();
-
-        // If we break up the string, parenthesize it to avoid precedence bugs.
-        if (l.size() > 1) {
-            w.write("(");
-        }
-
-        w.begin(0);
-
-        for (Iterator i = l.iterator(); i.hasNext(); ) {
-            String s = (String) i.next();
-
-            w.write("\"");
-            w.write(StringUtil.escape(s));
-            w.write("\"");
-
-            if (i.hasNext()) {
-                w.write(" +");
-                w.allowBreak(0, " ");
-            }
-        }
-
-        w.end();
-
-        if (l.size() > 1) {
-            w.write(")");
-        }
-    }
 
     /**
      * Break a long string literal into a concatenation of small string
      * literals.  This avoids messing up the pretty printer and editors. 
      */
-    protected List breakupString() {
+    public List<String> breakupString() {
         List<String> result = new LinkedList<String>();
         int n = value.length();
         int i = 0;

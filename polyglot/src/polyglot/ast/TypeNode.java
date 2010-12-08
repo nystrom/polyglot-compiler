@@ -7,7 +7,8 @@
 
 package polyglot.ast;
 
-import polyglot.types.*;
+import polyglot.types.Ref;
+import polyglot.types.Type;
 
 /**
  * A <code>TypeNode</code> is the syntactic representation of a 
@@ -19,10 +20,10 @@ public interface TypeNode extends Receiver, QualifierNode, Term
      * Return the type of this node, or null if no type has been
      * assigned yet.
      */
-    Ref<? extends Type> typeRef();
+    Ref<Type> typeRef();
     
     /** Short name of the type, or null if not a <code>Named</code> type. */
     String nameString();
 
-    TypeNode typeRef(Ref<? extends Type> ref);
+    TypeNode typeRef(Ref<Type> ref);
 }

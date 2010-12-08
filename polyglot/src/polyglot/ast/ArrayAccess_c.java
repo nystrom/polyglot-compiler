@@ -11,8 +11,9 @@ package polyglot.ast;
 import java.util.List;
 
 import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.visit.*;
+import polyglot.util.CollectionUtil;
+import polyglot.util.Position;
+import polyglot.visit.NodeVisitor;
 
 /**
  * An <code>ArrayAccess</code> is an immutable representation of an
@@ -28,11 +29,6 @@ public class ArrayAccess_c extends Expr_c implements ArrayAccess
 	assert(array != null && index != null);
 	this.array = array;
 	this.index = index;
-    }
-
-    /** Get the precedence of the expression. */
-    public Precedence precedence() { 
-	return Precedence.LITERAL;
     }
 
     /** Get the array of the expression. */
@@ -83,44 +79,7 @@ public class ArrayAccess_c extends Expr_c implements ArrayAccess
 	return reconstruct(array, index);
     }
 
-    public Type childExpectedType(Expr child, AscriptionVisitor av) {
-        TypeSystem ts = av.typeSystem();
-
-        if (child == index) {
-            return ts.Int();
-        }
-
-        if (child == array) {
-            return ts.arrayOf(this.type());
-        }
-
-        return child.type();
-    }
-
     public String toString() {
 	return array + "[" + index + "]";
-    }
-
-    /** Write the expression to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-	printSubExpr(array, w, tr);
-	w.write ("[");
-	printBlock(index, w, tr);
-	w.write ("]");
-    }
-
-    public Term firstChild() {
-        return array;
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        v.visitCFG(array, index, ENTRY);
-        v.visitCFG(index, this, EXIT);
-        return succs;
-    }
-
-    public List<Type> throwTypes(TypeSystem ts) {
-        return CollectionUtil.<Type>list(ts.OutOfBoundsException(),
-                                         ts.NullPointerException());
     }
 }

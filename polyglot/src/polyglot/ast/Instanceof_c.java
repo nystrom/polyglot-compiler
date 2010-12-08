@@ -8,12 +8,8 @@
 
 package polyglot.ast;
 
-import java.util.List;
-
-import polyglot.types.*;
-import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * An <code>Instanceof</code> is an immutable representation of
@@ -29,11 +25,6 @@ public class Instanceof_c extends Expr_c implements Instanceof
 	assert(expr != null && compareType != null);
 	this.expr = expr;
 	this.compareType = compareType;
-    }
-
-    /** Get the precedence of the expression. */
-    public Precedence precedence() {
-	return Precedence.INSTANCEOF;
     }
 
     /** Get the expression to be tested. */
@@ -79,36 +70,7 @@ public class Instanceof_c extends Expr_c implements Instanceof
 	return reconstruct(expr, compareType);
     }
 
-    public Type childExpectedType(Expr child, AscriptionVisitor av) {
-        TypeSystem ts = av.typeSystem();
-
-        if (child == expr) {
-            return ts.Object();
-        }
-
-        return child.type();
-    }
-
     public String toString() {
 	return expr + " instanceof " + compareType;
     }
-
-    /** Write the expression to an output file. */
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-	printSubExpr(expr, w, tr);
-	w.write(" instanceof ");
-	print(compareType, w, tr);
-    }
-
-    public Term firstChild() {
-        return expr;
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        v.visitCFG(expr, compareType, ENTRY);
-        v.visitCFG(compareType, this, EXIT);
-        return succs;
-    }
-    
-
 }

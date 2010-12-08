@@ -83,10 +83,10 @@ public class ContextVisitor extends ErrorHandlingVisitor
      */
     protected Context enterScope(Node parent, Node n) {
         if (parent != null) {
-            return parent.del().enterChildScope(n, context);
+            return parent.enterChildScope(n, context);
         }
         // no parent node yet.
-        return n.del().enterScope(context);
+        return n.enterScope(context);
     }
    
     /**
@@ -105,10 +105,6 @@ public class ContextVisitor extends ErrorHandlingVisitor
     public final NodeVisitor enter(Node parent, Node n) {
         if (Report.should_report(Report.visit, 5))
 	    Report.report(5, "enter(" + n + ")");
-
-        if (prune) {
-            return new PruningVisitor();
-        }
 
         ContextVisitor v = this;
 
@@ -131,12 +127,6 @@ public class ContextVisitor extends ErrorHandlingVisitor
     }
 
     public final Node leave(Node parent, Node old, Node n, NodeVisitor v) {
-        // If the traversal was pruned, just return n since leaveCall
-        // might expect a ContextVisitor, not a PruningVisitor.
-        if (v instanceof PruningVisitor || prune) {
-            return n;
-        }
-
         Node m = super.leave(parent, old, n, v);
         this.addDecls(m);
         return m;

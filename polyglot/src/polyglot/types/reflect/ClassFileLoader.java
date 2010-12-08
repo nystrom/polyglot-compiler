@@ -11,12 +11,16 @@ import polyglot.main.Report;
 import polyglot.util.FileUtil;
 import polyglot.util.InternalCompilerError;
 import polyglot.frontend.ExtensionInfo;
+import polyglot.frontend.Globals;
+import polyglot.frontend.Job;
 import polyglot.frontend.Resource;
 
 import java.io.*;
 import java.util.*;
 import java.util.zip.*;
 import java.util.jar.*;
+
+import funicular.Clock;
 
 /**
  * We implement our own class loader.  All this pain is so
@@ -42,22 +46,29 @@ public class ClassFileLoader
 	if (r == null)
 	    return null;
 	
+	funicular.Clock newClock = funicular.Clock$.MODULE$.apply("Clock for loading " + r);
+	newClock.register();
+	
 	ClassFile c;
 	try {
 	    InputStream in = r.getInputStream();
-	    c = loadFromStream(r.file(), in, r.name());
+	    c = loadFromStream(r.file(), in, r.name(), newClock);
 	    in.close();
 	}
 	catch (IOException e) {
 	    return null;
 	}
+	finally {	
+	    newClock.resume();
+	}
+
 	return c;
     }
 
     /**
      * Load a class from an input stream.
      */
-    ClassFile loadFromStream(File source, InputStream in, String name) throws IOException {
+    ClassFile loadFromStream(File source, InputStream in, String name, funicular.Clock clock) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         byte[] buf = new byte[4096];
@@ -73,7 +84,7 @@ public class ClassFileLoader
         try {
             if (Report.should_report(verbose, 3))
 		Report.report(3, "defining class " + name);
-            return extensionInfo.createClassFile(source, bytecode);
+            return extensionInfo.createClassFile(source, bytecode, clock);
         }
         catch (ClassFormatError e) {
             throw new IOException(e.getMessage());

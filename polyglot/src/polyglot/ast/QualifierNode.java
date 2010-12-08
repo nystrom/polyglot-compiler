@@ -15,8 +15,8 @@ import polyglot.types.Ref;
  * qualifier (<code>polyglot.types.Qualifier</code>).  It can resolve to either
  * an enclosing type or can be a package.
  */
-public interface QualifierNode extends Prefix
+public interface QualifierNode extends Node
 {
     /** The qualifier type object. */
-    Ref<? extends Qualifier> qualifierRef();
+    Ref<Qualifier> qualifierRef();
 }

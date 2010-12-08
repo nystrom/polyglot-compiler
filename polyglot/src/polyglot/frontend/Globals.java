@@ -9,13 +9,16 @@ public class Globals {
      * Thread-local Compiler object. To ensure the compiler is reentrant (and
      * thus can be embedded in Eclipse), this should be the only static field.
      */
-    private static ThreadLocal<Compiler> compiler = new ThreadLocal<Compiler>();
+//    private static ThreadLocal<Compiler> compiler = new ThreadLocal<Compiler>();
+    private static Compiler compiler;
     
     public static void initialize(Compiler c) {
-        compiler.set(c);
+	compiler = c;
+//        compiler.set(c);
     }
     
-    public static Compiler Compiler() { return compiler.get(); }
+    public static Compiler Compiler() { return compiler; }
+//    public static Compiler Compiler() { return compiler.get(); }
 
     public static ExtensionInfo Extension() { return Compiler().sourceExtension(); }
 

@@ -11,15 +11,8 @@ package polyglot.ast;
  * An <code>AmbQualifierNode</code> is an ambiguous AST node composed of
  * dot-separated list of identifiers that must resolve to a type qualifier.
  */
-public interface AmbQualifierNode extends Ambiguous, QualifierNode
+public interface AmbQualifierNode extends QualifierNode
 {
-    /**
-     * Qualifier of the qualifier.
-     */
-    Prefix prefix();
-
-    /**
-     * Ambiguous name.
-     */
-    Id name();
+    Node child();
+    AmbQualifierNode child(Node child);
 }

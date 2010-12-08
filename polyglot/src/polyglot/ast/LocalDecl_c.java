@@ -14,7 +14,7 @@ import java.util.List;
 import polyglot.types.*;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.*;
+import polyglot.visit.NodeVisitor;
 
 /**
  * A <code>LocalDecl</code> is an immutable representation of the declaration
@@ -60,12 +60,12 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
     }
 
     /** Get the type node of the declaration. */
-    public TypeNode type() {
+    public TypeNode typeNode() {
         return type;
     }
 
     /** Set the type of the declaration. */
-    public LocalDecl type(TypeNode type) {
+    public LocalDecl typeNode(TypeNode type) {
         if (type == this.type) return this;
         LocalDecl_c n = (LocalDecl_c) copy();
         n.type = type;
@@ -156,51 +156,9 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
         c.addVariable(li.asInstance());
     }
 
-    public Type childExpectedType(Expr child, AscriptionVisitor av) {
-        if (child == init) {
-            TypeSystem ts = av.typeSystem();
-
-            // If the RHS is an integral constant, we can relax the expected
-            // type to the type of the constant.
-            if (ts.numericConversionValid(type.type(), child.constantValue(), av.context())) {
-                return child.type();
-            }
-            else {
-                return type.type();
-            }
-        }
-
-        return child.type();
-    }
-
     public String toString() {
         return flags.flags().translate() + type + " " + name +
                 (init != null ? " = " + init : "") + ";";
-    }
-
-    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
-        boolean printSemi = tr.appendSemicolon(true);
-        boolean printType = tr.printType(true);
-
-        print(flags, w, tr);
-        if (printType) {
-            print(type, w, tr);
-            w.write(" ");
-        }
-        tr.print(this, name, w);
-
-        if (init != null) {
-            w.write(" =");
-            w.allowBreak(2, " ");
-            print(init, w, tr);
-        }
-
-        if (printSemi) {
-            w.write(";");
-        }
-
-        tr.printType(printType);
-        tr.appendSemicolon(printSemi);
     }
 
     public void dump(CodeWriter w) {
@@ -213,21 +171,4 @@ public class LocalDecl_c extends Stmt_c implements LocalDecl {
             w.end();
         }
     }
-
-    public Term firstChild() {
-        return type();
-    }
-
-    public List<Term> acceptCFG(CFGBuilder v, List<Term> succs) {
-        if (init() != null) {
-            v.visitCFG(type(), init(), ENTRY);
-            v.visitCFG(init(), this, EXIT);
-        } else {
-            v.visitCFG(type(), this, EXIT);
-        }
-
-        return succs;
-    }
-    
-
 }
