@@ -35,7 +35,7 @@ public class InitializerDef_c extends Def_c
     
     InitializerInstance asInstance;
     
-    public InitializerInstance asInstance() {
+    public synchronized InitializerInstance asInstance() {
         if (asInstance == null) {
             asInstance = ts.createInitializerInstance(position(), Types.ref(this));
         }
@@ -45,7 +45,7 @@ public class InitializerDef_c extends Def_c
     /**
      * @param container The container to set.
      */
-    public void setContainer(Ref<? extends Type> container) {
+    public synchronized void setContainer(Ref<? extends Type> container) {
         this.container = container;
     }
 
@@ -56,7 +56,7 @@ public class InitializerDef_c extends Def_c
     /**
      * @param flags The flags to set.
      */
-    public void setFlags(Flags flags) {
+    public synchronized void setFlags(Flags flags) {
         this.flags = flags;
     }
 

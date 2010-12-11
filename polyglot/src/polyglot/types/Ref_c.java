@@ -143,8 +143,9 @@ public class Ref_c<T> extends Object implements Ref<T>, Serializable {
 	
 	//	if (callable == null)
 	//	    throw new RuntimeException("No resolver for " + this, debugException);
-	if (future == null)
+	if (future == null){
 	    throw new RuntimeException("No resolver for " + this, debugException);
+	}
 	try {
 	    //	    Types.pool.execute(future);
 	    // clear since should never invoke again
@@ -221,7 +222,7 @@ public class Ref_c<T> extends Object implements Ref<T>, Serializable {
     public void setResolver(Ref.Callable<T> callable, funicular.Clock clock) {
 	try {
 	    lock.lock();
-	    assert ! forced;
+//	    assert ! forced;
 	    
 	    if (this.future != null) {
 	        this.future.setCallable(callable);
@@ -232,7 +233,7 @@ public class Ref_c<T> extends Object implements Ref<T>, Serializable {
 	            this.future = null;
 	        }
 	        else {
-	            debugException = new Exception("setResolver", debugException);
+	            //debugException = new Exception("setResolver", debugException);
 	            if (clock == null)
 	                this.future = Futures$.MODULE$.make(callable);
 	            else {

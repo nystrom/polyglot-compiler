@@ -1,7 +1,7 @@
 package polyglot.types;
 
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import polyglot.util.StringUtil;
 
@@ -26,7 +26,7 @@ public class QName implements Serializable {
 	return qualifier;
     }
     
-    static HashMap<String,QName> internCache = new HashMap<String,QName>();
+    static ConcurrentHashMap<String,QName> internCache = new ConcurrentHashMap<String,QName>();
 
     public static QName make(QName qualifier, Name name) {
 	String shortName = name.toString();

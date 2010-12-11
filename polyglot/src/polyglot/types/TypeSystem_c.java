@@ -8,13 +8,30 @@
 package polyglot.types;
 
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-import polyglot.frontend.*;
+import polyglot.frontend.ExtensionInfo;
+import polyglot.frontend.Source;
 import polyglot.main.Report;
 import polyglot.types.reflect.ClassFile;
 import polyglot.types.reflect.ClassFileLazyClassInitializer;
-import polyglot.util.*;
+import polyglot.util.CollectionUtil;
+import polyglot.util.Copy;
+import polyglot.util.InternalCompilerError;
+import polyglot.util.Position;
+import polyglot.util.Predicate2;
+import polyglot.util.StringUtil;
+import polyglot.util.TransformingList;
 
 /**
  * TypeSystem_c
@@ -1727,7 +1744,7 @@ public class TypeSystem_c implements TypeSystem
 	return arrayOf(pos, Types.ref(type), dims);
     }
 
-    Map<Ref<? extends Type>,Type> arrayTypeCache = new HashMap<Ref<? extends Type>,Type>();
+    Map<Ref<? extends Type>,Type> arrayTypeCache = new ConcurrentHashMap<Ref<? extends Type>,Type>();
 
     /**
      * Factory method for ArrayTypes.
@@ -2224,7 +2241,7 @@ public class TypeSystem_c implements TypeSystem
     }
 
     protected void initFlags() {
-	flagsForName = new HashMap();
+	flagsForName = new ConcurrentHashMap();
 	flagsForName.put("public", Flags.PUBLIC);
 	flagsForName.put("private", Flags.PRIVATE);
 	flagsForName.put("protected", Flags.PROTECTED);

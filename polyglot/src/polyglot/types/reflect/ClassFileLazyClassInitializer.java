@@ -84,7 +84,7 @@ public class ClassFileLazyClassInitializer {
 
         // Set the ClassType's package.
         if (!packageName.equals("")) {
-            ct.setPackage(Types.ref(ts.packageForName(QName.make(packageName))));
+            ct.setPackage(Types_noFuture.ref(ts.packageForName(QName.make(packageName))));
         }
 
         // This is the "C$I$J" part.
@@ -175,8 +175,10 @@ public class ClassFileLazyClassInitializer {
      * @return An array type.
      */
     protected Ref<? extends Type> arrayOf(Type t, int dims) {
-        return arrayOf(Types.<Type>ref(t), dims);
+    	return arrayOf(Types_noFuture.<Type>ref(t), dims);
     }
+    
+    
     
     /**
      * Return an array type.
@@ -189,7 +191,7 @@ public class ClassFileLazyClassInitializer {
             return t;
         }
         else {
-            return Types.<Type>ref(ts.arrayOf(t, dims));
+            return Types_noFuture.<Type>ref(ts.arrayOf(t, dims));
         }
     }
 
@@ -289,7 +291,7 @@ public class ClassFileLazyClassInitializer {
             Report.report(2, "resolving " + name);
         
 	final QName qname = QName.make(name);
-	Ref<ClassDef> sym = Types.<ClassDef>lazyRef(ts.unknownClassDef(), new Callable<ClassDef>() {
+	Ref<ClassDef> sym = Types_noFuture.<ClassDef>lazyRef(ts.unknownClassDef(), new Callable<ClassDef>() {
 	    public ClassDef call() {
 		try {
 		    TypeSystem ts = Globals.TS();
@@ -326,7 +328,7 @@ public class ClassFileLazyClassInitializer {
     }
 
     protected Ref<? extends Type> typeForName(String name, Flags flags) {
-        return Types.<Type>ref(ts.createClassType(position(), defForName(name, flags)));
+        return Types_noFuture.<Type>ref(ts.createClassType(position(), defForName(name, flags)));
     }
 
     public void initTypeObject() {
@@ -540,7 +542,7 @@ public class ClassFileLazyClassInitializer {
             }
         }
     
-        return ts.methodDef(ct.position(), Types.ref(ct.asType()),
+        return ts.methodDef(ct.position(), Types_noFuture.ref(ct.asType()),
                                  ts.flagsForBits(method.getModifiers()),
                                  returnType, Name.make(name), argTypes, excTypes);
       }
@@ -578,7 +580,7 @@ public class ClassFileLazyClassInitializer {
             }
         }
         
-        return ts.constructorDef(mi.position(), Types.ref(ct.asType()), mi.flags(),
+        return ts.constructorDef(mi.position(), Types_noFuture.ref(ct.asType()), mi.flags(),
                                       formals, mi.throwTypes());
     }
 
@@ -592,7 +594,7 @@ public class ClassFileLazyClassInitializer {
       String name = (String) constants[field.getName()].value();
       String type = (String) constants[field.getType()].value();
     
-      FieldDef fi = ts.fieldDef(ct.position(), Types.ref(ct.asType()),
+      FieldDef fi = ts.fieldDef(ct.position(), Types_noFuture.ref(ct.asType()),
                                           ts.flagsForBits(field.getModifiers()),
                                           typeForString(type), Name.make(name));
     

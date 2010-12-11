@@ -2,6 +2,7 @@ package polyglot.types
 
 import funicular._
 
+
 object Futures {
   class SettableFuture[T](var f: Future[T], var callable: polyglot.types.Ref.Callable[T]) extends Future[T] {
     def force = f.force
@@ -12,29 +13,45 @@ object Futures {
     def setCallable(c: polyglot.types.Ref.Callable[T]) = {
       callable = c
     }
+    
   }
-  def makeClocked[T](clock: Clock, c: polyglot.types.Ref.Callable[T]) = {
-    new Exception("registering new future on " + clock).printStackTrace
-
+   
+  
+  def makeClocked[T](clock: Clock, c: polyglot.types.Ref.Callable[T]) = { //,  = {
+    //new Exception("registering new future on " + clock).printStackTrace
+	var b : Set[SettableFuture[T]] = Set[SettableFuture[T]]()
     val f = new SettableFuture[T](null, c)
-    f.f = delayedFuture[T](clock) {
-      println("done making new future on " + clock)
-      clock.next
-      println("done blocking new future on " + clock)
+    //println("makeClocked: made new future on "  + clock  + " future: " + f.f.toString)
+    
+    f.f = delayedFuture[T] {
+      println("makeClocked: done blocking future " + f.f.toString + " on " + clock)
+      println("makeClocked: before calling next " )
+      
+//      clock.next
+//      next
       f.callable.call.asInstanceOf[T]
     }
-    f.start
+	
+//	println("makeClocked: before starting future on " + clock + " f: " + f.f.toString)
+//    f.start
     f
+    
+    
+//    b += f
+    
+//    b
   }
 
   def make[T](c: polyglot.types.Ref.Callable[T]) = {
-    new Exception("making unclocked future").printStackTrace
+    //new Exception("making unclocked future").printStackTrace
+	 println("makeUnclocked: before making unclocked future")
 
     val f = new SettableFuture[T](null, c)
     f.f = delayedFuture[T] {
       f.callable.call.asInstanceOf[T]
     }
-    f.start
+//	println("makeUnclocked: starting unclocked future" + f.f.toString)
+//    f.start
     f
   }
 

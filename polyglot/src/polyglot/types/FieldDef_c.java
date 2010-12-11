@@ -33,13 +33,13 @@ public class FieldDef_c extends VarDef_c implements FieldDef
         return initializer;
     }
 
-    public void setInitializer(InitializerDef initializer) {
+    public synchronized void setInitializer(InitializerDef initializer) {
         this.initializer = initializer;
     }
     
     protected transient FieldInstance asInstance;
 
-    public FieldInstance asInstance() {
+    public synchronized FieldInstance asInstance() {
         if (asInstance == null) {
             asInstance = ts.createFieldInstance(position(), Types.ref(this));
         }
@@ -54,7 +54,7 @@ public class FieldDef_c extends VarDef_c implements FieldDef
     /**
      * @param container The container to set.
      */
-    public void setContainer(Ref<? extends Type> container) {
+    public synchronized void setContainer(Ref<? extends Type> container) {
         this.container = container;
     }
 

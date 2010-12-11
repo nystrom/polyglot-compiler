@@ -180,6 +180,8 @@ public class Compiler
                         }
                     }
                 });
+                
+                scheduler.PostCompiled().runTask();
             }
             catch (InternalCompilerError e) {
                 // Report it like other errors, but rethrow to get the stack trace.

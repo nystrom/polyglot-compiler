@@ -30,6 +30,7 @@ import polyglot.types.SemanticException;
 import polyglot.types.TypeSystem;
 import polyglot.types.Types;
 import polyglot.types.Ref.Handler;
+import polyglot.types.Types_noFuture;
 import polyglot.util.CodeWriter;
 import polyglot.util.ErrorInfo;
 import polyglot.util.InternalCompilerError;
@@ -117,7 +118,7 @@ public abstract class Node_c implements Node
         this.error = null;
         this.job = Globals.currentJob();
         assert job != null;
-        this.checked = Types.<Node>lazyRef(null);
+        this.checked = Types.<Node>lazyRef(null); 
         setChecked();
         addCopyHook(new Handler<Node>() {
 	    public void handle(Node t) {
@@ -130,7 +131,8 @@ public abstract class Node_c implements Node
     public void setChecked() {
 	if (this.checked == null || this.checked.forced())
 	    return;
-        this.checked.setResolver(new Runnable() {
+        this.checked.setResolver(
+        		new Runnable() {
             public void run() {
         	Node_c n = Node_c.this;
         	try {
