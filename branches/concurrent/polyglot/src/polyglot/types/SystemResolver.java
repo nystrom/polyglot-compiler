@@ -7,11 +7,15 @@
 
 package polyglot.types;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import polyglot.frontend.ExtensionInfo;
 import polyglot.main.Report;
-import polyglot.util.*;
+import polyglot.util.CollectionUtil;
 
 /**
  * The <code>SystemResolver</code> is the main resolver for
@@ -28,12 +32,12 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
     public SystemResolver(TopLevelResolver inner, ExtensionInfo extInfo) {
         super(inner);
         this.extInfo = extInfo;
-        this.packageCache = new HashMap<QName, Boolean>();
+        this.packageCache = new ConcurrentHashMap<QName, Boolean>();
     }
 
     public Object copy() {
         SystemResolver r = (SystemResolver) super.copy();
-        r.packageCache = new HashMap<QName, Boolean>(this.packageCache);
+        r.packageCache = new ConcurrentHashMap<QName, Boolean>(this.packageCache);
         return r;
     }
     

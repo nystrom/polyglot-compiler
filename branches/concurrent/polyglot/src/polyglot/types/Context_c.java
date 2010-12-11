@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import polyglot.main.Report;
 import polyglot.util.CollectionUtil;
@@ -42,7 +43,7 @@ public class Context_c implements Context
     private static final polyglot.types.Context_c.Kind OUTER = Kind.OUTER;
     private static final polyglot.types.Context_c.Kind SOURCE = Kind.SOURCE;
     
-    public Context_c(TypeSystem ts) {
+    public  Context_c(TypeSystem ts) {
         this.ts = ts;
         this.outer = null;
         this.kind = OUTER;
@@ -58,7 +59,7 @@ public class Context_c implements Context
         return ts;
     }
 
-    public Object copy() {
+    public synchronized  Object copy() {
         try {
             Context_c c = (Context_c) super.clone();
             return c;
@@ -68,15 +69,15 @@ public class Context_c implements Context
         }
     }
     
-    public Context freeze() {
+    public synchronized Context freeze() {
         Context_c c = (Context_c) this.copy();
         c.outer = outer != null ? outer.freeze() : null;
-        c.types = types != null ? new HashMap(types) : null;
-        c.vars = vars != null ? new HashMap(vars) : null;
+        c.types = types != null ? new ConcurrentHashMap(types) : null;
+        c.vars = vars != null ? new ConcurrentHashMap(vars) : null;
         return c;
     }
 
-    protected Context_c push() {
+    protected synchronized Context_c push() {
         Context_c v = (Context_c) this.copy();
         v.outer = this;
         v.types = null;
@@ -299,7 +300,7 @@ public class Context_c implements Context
         return "(" + kind + " " + mapsToString() + " " + outer + ")";
     }
 
-    public Context pop() {
+    public synchronized Context pop() {
         return outer;
     }
 
@@ -333,7 +334,7 @@ public class Context_c implements Context
     /**
      * Push a source file scope.
      */
-    public Context pushSource(ImportTable it) {
+    public synchronized Context pushSource(ImportTable it) {
         Context_c v = push();
         v.kind = SOURCE;
         v.it = it;
@@ -355,7 +356,7 @@ public class Context_c implements Context
      * @return A new context with a new scope and which maps the short name
      * of type to type.
      */
-    public Context pushClass(ClassDef classScope, ClassType type) {
+    public synchronized Context pushClass(ClassDef classScope, ClassType type) {
         if (Report.should_report(TOPICS, 4))
           Report.report(4, "push class " + classScope + " " + classScope.position());
         Context_c v = push();
@@ -372,7 +373,7 @@ public class Context_c implements Context
         return v;
     }
 
-    public Context pushBreakLabel(Name id) {
+    public synchronized Context pushBreakLabel(Name id) {
 	Context_c v = push();
 	v.breakLabels = Collections.singleton(id);
 	return v;
@@ -386,7 +387,7 @@ public class Context_c implements Context
     /**
      * pushes an additional block-scoping level.
      */
-    public Context pushBlock() {
+    public synchronized Context pushBlock() {
         if (Report.should_report(TOPICS, 4))
           Report.report(4, "push block");
         Context_c v = push();
@@ -397,7 +398,7 @@ public class Context_c implements Context
     /**
      * pushes an additional static scoping level.
      */
-    public Context pushStatic() {
+    public synchronized Context pushStatic() {
         if (Report.should_report(TOPICS, 4))
           Report.report(4, "push static");
         Context_c v = push();
@@ -408,7 +409,7 @@ public class Context_c implements Context
     /**
      * enters a method
      */
-    public Context pushCode(CodeDef ci) {
+    public synchronized Context pushCode(CodeDef ci) {
         if (Report.should_report(TOPICS, 4))
           Report.report(4, "push code " + ci + " " + ci.position());
         Context_c v = push();
@@ -465,7 +466,7 @@ public class Context_c implements Context
     /**
      * Adds a symbol to the current scoping level.
      */
-    public void addVariable(VarInstance vi) {
+    public synchronized void addVariable(VarInstance vi) {
         if (Report.should_report(TOPICS, 3))
           Report.report(3, "Adding " + vi + " to context.");
         addVariableToThisScope(vi);
@@ -474,7 +475,7 @@ public class Context_c implements Context
     /**
      * Adds a named type object to the current scoping level.
      */
-    public void addNamed(Named t) {
+    public synchronized void addNamed(Named t) {
         if (Report.should_report(TOPICS, 3))
           Report.report(3, "Adding type " + t + " to context.");
         addNamedToThisScope(t);
@@ -519,8 +520,8 @@ public class Context_c implements Context
         return t;
     }
 
-    public void addNamedToThisScope(Named type) {
-        if (types == null) types = new HashMap<Name, Named>();
+    public synchronized void addNamedToThisScope(Named type) {
+        if (types == null) types = new ConcurrentHashMap<Name, Named>();
         types.put(type.name(), type);
     }
 
@@ -549,8 +550,8 @@ public class Context_c implements Context
         return vi;
     }
 
-    public void addVariableToThisScope(VarInstance<?> var) {
-        if (vars == null) vars = new HashMap<Name,VarInstance<?>>();
+    public synchronized void addVariableToThisScope(VarInstance<?> var) {
+        if (vars == null) vars = new ConcurrentHashMap<Name,VarInstance<?>>();
         vars.put(var.name(), var);
     }
 

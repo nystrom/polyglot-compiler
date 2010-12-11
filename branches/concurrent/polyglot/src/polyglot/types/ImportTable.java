@@ -8,10 +8,19 @@
 
 package polyglot.types;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import polyglot.main.Report;
-import polyglot.util.*;
+import polyglot.util.CollectionUtil;
+import polyglot.util.Option;
+import polyglot.util.Position;
 
 
 /**
@@ -70,7 +79,7 @@ public class ImportTable implements Resolver
         this.sourcePos = src != null ? new Position(null, src) : null;
         this.pkg = pkg;
 
-	this.map = new HashMap<Object, Option<Named>>();
+	this.map = new ConcurrentHashMap<Object, Option<Named>>();
 	this.onDemandImports = new ArrayList<QName>();
 	this.onDemandImportPositions = new ArrayList<Position>();
 	this.explicitImports = new ArrayList<QName>();

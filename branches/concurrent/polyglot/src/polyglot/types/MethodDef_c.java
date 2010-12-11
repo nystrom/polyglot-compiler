@@ -37,7 +37,7 @@ public class MethodDef_c extends ProcedureDef_c
     
     protected transient MethodInstance asInstance;
     
-    public MethodInstance asInstance() {
+    public synchronized MethodInstance asInstance() {
         if (asInstance == null) {
             asInstance = ts.createMethodInstance(position(), Types.ref(this));
         }
@@ -55,7 +55,7 @@ public class MethodDef_c extends ProcedureDef_c
     /**
      * @param name The name to set.
      */
-    public void setName(Name name) {
+    public synchronized void setName(Name name) {
         this.name = name;
         asInstance = null;
     }
@@ -63,7 +63,7 @@ public class MethodDef_c extends ProcedureDef_c
     /**
      * @param returnType The returnType to set.
      */
-    public void setReturnType(Ref<? extends Type> returnType) {
+    public synchronized void setReturnType(Ref<? extends Type> returnType) {
         this.returnType = returnType;
         asInstance = null;
     }

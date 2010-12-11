@@ -24,7 +24,7 @@ public class LocalDef_c extends VarDef_c implements LocalDef
 
     protected transient LocalInstance asInstance;
 
-    public LocalInstance asInstance() {
+    public synchronized LocalInstance asInstance() {
         if (asInstance == null) {
             asInstance = ts.createLocalInstance(position(), Types.ref(this));
         }

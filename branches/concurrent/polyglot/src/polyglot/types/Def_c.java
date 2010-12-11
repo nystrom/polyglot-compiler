@@ -22,7 +22,7 @@ public class Def_c extends TypeObject_c {
         return System.identityHashCode(this);
     }
     
-    public Object copy() {
+    public synchronized Object copy() {
 //        assert false;
         return super.copy();
     }

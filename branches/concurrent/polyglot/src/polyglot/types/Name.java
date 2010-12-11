@@ -1,10 +1,9 @@
 package polyglot.types;
 
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import polyglot.util.StringUtil;
-import polyglot.util.UniqueID;
 
 public class Name  implements Serializable {
     private static final long serialVersionUID = -899548430558751316L;
@@ -17,7 +16,7 @@ public class Name  implements Serializable {
         this.hash = hash;
     }
 
-    static HashMap<String,Name> internCache = new HashMap<String,Name>();
+    static ConcurrentHashMap<String,Name> internCache = new ConcurrentHashMap<String,Name>();
     static int count = 0;
     
     public Name mangle() {

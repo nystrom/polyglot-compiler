@@ -31,7 +31,7 @@ public class ConstructorDef_c extends ProcedureDef_c
     
     protected transient ConstructorInstance asInstance;
 
-    public ConstructorInstance asInstance() {
+    public synchronized ConstructorInstance asInstance() {
         if (asInstance == null) {
             asInstance = ts.createConstructorInstance(position(), Types.ref(this));
         }
