@@ -1,0 +1,6 @@
+wildcard18.jl5:7: Error in intersection type. Types java.lang.Number and
+    java.lang.String are not in subtype relation.
+   A<? extends String> c = null; //error
+   ^----------------^
+
+1 error.

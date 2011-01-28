@@ -1,0 +1,6 @@
+error4.jl5:19: The type of the variable initializer "parent<java.lang.String>"
+    does not match that of the declaration "mytype<java.lang.Object>".
+        mytype<Object> myclass1 =  new parent<String>();
+                                   ^-^
+
+1 error.

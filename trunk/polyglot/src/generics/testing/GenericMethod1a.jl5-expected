@@ -1,0 +1,6 @@
+GenericMethod1a.jl5:19: Cannot find constructor applicable to call
+    B(java.lang.String)
+   	B<Number> b = new <String>B<Number>("");
+   	              ^-^
+
+1 error.

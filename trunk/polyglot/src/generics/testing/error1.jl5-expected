@@ -1,0 +1,9 @@
+error1.jl5:9-13: test_c should be declared abstract; it does not define m(S),
+    which is declared in test1
+class test_c<S> implements test1<S> {
+^------------------------------------
+...
+}
+^
+
+1 error.

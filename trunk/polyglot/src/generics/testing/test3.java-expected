@@ -1,0 +1,19 @@
+interface mytype<T>  {
+    public abstract void m(T input);
+}
+
+class parent2<S>  implements mytype<S> {
+    public void m(S input) {  }
+    
+    public parent2() { super(); }
+}
+
+class d {
+    public d() { super(); }
+}
+
+public class test3 {
+    public test3() { super(); }
+    
+    public static void main(java.lang.String[] args) { mytype<d> myclass = new parent2<d>(); }
+}

@@ -1,0 +1,17 @@
+interface I<U>  {
+    public abstract void foo(U u);
+}
+
+class C1<T extends I<T>>  {
+    T m(T t) {
+        t.foo(t);
+        return t; }
+    
+    public C1() { super(); }
+}
+
+class C2<S extends I<S>>  extends C1<S> {
+    S m(S s) { return super.m(s); }
+    
+    public C2() { super(); }
+}

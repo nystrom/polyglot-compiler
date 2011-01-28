@@ -1,0 +1,5 @@
+class foo<S>  {
+    <S, T extends S> S m(T t) { return t; }
+    
+    public foo() { super(); }
+}

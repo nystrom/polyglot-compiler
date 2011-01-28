@@ -1,0 +1,6 @@
+GenericMethod9a.jl5:14: Cannot find constructor applicable to call
+    GenCons(java.lang.String)
+    GenCons test2 = new <String> GenCons(""); 
+                    ^-^
+
+1 error.

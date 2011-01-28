@@ -1,0 +1,7 @@
+GenericMethod12.jl5:9: The type of the variable initializer
+    "lub(java.lang.Integer, java.lang.String)" does not match that of the
+    declaration "java.lang.String".
+	   String a = method("5",4);
+	              ^-----------^
+
+1 error.

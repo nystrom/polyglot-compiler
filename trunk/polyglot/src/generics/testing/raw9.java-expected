@@ -1,0 +1,7 @@
+import java.util.*;
+
+class C {
+    java.util.List t = new java.util.LinkedList<java.lang.String>();
+    
+    public C() { super(); }
+}

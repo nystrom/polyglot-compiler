@@ -1,0 +1,15 @@
+wildcard6.jl5:18: No valid method call found for equalTo(Box<?>) in Box<?>.
+    equal = unknownBox.equalTo( unknownBox ); // error
+            ^------------------------------^
+
+wildcard6.jl5:19: No valid method call found for
+    equalTo(Box<java.lang.String>) in Box<?>.
+    equal = unknownBox.equalTo(stringBox); // error
+            ^---------------------------^
+
+wildcard6.jl5:22: The type of the variable initializer "Box<capture of ?_4>"
+    does not match that of the declaration "Box<java.lang.String>".
+    Box<String> box2 = unknownBox.copy(); // error
+                       ^---------------^
+
+3 errors.

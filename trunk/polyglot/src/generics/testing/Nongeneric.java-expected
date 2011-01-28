@@ -1,0 +1,9 @@
+interface I {
+    public abstract void m(java.lang.Object o);
+}
+
+class C implements I {
+    public void m(java.lang.Object o) {  }
+    
+    public C() { super(); }
+}

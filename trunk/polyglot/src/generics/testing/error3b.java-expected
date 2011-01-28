@@ -1,0 +1,13 @@
+interface Drawable {
+    public abstract void draw();
+}
+
+interface mytype<T extends Drawable>  {
+    public abstract void m(T t);
+}
+
+class parent2 implements mytype {
+    public void m(Drawable t) {  }
+    
+    public parent2() { super(); }
+}

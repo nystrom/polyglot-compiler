@@ -1,0 +1,4 @@
+raw9.jl5:4: Warning -- Use of a raw type could lead to unchecked operations.
+	List t = new LinkedList<String>();
+	^--^
+

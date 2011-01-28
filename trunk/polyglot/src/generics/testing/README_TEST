@@ -1,0 +1,23 @@
+(Shamelessly copied from Todd Millstein's email)
+
+The way the test harness works is as follows.  For each test case, there
+are three files checked into the cvs repository:
+
+ - foo.jl5: the test case itself
+ - foo.jl5-expected: a file containing whatever error messages are output
+by the compiler upon compiling foo.jl5
+ - foo.java-expected: a file containing the java translation of foo.jl5 as
+output by the compiler
+
+To run the test suite, go to the testing directory and type
+       make runtests
+This will run all the tests and compare the outputs against the *-expected
+files.  A message about success or failure will be output for each test
+case.  The easiest thing to do is to pipe it to a file and inspect the
+file after all tests have run.
+
+To add new test cases to the repository, add some .jl5 files to the
+testing directory.  When you're sure that your version of the compiler is
+correct, run
+       make expected
+to regenerate all the *-expected files for all the .jl5 files.

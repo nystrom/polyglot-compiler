@@ -1,0 +1,15 @@
+
+
+interface Comparable<T> {
+    int comp(T t);
+}
+
+interface mytype<S, T extends Comparable<S>> {
+    public void m(S input) ;
+}
+
+class C implements mytype {
+   public void m(Comparable input){
+    }
+}
+

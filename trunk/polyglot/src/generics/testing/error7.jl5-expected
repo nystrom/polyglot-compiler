@@ -1,0 +1,6 @@
+error7.jl5:15: Type argument S is not a subtype of its declared bound
+    java.lang.String
+class parent<S> implements mytype<S> {
+                           ^------^
+
+1 error.

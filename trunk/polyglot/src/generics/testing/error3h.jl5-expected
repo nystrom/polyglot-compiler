@@ -1,0 +1,5 @@
+error3h.jl5:20: Warning -- Use of a raw type could lead to unchecked
+    operations.
+        mytype<d> myclass = new parent2();
+                                ^-----^
+

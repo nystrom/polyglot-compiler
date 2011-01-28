@@ -1,0 +1,9 @@
+intersection.jl5:32: No valid method call found for mCPrivate() in T.
+        t.mCPrivate(); // compile-time error
+        ^-----------^
+
+intersection.jl5:33: No valid method call found for mCPrivate() in CT.
+        ct.mCPrivate();
+        ^------------^
+
+2 errors.

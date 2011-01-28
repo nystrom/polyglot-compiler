@@ -1,0 +1,681 @@
+## Shamelessly stolen from the mjc compiler for MultiJava, in order to
+## use as the test harness for the predj compiler.
+
+## I have removed some stuff, but there is likely still a lot of unnecessary
+## stuff in here.  But it seems to work ok.
+
+## NOTE:  For now I have disabled testing with junit.  All the tests
+## instead use the nojunit target below, which does all compiling external
+## to the junit framework.  This is slower than converting things to junit,
+## but I didn't want to deal with that for now.  Later we may want to use
+## mjc's tricks to turn ordinary files of tests into JUNIT tests automatically.
+
+
+## ---------------------------------------------------------------------
+## CREATE JUNIT TEST SUITES 
+## (see TEST section below for running the tests)
+
+ifdef SUBDIRS
+
+.PHONY:	buildtests-subdirs
+buildtests-subdirs:
+		@for dir in $(SUBDIRS); do				\
+		    if [ -d $$dir ]; then				\
+			$(MAKE) -C $$dir buildtests || exit 1;		\
+		    fi;							\
+		done
+
+.PHONY:	buildtests
+buildtests:	buildtests-this-before buildtests-subdirs buildtests-this
+
+else
+
+.PHONY:	buildtests
+buildtests:	buildtests-this-before buildtests-this
+
+endif
+
+.PHONY:	buildtests-this-before
+buildtests-this-before:
+
+
+# check whether the concatenation of $(TESTFILES) and $(TESTSUITES) is
+# empty
+testglom =	$(TESTFILES) $(TESTSUITES)
+ifneq ($(strip $(testglom)),$(empty))
+suite :=	TestSuite
+s_javafile =	$(suite:%=%.java)
+testjavafiles =	$(TESTFILES) $(suite)
+GENFILES +=	$(s_javafile)
+$(s_javafile):	$(addsuffix .java,$(TESTFILES)) $(addsuffix /$(s_javafile),$(TESTSUITES))
+		$(TESTSUITEDEF) -d "$(PACKAGE)" -o $(s_javafile) 	\
+			-s "$(PACKAGE)" 				\
+			-t "Test suite for $(subst /,.,$(PACKAGE))" 	\
+			$(TESTFILES) $(TESTSUITES:%=%.$(suite))
+
+.PHONY:	buildtests-this
+buildtests-this:	buildtests.stamp
+	@true
+
+buildtests.stamp:	$(testjavafiles:%=%.java)
+		$(JAVAC) $?
+		touch buildtests.stamp
+
+else
+
+.PHONY:	buildtests-this
+buildtests-this:
+	@true
+
+endif
+
+
+
+
+## -------------------------------------------------------------
+## ANTLR HELPERS
+
+# ifdef ANTLR_JAVAFILES
+
+# JAVAFILES +=	$(ANTLR_JAVAFILES)
+
+# GENFILES +=	$(addsuffix .txt,$(ANTLR_GENFILES))		\
+# 		$(addsuffix .java,$(ANTLR_JAVAFILES))
+
+# .PHONY:	antlr
+# antlr:		antlr.stamp
+
+# antlr.stamp:	$(addsuffix .java,$(ANTLR_JAVAFILES))
+# 		touch antlr.stamp
+
+# .PHONY:	antlr-clean
+# antlr-clean:
+# 		rm -f antlr.stamp
+
+# endif
+
+
+## ----------------------------------------------------------------------
+## BUILD
+
+ifdef SUBDIRS
+
+.PHONY:	build-subdirs
+build-subdirs:
+		@for dir in $(SUBDIRS); do				\
+		    if [ -d $$dir ]; then				\
+			$(MAKE) -C $$dir build || exit 1;		\
+		    fi;							\
+		done
+
+.PHONY:	build
+build:		build-this-before build-subdirs build-this
+
+else
+
+.PHONY:	build
+build:		build-this-before build-this
+
+endif
+
+# individual Makefiles override the following if any local work must
+# be done before recursing into subdirectories
+
+.PHONY:	build-this-before
+build-this-before:
+
+# individual Makefiles override the following if any additional work must
+# be done for local builds
+
+.PHONY:	build-this
+build-this:	classes
+	@true
+
+# The command 'true' above is a real command, so make doesn't print out
+# noise saying nothing is done, but has no effect on the output.
+
+## ----------------------------------------------------------------------
+## BUILD WITH DEBUGGING INFORMATION
+
+.PHONY:	debug-build
+debug-build:
+		$(MAKE) JAVAC='$(JAVACDEB)' build
+
+## ----------------------------------------------------------------------
+## BUILD CLASSFILES
+
+.PHONY:	classes
+classes:	classes.stamp
+
+ifndef OVERRIDING_CLASSES_STAMP
+ifeq ($(strip $(JAVAFILES)),$(empty))
+classes.stamp:
+		touch classes.stamp
+else
+classes.stamp:	$(JAVAFILES:%=%.java)
+		$(JAVAC) $?
+		touch classes.stamp
+endif
+endif
+
+## Typically *.class files are created by listing the class in
+## JAVAFILES (or one of the other variables that is appended to
+## JAVAFILES.  But occasionally it is useful to name the class files
+## directly as prerequisites (often to build-this-before).  This is a
+## bit fragile since check-env is not included here (doing so would
+## cause the class file to always be remade).  check-env should be
+## listed as a prerequisite for whatever target lists the class file.
+
+%.class:	$(addsuffix .java,%)
+		$(JAVAC) $<
+
+## ----------------------------------------------------------------------
+## CLEAN SOURCE DIRECTORY
+
+# individual Makefiles override the following if any additional work must
+# be done for local cleaning
+
+.PHONY:	clean-this
+clean-this:	simple-clean
+
+.PHONY:	simple-clean
+simple-clean:	
+		-rm -f TAGS classes.stamp buildtests.stamp
+
+ifndef SUBDIRS
+SUBDIRS =
+endif
+
+ifndef TESTDIRS
+TESTDIRS =
+endif
+
+cleandirs = $(SUBDIRS) $(filter-out $(SUBDIRS),$(TESTDIRS))
+
+ifneq ($(strip $(cleandirs)),$(empty))
+
+.PHONY:	clean-subdirs
+clean-subdirs:
+		@for dir in $(cleandirs); do				\
+		    if [ -d $$dir ]; then				\
+			$(MAKE) -C $$dir clean;				\
+		    fi;							\
+		done
+
+.PHONY:	clean
+clean:		clean-subdirs clean-this
+
+else
+
+.PHONY:	clean
+clean:		clean-this
+
+endif
+
+## ----------------------------------------------------------------------
+## CLEAN CLASSFILES
+
+.PHONY:	clean-classes-this
+clean-classes-this:
+ifdef PACKAGE
+	rm -f classes.stamp buildtests.stamp \
+		$(PROJ_CLASSROOT)/$(subst .,/,$(PACKAGE))/*.class
+endif
+
+
+ifneq ($(strip $(cleandirs)),$(empty))
+
+.PHONY:	clean-classes-subdirs
+clean-classes-subdirs:	
+		@for dir in $(cleandirs); do				\
+		    if [ -d $$dir ]; then				\
+			$(MAKE) -C $$dir clean-classes;			\
+		    fi;							\
+		done
+
+.PHONY:	clean-classes
+clean-classes:	clean-classes-subdirs clean-classes-this
+
+else
+
+.PHONY:	clean-classes
+clean-classes:	clean-classes-this
+
+endif
+
+## This is a simple target that deletes all .class files in a directory without 
+## recursing.  It is useful as a prerequisite of a buildtests-this target in a 
+## test directory that should be free of .class files before testing.
+.PHONY: zap-classes
+zap-classes:
+	@if [ -n '$(wildcard *.class)' ] ; then \
+		echo "Removing .class files" ;	\
+		rm -f *.class ; 		\
+	fi
+
+## ----------------------------------------------------------------------
+## CLEAN AND REMOVE GENERATED FILES PLUS BACKUP AND JUNK FILES
+
+.PHONY:	distclean-this
+distclean-this:	clean-this clean-classes-this distclean-emacs
+ifneq ($(strip $(GENFILES)),$(empty))
+		rm -f $(GENFILES)
+endif
+
+.PHONY:	distclean-emacs
+distclean-emacs:
+	@touch ~~
+	-rm -f *~
+
+ifneq ($(strip $(cleandirs)),$(empty))
+
+.PHONY:	distclean-subdir
+distclean-subdir:
+		@for dir in $(cleandirs); do				\
+		    if [ -d $$dir ]; then				\
+			$(MAKE) -C $$dir distclean;			\
+		    fi;							\
+		done
+
+.PHONY:	distclean
+distclean:	distclean-subdir distclean-this
+
+else
+
+.PHONY:	distclean
+distclean:	distclean-this
+
+endif
+
+## ----------------------------------------------------------------------
+## CLEAN ANYTHING THAT CAN BE CLEANED
+
+.PHONY:	cleanall pristine
+cleanall pristine:	distclean
+
+## ---------------------------------------------------------------------
+## CREATE TAGS FILES
+
+ifndef TAGFILES
+TAGFILES = $(addsuffix .java,$(JAVAFILES))
+endif
+
+ifdef SUBDIRS
+
+tags:		TAGS
+		@for dir in $(SUBDIRS); do				\
+		    if [ -d $$dir ]; then				\
+			$(MAKE) -C $$dir tags;				\
+		    fi;							\
+		done
+
+else
+
+tags:		TAGS
+
+endif
+
+ifneq ($(strip $(TAGFILES)),$(empty))
+TAGS:		$(TAGFILES)
+		etags --lang=java $^
+else
+TAGS:
+endif
+
+## -----------------------------------------------------------------------
+## TEST
+
+# The sed command ${PATHTOFILE} transforms path name
+# into file name, e.g., c:\MJ\...\test.java => test.java
+ifeq (${JFILESEP},/)
+PATHTOFILE = $(SED) -e 'sx^/[^:]*/xx'
+else
+PATHTOFILE = $(SED) -e 's/[a-z|A-Z]:\\[^:]*\\//'
+endif 
+
+# The sed command ${FIXTILT} turns \ to /.
+FIXTILT = $(SED) -e 'sx$(JFILESEP)x/xg'
+
+.PHONY: quieter-tests
+quieter-tests:
+	@$(MAKE) --no-print-directory quiet-tests
+
+.PHONY: quiet-tests
+quiet-tests:
+	$(MAKE) QUIET=1 runtests
+
+.PHONY: runtests
+runtests: build buildtests runtests-helper
+
+ifdef NO_LOCAL_TESTS
+.PHONY: runtests-helper
+runtests-helper: runtests-subdirs
+else
+# For now, always run without junit
+# ifdef NO_JUNIT_TESTS
+.PHONY: runtests-helper
+runtests-helper: runtests-this-start runtests-this-nojunit runtests-subdirs runtests-this-end
+# else
+# .PHONY: runtests-helper
+# runtests-helper: runtests-this-start runtests-this-junit runtests-subdirs runtests-this-end
+endif
+
+.PHONY: runtests-this-nojunit
+runtests-this-nojunit: runtests-this
+
+.PHONY: runtests-this-junit
+runtests-this-junit: runtests-this
+
+#endif
+
+# individual Makefiles override the following if any local testing is required
+
+.PHONY: runtests-this
+runtests-this:
+
+# Used to signal the start of a directory of tests
+.PHONY: runtests-this-start
+runtests-this-start:
+	@echo DIRECTORY `pwd`
+
+# Used to signal the end of a directory of tests
+.PHONY: runtests-this-end
+runtests-this-end:
+#	@echo Completed `pwd`
+
+ifdef TESTDIRS
+
+.PHONY: runtests-subdirs
+runtests-subdirs:
+		@for dir in $(TESTDIRS); do              \
+			if [ -d $$dir ]; then               \
+			$(MAKE) -C $$dir runtests-helper;         \
+			fi;                         \
+		done 
+else
+
+.PHONY: runtests-subdirs
+runtests-subdirs:
+	@true
+
+endif
+
+
+## ----------------------------------------------------------------------
+## JAVADOCS and JMLDOCS
+
+DOCNAME =	javadocs
+DOCDIR =	$(PROJ_CLASSROOT)/$(DOCNAME)
+JDOCDIR =	$(PROJ_JCLASSROOT)$(JFILESEP)$(DOCNAME)
+JAVADOC = 	java org.multijava.mjdoc.Main
+
+SUNDOCDIR =	http://java.sun.com/products/jdk/1.3/docs/api 
+
+ifdef PACKAGES
+ifndef JDKDOCDIR
+JDKDOCDIR =	$(SUNDOCDIR)
+endif
+
+JDLINKS += -link $(JDKDOCDIR)
+
+ifdef ANTLRDOCDIR
+JDLINKS += -link $(ANTLRDOCDIR)
+endif
+
+ifdef JDOVERVIEW
+OVERVIEW = -overview $(JDOVERVIEW)
+else
+OVERVIEW =
+endif
+
+ifdef JDSTYLE
+STYLE = -stylesheetfile $(JDSTYLE)
+else
+STYLE =
+endif
+
+ifdef JDWINDOWTITLE
+WINDOWTITLE = -windowtitle $(JDWINDOWTITLE)
+else
+WINDOWTITLE =
+endif
+
+ifdef JDDOCTITLE
+DOCTITLE = -doctitle $(JDDOCTITLE)
+else
+DOCTITLE =
+endif
+
+ifdef JDHEADER
+# Not strictly necessary to define FOOTER since the default for the footer
+# is the value of the header, but it may save some confusion
+HEADER = -header $(JDHEADER)
+FOOTER = -footer $(JDHEADER)
+else
+HEADER =
+FOOTER =
+endif
+
+ifdef JDBOTTOM
+BOTTOM = -bottom $(JDBOTTOM)
+else
+BOTTOM =
+endif
+
+ifeq ("$(JAVADOC)","javadoc")
+JQUIET =
+else
+ifdef QUIET
+JQUIET = -quiet
+else 
+JQUIET =
+endif
+endif
+
+.PHONY:		javadocs prejavadocs postjavadocs packages-list
+javadocs:	prejavadocs realjavadocs postjavadocs
+prejavadocs:	
+postjavadocs:
+
+# Note: The javadocs commands are all in one command so that the initial cd
+# applies to the following commands.
+.PHONY:		realjavadocs
+realjavadocs:
+		@cd $(PROJ_CLASSROOT);					\
+		rm -rf $(DOCDIR);					\
+		mkdir $(DOCDIR);					\
+		$(JAVADOC) -private					\
+			-sourcepath $(PROJ_JCLASSROOT)			\
+			$(OVERVIEW)					\
+			$(STYLE)					\
+			-d $(JDOCDIR)					\
+			$(JDLINKS)					\
+			-use						\
+			-author						\
+			-version					\
+			$(WINDOWTITLE)					\
+			$(DOCTITLE)					\
+			$(HEADER)					\
+			$(BOTTOM)					\
+			-J-Xmx128m					\
+			$(JQUIET)					\
+			$(PACKAGES) 
+
+
+packages-list: javadocs/package-list
+		@echo $(PACKAGES)
+
+javadocs/package-list: javadocs-directory
+	@echo $(PACKAGES) | tr ' ' '\n' > javadocs/package-list 
+
+.PHONY: javadocs-directory
+javadocs-directory:
+	@test -d javadocs || mkdir javadocs
+
+else
+
+## no PACKAGES variable
+
+javadocs:	no-packages
+
+packages-list:	no-packages
+
+javadocs/package-list: no-packages
+
+.PHONY:	no-packages
+no-packages:
+	@echo "The PACKAGES variable is not set so javadocs cannot be built"
+endif
+
+## ----------------------------------------------------------------------
+## EVERYTHING
+
+.PHONY:		all
+all:		build buildtests
+
+.PHONY:		rebuild-all
+rebuild-all:	pristine build buildtests
+
+## ----------------------------------------------------------------------
+## TOOL DEFINITIONS
+
+ifndef JAVA
+JAVA =		java
+endif
+
+ifndef JAVAC
+#JAVAC =		jikes +E +P
+JAVAC =		javac
+endif
+
+ifndef JAVACDEB
+JAVACDEB =	javac -g
+endif
+
+ifndef JCC
+JCC =		$(JAVA) -mx128m antlr.Tool
+endif
+
+ifndef JTEMP
+JTEMP =		$(TEMP)
+endif
+
+ifndef JAVADOC
+JAVADOC = javadoc
+endif
+
+ifndef SED
+SED = sed
+endif
+
+TOKDEF =	$(JAVA) org.multijava.util.lexgen.Main
+
+MSGDEF =	$(JAVA) org.multijava.util.msggen.Main
+
+OPTDEF =	$(JAVA) org.multijava.util.optgen.Main
+
+GUIDEF =    $(JAVA) org.multijava.util.guigen.Main
+
+TESTSUITEDEF =	$(JAVA) org.multijava.util.testing.Main
+
+JUNIT =		$(JAVA) -Xmx256M -classpath '$(subst \\,\,$(JTEMP)$(JPATHSEP)$(CLASSPATH))' -Djava.io.tmpdir=$(JTEMP) junit.textui.TestRunner
+
+JMLJUNIT =		$(JAVA) -Xmx256M -classpath '$(subst \\,\,$(JTEMP)$(JPATHSEP)$(CLASSPATH))' -Djava.io.tmpdir=$(JTEMP) org.jmlspecs.jmlunit.JMLTestRunner
+
+ifneq ($(strip $(TESTFILES) $(TESTSUITES)),$(empty))
+.PHONY: junittests jmljunittests
+junittests: junittests-before
+	@$(JUNIT)  $(subst /,.,$(PACKAGE)).TestSuite
+
+jmljunittests: junittests-before
+	@$(JMLJUNIT)  $(subst /,.,$(PACKAGE)).TestSuite
+
+else
+.PHONY: junittests
+junittests: junittests-before
+	@true
+
+jmljunittests: junittests-before
+	@true
+endif
+
+.PHONY: junittests-before
+junittests-before:
+
+## -- ant
+
+TESTFORANT = test 'yes' = `java org.multijava.util.ClassPathContains org.apache.tools.ant.types.FileSet`
+
+## - escjava
+
+ESC_SPECS = :
+ESCJAVA ?= escjava
+##ESCJAVAFLAGS = -nocheck -skip JmlJDLexer -skip JavadocJmlLexer -skip nextToken -skip JmlLexer -skip JmlMLLexer -skip JmlSLLexer -classpath $(CLASSPATH)
+ESCJAVAFLAGS = -nocheck -noNotCheckedWarnings -skip JmlJDLexer -skip JavadocJmlLexer -skip nextToken -skip JmlLexer -skip JmlMLLexer -skip JmlSLLexer -classpath $(CLASSPATH)
+##ESCJAVAFLAGS = -nocheck -noNotCheckedWarnings -skip nextToken
+escjava-all-packages:
+	@-cd $(JML_CLASSROOT)/specs; \
+	 for d in ${SPECSPACKAGES}; do \
+	    echo $$d; \
+	    time $(ESCJAVA) $(ESCJAVAFLAGS) -package $$d ; \
+	done
+	@-cd $(JML_CLASSROOT); \
+	 for d in ${PACKAGES}; do \
+	    echo $$d; \
+	    time $(ESCJAVA) $(ESCJAVAFLAGS) -package $$d ; \
+	done
+	@-cd $(MJ_CLASSROOT); \
+	 for d in ${MJCPACKAGES}; do \
+	    echo $$d; \
+	    time $(ESCJAVA) $(ESCJAVAFLAGS) -package $$d; \
+	done
+
+escjava-all-packages+:
+	$(MAKE) ESCJAVA='escjava -parsePlus' escjava-all-packages
+
+escjava-all-files:
+	@-cd $(MJ_CLASSROOT); \
+	 for d in ${MJCPACKAGES}; do \
+	    ${MAKE} CLASSPATH=${CLASSPATH}:${JML_CLASSROOT}:${JML_CLASSROOT}/specs $$d-pescfiles ;\
+	done
+	@-cd $(JML_CLASSROOT); \
+	 for d in ${PACKAGES}; do \
+	    ${MAKE} $$d-pescfiles ;\
+	done
+	@-cd $(JML_CLASSROOT)/specs; \
+	 for d in ${SPECSPACKAGES}; do \
+	    ${MAKE} $$d-pescfiles ;\
+	done
+
+%-pescfiles:
+	@${MAKE} $(subst .,/,$*)-escfiles
+
+%-escfiles:
+	@echo $*
+	@-echo $(wildcard $*/*.java) $(wildcard $*/*.spec) $(wildcard $*/*.jml) $(wildcard $*/*.refines-*) | \
+	xargs -n 1 $(ESCJAVA) $(ESCJAVAFLAGS) 
+
+%.java-esc:
+	$(ESCJAVA) $(ESCJAVAFLAGS) -parsePlus -classpath ${CLASSPATH}:${JML_CLASSROOT}:${JML_CLASSROOT}/specs $*.java
+
+%.spec-esc:
+	$(ESCJAVA) $(ESCJAVAFLAGS) -parsePlus $*.spec
+
+%.refines-spec-esc:
+	$(ESCJAVA) $(ESCJAVAFLAGS) -parsePlus $*.refines-spec
+
+%.jml-esc:
+	$(ESCJAVA) $(ESCJAVAFLAGS) -parsePlus $*.jml
+
+%-esc:
+	$(ESCJAVA) $(ESCJAVAFLAGS) $*/*.java
+
+%-esc+:
+	$(ESCJAVA) $(ESCJAVAFLAGS) -parsePlus $*/*.java
+
+## ----------------------------------------------------------------------
+## SOME USEFUL CONSTANTS
+comma:=	,
+empty:=
+space:=	$(empty) $(empty)
+semi:=	;

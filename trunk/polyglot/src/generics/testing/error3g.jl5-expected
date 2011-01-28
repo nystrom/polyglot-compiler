@@ -1,0 +1,5 @@
+error3g.jl5:20: Warning -- Use of a raw type could lead to unchecked
+    operations.
+        Object myclass = new parent2();
+                             ^-----^
+

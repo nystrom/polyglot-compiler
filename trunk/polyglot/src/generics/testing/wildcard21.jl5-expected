@@ -1,0 +1,5 @@
+wildcard21.jl5:3: Unexpected type bound in type variable declaration
+class wildcard21<T extends String[]> {
+                           ^----^
+
+1 error.

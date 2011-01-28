@@ -1,0 +1,9 @@
+import java.util.*;
+
+class C {
+    void m() {
+        java.util.List<java.lang.String> l = new java.util.LinkedList();
+        l.add("hello"); }
+    
+    public C() { super(); }
+}

@@ -1,0 +1,9 @@
+error6.jl5:11-14: parent should be declared abstract; it does not define
+    m2(java.lang.Integer), which is declared in mytype
+class parent<S> implements mytype<S,Integer> {
+^---------------------------------------------
+...
+}
+^
+
+1 error.

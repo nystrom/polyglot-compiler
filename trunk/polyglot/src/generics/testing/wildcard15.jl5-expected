@@ -1,0 +1,10 @@
+wildcard15.jl5:21: Cannot assign java.lang.String to capture of ?_10.
+    box.t = "xyz";     // error
+    ^-----------^
+
+wildcard15.jl5:24: The type of the variable initializer "capture of ?_10" does
+    not match that of the declaration "java.lang.String".
+    String s = box.t;  // error
+               ^---^
+
+2 errors.

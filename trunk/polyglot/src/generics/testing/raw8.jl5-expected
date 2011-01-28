@@ -1,0 +1,4 @@
+raw8.jl5:14: Warning -- Use of a raw type could lead to unchecked operations.
+class C extends mytype {
+                ^----^
+

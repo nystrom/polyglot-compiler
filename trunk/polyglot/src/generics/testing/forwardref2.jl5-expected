@@ -1,0 +1,13 @@
+forwardref2.jl5:3: Illegal forward reference.
+<T extends S, S> void m1() {} //error
+ ^---------^
+
+forwardref2.jl5:11: Invalid bounds in intersection type.
+<T extends T> void m5() {} //error
+ ^---------^
+
+forwardref2.jl5:15: Illegal forward reference.
+<T extends X, X> void m7() {} //error
+ ^---------^
+
+3 errors.

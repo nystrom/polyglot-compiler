@@ -1,0 +1,16 @@
+wildcard4.jl5:15: No valid method call found for put(java.lang.String) in
+    Box<?>.
+        box.put("xyz");     // error
+        ^------------^
+
+wildcard4.jl5:18: No valid method call found for contains(java.lang.String) in
+    Box<?>.
+        box.contains("abc");    // error
+        ^-----------------^
+
+wildcard4.jl5:21: The type of the variable initializer "capture of ?_4" does
+    not match that of the declaration "java.lang.String".
+        String s = box.take();  // error
+                   ^--------^
+
+3 errors.

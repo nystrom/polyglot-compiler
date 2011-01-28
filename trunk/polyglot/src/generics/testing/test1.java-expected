@@ -1,0 +1,9 @@
+interface test1<T>  {
+    public abstract void m(T input);
+}
+
+class test_c<S>  implements test1<S> {
+    public void m(S input) {  }
+    
+    public test_c() { super(); }
+}
