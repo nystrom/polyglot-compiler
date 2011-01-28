@@ -1,0 +1,31 @@
+class c extends java.lang.Object {
+    public c() { super(); }
+}
+
+class d extends c {
+    public d() { super(); }
+}
+
+interface mytype<T1 extends c>  {
+    public abstract void m1(T1 input);
+}
+
+class parent<T2 extends c>  implements mytype<T2> {
+    public void m1(T2 input) {  }
+    
+    public parent() { super(); }
+}
+
+class child1<S extends d>  extends parent<S> {
+    public child1() { super(); }
+}
+
+public class test16 {
+    public int main() {
+        mytype<d> myClass = null;
+        myClass = new child1<d>();
+        return 0;
+    }
+    
+    public test16() { super(); }
+}

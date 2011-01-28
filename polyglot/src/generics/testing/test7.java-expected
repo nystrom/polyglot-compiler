@@ -1,0 +1,15 @@
+interface mytype<T1, T2>  {
+    public abstract void m1(T1 input);
+    
+    public abstract void m2(T2 input);
+}
+
+class parent<S>  implements mytype<java.lang.Integer, java.lang.String> {
+    public void m1(java.lang.Integer input) {  }
+    
+    public void m2(java.lang.String input) {  }
+    
+    public void m3(S input) {  }
+    
+    public parent() { super(); }
+}

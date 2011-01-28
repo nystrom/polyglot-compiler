@@ -1,0 +1,29 @@
+wildcard11.jl5:25: No valid method call found for
+    takeContentFrom(Box<java.lang.Object>) in Box<? super java.lang.Number>.
+    unknownBox.takeContentFrom(objectBox); // error
+    ^-----------------------------------^
+
+wildcard11.jl5:27: No valid method call found for takeContentFrom(Box<? super
+    java.lang.Number>) in Box<? super java.lang.Number>.
+    unknownBox.takeContentFrom(unknownBox); // error
+    ^------------------------------------^
+
+wildcard11.jl5:29: The type of the variable initializer "java.lang.Class<?
+    extends capture of ?_17>" does not match that of the declaration
+    "java.lang.Class<java.lang.Number>".
+    Class<Number> type1 = unknownBox.getContentType();       // error
+                          ^-------------------------^
+
+wildcard11.jl5:30: The type of the variable initializer "java.lang.Class<?
+    extends capture of ?_17>" does not match that of the declaration
+    "java.lang.Class<? extends java.lang.Number>".
+    Class<? extends Number> type2 = unknownBox.getContentType(); // error
+                                    ^-------------------------^
+
+wildcard11.jl5:31: The type of the variable initializer "java.lang.Class<?
+    extends capture of ?_17>" does not match that of the declaration
+    "java.lang.Class<? super java.lang.Number>".
+    Class<? super Number> type3 = unknownBox.getContentType();   // error
+                                  ^-------------------------^
+
+5 errors.

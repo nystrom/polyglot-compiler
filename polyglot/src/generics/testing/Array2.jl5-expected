@@ -1,0 +1,9 @@
+Array2.jl5:7-9: TestA should be declared abstract; it does not define
+    testMethod(S[]), which is declared in Test
+class TestA<S,T> implements Test<S> {
+^------------------------------------
+...
+}
+^
+
+1 error.

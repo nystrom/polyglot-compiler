@@ -1,0 +1,11 @@
+forloop1.jl5:22: Incompatible types in for loop. Declared type is
+    java.lang.Integer but the actual type is java.lang.String.
+		for (Integer p : list) {
+		                 ^--^
+
+forloop1.jl5:32: Incompatible types in for loop. Declared type is
+    java.lang.Integer but the actual type is java.lang.String.
+		for (Integer p : a) {
+		                 ^
+
+2 errors.

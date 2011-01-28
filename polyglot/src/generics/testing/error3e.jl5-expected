@@ -1,0 +1,5 @@
+error3e.jl5:9: Warning -- Use of a raw type could lead to unchecked
+    operations.
+class parent2<S> implements mytype {
+                            ^----^
+

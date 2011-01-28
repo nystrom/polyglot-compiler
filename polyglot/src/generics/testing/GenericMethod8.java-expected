@@ -1,0 +1,13 @@
+import java.util.*;
+
+class test {
+    public static <V> V firstElement(java.util.List<V> a) { return a.get(1); }
+    
+    public static void main(java.lang.String[] args) {
+        java.util.List<java.lang.Integer> l = new java.util.ArrayList<java.lang.Integer>();
+        l.add(2);
+        java.lang.Integer a = firstElement(l);
+    }
+    
+    public test() { super(); }
+}

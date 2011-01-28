@@ -1,0 +1,25 @@
+class c {
+    public c() { super(); }
+}
+
+class d extends c {
+    public d() { super(); }
+}
+
+interface mytype<T1 extends c>  {
+    public abstract void m1(T1 input);
+}
+
+class parent<S extends d>  implements mytype<S> {
+    public void m1(S input) {  }
+    
+    public parent() { super(); }
+}
+
+public class test13 {
+    public int main() {
+        mytype<d> myClass = new parent<d>();
+        return 0; }
+    
+    public test13() { super(); }
+}

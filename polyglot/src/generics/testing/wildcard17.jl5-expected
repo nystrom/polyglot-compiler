@@ -1,0 +1,15 @@
+wildcard17.jl5:24: Cannot assign java.lang.Number to capture of ?_10.
+    box.t = number;    // error
+    ^------------^
+
+wildcard17.jl5:26: The type of the variable initializer "capture of ?_10" does
+    not match that of the declaration "java.lang.Long".
+    Long   l = box.t;  // error
+               ^---^
+
+wildcard17.jl5:27: The type of the variable initializer "capture of ?_10" does
+    not match that of the declaration "java.lang.Number".
+    Number n = box.t;  // error
+               ^---^
+
+3 errors.

@@ -1,0 +1,17 @@
+interface test1<T>  {
+    public abstract void m(T input);
+}
+
+class c {
+    public c() { super(); }
+}
+
+class parent<S>  implements test1<S> {
+    public void m(S input) {  }
+    
+    public parent() { super(); }
+}
+
+class sub extends parent<c> {
+    public sub() { super(); }
+}

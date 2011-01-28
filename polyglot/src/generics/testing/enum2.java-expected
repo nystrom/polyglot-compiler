@@ -1,0 +1,5 @@
+public class enum2 {
+    void foo(int j) { switch (j) { case 2: break; } }
+    
+    public enum2() { super(); }
+}

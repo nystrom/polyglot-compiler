@@ -1,0 +1,16 @@
+wildcard8.jl5:19: No valid method call found for equalTo(Box<? extends
+    java.lang.Number>) in Box<? extends java.lang.Number>.
+    equal = unknownBox.equalTo(unknownBox); // error
+            ^----------------------------^
+
+wildcard8.jl5:20: No valid method call found for
+    equalTo(Box<java.lang.Number>) in Box<? extends java.lang.Number>.
+    equal = unknownBox.equalTo(numberBox); // error
+            ^---------------------------^
+
+wildcard8.jl5:24: The type of the variable initializer "Box<capture of ?_4>"
+    does not match that of the declaration "Box<java.lang.Number>".
+    Box<Number> box3 = unknownBox.copy();         // error
+                       ^---------------^
+
+3 errors.

@@ -1,0 +1,5 @@
+var_args1.jl5:10: No valid method call found for test(int[], int) in Counter.
+        test(new int[]{1},2);
+        ^------------------^
+
+1 error.

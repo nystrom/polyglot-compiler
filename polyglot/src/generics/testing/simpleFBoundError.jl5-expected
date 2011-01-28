@@ -1,0 +1,6 @@
+simpleFBoundError.jl5:9: Type argument S is not a subtype of its declared
+    bound I<S>
+class C2<S> extends C1<S> {
+                    ^--^
+
+1 error.

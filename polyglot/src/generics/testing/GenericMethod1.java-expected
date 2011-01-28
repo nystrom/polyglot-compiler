@@ -1,0 +1,13 @@
+import java.util.*;
+
+class test {
+    public static <T> void fromArrayToList(T[] input, java.util.List<T> c) {
+        int i = 0;
+        for (i = 0;i < input.length;i++) { c.add(input[i]); } }
+    
+    public static void main(java.lang.String[] args) {
+        java.lang.String[] a = { "hello", "World" };
+        fromArrayToList(a, new java.util.ArrayList<java.lang.String>()); }
+    
+    public test() { super(); }
+}

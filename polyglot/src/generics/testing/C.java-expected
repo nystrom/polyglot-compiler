@@ -1,0 +1,7 @@
+class C {
+    public C() { super(); }
+}
+
+class D extends C {
+    public D() { super(); }
+}

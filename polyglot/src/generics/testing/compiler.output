@@ -1,0 +1,25 @@
+direct supers of: java.util.LinkedList<[E]><Simple> are: [java.util.AbstractSequentialList<[E]>, java.util.List<[E]>, java.util.Queue<[E]>, java.lang.Cloneable, java.io.Serializable, java.util.LinkedList<[E]>, java.util.LinkedList<[E]><? extends Simple>, java.util.LinkedList<[E]><? super Simple>, java.util.LinkedList<[E]><?>, java.util.LinkedList<[E]><Simple>]
+direct supers of: java.util.AbstractSequentialList<[E]> are: [java.util.AbstractList<[E]>]
+direct supers of: java.util.List<[E]> are: [java.lang.Object, java.util.Collection<[E]>]
+direct supers of: java.util.Queue<[E]> are: [java.lang.Object, java.util.Collection<[E]>]
+direct supers of: java.lang.Cloneable are: [java.lang.Object, java.lang.Object]
+direct supers of: java.io.Serializable are: [java.lang.Object, java.lang.Object]
+direct supers of: java.util.LinkedList<[E]> are: [java.util.AbstractSequentialList<[E]>, java.util.List<[E]>, java.util.Queue<[E]>, java.lang.Cloneable, java.io.Serializable]
+direct supers of: java.util.LinkedList<[E]><? extends Simple> are: [java.util.AbstractSequentialList<[E]>, java.util.List<[E]>, java.util.Queue<[E]>, java.lang.Cloneable, java.io.Serializable, java.util.LinkedList<[E]>, java.util.LinkedList<[E]><Simple>]
+direct supers of: java.util.LinkedList<[E]><? super Simple> are: [java.util.AbstractSequentialList<[E]>, java.util.List<[E]>, java.util.Queue<[E]>, java.lang.Cloneable, java.io.Serializable, java.util.LinkedList<[E]>, java.util.LinkedList<[E]><java.lang.Object>]
+direct supers of: java.util.LinkedList<[E]><?> are: [java.util.AbstractSequentialList<[E]>, java.util.List<[E]>, java.util.Queue<[E]>, java.lang.Cloneable, java.io.Serializable, java.util.LinkedList<[E]>, java.util.LinkedList<[E]><java.lang.Object>]
+direct supers of: java.util.AbstractList<[E]> are: [java.util.AbstractCollection<[E]>, java.util.List<[E]>]
+direct supers of: java.lang.Object are: []
+direct supers of: java.util.Collection<[E]> are: [java.lang.Object, java.lang.Iterable<[T]>]
+direct supers of: java.util.LinkedList<[E]><java.lang.Object> are: [java.util.AbstractSequentialList<[E]>, java.util.List<[E]>, java.util.Queue<[E]>, java.lang.Cloneable, java.io.Serializable, java.util.LinkedList<[E]>, java.util.LinkedList<[E]><? extends java.lang.Object>, java.util.LinkedList<[E]><?>, java.util.LinkedList<[E]><? super java.lang.Object>, java.util.LinkedList<[E]><java.lang.Object>]
+direct supers of: java.util.AbstractCollection<[E]> are: [java.lang.Object, java.util.Collection<[E]>]
+direct supers of: java.lang.Iterable<[T]> are: [java.lang.Object, java.lang.Object]
+direct supers of: java.util.LinkedList<[E]><? extends java.lang.Object> are: [java.util.AbstractSequentialList<[E]>, java.util.List<[E]>, java.util.Queue<[E]>, java.lang.Cloneable, java.io.Serializable, java.util.LinkedList<[E]>, java.util.LinkedList<[E]><java.lang.Object>]
+direct supers of: java.util.LinkedList<[E]><? super java.lang.Object> are: [java.util.AbstractSequentialList<[E]>, java.util.List<[E]>, java.util.Queue<[E]>, java.lang.Cloneable, java.io.Serializable, java.util.LinkedList<[E]>, java.util.LinkedList<[E]><java.lang.Object>]
+Simple.java:4: The type of the variable initializer
+    "java.util.LinkedList<[E]><Simple>" does not match that of the declaration
+    "java.util.List<[E]><Simple>".
+  List<Simple> testList = new LinkedList<Simple>();
+  ^-----------------------------------------------^
+
+1 error.

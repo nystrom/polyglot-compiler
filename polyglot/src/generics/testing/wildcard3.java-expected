@@ -1,0 +1,23 @@
+import java.util.*;
+
+class Wildcard2 {
+    public static int sum(java.util.List<? extends java.lang.Integer> myList) {
+        int i = 0;
+        int sum = 0;
+        for (java.lang.Integer e : myList) {
+            i++;
+            sum = sum + e; }
+        return sum;
+    }
+    
+    public static void test() {
+        java.util.List<java.lang.Integer> l2 = new java.util.Vector<java.lang.Integer>();
+        l2.add(1);
+        l2.add(2);
+        sum(l2);
+    }
+    
+    public static void main(java.lang.String[] args) { test(); }
+    
+    public Wildcard2() { super(); }
+}

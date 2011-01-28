@@ -1,0 +1,13 @@
+error3.jl5:9: Warning -- Use of a raw type could lead to unchecked operations.
+class parent2<S> implements mytype {
+                            ^----^
+
+error3.jl5:9-13: parent2 should be declared abstract; it does not define
+    m(java.lang.Object), which is declared in mytype
+class parent2<S> implements mytype {
+^-----------------------------------
+...
+}
+^
+
+1 error.

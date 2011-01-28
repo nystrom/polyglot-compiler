@@ -1,0 +1,114 @@
+Java 5 extension to Polyglot
+============================
+
+This software distribution contains an extension to Polyglot compiler
+framework (http://www.cs.cornell.edu/Projects/polyglot) that adds
+support for Java 5 language features.
+
+The first version of this extension was developed at McGill University
+by Jennifer Lhoták and it can still be found at
+http://www.sable.mcgill.ca/~jlhotak/polyglot-custom/
+
+
+The current version of Java 5 extension has been developed at
+UCLA. For further info and updates, please visit:
+http://www.cs.ucla.edu/~todd/research/polyglot5.html
+
+This software is released under GNU Lesser General Public Licence,
+full text of which can be found in file LICENCE.LGPL in the top
+directory of the distribution.
+
+
+Disclaimer
+----------
+This is a research software and as such the documentation is
+limited. Users familiar with Polyglot will hopefully find source code
+understandable.  For somewhat detailed list of known bugs and issues,
+please take a look at LIMITATIONS file in the top directory of the
+distribution.
+
+
+Requirements
+-------------
+Java 5 extension works with Polyglot 1.3.4 and versions of Java Cup
+and Java Flex that are provided with Polyglot 1.3.4. Required
+libraries are included in this distribution and can be found in the
+lib/ directory.  You will of course need a Java 5 virtual machine
+installed on your system.  To build the extension from source, you
+will need Apache Ant (http://ant.apache.org/).
+
+
+Building
+--------
+Go to the root of Java 5 extension installation. Make sure that lib/
+directory contains polyglot.jar, java_cup.jar and JFlex.jar.
+
+Invoke ant:
+$ ant
+
+This will compile Java 5 extension and place class files under
+classes/ directory. You can optionally build jar file out of this
+files.
+
+$ ant jl5-jar
+This will place jl5.jar file into lib/ directory
+
+
+
+Running
+-------
+If you followed the steps under Building, or if your distribution
+already has lib/jl5.jar file, you are ready to try out the extension.
+
+You can create executable script to run the extension (saves you a lot
+of typing in the shell) by invoking:
+
+$ ant bin
+
+This will create script jl5c in the bin/ directory. You can add bin/
+to your path variable.
+
+You can now invoke the extension on a test file
+
+$ jl5c File.jl5 
+
+This will produce file File.java that should be almost identical to
+File.jl5 if File.jl5 contains a proper Java 5 code. If there are any
+errors you should see appropriate error messages.
+
+
+To see other command line options, just type jl5c. To change the
+expected extension of source files, use -sx switch. For example:
+
+$ jl5c -sx java File.java
+
+Beware that output files will have .java extension and therefore can
+overwrite your original files. To prevent this, use -d switch to
+specify a different output directory. Example:
+
+$ jl5c -sx java -d out File.java
+
+The output will be in out/File.java file. 
+
+
+The jl5c script can only be used on Unix/Linux/Mac OS X machines. On
+Windows please place lib\polyglot.jar, lib\java_cup.jar, lib\JFlex.jar
+and either the classes subdirectory or the jl5.jar (or both) on the
+classpath. Then you can invoke the compiler by:
+
+> java polyglot.main.Main -ext jl5 File.jl5
+
+There are a lot of test files in the testing/ directory. For instructions
+on how to use the test files, please look at testing/README_TEST file.
+
+Credits and Acknowledgments
+---------------------------
+
+The main Java 5 extension developer was Milan Stanojević.  Todd
+Millstein and Faraz Zahabian have also contributed to the code, and
+Todd is currently maintaining the code.  Any questions, bug reports,
+patches or ideas (all more than welcome) should be sent to Todd at
+todd@cs.ucla.edu.
+
+
+

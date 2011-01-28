@@ -1,0 +1,9 @@
+class foo<S>  {
+    <T extends S> S m(T t) { return t; }
+    
+    public static void main(java.lang.String[] args) {
+        foo<java.lang.String> f = new foo<java.lang.String>();
+        java.lang.String s = f.<java.lang.String>m("hello"); }
+    
+    public foo() { super(); }
+}

@@ -1,0 +1,6 @@
+GenericMethod5a.jl5:23: No valid method call found for max(double, int) in
+    test.
+       	max(a,c);
+       	^------^
+
+1 error.

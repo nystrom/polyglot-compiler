@@ -1,0 +1,42 @@
+package polyglot.ext.jl5.types.reflect;
+
+import java.io.DataInputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import polyglot.ext.jl5.types.JL5ArrayType;
+import polyglot.ext.jl5.types.JL5ConstructorInstance;
+import polyglot.ext.jl5.types.JL5MethodInstance;
+import polyglot.ext.jl5.types.JL5ParsedClassType;
+import polyglot.ext.jl5.types.JL5TypeSystem;
+import polyglot.ext.jl5.types.ParameterizedType;
+import polyglot.types.ArrayType;
+import polyglot.types.ClassType;
+import polyglot.types.ConstructorInstance;
+import polyglot.types.FieldInstance;
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
+import polyglot.types.TypeSystem;
+import polyglot.types.reflect.Attribute;
+import polyglot.types.reflect.ClassFile;
+import polyglot.types.reflect.Constant;
+import polyglot.types.reflect.Exceptions;
+import polyglot.types.reflect.Field;
+
+public class JL5Field extends Field{
+
+    public JL5Field(DataInputStream in, ClassFile clazz) throws IOException {
+        super(in, clazz);
+    }
+    
+    public FieldInstance fieldInstance(TypeSystem ts, ClassType ct){
+        FieldInstance fi = super.fieldInstance(ts, ct);
+	fi = fi.type(((JL5TypeSystem)ts).rawifyBareGenericType(fi.type()));
+	return fi;
+    }
+
+}
+

@@ -1,0 +1,9 @@
+import java.util.List;
+
+class wildcard22 {
+    public void m(java.util.List<?> lst) {  }
+    
+    public void m2(java.util.List<java.lang.String> lst) { m(lst); }
+    
+    public wildcard22() { super(); }
+}

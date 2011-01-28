@@ -1,0 +1,25 @@
+import java.util.*;
+
+class MyClass {
+    public static <T> void printlist(java.util.List<T> myList) {
+        int i = 0;
+        for (T e : myList) {
+            i++;
+            java.lang.System.out.println(i + " : " + e); }
+    }
+    
+    public static void test() {
+        java.util.Vector<java.lang.String> l1 = new java.util.Vector<java.lang.String>();
+        l1.add("hello");
+        l1.add("world");
+        java.util.List<java.lang.Integer> l2 = new java.util.Vector<java.lang.Integer>();
+        l2.add(1);
+        l2.add(2);
+        printlist(l1);
+        printlist(l2);
+    }
+    
+    public static void main(java.lang.String[] args) { test(); }
+    
+    public MyClass() { super(); }
+}

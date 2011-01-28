@@ -1,0 +1,13 @@
+raw1.jl5:11: Warning -- Use of a raw type could lead to unchecked operations.
+class C implements mytype {
+                   ^----^
+
+raw1.jl5:11-14: C should be declared abstract; it does not define
+    m(Comparable), which is declared in mytype
+class C implements mytype {
+^--------------------------
+...
+}
+^
+
+1 error.

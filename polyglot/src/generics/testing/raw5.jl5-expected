@@ -1,0 +1,5 @@
+raw5.jl5:8: Could not find type "S".
+interface mytype<T extends Drawable & Comparable<S>> {
+                                                 ^
+
+1 error.

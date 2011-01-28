@@ -1,0 +1,6 @@
+FBoundSub4.jl5:16: No valid method call found for m(java.lang.Object) in
+    C1<S>.
+	super.m(new Object());
+	^-------------------^
+
+1 error.

@@ -1,0 +1,17 @@
+interface Drawable {}
+
+interface Comparable<T>  {
+    public abstract int comp(T t);
+}
+
+class mytype<T extends Drawable & Comparable<T>>  {
+    public void m(T input) { int i = input.comp(input); }
+    
+    public mytype() { super(); }
+}
+
+class C extends mytype {
+    public void m(Drawable input) { super.m(input); }
+    
+    public C() { super(); }
+}

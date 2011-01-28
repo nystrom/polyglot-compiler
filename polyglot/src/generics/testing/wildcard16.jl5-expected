@@ -1,0 +1,5 @@
+wildcard16.jl5:21: Cannot assign long to capture of ?_10.
+    box.t = 1L;      // error
+    ^--------^
+
+1 error.
