@@ -9,7 +9,7 @@ import polyglot.ast.Expr;
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl.ast.New_c;
+import polyglot.ast.New_c;
 import polyglot.ext.jl5.types.*;
 import polyglot.types.ClassType;
 import polyglot.types.Context;

@@ -7,7 +7,7 @@ import polyglot.ast.Expr;
 import polyglot.ast.Node;
 import polyglot.ast.Term;
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl.ast.Term_c;
+import polyglot.ast.Term_c;
 import polyglot.ext.jl5.types.AnnotationElemInstance;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.ext.jl5.types.JL5Flags;

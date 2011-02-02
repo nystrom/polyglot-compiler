@@ -9,7 +9,7 @@ import polyglot.ast.Block;
 import polyglot.ast.Formal;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl.ast.MethodDecl_c;
+import polyglot.ast.MethodDecl_c;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5Flags;

@@ -7,7 +7,7 @@ import polyglot.ast.CanonicalTypeNode;
 import polyglot.ast.Node;
 import polyglot.ast.QualifierNode;
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl.ast.AmbTypeNode_c;
+import polyglot.ast.AmbTypeNode_c;
 import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.ParameterizedType;

@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl.types.ClassType_c;
+import polyglot.types.ClassType_c;
 import polyglot.types.Type;
 
 public abstract class JL5ClassType_c extends ClassType_c implements JL5ClassType {

@@ -12,7 +12,7 @@ import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
 import polyglot.ast.Stmt;
 import polyglot.ast.Term;
-import polyglot.ext.jl.ast.Loop_c;
+import polyglot.ast.Loop_c;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.types.ArrayType;

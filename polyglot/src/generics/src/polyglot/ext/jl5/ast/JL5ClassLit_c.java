@@ -2,7 +2,7 @@ package polyglot.ext.jl5.ast;
 
 import polyglot.ast.TypeNode;
 import polyglot.ast.Node;
-import polyglot.ext.jl.ast.ClassLit_c;
+import polyglot.ast.ClassLit_c;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.types.SemanticException;
 import polyglot.util.Position;

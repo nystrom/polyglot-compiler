@@ -4,7 +4,7 @@ import polyglot.ast.Expr;
 import polyglot.ast.Field;
 import polyglot.ast.Local;
 import polyglot.ast.Node;
-import polyglot.ext.jl.ast.Case_c;
+import polyglot.ast.Case_c;
 import polyglot.ext.jl5.types.JL5Flags;
 import polyglot.types.ClassType;
 import polyglot.types.FieldInstance;

@@ -1,6 +1,6 @@
 package polyglot.ext.jl5.types;
 
-import polyglot.ext.jl.types.TypeObject_c;
+import polyglot.types.TypeObject_c;
 import polyglot.types.ClassType;
 import polyglot.types.Flags;
 import polyglot.types.ReferenceType;

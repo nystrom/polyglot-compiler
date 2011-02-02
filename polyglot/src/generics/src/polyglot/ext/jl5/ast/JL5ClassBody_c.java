@@ -11,7 +11,7 @@ import polyglot.ast.ConstructorCall;
 import polyglot.ast.ConstructorDecl;
 import polyglot.ast.MethodDecl;
 import polyglot.ast.Node;
-import polyglot.ext.jl.ast.ClassBody_c;
+import polyglot.ast.ClassBody_c;
 import polyglot.ext.jl5.types.AnnotationElemInstance;
 import polyglot.ext.jl5.types.EnumInstance;
 import polyglot.ext.jl5.types.JL5Flags;

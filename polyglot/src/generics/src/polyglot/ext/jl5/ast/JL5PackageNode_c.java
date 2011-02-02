@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import polyglot.ast.Node;
-import polyglot.ext.jl.ast.PackageNode_c;
+import polyglot.ast.PackageNode_c;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.types.Flags;
 import polyglot.types.SemanticException;

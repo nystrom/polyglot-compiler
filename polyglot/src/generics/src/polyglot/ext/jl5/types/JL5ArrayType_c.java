@@ -1,6 +1,6 @@
 package polyglot.ext.jl5.types;
 
-import polyglot.ext.jl.types.ArrayType_c;
+import polyglot.types.ArrayType_c;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
 import polyglot.util.Position;

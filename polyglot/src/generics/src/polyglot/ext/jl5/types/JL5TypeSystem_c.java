@@ -20,7 +20,7 @@ import polyglot.ast.LocalDecl;
 import polyglot.ast.MethodDecl;
 import polyglot.ast.Node;
 import polyglot.ast.NullLit;
-import polyglot.ext.jl.types.TypeSystem_c;
+import polyglot.types.TypeSystem_c;
 import polyglot.ext.jl5.ast.AnnotationElem;
 import polyglot.ext.jl5.ast.ElementValuePair;
 import polyglot.ext.jl5.ast.JL5Field;

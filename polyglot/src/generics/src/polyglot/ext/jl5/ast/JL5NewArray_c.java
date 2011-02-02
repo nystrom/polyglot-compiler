@@ -6,7 +6,7 @@ import java.util.List;
 import polyglot.ast.ArrayInit;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl.ast.NewArray_c;
+import polyglot.ast.NewArray_c;
 import polyglot.ext.jl5.types.AnyType;
 import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.ParameterizedType;

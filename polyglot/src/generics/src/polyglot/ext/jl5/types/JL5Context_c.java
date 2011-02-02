@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import polyglot.ext.jl.types.Context_c;
+import polyglot.types.Context_c;
 import polyglot.types.Named;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
