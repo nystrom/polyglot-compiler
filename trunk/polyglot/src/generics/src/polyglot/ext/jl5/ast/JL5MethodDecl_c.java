@@ -106,7 +106,7 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
     }
            
     protected MethodDecl_c reconstruct(TypeNode returnType, List formals, List throwTypes, Block body, List annotations, List paramTypes){
-        if (returnType != this.returnType || ! CollectionUtil.equals(formals, this.formals) || ! CollectionUtil.equals(throwTypes, this.throwTypes) || body != this.body || !CollectionUtil.equals(annotations, this.annotations) || !CollectionUtil.equals(paramTypes, this.paramTypes)) {
+        if (returnType != this.returnType || ! CollectionUtil.allEqual(formals, this.formals) || ! CollectionUtil.allEqual(throwTypes, this.throwTypes) || body != this.body || !CollectionUtil.allEqual(annotations, this.annotations) || !CollectionUtil.allEqual(paramTypes, this.paramTypes)) {
             JL5MethodDecl_c n = (JL5MethodDecl_c) copy();
             n.returnType = returnType;
             n.formals = TypedList.copyAndCheck(formals, Formal.class, true);

@@ -108,9 +108,9 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
 
     protected ClassDecl reconstruct(TypeNode superClass, List interfaces, ClassBody body,
             List annotations, List paramTypes) {
-        if (superClass != this.superClass || !CollectionUtil.equals(interfaces, this.interfaces)
-                || body != this.body || !CollectionUtil.equals(annotations, this.annotations)
-                || !CollectionUtil.equals(paramTypes, this.paramTypes)) {
+        if (superClass != this.superClass || !CollectionUtil.allEqual(interfaces, this.interfaces)
+                || body != this.body || !CollectionUtil.allEqual(annotations, this.annotations)
+                || !CollectionUtil.allEqual(paramTypes, this.paramTypes)) {
             JL5ClassDecl_c n = (JL5ClassDecl_c) copy();
             n.superClass = superClass;
             n.interfaces = TypedList.copyAndCheck(interfaces, TypeNode.class, false);

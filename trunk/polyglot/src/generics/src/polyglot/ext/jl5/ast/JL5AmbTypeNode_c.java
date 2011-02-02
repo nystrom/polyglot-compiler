@@ -38,7 +38,7 @@ public class JL5AmbTypeNode_c extends AmbTypeNode_c implements JL5AmbTypeNode {
     }
 
     protected JL5AmbTypeNode_c reconstruct(QualifierNode qual, List args) {
-        if (qual != this.qual() || !CollectionUtil.equals(args, this.typeArguments)) {
+        if (qual != this.qual() || !CollectionUtil.allEqual(args, this.typeArguments)) {
             JL5AmbTypeNode_c n = (JL5AmbTypeNode_c) copy();
             n.qual = qual;
             n.typeArguments = args;

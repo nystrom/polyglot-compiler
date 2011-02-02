@@ -80,7 +80,7 @@ public class JL5ConstructorDecl_c extends ConstructorDecl_c implements JL5Constr
     }
 
     protected JL5ConstructorDecl_c reconstruct(List formals, List throwTypes, Block body, List annotations, List paramTypes){
-        if (! CollectionUtil.equals(formals, this.formals) || ! CollectionUtil.equals(throwTypes, this.throwTypes) || body != this.body || !CollectionUtil.equals(annotations, this.annotations) || !CollectionUtil.equals(paramTypes, this.paramTypes)) {
+        if (! CollectionUtil.allEqual(formals, this.formals) || ! CollectionUtil.allEqual(throwTypes, this.throwTypes) || body != this.body || !CollectionUtil.allEqual(annotations, this.annotations) || !CollectionUtil.allEqual(paramTypes, this.paramTypes)) {
             JL5ConstructorDecl_c n = (JL5ConstructorDecl_c) copy();
             n.formals = TypedList.copyAndCheck(formals, Formal.class, true);
             n.throwTypes = TypedList.copyAndCheck(throwTypes, TypeNode.class, true);

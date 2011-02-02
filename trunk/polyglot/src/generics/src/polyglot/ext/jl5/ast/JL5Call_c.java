@@ -46,8 +46,8 @@ public class JL5Call_c extends Call_c implements JL5Call {
     }
 
     protected JL5Call_c reconstruct(Receiver target, List arguments, List typeArgs) {
-        if (target != this.target || !CollectionUtil.equals(arguments, this.arguments)
-                || !CollectionUtil.equals(typeArgs, this.typeArguments)) {
+        if (target != this.target || !CollectionUtil.allEqual(arguments, this.arguments)
+                || !CollectionUtil.allEqual(typeArgs, this.typeArguments)) {
             JL5Call_c n = (JL5Call_c) copy();
             n.target = target;
             n.arguments = TypedList.copyAndCheck(arguments, Expr.class, true);

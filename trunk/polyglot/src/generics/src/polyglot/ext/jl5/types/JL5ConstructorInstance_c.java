@@ -29,7 +29,7 @@ public class JL5ConstructorInstance_c extends JL5ProcedureInstance_c implements 
     }
 
     public JL5ConstructorInstance formalTypes(List l) {
-        if (!CollectionUtil.equals(this.formalTypes, l)) {
+        if (!CollectionUtil.allEqual(this.formalTypes, l)) {
             JL5ConstructorInstance_c n = (JL5ConstructorInstance_c) copy();
             n.formalTypes = new ArrayList(l);
             return n;
@@ -38,7 +38,7 @@ public class JL5ConstructorInstance_c extends JL5ProcedureInstance_c implements 
     }
 
     public JL5ConstructorInstance throwTypes(List l) {
-        if (!CollectionUtil.equals(this.excTypes, l)) {
+        if (!CollectionUtil.allEqual(this.excTypes, l)) {
             JL5ConstructorInstance_c n = (JL5ConstructorInstance_c) copy();
             n.excTypes = new ArrayList(l);
             return n;

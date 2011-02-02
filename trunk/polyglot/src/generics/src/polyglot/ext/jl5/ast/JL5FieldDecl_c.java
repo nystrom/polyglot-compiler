@@ -54,7 +54,7 @@ public class JL5FieldDecl_c extends FieldDecl_c implements JL5FieldDecl, Applica
     }
     
     protected JL5FieldDecl reconstruct(TypeNode type, Expr init, List annotations){
-        if( this.type() != type || this.init() != init || !CollectionUtil.equals(this.annotations, annotations)){
+        if( this.type() != type || this.init() != init || !CollectionUtil.allEqual(this.annotations, annotations)){
             JL5FieldDecl_c n = (JL5FieldDecl_c) copy();
             n.type = type;
             n.init = init;

@@ -41,7 +41,7 @@ public class JL5PackageNode_c extends PackageNode_c implements JL5PackageNode {
     }
 
     protected JL5PackageNode_c reconstruct(List annotations){
-        if (!CollectionUtil.equals(annotations, this.annotations)){
+        if (!CollectionUtil.allEqual(annotations, this.annotations)){
             JL5PackageNode_c n = (JL5PackageNode_c) copy();
             n.annotations = TypedList.copyAndCheck(annotations, AnnotationElem.class, false);
             return n;

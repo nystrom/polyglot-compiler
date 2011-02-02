@@ -61,7 +61,7 @@ public class ExtendedFor_c extends Loop_c implements ExtendedFor {
 
     /** Reconstruct the statement. */
     protected ExtendedFor_c reconstruct(List varDecls, Expr expr, Stmt body) {
-	    if (! CollectionUtil.equals(varDecls, this.varDecls) || expr != this.expr || body != this.body) {
+	    if (! CollectionUtil.allEqual(varDecls, this.varDecls) || expr != this.expr || body != this.body) {
 	        ExtendedFor_c n = (ExtendedFor_c) copy();
             n.varDecls = varDecls;
             n.expr = expr;
