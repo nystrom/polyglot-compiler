@@ -25,7 +25,7 @@ import polyglot.ast.Stmt;
 import polyglot.ast.TypeNode;
 import polyglot.ast.Unary;
 import polyglot.ast.ConstructorCall.Kind;
-import polyglot.ext.jl.ast.NodeFactory_c;
+import polyglot.ast.NodeFactory_c;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.types.Package;
 import polyglot.types.Type;

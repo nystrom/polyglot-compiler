@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import polyglot.ext.jl.types.ProcedureInstance_c;
+import polyglot.types.ProcedureInstance_c;
 import polyglot.types.Flags;
 import polyglot.types.ReferenceType;
 import polyglot.types.Type;

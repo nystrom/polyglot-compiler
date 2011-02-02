@@ -7,7 +7,7 @@ import java.util.List;
 import polyglot.ast.Formal;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl.ast.Formal_c;
+import polyglot.ast.Formal_c;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.ext.jl5.types.JL5ArrayType;
 import polyglot.ext.jl5.types.JL5TypeSystem;

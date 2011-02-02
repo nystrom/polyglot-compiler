@@ -2,7 +2,7 @@ package polyglot.ext.jl5.parse;
 
 import polyglot.ast.Expr;
 import polyglot.ast.PackageNode;
-import polyglot.ext.jl.parse.Name;
+import polyglot.parse.Name;
 import polyglot.ext.jl5.ast.JL5NodeFactory;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.ext.jl5.types.JL5TypeSystem;

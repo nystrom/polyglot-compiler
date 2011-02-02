@@ -2,7 +2,7 @@ package polyglot.ext.jl5.ast;
 
 import polyglot.ast.Expr;
 import polyglot.ast.Node;
-import polyglot.ext.jl.ast.Assert_c;
+import polyglot.ast.Assert_c;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.main.Options;
 import polyglot.types.SemanticException;

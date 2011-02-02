@@ -5,7 +5,7 @@ import java.util.List;
 import polyglot.ast.Node;
 import polyglot.ast.Term;
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl.ast.Expr_c;
+import polyglot.ast.Expr_c;
 import polyglot.ext.jl5.types.JL5Flags;
 import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.JL5TypeSystem;

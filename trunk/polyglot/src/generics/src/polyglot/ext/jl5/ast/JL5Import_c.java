@@ -5,7 +5,7 @@ import java.util.List;
 
 import polyglot.ast.Import;
 import polyglot.ast.Node;
-import polyglot.ext.jl.ast.Import_c;
+import polyglot.ast.Import_c;
 import polyglot.ext.jl5.types.JL5ImportTable;
 import polyglot.types.ClassType;
 import polyglot.types.FieldInstance;

@@ -8,7 +8,7 @@ import polyglot.ast.AmbExpr;
 import polyglot.ast.Case;
 import polyglot.ast.Expr;
 import polyglot.ast.Node;
-import polyglot.ext.jl.ast.Switch_c;
+import polyglot.ast.Switch_c;
 import polyglot.ext.jl5.types.EnumInstance;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5Flags;

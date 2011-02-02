@@ -7,7 +7,7 @@ import java.util.List;
 import polyglot.ast.Expr;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl.ast.ConstructorCall_c;
+import polyglot.ast.ConstructorCall_c;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.types.ClassType;

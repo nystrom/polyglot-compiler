@@ -1,7 +1,7 @@
 package polyglot.ext.jl5.ast;
 
 import polyglot.ast.Expr;
-import polyglot.ext.jl.ast.Return_c;
+import polyglot.ast.Return_c;
 import polyglot.types.Context;
 import polyglot.types.MethodInstance;
 import polyglot.types.Type;

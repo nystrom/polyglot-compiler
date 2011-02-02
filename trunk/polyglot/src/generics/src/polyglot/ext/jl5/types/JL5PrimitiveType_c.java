@@ -1,6 +1,6 @@
 package polyglot.ext.jl5.types;
 
-import polyglot.ext.jl.types.PrimitiveType_c;
+import polyglot.types.PrimitiveType_c;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;

@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import polyglot.ext.jl.types.ParsedClassType_c;
+import polyglot.types.ParsedClassType_c;
 import polyglot.frontend.Source;
 import polyglot.types.LazyClassInitializer;
 import polyglot.types.MethodInstance;

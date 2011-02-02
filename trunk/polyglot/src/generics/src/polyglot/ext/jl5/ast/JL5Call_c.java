@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import polyglot.ast.*;
-import polyglot.ext.jl.ast.Call_c;
+import polyglot.ast.Call_c;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5MethodInstance;
 import polyglot.ext.jl5.types.JL5TypeSystem;

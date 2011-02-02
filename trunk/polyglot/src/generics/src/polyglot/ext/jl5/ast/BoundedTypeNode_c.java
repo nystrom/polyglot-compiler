@@ -2,7 +2,7 @@ package polyglot.ext.jl5.ast;
 
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl.ast.TypeNode_c;
+import polyglot.ast.TypeNode_c;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.types.ReferenceType;
 import polyglot.util.CodeWriter;

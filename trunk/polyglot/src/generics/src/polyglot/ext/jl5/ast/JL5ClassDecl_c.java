@@ -14,7 +14,7 @@ import polyglot.ast.ConstructorDecl;
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl.ast.ClassDecl_c;
+import polyglot.ast.ClassDecl_c;
 import polyglot.ext.jl5.types.*;
 import polyglot.ext.jl5.visit.ApplicationCheck;
 import polyglot.ext.jl5.visit.ApplicationChecker;

@@ -3,7 +3,7 @@ package polyglot.ext.jl5.ast;
 import java.util.List;
 
 import polyglot.ast.Node;
-import polyglot.ext.jl.ast.CanonicalTypeNode_c;
+import polyglot.ast.CanonicalTypeNode_c;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.ext.jl5.types.RawType;

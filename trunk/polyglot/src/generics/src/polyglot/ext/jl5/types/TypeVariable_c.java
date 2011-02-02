@@ -3,7 +3,7 @@ package polyglot.ext.jl5.types;
 import java.util.Collections;
 import java.util.List;
 
-import polyglot.ext.jl.types.ClassType_c;
+import polyglot.types.ClassType_c;
 import polyglot.types.ClassType;
 import polyglot.types.Flags;
 import polyglot.types.ReferenceType;

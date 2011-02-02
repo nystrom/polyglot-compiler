@@ -6,7 +6,7 @@ import java.util.List;
 
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl.ast.TypeNode_c;
+import polyglot.ast.TypeNode_c;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.TypeVariable;

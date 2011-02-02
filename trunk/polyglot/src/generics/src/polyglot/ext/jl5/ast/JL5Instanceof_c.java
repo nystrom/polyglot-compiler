@@ -3,7 +3,7 @@ package polyglot.ext.jl5.ast;
 import polyglot.ast.Expr;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl.ast.Instanceof_c;
+import polyglot.ast.Instanceof_c;
 import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.types.SemanticException;

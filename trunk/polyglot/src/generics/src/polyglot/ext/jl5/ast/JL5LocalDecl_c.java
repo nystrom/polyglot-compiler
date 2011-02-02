@@ -8,7 +8,7 @@ import polyglot.ast.Expr;
 import polyglot.ast.LocalDecl;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl.ast.LocalDecl_c;
+import polyglot.ast.LocalDecl_c;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.TypeVariable;
