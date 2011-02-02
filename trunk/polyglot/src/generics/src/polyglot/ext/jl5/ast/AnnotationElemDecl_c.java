@@ -220,15 +220,15 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
     }
     
     
-    public List acceptCFG(CFGBuilder v, List succs){
+    public List acceptCFG(CFGBuilder v, List<Term> succs){
         if (defaultVal != null) {
-            v.visitCFG(defaultVal, this);
+            v.visitCFG(defaultVal, this, EXIT);
         }
         return succs;
     }
 
-    public Term entry() {
-        return defaultVal != null ? defaultVal.entry() : this;
+    public Term firstChild() {
+        return defaultVal != null ? defaultVal.firstChild() : this;
     }
 
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) {

@@ -174,19 +174,19 @@ public class ExtendedFor_c extends Loop_c implements ExtendedFor {
 	    return "for (...) ...";
     }
 
-    public Term entry() {
+    public Term firstChild() {
         return expr;
     }
 
-    public List acceptCFG(CFGBuilder v, List succs) {
-        v.visitCFG(expr, FlowGraph.EDGE_KEY_TRUE, body.entry(), FlowGraph.EDGE_KEY_FALSE, this);
+    public List acceptCFG(CFGBuilder v, List<Term> succs) {
+        v.visitCFG(expr, FlowGraph.EDGE_KEY_TRUE, body.firstChild(), ENTRY, FlowGraph.EDGE_KEY_FALSE, this, EXIT);
 
-        v.push(this).visitCFG(body, expr);
+        v.push(this).visitCFG(body, expr, ENTRY);
         return succs;
     }
 
     public Term continueTarget() {
-        return body.entry();
+        return body.firstChild();
     }
 
     public boolean condIsConstant(){

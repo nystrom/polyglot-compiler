@@ -68,11 +68,11 @@ public class AnnotationElem_c extends Expr_c implements AnnotationElem {
         print(typeName, w, tr);
     }
     
-    public Term entry() {
+    public Term firstChild() {
         return this;
     }
     
-    public List acceptCFG(CFGBuilder v, List succs) {
+    public List acceptCFG(CFGBuilder v, List<Term> succs) {
         return succs;
     }
 

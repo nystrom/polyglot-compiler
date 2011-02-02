@@ -79,12 +79,12 @@ public class ElementValuePair_c extends Expr_c implements ElementValuePair {
         print(value, w, tr);
     }
     
-    public Term entry() {
+    public Term firstChild() {
         return this;
     }
     
     public List acceptCFG(CFGBuilder v, List succs) {
-        v.visitCFG(value, this);
+        v.visitCFG(value, this, EXIT);
         return succs;
     }
         
