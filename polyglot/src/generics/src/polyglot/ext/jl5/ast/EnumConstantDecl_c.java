@@ -131,7 +131,7 @@ public class EnumConstantDecl_c extends Term_c implements EnumConstantDecl
     }
     
     protected EnumConstantDecl_c reconstruct(List args, ClassBody body){
-        if (!CollectionUtil.equals(args, this.args) || body != this.body) {
+        if (!CollectionUtil.allEqual(args, this.args) || body != this.body) {
             EnumConstantDecl_c n = (EnumConstantDecl_c) copy();
             n.args = TypedList.copyAndCheck(args, Expr.class, true);
             n.body = body;
@@ -141,8 +141,8 @@ public class EnumConstantDecl_c extends Term_c implements EnumConstantDecl
     }
     
     protected EnumConstantDecl_c reconstruct(List args, ClassBody body, List annotations){
-        if (!CollectionUtil.equals(args, this.args) || body != this.body ||
-                !CollectionUtil.equals(annotations, this.annotations)) {
+        if (!CollectionUtil.allEqual(args, this.args) || body != this.body ||
+                !CollectionUtil.allEqual(annotations, this.annotations)) {
             EnumConstantDecl_c n = (EnumConstantDecl_c) copy();
             n.args = TypedList.copyAndCheck(args, Expr.class, true);
             n.body = body;

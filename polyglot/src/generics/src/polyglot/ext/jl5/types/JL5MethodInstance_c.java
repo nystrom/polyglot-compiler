@@ -160,7 +160,7 @@ public class JL5MethodInstance_c extends JL5ProcedureInstance_c implements JL5Me
     }
 
     public JL5MethodInstance formalTypes(List l) {
-        if (!CollectionUtil.equals(this.formalTypes, l)) {
+        if (!CollectionUtil.allEqual(this.formalTypes, l)) {
             JL5MethodInstance_c n = (JL5MethodInstance_c) copy();
             n.formalTypes = new ArrayList(l);
             return n;
@@ -169,7 +169,7 @@ public class JL5MethodInstance_c extends JL5ProcedureInstance_c implements JL5Me
     }
 
     public JL5MethodInstance throwTypes(List l) {
-        if (!CollectionUtil.equals(this.excTypes, l)) {
+        if (!CollectionUtil.allEqual(this.excTypes, l)) {
             JL5MethodInstance_c n = (JL5MethodInstance_c) copy();
             n.excTypes = new ArrayList(l);
             return n;

@@ -40,7 +40,7 @@ public class NormalAnnotationElem_c extends AnnotationElem_c implements NormalAn
     }
 
     protected Node reconstruct(TypeNode tn, List elements){
-        if (tn != this.typeName || !CollectionUtil.equals(elements, this.elements)) {
+        if (tn != this.typeName || !CollectionUtil.allEqual(elements, this.elements)) {
             NormalAnnotationElem_c n = (NormalAnnotationElem_c) copy();
             n.typeName = tn;
             n.elements = TypedList.copyAndCheck(elements, ElementValuePair.class, true);

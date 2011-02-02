@@ -47,8 +47,8 @@ public class JL5New_c extends New_c implements JL5New  {
     protected JL5New_c reconstruct(Expr qualifier, TypeNode tn, List arguments, ClassBody body,
             List typeArgs) {
         if (qualifier != this.qualifier || tn != this.tn
-                || !CollectionUtil.equals(arguments, this.arguments) || body != this.body
-                || !CollectionUtil.equals(typeArgs, this.typeArguments)) {
+                || !CollectionUtil.allEqual(arguments, this.arguments) || body != this.body
+                || !CollectionUtil.allEqual(typeArgs, this.typeArguments)) {
             JL5New_c n = (JL5New_c) copy();
             n.tn = tn;
             n.qualifier = qualifier;

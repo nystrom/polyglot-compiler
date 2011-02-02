@@ -59,7 +59,7 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
     }
 
     public ParamTypeNode reconstruct(List bounds) {
-        if (!CollectionUtil.equals(bounds, this.bounds)) {
+        if (!CollectionUtil.allEqual(bounds, this.bounds)) {
             ParamTypeNode_c n = (ParamTypeNode_c) copy();
             n.bounds = bounds;
             return n;
