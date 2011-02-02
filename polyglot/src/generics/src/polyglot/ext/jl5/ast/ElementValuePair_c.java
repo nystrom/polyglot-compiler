@@ -3,9 +3,10 @@ package polyglot.ext.jl5.ast;
 import java.util.List;
 
 import polyglot.ast.Expr;
+import polyglot.ast.Expr_c;
+import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ast.Term;
-import polyglot.ast.Expr_c;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.types.SemanticException;
 import polyglot.util.CodeWriter;
@@ -17,20 +18,20 @@ import polyglot.visit.TypeChecker;
 
 public class ElementValuePair_c extends Expr_c implements ElementValuePair {
 
-    protected String name;
+    protected Id name;
     protected Expr value;
     
-    public ElementValuePair_c(Position pos, String name, Expr value){
+    public ElementValuePair_c(Position pos, Id name, Expr value){
         super(pos);
         this.name = name;
         this.value = value;
     }
 
-    public String name(){
+    public Id name(){
         return name;
     }
 
-    public ElementValuePair name(String name){
+    public ElementValuePair name(Id name){
         if (!name.equals(this.name)){
             ElementValuePair_c n = (ElementValuePair_c)copy();
             n.name = name;

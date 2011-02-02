@@ -3,7 +3,6 @@ package polyglot.ext.jl5.ast;
 import java.util.LinkedList;
 import java.util.List;
 
-import polyglot.ast.AmbExpr;
 import polyglot.ast.AmbQualifierNode;
 import polyglot.ast.AmbTypeNode;
 import polyglot.ast.ArrayInit;
@@ -11,23 +10,23 @@ import polyglot.ast.Assign;
 import polyglot.ast.Binary;
 import polyglot.ast.Block;
 import polyglot.ast.ClassBody;
-import polyglot.ast.ClassDecl;
 import polyglot.ast.ConstructorCall;
+import polyglot.ast.ConstructorCall.Kind;
 import polyglot.ast.Disamb;
 import polyglot.ast.Expr;
 import polyglot.ast.Formal;
+import polyglot.ast.Id;
 import polyglot.ast.Import;
 import polyglot.ast.New;
 import polyglot.ast.Node;
+import polyglot.ast.NodeFactory_c;
 import polyglot.ast.QualifierNode;
 import polyglot.ast.Receiver;
 import polyglot.ast.Stmt;
 import polyglot.ast.TypeNode;
-import polyglot.ast.Unary;
-import polyglot.ast.ConstructorCall.Kind;
-import polyglot.ast.NodeFactory_c;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.types.Package;
+import polyglot.types.QName;
 import polyglot.types.Type;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
@@ -41,15 +40,15 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         ExtendedFor n = new ExtendedFor_c(pos, varDecls, expr, stmt);
         return n;
     }
-    public EnumConstantDecl EnumConstantDecl(Position pos, FlagAnnotations flags, String name, List args, ClassBody body){
+    public EnumConstantDecl EnumConstantDecl(Position pos, FlagAnnotations flags, Id name, List args, ClassBody body){
         EnumConstantDecl n = new EnumConstantDecl_c(pos, flags, name, args, body);
         return n;
     }
-    public EnumConstantDecl EnumConstantDecl(Position pos, FlagAnnotations flags, String name, List args){
+    public EnumConstantDecl EnumConstantDecl(Position pos, FlagAnnotations flags, Id name, List args){
         EnumConstantDecl n = new EnumConstantDecl_c(pos, flags, name, args, null);
         return n;
     }
-    public JL5ClassDecl JL5ClassDecl(Position pos, FlagAnnotations flags, String name, TypeNode superType,  List interfaces, ClassBody body, List paramTypes ){
+    public JL5ClassDecl JL5ClassDecl(Position pos, FlagAnnotations flags, Id name, TypeNode superType,  List interfaces, ClassBody body, List paramTypes ){
         JL5ClassDecl n;
         if (paramTypes == null){
             n = new JL5ClassDecl_c(pos, flags, name, superType, interfaces, body);
@@ -63,7 +62,7 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         JL5ClassBody n = new JL5ClassBody_c(pos, members);
         return n;
     }
-    public JL5ConstructorDecl JL5ConstructorDecl(Position pos, FlagAnnotations flags, String name, List formals, List throwTypes, Block body, List typeParams){
+    public JL5ConstructorDecl JL5ConstructorDecl(Position pos, FlagAnnotations flags, Id name, List formals, List throwTypes, Block body, List typeParams){
         JL5ConstructorDecl n;
         if (typeParams == null){
             n = new JL5ConstructorDecl_c(pos, flags, name, formals, throwTypes, body);
@@ -74,7 +73,7 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return n;
     }
 
-    public JL5Field JL5Field(Position pos, Receiver target, String name){
+    public JL5Field JL5Field(Position pos, Receiver target, Id name){
         JL5Field n = new JL5Field_c(pos, target, name);
         return n;
     }
@@ -88,7 +87,7 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return new JL5Disamb_c();
     }
     
-    public JL5MethodDecl JL5MethodDecl(Position pos, FlagAnnotations flags, TypeNode returnType, String name, List formals, List throwTypes, Block body, List typeParams){
+    public JL5MethodDecl JL5MethodDecl(Position pos, FlagAnnotations flags, TypeNode returnType, Id name, List formals, List throwTypes, Block body, List typeParams){
         JL5MethodDecl n;
         if (typeParams == null){
             n = new JL5MethodDecl_c(pos, flags, returnType, name, formals, throwTypes, body);
@@ -99,7 +98,7 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return n;
     }
     
-    public AnnotationElemDecl AnnotationElemDecl(Position pos, FlagAnnotations flags, TypeNode type, String name, Expr def){
+    public AnnotationElemDecl AnnotationElemDecl(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr def){
         AnnotationElemDecl n = new AnnotationElemDecl_c(pos, flags, type, name, def);
         return n;
     }
@@ -116,30 +115,30 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
     
     public SingleElementAnnotationElem SingleElementAnnotationElem(Position pos, TypeNode name, Expr value){
         List l = new TypedList(new LinkedList(), ElementValuePair.class, false);
-        l.add(ElementValuePair(pos, "value", value));
+        l.add(ElementValuePair(pos, Id(value.position(), "value"), value));
         SingleElementAnnotationElem n = new SingleElementAnnotationElem_c(pos, name, l);
         return n;
     }
 
    
-    public ElementValuePair ElementValuePair(Position pos, String name, Expr value){
+    public ElementValuePair ElementValuePair(Position pos, Id name, Expr value){
         ElementValuePair n = new ElementValuePair_c(pos, name, value);
         return n;
     }
     
-    public JL5FieldDecl JL5FieldDecl(Position pos, FlagAnnotations flags, TypeNode type, String name, Expr init){
+    public JL5FieldDecl JL5FieldDecl(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr init){
         JL5FieldDecl n = new JL5FieldDecl_c(pos, flags, type, name, init);
         return n;
     }
-    public JL5Formal JL5Formal(Position pos, FlagAnnotations flags, TypeNode type, String name){
+    public JL5Formal JL5Formal(Position pos, FlagAnnotations flags, TypeNode type, Id name){
         JL5Formal n = new JL5Formal_c(pos, flags, type, name);
         return n;
     }
-    public JL5Formal JL5Formal(Position pos, FlagAnnotations flags, TypeNode type, String name, boolean variable){
+    public JL5Formal JL5Formal(Position pos, FlagAnnotations flags, TypeNode type, Id name, boolean variable){
         JL5Formal n = new JL5Formal_c(pos, flags, type, name, variable);
         return n;
     }
-    public JL5LocalDecl JL5LocalDecl(Position pos, FlagAnnotations flags, TypeNode type, String name, Expr init){
+    public JL5LocalDecl JL5LocalDecl(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr init){
         JL5LocalDecl n = new JL5LocalDecl_c(pos, flags, type, name, init);
         return n;
     }
@@ -158,16 +157,16 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return n;
     }
 
-    public AmbQualifierNode JL5AmbQualifierNode(Position pos, QualifierNode qual, String name, List args){
+    public AmbQualifierNode JL5AmbQualifierNode(Position pos, QualifierNode qual, Id name, List args){
         AmbQualifierNode n = new JL5AmbQualifierNode_c(pos, qual, name, args);
         return n;
     }
     
-    public AmbTypeNode AmbTypeNode(Position pos, QualifierNode qualifier, String name) {
+    public AmbTypeNode AmbTypeNode(Position pos, QualifierNode qualifier, Id name) {
 	return JL5AmbTypeNode(pos, qualifier, name, new LinkedList());
     }
 
-    public AmbTypeNode JL5AmbTypeNode(Position pos, QualifierNode qual, String name, List args){
+    public AmbTypeNode JL5AmbTypeNode(Position pos, QualifierNode qual, Id name, List args){
         AmbTypeNode n = new JL5AmbTypeNode_c(pos, qual, name, args);
         return n;
     }
@@ -190,7 +189,7 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return n;
     }
 
-    public JL5Call JL5Call(Position pos, Receiver target, String name, List args, List typeArgs){
+    public JL5Call JL5Call(Position pos, Receiver target, Id name, List args, List typeArgs){
         JL5Call n = new JL5Call_c(pos, target, name, args, typeArgs);
         return n;
     }
@@ -214,7 +213,7 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return n;
     }
 
-    public JL5Import JL5Import(Position pos, Import.Kind kind, String name){
+    public JL5Import JL5Import(Position pos, Import.Kind kind, QName name){
         JL5Import n = new JL5Import_c(pos, kind, name);
         return n;
     }

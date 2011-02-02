@@ -4,12 +4,13 @@ import java.util.Iterator;
 import java.util.List;
 
 import polyglot.ast.Import;
-import polyglot.ast.Node;
 import polyglot.ast.Import_c;
+import polyglot.ast.Node;
 import polyglot.ext.jl5.types.JL5ImportTable;
 import polyglot.types.ClassType;
 import polyglot.types.FieldInstance;
 import polyglot.types.Named;
+import polyglot.types.QName;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
@@ -22,7 +23,7 @@ import polyglot.visit.TypeChecker;
 
 public class JL5Import_c extends Import_c implements JL5Import{
     
-    public JL5Import_c(Position pos, Import.Kind kind, String name){
+    public JL5Import_c(Position pos, Import.Kind kind, QName name){
         super(pos, kind, name);
     }
 

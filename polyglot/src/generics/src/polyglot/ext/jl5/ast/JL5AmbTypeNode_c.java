@@ -3,11 +3,12 @@ package polyglot.ext.jl5.ast;
 import java.util.ArrayList;
 import java.util.List;
 
+import polyglot.ast.AmbTypeNode_c;
 import polyglot.ast.CanonicalTypeNode;
+import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ast.QualifierNode;
 import polyglot.ast.TypeNode;
-import polyglot.ast.AmbTypeNode_c;
 import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.ParameterizedType;
@@ -15,14 +16,13 @@ import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
-import polyglot.visit.AmbiguityRemover;
 import polyglot.visit.NodeVisitor;
 
 public class JL5AmbTypeNode_c extends AmbTypeNode_c implements JL5AmbTypeNode {
 
     protected List typeArguments;
 
-    public JL5AmbTypeNode_c(Position pos, QualifierNode qual, String name, List typeArguments) {
+    public JL5AmbTypeNode_c(Position pos, QualifierNode qual, Id name, List typeArguments) {
         super(pos, qual, name);
         this.typeArguments = typeArguments;
     }

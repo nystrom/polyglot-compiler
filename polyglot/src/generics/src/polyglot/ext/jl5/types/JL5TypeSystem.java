@@ -3,6 +3,7 @@ package polyglot.ext.jl5.types;
 import java.util.List;
 
 import polyglot.ast.Expr;
+import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ext.jl5.ast.AnnotationElem;
 import polyglot.ext.jl5.types.inference.InferenceSolver;
@@ -13,11 +14,9 @@ import polyglot.types.ClassType;
 import polyglot.types.Context;
 import polyglot.types.FieldInstance;
 import polyglot.types.Flags;
-import polyglot.types.LazyClassInitializer;
-import polyglot.types.MethodInstance;
+import polyglot.types.Name;
 import polyglot.types.ParsedClassType;
 import polyglot.types.PrimitiveType;
-import polyglot.types.ProcedureInstance;
 import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
@@ -80,7 +79,7 @@ public interface JL5TypeSystem extends TypeSystem {
 
     Context createContext();
 
-    EnumInstance findEnumConstant(ReferenceType container, String name, ClassType currClass)
+    EnumInstance findEnumConstant(ReferenceType container, Name name, ClassType currClass)
             throws SemanticException;
 
     AnnotationElemInstance findAnnotation(ReferenceType container, String name, ClassType currClass)
@@ -167,10 +166,10 @@ public interface JL5TypeSystem extends TypeSystem {
 
     boolean checkContains(ParameterizedType desc, ParameterizedType ancestor);
 
-    JL5MethodInstance findJL5Method(ReferenceType container, String name, List<Type> paramTypes,
+    JL5MethodInstance findJL5Method(ReferenceType container, Name name, List<Type> paramTypes,
             List<Type> explicitTypeArgTypes, ClassType currentClass) throws SemanticException;
 
-    JL5MethodInstance findJL5Method(ReferenceType container, String name, List<Type> paramTypes,
+    JL5MethodInstance findJL5Method(ReferenceType container, Name name, List<Type> paramTypes,
             List<Type> explicitTypeArgTypes, JL5Context context) throws SemanticException;
 
     JL5ConstructorInstance findJL5Constructor(ClassType ct, List<Type> paramTypes,

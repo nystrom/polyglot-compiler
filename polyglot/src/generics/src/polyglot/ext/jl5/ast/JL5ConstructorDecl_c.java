@@ -8,11 +8,12 @@ import java.util.List;
 
 import polyglot.ast.Block;
 import polyglot.ast.ConstructorCall;
+import polyglot.ast.ConstructorDecl_c;
 import polyglot.ast.Formal;
+import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
 import polyglot.ast.TypeNode;
-import polyglot.ast.ConstructorDecl_c;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.ext.jl5.types.JL5ConstructorInstance;
 import polyglot.ext.jl5.types.JL5Context;
@@ -34,8 +35,6 @@ import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
-import polyglot.visit.AddMemberVisitor;
-import polyglot.visit.AmbiguityRemover;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
 import polyglot.visit.TypeChecker;
@@ -49,7 +48,7 @@ public class JL5ConstructorDecl_c extends ConstructorDecl_c implements JL5Constr
     protected List sourceAnnotations;
     protected List<ParamTypeNode> paramTypes;
     
-    public JL5ConstructorDecl_c(Position pos, FlagAnnotations flags, String name, List formals, List throwTypes, Block body) {
+    public JL5ConstructorDecl_c(Position pos, FlagAnnotations flags, Id name, List formals, List throwTypes, Block body) {
         super(pos, flags.classicFlags(), name, formals, throwTypes, body);
         if (flags.annotations() != null){
             this.annotations = flags.annotations();
@@ -59,7 +58,7 @@ public class JL5ConstructorDecl_c extends ConstructorDecl_c implements JL5Constr
         }
     }
 
-    public JL5ConstructorDecl_c(Position pos, FlagAnnotations flags, String name, List formals, List throwTypes, Block body, List paramTypes){
+    public JL5ConstructorDecl_c(Position pos, FlagAnnotations flags, Id name, List formals, List throwTypes, Block body, List paramTypes){
         super(pos, flags.classicFlags(), name, formals, throwTypes, body);
         if (flags.annotations() != null){
             this.annotations = flags.annotations();
@@ -150,7 +149,7 @@ public class JL5ConstructorDecl_c extends ConstructorDecl_c implements JL5Constr
             w.write("> ");
         }
         
-        w.write(name);
+        w.write(name.toString());
         w.write("(");
         w.begin(0);
 

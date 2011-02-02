@@ -5,9 +5,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import polyglot.ast.Formal;
+import polyglot.ast.Formal_c;
+import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
-import polyglot.ast.Formal_c;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.ext.jl5.types.JL5ArrayType;
 import polyglot.ext.jl5.types.JL5TypeSystem;
@@ -20,7 +21,6 @@ import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
-import polyglot.visit.AmbiguityRemover;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
 import polyglot.visit.TypeChecker;
@@ -33,7 +33,7 @@ public class JL5Formal_c extends Formal_c implements JL5Formal, ApplicationCheck
     protected List sourceAnnotations;
     protected boolean variable = false;
     
-    public JL5Formal_c(Position pos, FlagAnnotations flags, TypeNode type, String name){
+    public JL5Formal_c(Position pos, FlagAnnotations flags, TypeNode type, Id name){
         super(pos, flags.classicFlags(), type, name);
         if (flags.annotations() != null){
             this.annotations = flags.annotations();
@@ -44,7 +44,7 @@ public class JL5Formal_c extends Formal_c implements JL5Formal, ApplicationCheck
         }
     }
     
-    public JL5Formal_c(Position pos, FlagAnnotations flags, TypeNode type, String name, boolean variable){
+    public JL5Formal_c(Position pos, FlagAnnotations flags, TypeNode type, Id name, boolean variable){
         super(pos, flags.classicFlags(), type, name);
         if (flags.annotations() != null){
             this.annotations = flags.annotations();
@@ -127,8 +127,7 @@ public class JL5Formal_c extends Formal_c implements JL5Formal, ApplicationCheck
         else {
             print(type, w, tr);
         }
-        w.write(" ");
-        w.write(name);
+        w.write(" " + name);
         
     }
     

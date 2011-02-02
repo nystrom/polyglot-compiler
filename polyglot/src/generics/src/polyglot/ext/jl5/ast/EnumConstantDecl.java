@@ -4,6 +4,7 @@ import java.util.List;
 
 import polyglot.ast.ClassBody;
 import polyglot.ast.ClassMember;
+import polyglot.ast.Id;
 import polyglot.ext.jl5.types.EnumInstance;
 import polyglot.types.ConstructorInstance;
 import polyglot.types.Flags;
@@ -23,10 +24,10 @@ public interface EnumConstantDecl extends ClassMember
     EnumConstantDecl args(List args);
 
     /** set name */
-    EnumConstantDecl name(String name);
+    EnumConstantDecl name(Id name);
 
     /** get name */
-    String name();
+    Id name();
     
     /** set body */
     EnumConstantDecl body(ClassBody body);

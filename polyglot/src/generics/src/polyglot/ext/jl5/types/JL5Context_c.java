@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import polyglot.types.Context_c;
+import polyglot.types.Name;
 import polyglot.types.Named;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
@@ -15,7 +16,7 @@ import polyglot.util.StringUtil;
 
 public class JL5Context_c extends Context_c implements JL5Context {
 
-    protected Map<String, TypeVariable> typeVars;
+    protected Map<Name, TypeVariable> typeVars;
 
     protected TypeVariable typeVariable;
 
@@ -29,7 +30,7 @@ public class JL5Context_c extends Context_c implements JL5Context {
         return (JL5TypeSystem) ts;
     }
 
-    public VarInstance findVariableInThisScope(String name) {
+    public VarInstance findVariableInThisScope(Name name) {
 
         VarInstance vi = null;
         // try{
@@ -47,7 +48,7 @@ public class JL5Context_c extends Context_c implements JL5Context {
         return vi;
     }
 
-    public VarInstance findVariableSilent(String name) {
+    public VarInstance findVariableSilent(Name name) {
         VarInstance vi = findVariableInThisScope(name);
         if (vi != null) {
             return vi;
@@ -156,7 +157,7 @@ public class JL5Context_c extends Context_c implements JL5Context {
         return v;
     }
 
-    public TypeVariable findTypeVariableInThisScope(String name) {
+    public TypeVariable findTypeVariableInThisScope(Name name) {
         if (typeVariable != null && typeVariable.name().equals(name))
             return typeVariable;
         if (typeVars != null && typeVars.containsKey(name)) {
@@ -178,12 +179,12 @@ public class JL5Context_c extends Context_c implements JL5Context {
 
     public JL5Context addTypeVariable(TypeVariable type) {
         if (typeVars == null)
-            typeVars = new HashMap<String, TypeVariable>();
+            typeVars = new HashMap<Name, TypeVariable>();
         typeVars.put(type.name(), type);
         return this;
     }
 
-    public JL5MethodInstance findJL5Method(String name, List<Type> paramTypes,
+    public JL5MethodInstance findJL5Method(Name name, List<Type> paramTypes,
             List<Type> explicitTypeArgTypes) throws SemanticException {
 
         if (currentClass() != null && typeSystem().hasMethodNamed(currentClass(), name)) {

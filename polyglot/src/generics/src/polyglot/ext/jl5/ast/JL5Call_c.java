@@ -4,8 +4,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import polyglot.ast.*;
 import polyglot.ast.Call_c;
+import polyglot.ast.Expr;
+import polyglot.ast.Id;
+import polyglot.ast.Node;
+import polyglot.ast.Receiver;
+import polyglot.ast.Special;
+import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5MethodInstance;
 import polyglot.ext.jl5.types.JL5TypeSystem;
@@ -25,7 +30,7 @@ public class JL5Call_c extends Call_c implements JL5Call {
 
     protected List typeArguments;
 
-    public JL5Call_c(Position pos, Receiver target, String name, List arguments, List typeArguments) {
+    public JL5Call_c(Position pos, Receiver target, Id name, List arguments, List typeArguments) {
         super(pos, target, name, arguments);
         this.typeArguments = typeArguments;
     }
@@ -120,7 +125,7 @@ public class JL5Call_c extends Call_c implements JL5Call {
         // let's find the target, using the context, and
         // set the target appropriately, and then type check
         // the result
-        JL5MethodInstance mi = c.findJL5Method(this.name(), paramTypes, explicitTypeArgs);
+        JL5MethodInstance mi = c.findJL5Method(name(), paramTypes, explicitTypeArgs);
 
         Receiver r;
         if (mi.flags().isStatic()) {
@@ -132,7 +137,7 @@ public class JL5Call_c extends Call_c implements JL5Call {
             // different from mi.container(). mi.container() returns a super
             // type
             // of the class we want.
-            ClassType scope = c.findMethodScope(name);
+            ClassType scope = c.findMethodScope(name.id());
 
             if (!ts.equals(scope, c.currentClass())) {
                 r = nf.This(position(), nf.CanonicalTypeNode(position(), scope)).type(scope);

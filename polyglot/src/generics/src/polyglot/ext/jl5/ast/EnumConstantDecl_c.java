@@ -8,6 +8,7 @@ import java.util.List;
 
 import polyglot.ast.ClassBody;
 import polyglot.ast.Expr;
+import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ast.Term;
 import polyglot.ast.Term_c;
@@ -18,7 +19,6 @@ import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.JL5ParsedClassType_c;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.frontend.Job;
-import polyglot.frontend.Pass;
 import polyglot.types.ClassType;
 import polyglot.types.ConstructorInstance;
 import polyglot.types.Context;
@@ -29,8 +29,6 @@ import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
-import polyglot.visit.AddMemberVisitor;
-import polyglot.visit.AmbiguityRemover;
 import polyglot.visit.CFGBuilder;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
@@ -40,7 +38,7 @@ import polyglot.visit.TypeChecker;
 public class EnumConstantDecl_c extends Term_c implements EnumConstantDecl
 {   
     protected List args;
-    protected String name;
+    protected Id name;
     protected Flags flags;
     protected List annotations;
     protected ClassBody body;
@@ -48,7 +46,7 @@ public class EnumConstantDecl_c extends Term_c implements EnumConstantDecl
     protected ConstructorInstance constructorInstance;
     protected ParsedClassType anonType;
     
-    public EnumConstantDecl_c(Position pos, FlagAnnotations flags, String name, List args, ClassBody body){
+    public EnumConstantDecl_c(Position pos, FlagAnnotations flags, Id name, List args, ClassBody body){
         super(pos);
         this.name = name;
         this.args = args;
@@ -75,14 +73,14 @@ public class EnumConstantDecl_c extends Term_c implements EnumConstantDecl
     }
 
     /** set name */
-    public EnumConstantDecl name(String name){
+    public EnumConstantDecl name(Id name){
         EnumConstantDecl_c n = (EnumConstantDecl_c)copy();
         n.name = name;
         return n;
     }
 
     /** get name */
-    public String name(){
+    public Id name(){
         return name;
     }
     
@@ -297,7 +295,7 @@ public class EnumConstantDecl_c extends Term_c implements EnumConstantDecl
     }
     
     public void prettyPrint(CodeWriter w, PrettyPrinter tr){
-        w.write(name);
+        w.write(name.toString());
         if (args != null){
             w.write(" ( ");
             Iterator it = args.iterator();
