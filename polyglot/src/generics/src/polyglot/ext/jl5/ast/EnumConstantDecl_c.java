@@ -316,11 +316,11 @@ public class EnumConstantDecl_c extends Term_c implements EnumConstantDecl
         }
     }
 
-    public List acceptCFG(CFGBuilder v, List succs){
+    public List acceptCFG(CFGBuilder v, List<Term> succs){
         return succs;
     }
 
-    public Term entry(){
+    public Term firstChild(){
         return this;
     }
 
