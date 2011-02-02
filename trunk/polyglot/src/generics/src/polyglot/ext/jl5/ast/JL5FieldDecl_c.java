@@ -5,9 +5,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import polyglot.ast.Expr;
+import polyglot.ast.FieldDecl_c;
+import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
-import polyglot.ast.FieldDecl_c;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.JL5TypeSystem;
@@ -20,7 +21,6 @@ import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
-import polyglot.visit.AmbiguityRemover;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
 import polyglot.visit.TypeChecker;
@@ -33,7 +33,7 @@ public class JL5FieldDecl_c extends FieldDecl_c implements JL5FieldDecl, Applica
     protected List classAnnotations;
     protected List sourceAnnotations;
        
-    public JL5FieldDecl_c(Position pos, FlagAnnotations flags, TypeNode type, String name, Expr init){
+    public JL5FieldDecl_c(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr init){
         super(pos, flags.classicFlags(), type, name, init);
         if (flags.annotations() != null){
             annotations = flags.annotations();

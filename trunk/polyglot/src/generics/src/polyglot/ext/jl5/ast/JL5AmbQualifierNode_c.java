@@ -4,25 +4,24 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import polyglot.ast.AmbQualifierNode_c;
 import polyglot.ast.CanonicalTypeNode;
+import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ast.QualifierNode;
 import polyglot.ast.TypeNode;
-import polyglot.ast.AmbQualifierNode_c;
 import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.ParameterizedType;
-import polyglot.ext.jl5.types.ParameterizedType_c;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.util.Position;
-import polyglot.visit.AmbiguityRemover;
 
 public class JL5AmbQualifierNode_c extends AmbQualifierNode_c implements JL5AmbQualifierNode {
 
     protected List typeArguments;
     
-    public JL5AmbQualifierNode_c(Position pos, QualifierNode qual, String name, List typeArguments){
+    public JL5AmbQualifierNode_c(Position pos, QualifierNode qual, Id name, List typeArguments){
         super(pos, qual, name);
         this.typeArguments = typeArguments;
     }

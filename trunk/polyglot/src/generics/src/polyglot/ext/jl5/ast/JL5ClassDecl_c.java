@@ -9,13 +9,22 @@ import java.util.List;
 import polyglot.ast.Block;
 import polyglot.ast.ClassBody;
 import polyglot.ast.ClassDecl;
+import polyglot.ast.ClassDecl_c;
 import polyglot.ast.ConstructorCall;
 import polyglot.ast.ConstructorDecl;
+import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
 import polyglot.ast.TypeNode;
-import polyglot.ast.ClassDecl_c;
-import polyglot.ext.jl5.types.*;
+import polyglot.ext.jl5.types.AnnotationElemInstance;
+import polyglot.ext.jl5.types.FlagAnnotations;
+import polyglot.ext.jl5.types.JL5Context;
+import polyglot.ext.jl5.types.JL5Flags;
+import polyglot.ext.jl5.types.JL5MethodInstance;
+import polyglot.ext.jl5.types.JL5ParsedClassType;
+import polyglot.ext.jl5.types.JL5TypeSystem;
+import polyglot.ext.jl5.types.ParameterizedType;
+import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.ext.jl5.visit.ApplicationCheck;
 import polyglot.ext.jl5.visit.ApplicationChecker;
 import polyglot.ext.jl5.visit.JL5AmbiguityRemover;
@@ -31,8 +40,6 @@ import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
-import polyglot.visit.AddMemberVisitor;
-import polyglot.visit.AmbiguityRemover;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
 import polyglot.visit.TypeChecker;
@@ -53,7 +60,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
 
     protected List<ParamTypeNode> paramTypes = new ArrayList<ParamTypeNode>();
 
-    public JL5ClassDecl_c(Position pos, FlagAnnotations flags, String name, TypeNode superClass,
+    public JL5ClassDecl_c(Position pos, FlagAnnotations flags, Id name, TypeNode superClass,
             List interfaces, ClassBody body) {
         super(pos, flags.classicFlags(), name, superClass, interfaces, body);
         if (flags.annotations() != null) {
@@ -64,7 +71,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
 
     }
 
-    public JL5ClassDecl_c(Position pos, FlagAnnotations fl, String name, TypeNode superType,
+    public JL5ClassDecl_c(Position pos, FlagAnnotations fl, Id name, TypeNode superType,
             List interfaces, ClassBody body, List<ParamTypeNode> paramTypes) {
 
         super(pos, fl.classicFlags(), name, superType, interfaces, body);

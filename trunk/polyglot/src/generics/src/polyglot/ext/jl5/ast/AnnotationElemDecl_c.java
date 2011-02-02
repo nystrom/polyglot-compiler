@@ -4,10 +4,11 @@ import java.util.List;
 
 import polyglot.ast.ArrayInit;
 import polyglot.ast.Expr;
+import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ast.Term;
-import polyglot.ast.TypeNode;
 import polyglot.ast.Term_c;
+import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.AnnotationElemInstance;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.ext.jl5.types.JL5Flags;
@@ -18,8 +19,6 @@ import polyglot.types.Flags;
 import polyglot.types.SemanticException;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.visit.AddMemberVisitor;
-import polyglot.visit.AmbiguityRemover;
 import polyglot.visit.CFGBuilder;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
@@ -31,10 +30,10 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
     protected TypeNode type;
     protected Flags flags;
     protected Expr defaultVal;
-    protected String name;
+    protected Id name;
     protected AnnotationElemInstance ai;
     
-    public AnnotationElemDecl_c(Position pos, FlagAnnotations flags, TypeNode type, String name, Expr defaultVal){
+    public AnnotationElemDecl_c(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr defaultVal){
         super(pos);
         this.type = type;
         this.flags = flags.classicFlags();
@@ -81,7 +80,7 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
         return defaultVal;
     }
 
-    public AnnotationElemDecl name(String name){
+    public AnnotationElemDecl name(Id name){
         if (!name.equals(this.name)){
             AnnotationElemDecl_c n = (AnnotationElemDecl_c) copy();
             n.name = name;
@@ -90,7 +89,7 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
         return this;
     }
     
-    public String name(){
+    public Id name(){
         return name;
     }
 

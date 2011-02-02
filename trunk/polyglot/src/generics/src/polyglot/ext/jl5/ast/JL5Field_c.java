@@ -1,9 +1,10 @@
 package polyglot.ext.jl5.ast;
 
 import polyglot.ast.Expr;
+import polyglot.ast.Field_c;
+import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ast.Receiver;
-import polyglot.ast.Field_c;
 import polyglot.ext.jl5.types.EnumInstance;
 import polyglot.ext.jl5.types.JL5Flags;
 import polyglot.ext.jl5.types.JL5TypeSystem;
@@ -17,7 +18,7 @@ import polyglot.visit.TypeChecker;
 
 public class JL5Field_c extends Field_c implements JL5Field {
 
-    public JL5Field_c (Position pos, Receiver target, String name){
+    public JL5Field_c (Position pos, Receiver target, Id name){
         super(pos, target, name);
     }
 

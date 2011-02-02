@@ -7,9 +7,10 @@ import java.util.List;
 
 import polyglot.ast.Block;
 import polyglot.ast.Formal;
+import polyglot.ast.Id;
+import polyglot.ast.MethodDecl_c;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
-import polyglot.ast.MethodDecl_c;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5Flags;
@@ -30,7 +31,6 @@ import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
-import polyglot.visit.AmbiguityRemover;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
 import polyglot.visit.Translator;
@@ -46,7 +46,7 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
     protected List sourceAnnotations;
     protected List<ParamTypeNode> paramTypes;
     
-    public JL5MethodDecl_c(Position pos, FlagAnnotations flags, TypeNode returnType, String name, List formals, List throwTypes, Block body){
+    public JL5MethodDecl_c(Position pos, FlagAnnotations flags, TypeNode returnType, Id name, List formals, List throwTypes, Block body){
         super(pos, flags.classicFlags(), returnType, name, formals, throwTypes, body);
         if (flags.annotations() != null){
             this.annotations = flags.annotations();
@@ -58,7 +58,7 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
         this.paramTypes = new ArrayList<ParamTypeNode>();
     }
     
-    public JL5MethodDecl_c(Position pos, FlagAnnotations flags, TypeNode returnType, String name, List formals, List throwTypes, Block body, List paramTypes){
+    public JL5MethodDecl_c(Position pos, FlagAnnotations flags, TypeNode returnType, Id name, List formals, List throwTypes, Block body, List paramTypes){
         super(pos, flags.classicFlags(), returnType, name, formals, throwTypes, body);
         if (flags.annotations() != null){
             this.annotations = flags.annotations();

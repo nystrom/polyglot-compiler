@@ -5,10 +5,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import polyglot.ast.Expr;
+import polyglot.ast.Id;
 import polyglot.ast.LocalDecl;
+import polyglot.ast.LocalDecl_c;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
-import polyglot.ast.LocalDecl_c;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.TypeVariable;
@@ -29,7 +30,7 @@ public class JL5LocalDecl_c extends LocalDecl_c implements JL5LocalDecl, Applica
 
     protected List annotations;
     
-    public JL5LocalDecl_c(Position pos, FlagAnnotations flags, TypeNode type, String name, Expr init){
+    public JL5LocalDecl_c(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr init){
         super(pos, flags.classicFlags(), type, name, init);
         if (flags.annotations() != null){
             this.annotations = flags.annotations();
