@@ -2,37 +2,33 @@ package polyglot.ext.jl5.types;
 
 import java.util.List;
 
+import polyglot.types.Context;
+import polyglot.types.Name;
+import polyglot.types.ProcedureDef;
 import polyglot.types.ProcedureInstance;
 import polyglot.types.Type;
 
-public interface JL5ProcedureInstance extends ProcedureInstance {
+public interface JL5ProcedureInstance<T extends ProcedureDef> extends ProcedureInstance<T> {
     
     List<TypeVariable> typeVariables();
     void addTypeVariable(TypeVariable type);
-    boolean hasTypeVariable(String name);
-    TypeVariable getTypeVariable(String name);
+    boolean hasTypeVariable(Name name);
+    TypeVariable getTypeVariable(Name name);
     void typeVariables(List<TypeVariable> vars);
 
-    JL5ProcedureInstance typeArguments(List<? extends Type> typeArgs);
+    JL5ProcedureInstance<T> typeArguments(List<? extends Type> typeArgs);
     List<Type> typeArguments();
     
-    JL5ProcedureInstance erasure();
+    JL5ProcedureInstance<T> erasure();
     
     /**
-     * This should be used instead of hasFormals(List formals) becuase of generics
-     * 
-     * @param other
-     * @return
+     * This should be used instead of hasFormals(List formals) because of generics
      */
-    boolean hasSameFormals(JL5ProcedureInstance other);
+    boolean hasFormals(List<Type> otherFormalTypes, List<TypeVariable> otherTypeVariables, List<Type> typeArguments, Context context);
     
     boolean isGeneric();
     boolean isVariableArrity();
-/*    
-    JL5ProcedureInstance formalTypes(List ars);
-    JL5ProcedureInstance flags(Flags flags);
-    JL5ProcedureInstance throwTypes(List l);
-  */  
+
     List<Type> formalTypes();
     
 }

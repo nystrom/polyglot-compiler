@@ -4,30 +4,30 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import polyglot.ext.jl5.types.JL5TypeSystem_c.TypeVariableEquals;
+import polyglot.types.Context;
+import polyglot.types.Name;
+import polyglot.types.ProcedureDef;
 import polyglot.types.ProcedureInstance_c;
-import polyglot.types.Flags;
-import polyglot.types.ReferenceType;
+import polyglot.types.Ref;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
+import polyglot.types.TypeSystem_c.TypeEquals;
 import polyglot.types.UnknownType;
+import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 
-public abstract class JL5ProcedureInstance_c extends ProcedureInstance_c implements JL5ProcedureInstance {
-    
-    public JL5ProcedureInstance_c() {
-        super();
-        // TODO Auto-generated constructor stub
-    }
-
-    public JL5ProcedureInstance_c(TypeSystem ts, Position pos, ReferenceType container, Flags flags, List formalTypes, List excTypes) {
-        super(ts, pos, container, flags, formalTypes, excTypes);
-        // TODO Auto-generated constructor stub
-        typeVariables = new ArrayList<TypeVariable>();
-    }
+public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends ProcedureInstance_c<T> implements JL5ProcedureInstance<T> {
 
     protected List<TypeVariable> typeVariables;
     protected List<TypeVariable> substTypeVariables;
-    
+    protected List<Type> typeArguments;
+
+	public JL5ProcedureInstance_c(TypeSystem ts, Position pos, Ref<? extends T> def) {
+        super(ts, pos, def);
+        typeVariables = new ArrayList<TypeVariable>();
+    }
+
     public List<TypeVariable> typeVariables(){
         if (typeArguments == null || typeArguments.size() == 0)
             return typeVariables;
@@ -51,15 +51,11 @@ public abstract class JL5ProcedureInstance_c extends ProcedureInstance_c impleme
         type.declaringProcedure(this);
     }
 
-    public boolean hasTypeVariable(String name){
-        for (Iterator it = typeVariables.iterator(); it.hasNext(); ){
-            TypeVariable iType = (TypeVariable)it.next();
-            if (iType.name().equals(name)) return true;
-        }
-        return false;
+    public boolean hasTypeVariable(Name name){
+    	return getTypeVariable(name) != null;
     }
 
-    public TypeVariable getTypeVariable(String name){
+    public TypeVariable getTypeVariable(Name name){
         for (Iterator it = typeVariables.iterator(); it.hasNext(); ){
             TypeVariable iType = (TypeVariable)it.next();
             if (iType.name().equals(name)) return iType;
@@ -75,10 +71,14 @@ public abstract class JL5ProcedureInstance_c extends ProcedureInstance_c impleme
     }
     
     public boolean isGeneric(){
-        if ((typeVariables != null) && !typeVariables.isEmpty()) return true;
-        return false;
+        return ((typeVariables != null) && !typeVariables.isEmpty());
     }
 
+    public boolean isGeneric(List<TypeVariable> l){
+        return ((l != null) && !l.isEmpty());
+    }
+
+    
     public boolean isVariableArrity() {
         int numFormals;
         if ((numFormals = formalTypes().size()) > 0) {
@@ -91,8 +91,7 @@ public abstract class JL5ProcedureInstance_c extends ProcedureInstance_c impleme
         return false;
     }
 
-    @Override
-    public boolean callValidImpl(List argTypes) {
+    public boolean callValid(Type thisType, List<Type> argTypes, Context context) {
         JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
         List<Type> l1 = this.formalTypes();
         List<Type> l2 = argTypes;
@@ -107,21 +106,21 @@ public abstract class JL5ProcedureInstance_c extends ProcedureInstance_c impleme
             Type t2 = it2.next();
             
             if (it1.hasNext()) {//not last formal parameter
-                if (! ts.isImplicitCastValid(t2, t1)) return false;
+//                if (! ts.isImplicitCastValid(t2, t1, context)) return false;
             }
             else if (t1.isArray() && ((JL5ArrayType)t1).isVariable()) {
                 JL5ArrayType vartype = (JL5ArrayType)t1;
                 if (!it2.hasNext()) {
-                    return ts.isImplicitCastValid(t2, vartype) || ts.isImplicitCastValid(t2, vartype.base());
+                    return ts.isImplicitCastValid(t2, vartype, context) || ts.isImplicitCastValid(t2, vartype.base(), context);
                 }
-                else while (ts.isImplicitCastValid(t2, vartype.base())) { //eat up actual args
+                else while (ts.isImplicitCastValid(t2, vartype.base(), context)) { //eat up actual args
                     if (it2.hasNext()) {
                         t2 = it2.next();
                     } else break;
                 }
             }
             else {
-                if (! ts.isImplicitCastValid(t2, t1)) {
+                if (! ts.isImplicitCastValid(t2, t1, context)) {
 		    return false;
 		}
             }
@@ -130,8 +129,6 @@ public abstract class JL5ProcedureInstance_c extends ProcedureInstance_c impleme
         return ! (it1.hasNext() || it2.hasNext());
     }
 
-    
-    protected List<Type> typeArguments;
     
     public List<Type> typeArguments() {
         return typeArguments;
@@ -189,31 +186,22 @@ public abstract class JL5ProcedureInstance_c extends ProcedureInstance_c impleme
         return n;
     }
 
-    public boolean hasSameFormals(JL5ProcedureInstance other) {
-        if (isGeneric() != other.isGeneric()) return false;
-        if (formalTypes().size() != other.formalTypes().size()) return false;
-        if (isGeneric() && typeVariables().size() != other.typeVariables().size()) return false;
 
-        JL5ProcedureInstance subst_other = other.typeArguments(this.typeVariables());
-        for (int i = 0; i < this.typeVariables().size(); i++) {
-            IntersectionType bound1 = this.typeVariables().get(i).upperBound();
-            IntersectionType bound2 = subst_other.typeVariables().get(i).upperBound();
-            if (!ts.equals(bound1, bound2)) return false;
+    /** Returns true if the procedure has the given formal parameter types. */
+    public boolean hasFormals(List<Type> otherFormalTypes, List<TypeVariable> otherTypeVariables, List<Type> typeArguments, Context context) {
+        if (isGeneric() != isGeneric(otherTypeVariables)) return false;
+        if (formalTypes().size() != otherFormalTypes.size()) return false;
+        if (isGeneric() && typeVariables().size() != otherTypeVariables.size()) return false;
+
+        if (!CollectionUtil.allElementwise(this.typeVariables(), otherTypeVariables, new TypeVariableEquals(context))) {
+        	return false;
         }
-        for (int i = 0; i < this.formalTypes().size(); i++) {
-            Type formal1 = this.formalTypes().get(i);
-            Type formal2 = subst_other.formalTypes().get(i);
-            if (!ts.equals(formal1, formal2)) return false;
+
+        if (!CollectionUtil.allElementwise(this.formalTypes(), otherFormalTypes, new TypeEquals(context))) {
+        	return false;
         }
 
         return true;
     }
-    
-    
-    
-    //FIXME implement moreSpecific!!!!
-    
-    
-    
     
 }
