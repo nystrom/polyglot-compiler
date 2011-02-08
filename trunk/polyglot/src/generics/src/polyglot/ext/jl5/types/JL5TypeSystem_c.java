@@ -20,7 +20,6 @@ import polyglot.ast.LocalDecl;
 import polyglot.ast.MethodDecl;
 import polyglot.ast.Node;
 import polyglot.ast.NullLit;
-import polyglot.types.TypeSystem_c;
 import polyglot.ext.jl5.ast.AnnotationElem;
 import polyglot.ext.jl5.ast.ElementValuePair;
 import polyglot.ext.jl5.ast.JL5Field;
@@ -37,18 +36,19 @@ import polyglot.types.Context;
 import polyglot.types.FieldInstance;
 import polyglot.types.Flags;
 import polyglot.types.ImportTable;
-import polyglot.types.LazyClassInitializer;
 import polyglot.types.MethodInstance;
 import polyglot.types.NoMemberException;
 import polyglot.types.ParsedClassType;
 import polyglot.types.PrimitiveType;
-import polyglot.types.ProcedureInstance;
 import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
+import polyglot.types.TypeSystem;
+import polyglot.types.TypeSystem_c;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
+import polyglot.util.Predicate2;
 
 public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     // TODO: implement new methods in JL5TypeSystem.
@@ -1693,6 +1693,24 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         }
     }
 
+    
+    public static class TypeVariableEquals implements Predicate2<TypeVariable> {
+    	Context context;
+    	public TypeVariableEquals(Context context) {
+    		this.context = context;
+    	}
+    	public boolean isTrue(TypeVariable o, TypeVariable p) {
+    		JL5TypeSystem ts = (JL5TypeSystem) context.typeSystem();
+    		return ts.typeVariableEquals(o, p, context);
+    	}
+    }
+    
+    public boolean typeVariableEquals(TypeVariable type1, TypeVariable type2, Context context) {
+        IntersectionType bound1 = type1.upperBound();
+        IntersectionType bound2 = type2.upperBound();
+        TypeSystem ts = context.typeSystem();
+        return ts.equals((TypeObject)bound1, (TypeObject)bound2);
+    }
     
 
 }

@@ -1,9 +1,9 @@
 package polyglot.ext.jl5.types;
 
+
 import java.util.List;
 
 import polyglot.ast.Expr;
-import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ext.jl5.ast.AnnotationElem;
 import polyglot.ext.jl5.types.inference.InferenceSolver;
@@ -182,4 +182,6 @@ public interface JL5TypeSystem extends TypeSystem {
     
     InferenceSolver inferenceSolver(JL5ProcedureInstance pi, List<Type> actuals);
     InferenceSolver inferenceSolver(List<TypeVariable> typeVars, List<Type> formals, List<Type> actuals);
+    
+    boolean typeVariableEquals(TypeVariable type1, TypeVariable type2, Context context);
 }
