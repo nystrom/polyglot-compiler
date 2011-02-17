@@ -18,7 +18,7 @@ import polyglot.util.*;
  */
 public class CachingResolver implements TopLevelResolver, Copy {
     protected TopLevelResolver inner;
-    private Map<QName,Object> cache;
+    private ConcurrentHashMap<QName,Object> cache;
     private boolean cacheNotFound;
 
     /**
@@ -41,11 +41,11 @@ public class CachingResolver implements TopLevelResolver, Copy {
                Report.should_report(TOPICS, level);
     }
     
-    public boolean packageExists(QName name) {
+    public synchronized boolean packageExists(QName name) {
         return inner.packageExists(name);
     }
 
-    public Object copy() {
+    public synchronized Object copy() {
         try {
             CachingResolver r = (CachingResolver) super.clone();
             r.cache = new ConcurrentHashMap<QName, Object>(this.cache);
@@ -59,7 +59,7 @@ public class CachingResolver implements TopLevelResolver, Copy {
     /**
      * The resolver whose results this resolver caches.
      */
-    public TopLevelResolver inner() {
+    public synchronized TopLevelResolver inner() {
         return this.inner;
     }
 
@@ -67,7 +67,7 @@ public class CachingResolver implements TopLevelResolver, Copy {
         return "(cache " + inner.toString() + ")";
     }
 
-    protected Collection<Named> cachedObjects() {
+    protected synchronized Collection<Named> cachedObjects() {
 	ArrayList<Named> l = new ArrayList<Named>();
 	for (Object o : cache.values()) {
 	    if (o instanceof Named)
@@ -80,7 +80,7 @@ public class CachingResolver implements TopLevelResolver, Copy {
      * Find a type object by name.
      * @param name The name to search for.
      */
-    public Named find(QName name) throws SemanticException {
+    public synchronized Named find(QName name) throws SemanticException {
         if (shouldReport(2))
             Report.report(2, "CachingResolver: find: " + name);
 
@@ -126,7 +126,7 @@ public class CachingResolver implements TopLevelResolver, Copy {
      * Check if a type object is in the cache, returning null if not.
      * @param name The name to search for.
      */
-    public Named check(QName name) {
+    public synchronized Named check(QName name) {
         Object o = cache.get(name);
         if (o instanceof Throwable)
             return null;
@@ -138,7 +138,7 @@ public class CachingResolver implements TopLevelResolver, Copy {
      * @param name The name of the qualifier to insert.
      * @param q The qualifier to insert.
      */
-    public void install(QName name, Named q) {
+    public synchronized void install(QName name, Named q) {
         if (shouldReport(3))
             Report.report(3, "CachingResolver: installing " + name + "->" + q + " in resolver cache");
         if (shouldReport(5))
@@ -156,11 +156,11 @@ public class CachingResolver implements TopLevelResolver, Copy {
      * @param name The name of the qualifier to insert.
      * @param q The qualifier to insert.
      */
-    public void addNamed(QName name, Named q) throws SemanticException {
+    public synchronized void addNamed(QName name, Named q) throws SemanticException {
 	install(name, q);
     }
 
-    public void dump() {
+    public synchronized void dump() {
         Report.report(1, "Dumping " + this);
         for (Iterator i = cache.entrySet().iterator(); i.hasNext(); ) {
             Map.Entry e = (Map.Entry) i.next();

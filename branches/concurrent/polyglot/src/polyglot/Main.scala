@@ -17,13 +17,38 @@ object Main {
   val globalClock = Clock("Global clock")
   //  globalClock.register
 
-  def runJob(job: Job): Boolean = {
-    //globalClock.register
-
-    val commandLineJob = Globals.Scheduler.commandLineJobs contains job
+  def runJob1(job: Job): polyglot.ast.Node = {
+	  
+	val commandLineJob = Globals.Scheduler.commandLineJobs contains job
     if (!commandLineJob) {
       //globalClock.drop
     }
+    Globals.Scheduler.currentJob = job
+
+   
+    val jobClock = Clock("Clock for " + job.toString)
+    job.put("clock", jobClock)
+    jobClock.register
+
+    println("parsing " + job)
+    val ast = parse(job) match { case Some(x) => x case None => return null }
+//    next
+    //println("initing " + job)
+
+    val ast2 = initTypes(job, ast) match { case Some(x) => x case None => return null }
+    println("done initing " + job)
+    
+    println("checking " + job)
+    val ast3 = checkTypes(job, ast2) match { case Some(x) => x case None => return null }
+    println("done checking " + job)
+    
+    ast3
+  }
+
+  def runJob(job: Job, ast: polyglot.ast.Node): Boolean = {
+    //globalClock.register
+
+    
 
     // Basic pattern:
     // All futures created in a phase are registered on jobClock.
@@ -35,29 +60,30 @@ object Main {
     // Futures created in phase i are only allowed to depend on
     // futures created in phase i or earlier.
 
-    Globals.Scheduler.currentJob = job
+    //Globals.Scheduler.currentJob = job
 
-    val jobClock = Clock("Clock for " + job.toString)
-    job.put("clock", jobClock)
-    jobClock.register
-
-    println("parsing " + job)
-    val ast = parse(job) match { case Some(x) => x case None => return false }
-    next
-    //println("initing " + job)
-
-    val ast2 = initTypes(job, ast) match { case Some(x) => x case None => return false }
-    println("done initing " + job)
-    //    jobClock.next
-    next
-
-    println("checking " + job)
-    val ast3 = checkTypes(job, ast2) match { case Some(x) => x case None => return false }
-    println("done checking " + job)
-
-    //    jobClock.next
-    next
-
+//    val jobClock = Clock("Clock for " + job.toString)
+//    job.put("clock", jobClock)
+//    jobClock.register
+//
+//    println("parsing " + job)
+//    val ast = parse(job) match { case Some(x) => x case None => return false }
+//    next
+//    //println("initing " + job)
+//
+//    val ast2 = initTypes(job, ast) match { case Some(x) => x case None => return false }
+//    println("done initing " + job)
+//    //    jobClock.next
+//    //    next
+//
+//    println("checking " + job)
+//    val ast3 = checkTypes(job, ast2) match { case Some(x) => x case None => return false }
+//    println("done checking " + job)
+//
+//    //    jobClock.next
+//    next
+//	  *****
+    val ast3 = ast
     println("conformanceChecking" + job)
     val ast4 = checkConformance(job, ast3) match { case Some(x) => x case None => return false }
     println("Done conformanceChecking" + job)
@@ -78,10 +104,10 @@ object Main {
     println("Done exitPathChecking" + job)
     next
 
-    println("codeGenerated"+job)
+    println("codeGenerated" + job)
     val ast8 = codeGenerate(job, ast7)
     println("Done code generation" + job)
-    
+
     true
   }
 
@@ -203,7 +229,7 @@ object Main {
           n
         }
     })
-    
+
     val ast3 = ast.visit(new polyglot.visit.NodeVisitor {
       override def leave(parent: Node, old: Node, n: polyglot.ast.Node, v: polyglot.visit.NodeVisitor) =
         {
@@ -258,13 +284,13 @@ object Main {
     job.ast(ast2)
     Some(ast2)
   }
-  
-  def codeGenerate(job:Job, ast:Node) = {
-	val ts = job.extensionInfo.typeSystem
+
+  def codeGenerate(job: Job, ast: Node) = {
+    val ts = job.extensionInfo.typeSystem
     val nf = job.extensionInfo.nodeFactory
-	  
-	val n = new polyglot.frontend.OutputGoal(job, new polyglot.visit.Translator(job, ts, nf, Globals.Extension().targetFactory()))
-	n.runTask
+
+    val n = new polyglot.frontend.OutputGoal(job, new polyglot.visit.Translator(job, ts, nf, Globals.Extension().targetFactory()))
+    n.runTask
   }
 
 }

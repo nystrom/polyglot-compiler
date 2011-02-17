@@ -63,9 +63,18 @@ object Futures {
 
   def async(job: polyglot.frontend.Job) = {
     println("running job " + job)
+    
+    var node:polyglot.ast.Node = null
+    funicular.finish {
+    	node = polyglot.Main.runJob1(job);
+    }
+    
+    val ast = node.asInstanceOf[polyglot.ast.Node]
+    
+    
     funicular.async {
-      println("during running job " + job)
-      polyglot.Main.runJob(job)
+      println("during running job " + job + "I am: " + this)
+     polyglot.Main.runJob(job, ast)
     }
   }
 
