@@ -22,7 +22,7 @@ import polyglot.util.CollectionUtil;
  * fully-qualified names.
  */
 public class SystemResolver extends CachingResolver implements TopLevelResolver {
-    protected Map<QName,Boolean> packageCache;
+    protected ConcurrentHashMap<QName,Boolean> packageCache;
     protected ExtensionInfo extInfo;
     
     /**
@@ -35,17 +35,17 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
         this.packageCache = new ConcurrentHashMap<QName, Boolean>();
     }
 
-    public Object copy() {
+    public synchronized Object copy() {
         SystemResolver r = (SystemResolver) super.copy();
         r.packageCache = new ConcurrentHashMap<QName, Boolean>(this.packageCache);
         return r;
     }
     
-    public void installInAll(QName name, Named n) {
+    public synchronized void installInAll(QName name, Named n) {
         this.install(name, n);
     }
 
-    public boolean installedInAll(QName name, Named q) {
+    public synchronized boolean installedInAll(QName name, Named q) {
         if (check(name) != q) {
             return false;
         }
@@ -53,7 +53,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
     }
 
     /** Check if a package exists in the resolver cache. */
-    protected boolean packageExistsInCache(QName name) {
+    protected synchronized boolean packageExistsInCache(QName name) {
         for (Iterator i = cachedObjects().iterator(); i.hasNext(); ) {
             Object o = i.next();
             if (o instanceof Importable) {
@@ -73,7 +73,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
     /**
      * Check if a package exists.
      */
-    public boolean packageExists(QName name) {
+    public synchronized boolean packageExists(QName name) {
 	Boolean b = packageCache.get(name);
 	if (b != null) {
 	    return b.booleanValue();
@@ -108,7 +108,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
 	}
     }
 
-    protected void cachePackage(Package p) {
+    protected synchronized void cachePackage(Package p) {
         if (p != null) {
             packageCache.put(QName.make(p.fullName()), Boolean.TRUE);
             Package prefix = Types.get(p.prefix());
@@ -120,7 +120,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
      * Check if a type is in the cache, returning null if not.
      * @param name The name to search for.
      */
-    public Type checkType(QName name) {
+    public synchronized Type checkType(QName name) {
         return (Type) check(name);
     }
 
@@ -130,7 +130,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
      * exceptions are for resolving names in deserialized types and in types
      * loaded from raw class files.
      */
-    public Named find(QName name) throws SemanticException {
+    public synchronized Named find(QName name) throws SemanticException {
         Named n = super.find(name);
 
         if (Report.should_report(TOPICS, 2))
@@ -139,7 +139,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
         return n;
     }
 
-    public void install(QName name, Named q) {
+    public synchronized void install(QName name, Named q) {
         if (Report.should_report(TOPICS, 2) && check(name) == null)
             Report.report(2, "SR installing " + name + "->" + q);
         
@@ -151,7 +151,7 @@ public class SystemResolver extends CachingResolver implements TopLevelResolver 
      * @param name The name of the qualifier to insert.
      * @param q The qualifier to insert.
      */
-    public void addNamed(QName name, Named q) throws SemanticException {
+    public synchronized void addNamed(QName name, Named q) throws SemanticException {
         super.addNamed(name, q);
 
         if (q instanceof ClassType) {
