@@ -23,6 +23,7 @@ import polyglot.ast.NullLit;
 import polyglot.ext.jl5.ast.AnnotationElem;
 import polyglot.ext.jl5.ast.ElementValuePair;
 import polyglot.ext.jl5.ast.JL5Field;
+import polyglot.ext.jl5.ast.JL5ProcedureMatcher;
 import polyglot.ext.jl5.ast.NormalAnnotationElem;
 import polyglot.ext.jl5.types.inference.InferenceSolver;
 import polyglot.ext.jl5.types.inference.InferenceSolver_c;
@@ -45,6 +46,7 @@ import polyglot.types.NoMemberException;
 import polyglot.types.ObjectType;
 import polyglot.types.ParsedClassType;
 import polyglot.types.PrimitiveType;
+import polyglot.types.ProcedureDef;
 import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.StructType;
@@ -1000,8 +1002,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     }
     
 
-    public MethodInstance findJL5Method(Type container, JL5MethodMatcher matcher) 
-    throws SemanticException {
+    public MethodInstance findJL5Method(Type container, JL5MethodMatcher matcher) throws SemanticException {
     	assert_(container); 
 
     	Name name = matcher.name();
@@ -1086,7 +1087,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
      * @return
      */    
     protected <T extends JL5ProcedureInstance> List<T> filterPotentiallyApplicable(
-    		List<T> allProcedures, JL5MethodMatcher matcher) {
+    		List<T> allProcedures, JL5ProcedureMatcher matcher) {
     	List<T> potApplicable = new ArrayList<T>();
 
     	int numActuals = matcher.getArgTypes().size();
@@ -1128,7 +1129,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
      * @return
      */
     protected <T extends JL5ProcedureInstance> List<T> identifyApplicableProcedures(
-            List<T> potApplicable, JL5MethodMatcher matcher) {
+            List<T> potApplicable, JL5ProcedureMatcher matcher) {
 
         List<T> phase1methods = new ArrayList<T>();
         List<T> phase2methods = new ArrayList<T>();
@@ -1167,9 +1168,9 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
                     if (((MemberInstance) actualCalledProc).container() instanceof GenericTypeRef) {
                         tvBound = getSubstitution(
                         		(GenericTypeRef) ((MemberInstance) actualCalledProc).container(), 
-                        		actualCalledProc.typeVariables().get(i).upperBound());
+                        		((TypeVariable)actualCalledProc.typeVariables().get(i)).upperBound());
                     } else {
-                        tvBound = actualCalledProc.typeVariables().get(i).upperBound();
+                        tvBound = ((TypeVariable)actualCalledProc.typeVariables().get(i)).upperBound();
                     }
                     if (!isSubtype(typeArgs.get(i), tvBound)) {
                         badTypeArgs = true;
@@ -1182,6 +1183,8 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
             else {
                 actualCalledProc = pi;
             }
+            
+            //public boolean callValid(ProcedureInstance<? extends ProcedureDef> prototype, Type thisType, List<Type> argTypes, Context context) {
             if (callValid(actualCalledProc, argTypes)) {
                 if (!actualCalledProc.isVariableArrity() && !boxingNeeded) {
                     phase1methods.add(actualCalledProc);
@@ -1579,35 +1582,25 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
             return super.isImplicitCastValid(fromType, toType);
         }
     }
-
-    public JL5ConstructorInstance findJL5Constructor(ClassType ct, List<Type> paramTypes,
-            List<Type> explicitTypeArgs, JL5Context context) throws SemanticException {
-        return findJL5Constructor(ct, paramTypes, explicitTypeArgs, context.currentClass());
-    }
     
-    public JL5ConstructorInstance findJL5Constructor(ClassType ct, List<Type> paramTypes,
-            List<Type> explicitTypeArgs, ClassType currentClass) throws SemanticException {
-        assert_(ct);
-        assert_(paramTypes);
+    public ConstructorInstance findJL5Constructor(Type container, JL5ConstructorMatcher matcher) throws SemanticException {
+    	assert_(container);
 
-        List<JL5ConstructorInstance> cs = ct.constructors();
-        cs = filterPotentiallyApplicable(cs, paramTypes, explicitTypeArgs, currentClass);
-        cs = identifyApplicableProcedures(cs, paramTypes, explicitTypeArgs, currentClass);
-        if (cs.size() > 0) {
-            JL5ConstructorInstance targetConstructor = (JL5ConstructorInstance) findProcedure(cs, ct, paramTypes, currentClass);
+    	// Get a list of constructor 
+    	//        List<JL5ConstructorInstance> cs = ct.constructors();
+    	List<JL5ConstructorInstance> acceptable = (List) findAcceptableConstructors(container, matcher);
+    	acceptable = filterPotentiallyApplicable(acceptable, matcher);
+    	acceptable = identifyApplicableProcedures(acceptable, matcher);
+    	Collection<ConstructorInstance> maximal = findMostSpecificProcedures((List)acceptable, matcher, matcher.context());
 
-            if (targetConstructor == null) {
-                throw new SemanticException("Ambiguous call: " + ct.name() + "("
-                        + listToString(paramTypes) + ")");
-            }
-            return targetConstructor;
+    	if (maximal.size() > 1) {
+    		throw new NoMemberException(NoMemberException.CONSTRUCTOR,
+    				"Reference to " + container + " is ambiguous, multiple " +
+    				"constructors match: " + maximal);
+    	}
 
-        }
-        else {
-            throw new SemanticException("Cannot find constructor applicable to call " + ct.name()
-                    + "(" + listToString(paramTypes) + ")");
-        }
-
+    	ConstructorInstance ci = maximal.iterator().next();
+    	return ci;
     }
 
     /**
@@ -1752,13 +1745,18 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         TypeSystem ts = context.typeSystem();
         return ts.equals((TypeObject)bound1, (TypeObject)bound2);
     }
+
+    public ConstructorMatcher JL5ConstructorMatcher(Type container, List<Type> argTypes, List<Type> explicitTypeArgs, Context context) {
+    	return new JL5ConstructorMatcher(container, argTypes, explicitTypeArgs, context);
+    }
+
     
     public JL5MethodMatcher JL5MethodMatcher(Type container, Name name, List<Type> argTypes, List<Type> explicitTypeArgs, Context context) {
     	return new JL5MethodMatcher(container, name, argTypes, explicitTypeArgs, context);
-        }
+    }
 
     
-    public static class JL5MethodMatcher extends MethodMatcher {
+    public static class JL5MethodMatcher extends MethodMatcher implements JL5ProcedureMatcher {
     	protected List<Type> explicitTypeArgs;
     	
     	protected JL5MethodMatcher(Type container, Name name, List<Type> argTypes, List<Type> explicitTypeArgs, Context context) {
@@ -1787,11 +1785,38 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     		return super.argumentString();
     	}
     	
-    	List<Type> getArgTypes() {
+    	public List<Type> getArgTypes() {
     		return this.argTypes;
     	}
 
-    	List<Type> getExplicitTypeArgs() {
+    	public List<Type> getExplicitTypeArgs() {
+    		return explicitTypeArgs;
+    	}
+    }
+    
+    public static class JL5ConstructorMatcher extends ConstructorMatcher implements JL5ProcedureMatcher {
+    	protected List<Type> explicitTypeArgs;
+    	protected JL5ConstructorMatcher(Type receiverType, List<Type> argTypes, List<Type> explicitTypeArgs, Context context) {
+    		super(receiverType, argTypes, context);
+    		this.explicitTypeArgs = explicitTypeArgs;
+    	}
+
+    	@Override
+    	public java.lang.String signature() {
+    		// TODO Auto-generated method stub
+    		return super.signature();
+    	}
+
+    	public ConstructorInstance instantiate(ConstructorInstance ci) throws SemanticException {
+    		TypeSystem ts = ci.typeSystem();
+
+    		return ci;
+    	}
+    	public List<Type> getArgTypes() {
+    		return this.argTypes;
+    	}
+
+    	public List<Type> getExplicitTypeArgs() {
     		return explicitTypeArgs;
     	}
     }
