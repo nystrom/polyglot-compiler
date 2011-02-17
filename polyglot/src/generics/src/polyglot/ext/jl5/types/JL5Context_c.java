@@ -5,7 +5,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import polyglot.main.Report;
 import polyglot.types.Context_c;
+import polyglot.types.MethodInstance;
 import polyglot.types.Name;
 import polyglot.types.Named;
 import polyglot.types.SemanticException;
@@ -184,50 +186,4 @@ public class JL5Context_c extends Context_c implements JL5Context {
         return this;
     }
 
-    public JL5MethodInstance findJL5Method(Name name, List<Type> paramTypes,
-            List<Type> explicitTypeArgTypes) throws SemanticException {
-
-        if (currentClass() != null && typeSystem().hasMethodNamed(currentClass(), name)) {
-            return typeSystem().findJL5Method(currentClass(), name, paramTypes, explicitTypeArgTypes, this);
-        }
-        else {
-            if (outer != null)
-                return ((JL5Context) outer).findJL5Method(name, paramTypes, explicitTypeArgTypes);
-            else {
-                throw new SemanticException("Method " + name + "not found.");
-            }
-
-        }
-        /*        } else if (importTable() != null) {
-         JL5ImportTable jit = (JL5ImportTable) importTable();
-         for (Iterator it = jit.memberImports().iterator(); it.hasNext();) {
-         String next = (String) it.next();
-         String id = StringUtil.getShortNameComponent(next);
-         if (name.equals(id)) {
-         Named nt = ts.forName(StringUtil.getPackageComponent(next));
-         if (nt instanceof Type) {
-         Type t = (Type) nt;
-         if (t.isClass() && ts.hasMethodNamed(t.toClass(), name)) {
-         return typeSystem().findJL5Method(t.toClass(), name, paramTypes, explicitTypeArgTypes, currentClass());
-         }
-         }
-         }
-         }
-
-         for (Iterator it = jit.staticClassImports().iterator(); it.hasNext();) {
-         String next = (String) it.next();
-         Named nt = ts.forName(next);
-         if (nt instanceof Type) {
-         Type t = (Type) nt;
-         if (t.isClass() && ts.hasMethodNamed(t.toClass(), name)) {
-         return (JL5MethodInstance) ts.findMethod(t.toClass(), name, paramTypes, this.currentClass());
-         }
-         }
-         }
-         }
-
-         throw new SemanticException("Method " + name + " not found");
-         }
-         */
-    }
 }
