@@ -6,14 +6,18 @@ import java.util.List;
 import polyglot.ast.Expr;
 import polyglot.ast.Node;
 import polyglot.ext.jl5.ast.AnnotationElem;
+import polyglot.ext.jl5.types.JL5TypeSystem_c.JL5ConstructorMatcher;
+import polyglot.ext.jl5.types.JL5TypeSystem_c.JL5MethodMatcher;
 import polyglot.ext.jl5.types.inference.InferenceSolver;
 import polyglot.ext.jl5.types.inference.LubType;
 import polyglot.frontend.Source;
 import polyglot.types.ArrayType;
 import polyglot.types.ClassType;
+import polyglot.types.ConstructorInstance;
 import polyglot.types.Context;
 import polyglot.types.FieldInstance;
 import polyglot.types.Flags;
+import polyglot.types.MethodInstance;
 import polyglot.types.Name;
 import polyglot.types.ParsedClassType;
 import polyglot.types.PrimitiveType;
@@ -22,6 +26,7 @@ import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
+import polyglot.types.TypeSystem_c.ConstructorMatcher;
 import polyglot.types.TypeSystem_c.MethodMatcher;
 import polyglot.util.Position;
 
@@ -167,17 +172,9 @@ public interface JL5TypeSystem extends TypeSystem {
 
     boolean checkContains(ParameterizedType desc, ParameterizedType ancestor);
 
-    JL5MethodInstance findJL5Method(ReferenceType container, Name name, List<Type> paramTypes,
-            List<Type> explicitTypeArgTypes, ClassType currentClass) throws SemanticException;
+    MethodInstance findJL5Method(Type container, JL5MethodMatcher matcher)  throws SemanticException;
 
-    JL5MethodInstance findJL5Method(ReferenceType container, Name name, List<Type> paramTypes,
-            List<Type> explicitTypeArgTypes, JL5Context context) throws SemanticException;
-
-    JL5ConstructorInstance findJL5Constructor(ClassType ct, List<Type> paramTypes,
-            List<Type> explicitTypeArgs, ClassType currentClass) throws SemanticException;
-
-    JL5ConstructorInstance findJL5Constructor(ClassType ct, List<Type> paramTypes,
-            List<Type> explicitTypeArgs, JL5Context context) throws SemanticException;
+    ConstructorInstance findJL5Constructor(Type container, JL5ConstructorMatcher context) throws SemanticException;
 
     void checkTVForwardReference(List<TypeVariable> name) throws SemanticException;
     
@@ -188,4 +185,8 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	MethodMatcher JL5MethodMatcher(Type targetType, Name id,
 			List<Type> paramTypes, List<Type> explicitTypeArgs, JL5Context c);
+
+	ConstructorMatcher JL5ConstructorMatcher(Type targetType,
+			List<Type> paramTypes, List<Type> explicitTypeArgs, JL5Context c);
+
 }
