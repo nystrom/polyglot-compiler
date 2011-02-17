@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import polyglot.ast.Call;
 import polyglot.ast.Call_c;
 import polyglot.ast.Expr;
 import polyglot.ast.Id;
@@ -15,9 +16,9 @@ import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5MethodInstance;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.types.ClassType;
-import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
+import polyglot.types.Types;
 import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
@@ -28,47 +29,46 @@ import polyglot.visit.TypeChecker;
 
 public class JL5Call_c extends Call_c implements JL5Call {
 
-    protected List typeArguments;
+    protected List<TypeNode> typeArguments;
 
-    public JL5Call_c(Position pos, Receiver target, Id name, List arguments, List typeArguments) {
+    public JL5Call_c(Position pos, Receiver target, Id name, List<Expr> arguments, List<TypeNode> typeArguments) {
         super(pos, target, name, arguments);
         this.typeArguments = typeArguments;
     }
 
-    public List typeArguments() {
+    public List<TypeNode> typeArguments() {
         return typeArguments;
     }
 
-    public JL5Call typeArguments(List args) {
+    public JL5Call typeArguments(List<TypeNode> args) {
         JL5Call_c n = (JL5Call_c) copy();
-        n.typeArguments = args;
+        n.typeArguments = TypedList.copyAndCheck(args, TypeNode.class, true);
         return n;
     }
 
-    protected JL5Call_c reconstruct(Receiver target, List arguments, List typeArgs) {
-        if (target != this.target || !CollectionUtil.allEqual(arguments, this.arguments)
-                || !CollectionUtil.allEqual(typeArgs, this.typeArguments)) {
-            JL5Call_c n = (JL5Call_c) copy();
-            n.target = target;
-            n.arguments = TypedList.copyAndCheck(arguments, Expr.class, true);
-            n.typeArguments = TypedList.copyAndCheck(typeArgs, TypeNode.class, false);
-            return n;
-        }
-        return this;
+    /** Reconstruct the call. */
+    protected Call_c reconstruct(Receiver target, Id name, List<Expr> arguments, List<TypeNode> typeArguments) {
+      if (target != this.target || name != this.name || 
+    		  ! CollectionUtil.allEqual(arguments, this.arguments) || 
+    		  ! CollectionUtil.allEqual(typeArguments, this.typeArguments)) {
+          JL5Call_c n = (JL5Call_c) super.reconstruct(target, name, arguments);
+          n.typeArguments = TypedList.copyAndCheck(typeArguments, TypeNode.class, true);    	  
+      }
+      return this;
     }
 
     public Node visitChildren(NodeVisitor v) {
-        Receiver target = (Receiver) visitChild(this.target, v);
-        List arguments = visitList(this.arguments, v);
-        List typeArgs = visitList(this.typeArguments, v);
-        return reconstruct(target, arguments, typeArgs);
+    	Call visited = (Call) super.visitChildren(v);
+        List<TypeNode> newTypeArguments = visitList(this.typeArguments, v);
+        return reconstruct(visited.target(), visited.name(), visited.arguments(), newTypeArguments);
     }
 
     public Node typeCheck(TypeChecker tc) throws SemanticException {
         JL5Call_c n = null;
         JL5TypeSystem ts = (JL5TypeSystem) tc.typeSystem();
         JL5Context c = (JL5Context) tc.context();
-        ReferenceType targetType = null;
+        
+        // explicitTypeArgs is the list of Type generated from the typeArguments list<TypeNode>
         List<Type> explicitTypeArgs = null;
         List<Type> paramTypes = new ArrayList<Type>();
 
@@ -78,36 +78,40 @@ public class JL5Call_c extends Call_c implements JL5Call {
                 // should not actually happen. grammar doesn't allow it
                 throw new SemanticException("Explicit target required when using explicit type arguments", position());
             }
-            for (Iterator it = typeArguments().iterator(); it.hasNext();) {
-                explicitTypeArgs.add(((TypeNode) it.next()).type());
+            for (Iterator<TypeNode> it = typeArguments().iterator(); it.hasNext();) {
+                explicitTypeArgs.add(it.next().type());
             }
         }
 
-        for (Iterator i = this.arguments().iterator(); i.hasNext();) {
-            Expr e = (Expr) i.next();
-            paramTypes.add(e.type());
+        for (Iterator<Expr> i = this.arguments().iterator(); i.hasNext();) {
+            paramTypes.add(i.next().type());
         }
 
-        JL5MethodInstance mi;
         // JLS 15.12.1
         if (target == null) {
             return typeCheckNullTarget(tc, paramTypes, explicitTypeArgs);
-        } else {
-            targetType = this.findTargetType();
-            mi = ts.findJL5Method(targetType, name, paramTypes, explicitTypeArgs, c);
         }
+        
+        Type targetType = target.type();
+        JL5MethodInstance mi = (JL5MethodInstance) c.findMethod(ts.JL5MethodMatcher(targetType, name().id(), paramTypes, explicitTypeArgs, c));
 
-
+        /* This call is in a static context if and only if
+         * the target (possibly implicit) is a type node.
+         */
         boolean staticContext = (this.target instanceof TypeNode);
 
         if (staticContext && !mi.flags().isStatic()) {
-            throw new SemanticException("Cannot call non-static method " + this.name + " of "
-                    + targetType + " in static " + "context.", this.position());
+            throw new SemanticException("Cannot call non-static method " + this.name.id()
+                                  + " of " + target.type() + " in static "
+                                  + "context.", this.position());
         }
-
-        if (this.target instanceof Special && ((Special) this.target).kind() == Special.SUPER
-                && mi.flags().isAbstract()) {
-            throw new SemanticException("Cannot call an abstract method " + "of the super class", this.position());
+        
+        // If the target is super, but the method is abstract, then complain.
+        if (this.target instanceof Special && 
+            ((Special)this.target).kind() == Special.SUPER &&
+            mi.flags().isAbstract()) {
+                throw new SemanticException("Cannot call an abstract method " +
+                               "of the super class", this.position());            
         }
 
         n = (JL5Call_c) this.methodInstance(mi).type(mi.returnType());
@@ -125,30 +129,33 @@ public class JL5Call_c extends Call_c implements JL5Call {
         // let's find the target, using the context, and
         // set the target appropriately, and then type check
         // the result
-        JL5MethodInstance mi = c.findJL5Method(name(), paramTypes, explicitTypeArgs);
+        JL5MethodInstance mi = (JL5MethodInstance) c.findMethod(ts.JL5MethodMatcher(null, name.id(), paramTypes, explicitTypeArgs, c));
 
         Receiver r;
         if (mi.flags().isStatic()) {
-            r = nf.CanonicalTypeNode(position(), mi.container()).type(mi.container());
+            Type container = findContainer(ts, mi);
+            r = nf.CanonicalTypeNode(position().startOf(), container).typeRef(Types.ref(container));
         } else {
-            // The method is non-static, so we must prepend with "this", but we
-            // need to determine if the "this" should be qualified. Get the
-            // enclosing class which brought the method into scope. This is
-            // different from mi.container(). mi.container() returns a super
-            // type
-            // of the class we want.
-            ClassType scope = c.findMethodScope(name.id());
+        	// The method is non-static, so we must prepend with "this", but we
+        	// need to determine if the "this" should be qualified. Get the
+        	// enclosing class which brought the method into scope. This is
+        	// different from mi.container(). mi.container() returns a super
+        	// type
+        	// of the class we want.
+        	ClassType scope = c.findMethodScope(name.id());
 
-            if (!ts.equals(scope, c.currentClass())) {
-                r = nf.This(position(), nf.CanonicalTypeNode(position(), scope)).type(scope);
-            } else {
-                r = nf.This(position()).type(scope);
-            }
+        	if (!ts.typeEquals(scope, c.currentClass(), c)) {
+        		r = (Special) nf.This(position().startOf(),
+        				nf.CanonicalTypeNode(position().startOf(), scope)).del().typeCheck(tc);
+        	} else {
+        		r = (Special) nf.This(position().startOf()).del().typeCheck(tc);
+        	}
         }
 
-        // we call typeCheck on the reciever too.
-        r = (Receiver) r.del().typeCheck(tc);
-        return this.targetImplicit(true).target(r).del().typeCheck(tc);
+        // we call computeTypes on the reciever too.
+        Call_c call = (Call_c) this.targetImplicit(true).target(r);       
+        call = (Call_c)call.methodInstance(mi).type(mi.returnType());
+        return call;
     }
     
 /*

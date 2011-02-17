@@ -22,6 +22,7 @@ import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
+import polyglot.types.TypeSystem_c.MethodMatcher;
 import polyglot.util.Position;
 
 public interface JL5TypeSystem extends TypeSystem {
@@ -184,4 +185,7 @@ public interface JL5TypeSystem extends TypeSystem {
     InferenceSolver inferenceSolver(List<TypeVariable> typeVars, List<Type> formals, List<Type> actuals);
     
     boolean typeVariableEquals(TypeVariable type1, TypeVariable type2, Context context);
+
+	MethodMatcher JL5MethodMatcher(Type targetType, Name id,
+			List<Type> paramTypes, List<Type> explicitTypeArgs, JL5Context c);
 }

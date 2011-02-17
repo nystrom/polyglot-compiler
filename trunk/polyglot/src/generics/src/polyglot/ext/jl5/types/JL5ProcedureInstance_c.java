@@ -100,7 +100,7 @@ public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends Pro
         Iterator<Type> it1 = l1.iterator();
         Iterator<Type> it2 = l2.iterator();
         
-        //FIXME variable arrity methods!!!!!
+        //FIXME variable arity methods!!!!!
         while (it1.hasNext() && it2.hasNext()) {
             Type t1 = it1.next();
             Type t2 = it2.next();

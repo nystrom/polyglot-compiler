@@ -36,12 +36,18 @@ import polyglot.types.Context;
 import polyglot.types.FieldInstance;
 import polyglot.types.Flags;
 import polyglot.types.ImportTable;
+import polyglot.types.Matcher;
+import polyglot.types.MemberDef;
+import polyglot.types.MemberInstance;
 import polyglot.types.MethodInstance;
+import polyglot.types.Name;
 import polyglot.types.NoMemberException;
+import polyglot.types.ObjectType;
 import polyglot.types.ParsedClassType;
 import polyglot.types.PrimitiveType;
 import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
+import polyglot.types.StructType;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
@@ -992,40 +998,60 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         }
         return this.equals(arg1, arg2);
     }
+    
 
-    public JL5MethodInstance findJL5Method(ReferenceType container, String name,
-            List<Type> paramTypes, List<Type> explicitTypeArgTypes, JL5Context context)
-            throws SemanticException {
-        return findJL5Method(container, name, paramTypes, explicitTypeArgTypes, context.currentClass());
+    public MethodInstance findJL5Method(Type container, JL5MethodMatcher matcher) 
+    throws SemanticException {
+    	assert_(container); 
+
+    	Name name = matcher.name();
+    	List<Type> explicitTypeArgTypes = matcher.getExplicitTypeArgs(); 
+
+    	// Filters by method name (JLS 15.12.2.1)
+    	// Filters on parameter size (including variable arity) and accessibility
+    	// For now we use the JL5MethodMatcher to filter names, however it should
+    	// be able to take care of filter on additional properties
+
+    	List<JL5MethodInstance> acceptable = 
+    		new ArrayList<JL5MethodInstance>(findMethodsNamed(container, matcher));
+    	acceptable = filterPotentiallyApplicable(acceptable, matcher);
+
+    	// JLS 15.12.2-4
+    	acceptable = identifyApplicableProcedures(acceptable, matcher);
+
+    	if (acceptable.size() > 0) {
+    		Collection<MethodInstance> maximal =
+    			findMostSpecificProcedures((List) acceptable, (Matcher<MethodInstance>)matcher, matcher.context());
+
+    		if (maximal.size() > 1) {
+    			StringBuffer sb = new StringBuffer();
+    			for (Iterator<MethodInstance> i = maximal.iterator(); i.hasNext();) {
+    				MethodInstance ma = (MethodInstance) i.next();
+    				sb.append(ma.container());
+    				sb.append(".");
+    				sb.append(ma.signature());
+    				if (i.hasNext()) {
+    					if (maximal.size() == 2) {
+    						sb.append(" and ");
+    					}
+    					else {
+    						sb.append(", ");
+    					}
+    				}
+    			}
+
+    			throw new SemanticException("Reference to " + matcher.name() +
+    					" is ambiguous, multiple methods match: "
+    					+ sb.toString());
+    		}
+    		JL5MethodInstance mi = (JL5MethodInstance) maximal.iterator().next();
+    		return mi;
+    	} else {
+    		throw new SemanticException("No valid method call found for " + name + "("
+    				+ listToString(matcher.getArgTypes()) + ") in " + container + ".");
+    	}
     }
     
-    public JL5MethodInstance findJL5Method(ReferenceType container, String name,
-            List<Type> paramTypes, List<Type> explicitTypeArgTypes, ClassType currentClass)
-            throws SemanticException {
-        assert_(container);
-        assert_(paramTypes);
-
-        List<JL5MethodInstance> methods = new ArrayList<JL5MethodInstance>(
-                findMethodsNamed(container, name)   );
-        methods = filterPotentiallyApplicable(methods, paramTypes, explicitTypeArgTypes, currentClass);
-        methods = identifyApplicableProcedures(methods, paramTypes, explicitTypeArgTypes, currentClass);
-        if (methods.size() > 0) {
-            JL5MethodInstance targetMethod = (JL5MethodInstance) findProcedure(methods, container, paramTypes, currentClass);
-
-            if (targetMethod == null) {
-                throw new SemanticException("Ambiguous call: " + name + "("
-                        + listToString(paramTypes) + ")");
-            }
-            return targetMethod;
-
-        }
-        else {
-            throw new SemanticException("No valid method call found for " + name + "("
-                    + listToString(paramTypes) + ") in " + container + ".");
-        }
-
-    }
-
     private boolean checkBoxingNeeded(JL5ProcedureInstance pi, List<Type> paramTypes) {
         int numFormals = pi.formalTypes().size();
         for (int i = 0; i < numFormals - 1; i++) {
@@ -1051,44 +1077,48 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     }
 
     /**
-     * JLS 15.2.2.1
+     * JLS 15.12.2.1
      * 
      * @param allProcedures
      * @param paramTypes
      * @param explicitTypeArgs
      * @param currentClass
      * @return
-     */
+     */    
     protected <T extends JL5ProcedureInstance> List<T> filterPotentiallyApplicable(
-            List<T> allProcedures, List<Type> paramTypes, List<Type> explicitTypeArgs,
-            ClassType currentClass) {
+    		List<T> allProcedures, JL5MethodMatcher matcher) {
+    	List<T> potApplicable = new ArrayList<T>();
 
-        List<T> potApplicable = new ArrayList<T>();
-        int numActuals = paramTypes.size();
+    	int numActuals = matcher.getArgTypes().size();
+    	List<Type> explicitTypeArgs = matcher.getExplicitTypeArgs();
 
-        for (T pi : allProcedures) {
-            int numFormals = pi.formalTypes().size();
-            if (!pi.isVariableArrity()) {
-                if (numFormals != numActuals) continue;
-            }
-            else {
-                if (numActuals < numFormals - 1)
-                    continue;
-            }
-            if (explicitTypeArgs != null && pi.isGeneric()) {
-                if (pi.typeVariables().size() != explicitTypeArgs.size())
-                    continue;
-            }
-            if (!isAccessible(pi, currentClass))
-                continue;
-            potApplicable.add(pi);
-        }
+    	for (T pi : allProcedures) {
+    		int numFormals = pi.formalTypes().size();
+    		if (!pi.isVariableArrity()) {
+    			if (numFormals != numActuals) { 
+    				continue;
+    			}
+    		} else {
+    			if (numActuals < numFormals - 1) {
+    				continue;
+    			}
+    		}
+    		if (explicitTypeArgs != null && pi.isGeneric()) {
+    			if (pi.typeVariables().size() != explicitTypeArgs.size()) {
+    				continue;
+    			}
+    		}
+    		if (!isAccessible((MemberInstance<? extends MemberDef>) pi, matcher.context())) {
+    			continue;
+    		}
+    		potApplicable.add(pi);
+    	}
 
-        return potApplicable;
+    	return potApplicable;
     }
 
     /**
-     * JLS 15.2.2.2-4
+     * JLS 15.12.2-4
      * 
      * @param <T>
      * @param potApplicable
@@ -1098,34 +1128,35 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
      * @return
      */
     protected <T extends JL5ProcedureInstance> List<T> identifyApplicableProcedures(
-            List<T> potApplicable, List<Type> paramTypes, List<Type> explicitTypeArgs,
-            ClassType currentClass) {
+            List<T> potApplicable, JL5MethodMatcher matcher) {
 
         List<T> phase1methods = new ArrayList<T>();
         List<T> phase2methods = new ArrayList<T>();
         List<T> phase3methods = new ArrayList<T>();
 
+        List<Type> argTypes = matcher.getArgTypes();
+        List<Type> explicitTypeArgs = matcher.getExplicitTypeArgs();
+        
         for (T pi : potApplicable) {
             List<Type> formals = pi.formalTypes();
             List<Type> typeArgs = null;
-            boolean boxingNeeded = checkBoxingNeeded(pi, paramTypes);
-            //capture conversion on paramTypes!!!
-            List<Type> capParamTypes = new ArrayList<Type>(paramTypes);
+            boolean boxingNeeded = checkBoxingNeeded(pi, argTypes);
+            //capture conversion on argTypes!!!
+            List<Type> capParamTypes = new ArrayList<Type>(argTypes);
             for (int i = 0; i < capParamTypes.size(); i++) {
                 if (capParamTypes.get(i) instanceof ParameterizedType_c) {
                     ParameterizedType_c pt = (ParameterizedType_c) capParamTypes.get(i);
                     capParamTypes.set(i, pt.capture());
                 }
             }
-            paramTypes = capParamTypes;
+            argTypes = capParamTypes;
 
             T actualCalledProc;
             if (pi.isGeneric()) {
                 if (explicitTypeArgs != null) {
                     typeArgs = explicitTypeArgs;
-                }
-                else {
-                    typeArgs = inferenceSolver(pi, paramTypes).solve();
+                } else {
+                    typeArgs = inferenceSolver(pi, argTypes).solve();
                 }
                 boolean badTypeArgs = false;
 
@@ -1133,10 +1164,11 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 
                 for (int i = 0; i < actualCalledProc.typeVariables().size(); i++) {
                     Type tvBound;
-                    if (actualCalledProc.container() instanceof GenericTypeRef) {
-                        tvBound = getSubstitution((GenericTypeRef) actualCalledProc.container(), actualCalledProc.typeVariables().get(i).upperBound());
-                    }
-                    else {
+                    if (((MemberInstance) actualCalledProc).container() instanceof GenericTypeRef) {
+                        tvBound = getSubstitution(
+                        		(GenericTypeRef) ((MemberInstance) actualCalledProc).container(), 
+                        		actualCalledProc.typeVariables().get(i).upperBound());
+                    } else {
                         tvBound = actualCalledProc.typeVariables().get(i).upperBound();
                     }
                     if (!isSubtype(typeArgs.get(i), tvBound)) {
@@ -1150,7 +1182,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
             else {
                 actualCalledProc = pi;
             }
-            if (callValid(actualCalledProc, paramTypes)) {
+            if (callValid(actualCalledProc, argTypes)) {
                 if (!actualCalledProc.isVariableArrity() && !boxingNeeded) {
                     phase1methods.add(actualCalledProc);
                 }
@@ -1174,40 +1206,49 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         return Collections.emptyList();
     }
 
-    /**
-     * @param container
-     * @param name
-     * @return
-     * @throws SemanticException 
-     */
-    protected Set<JL5MethodInstance> findMethodsNamed(ReferenceType container, String name) {
-        assert_(container);
+	/**
+	 * Returns methods named after matcher.name();
+	 * @param container
+	 * @param matcher
+	 * @return
+	 */
+    protected Set<JL5MethodInstance> findMethodsNamed(Type container, MethodMatcher matcher) {
+    	assert_(container);
 
-        Set<JL5MethodInstance> result = new HashSet<JL5MethodInstance>();
-        Set<Type> visitedTypes = new HashSet<Type>();
-        LinkedList<Type> typeQueue = new LinkedList<Type>();
-        typeQueue.addLast(container);
+    	Set<JL5MethodInstance> result = new HashSet<JL5MethodInstance>();
+    	Set<Type> visitedTypes = new HashSet<Type>();
+    	LinkedList<Type> typeQueue = new LinkedList<Type>();
+    	typeQueue.addLast(container);
+    	Name mthName = matcher.name();
+    	while (!typeQueue.isEmpty()) {
+    		Type t = (Type) typeQueue.removeFirst();
+    		// get methods matching the name
+    		if (t instanceof StructType) {
+    			StructType type = (StructType) t;
+    			if (visitedTypes.contains(type)) {
+    				continue;
+    			}
+    			visitedTypes.add(type);
+    			for (Iterator<MethodInstance> i = type.methodsNamed(mthName).iterator(); i.hasNext(); ) {
+    				JL5MethodInstance mi = (JL5MethodInstance)i.next();
+    				if (mi.name().equals(mthName)) {
+    					result.add(mi);
+    				}
+    			}
+    		}
+    		// build closure
+    		if (t instanceof ObjectType) {
+    			ObjectType ot = (ObjectType) t;
 
-        while (!typeQueue.isEmpty()) {
-            Type type = (Type) typeQueue.removeFirst();
-            if (visitedTypes.contains(type)) {
-                continue;
-            }
-            visitedTypes.add(type);
-            for (Iterator i = type.toReference().methods().iterator(); i.hasNext();) {
-                JL5MethodInstance mi = (JL5MethodInstance) i.next();
-                if (mi.name().equals(name))
-                    result.add(mi);
-            }
-            if (type.toReference().superType() != null) {
-                typeQueue.addLast(type.toReference().superType());
-            }
+    			if (ot.superClass() != null) {
+    				typeQueue.addLast(ot.superClass());
+    			}
 
-            typeQueue.addAll(type.toReference().interfaces());
-        }
-        return result;
+    			typeQueue.addAll(ot.interfaces());
+    		}
+    	}
+    	return result;
     }
-
 
     public List<ReferenceType> allAncestorsOf(ReferenceType rt) {
         Set<ReferenceType> ancestors = new HashSet<ReferenceType>();
@@ -1712,5 +1753,46 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         return ts.equals((TypeObject)bound1, (TypeObject)bound2);
     }
     
+    public JL5MethodMatcher JL5MethodMatcher(Type container, Name name, List<Type> argTypes, List<Type> explicitTypeArgs, Context context) {
+    	return new JL5MethodMatcher(container, name, argTypes, explicitTypeArgs, context);
+        }
 
+    
+    public static class JL5MethodMatcher extends MethodMatcher {
+    	protected List<Type> explicitTypeArgs;
+    	
+    	protected JL5MethodMatcher(Type container, Name name, List<Type> argTypes, List<Type> explicitTypeArgs, Context context) {
+    		super(container, name, argTypes, context);
+    		this.explicitTypeArgs = explicitTypeArgs;
+		}
+    	
+    	@Override
+    	public java.lang.String signature() {
+    		// TODO Auto-generated method stub
+    		return super.signature();
+    	}
+    	
+    	@Override
+    	public MethodInstance instantiate(MethodInstance mi)
+    			throws SemanticException {
+    		if (! mi.name().equals(name)) {
+    			return null;
+    		}
+    		return mi;
+    	}
+
+    	@Override
+    	public java.lang.String argumentString() {
+    		// TODO Auto-generated method stub
+    		return super.argumentString();
+    	}
+    	
+    	List<Type> getArgTypes() {
+    		return this.argTypes;
+    	}
+
+    	List<Type> getExplicitTypeArgs() {
+    		return explicitTypeArgs;
+    	}
+    }
 }

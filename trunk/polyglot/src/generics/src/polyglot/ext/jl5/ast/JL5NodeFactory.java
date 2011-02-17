@@ -30,33 +30,33 @@ import polyglot.util.Position;
 public interface JL5NodeFactory extends NodeFactory {
     // TODO: Declare any factory methods for new AST nodes.
     public ExtendedFor ExtendedFor(Position pos, List varDecls, Expr expr, Stmt stmt);
-    public EnumConstantDecl EnumConstantDecl(Position pos, FlagAnnotations flags, Id Name, List args, ClassBody body);
-    public EnumConstantDecl EnumConstantDecl(Position pos, FlagAnnotations flags, Id Name, List args);
-    public JL5ClassDecl JL5ClassDecl(Position pos, FlagAnnotations flags, Id Name, TypeNode superType, List interfaces, ClassBody body, List paramTypes);
+    public EnumConstantDecl EnumConstantDecl(Position pos, FlagAnnotations flags, Id name, List args, ClassBody body);
+    public EnumConstantDecl EnumConstantDecl(Position pos, FlagAnnotations flags, Id name, List args);
+    public JL5ClassDecl JL5ClassDecl(Position pos, FlagAnnotations flags, Id name, TypeNode superType, List interfaces, ClassBody body, List paramTypes);
     public JL5ClassBody JL5ClassBody(Position pos, List members);
-    public JL5ConstructorDecl JL5ConstructorDecl(Position pos, FlagAnnotations flags, Id Name, List formals, List throwTypes, Block body, List typeParams);
+    public JL5ConstructorDecl JL5ConstructorDecl(Position pos, FlagAnnotations flags, Id name, List formals, List throwTypes, Block body, List typeParams);
 
-    public JL5Field JL5Field(Position pos, Receiver target, Id Name);
+    public JL5Field JL5Field(Position pos, Receiver target, Id name);
 
     public JL5Case JL5Case(Position pos, Expr expr);
 
-    public JL5MethodDecl JL5MethodDecl(Position pos, FlagAnnotations flags, TypeNode returnType, Id Name, List formals, List throwTypes, Block body, List typeParams);
+    public JL5MethodDecl JL5MethodDecl(Position pos, FlagAnnotations flags, TypeNode returnType, Id name, List formals, List throwTypes, Block body, List typeParams);
 
 
-    public AnnotationElemDecl AnnotationElemDecl(Position pos, FlagAnnotations flags, TypeNode type, Id Name, Expr def);
+    public AnnotationElemDecl AnnotationElemDecl(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr def);
     
     public NormalAnnotationElem NormalAnnotationElem(Position pos, TypeNode name, List elements);
     public MarkerAnnotationElem MarkerAnnotationElem(Position pos, TypeNode name);
     public SingleElementAnnotationElem SingleElementAnnotationElem(Position pos, TypeNode name, Expr value);
 
-    public ElementValuePair ElementValuePair(Position pos, Id Name, Expr value);
+    public ElementValuePair ElementValuePair(Position pos, Id name, Expr value);
 
-    public JL5FieldDecl JL5FieldDecl(Position pos, FlagAnnotations flags, TypeNode type, Id Name, Expr init);
+    public JL5FieldDecl JL5FieldDecl(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr init);
     
-    public JL5Formal JL5Formal(Position pos, FlagAnnotations flags, TypeNode type, Id Name);
-    public JL5Formal JL5Formal(Position pos, FlagAnnotations flags, TypeNode type, Id Name, boolean variable);
+    public JL5Formal JL5Formal(Position pos, FlagAnnotations flags, TypeNode type, Id name);
+    public JL5Formal JL5Formal(Position pos, FlagAnnotations flags, TypeNode type, Id name, boolean variable);
     
-    public JL5LocalDecl JL5LocalDecl(Position pos, FlagAnnotations flags, TypeNode type, Id Name, Expr init);
+    public JL5LocalDecl JL5LocalDecl(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr init);
    
     public JL5PackageNode JL5PackageNode(Position pos, FlagAnnotations flags, Package package_);
 
@@ -64,9 +64,9 @@ public interface JL5NodeFactory extends NodeFactory {
     
     public BoundedTypeNode BoundedTypeNode(Position pos, BoundedTypeNode.Kind kind, TypeNode bound);
 
-    public AmbQualifierNode JL5AmbQualifierNode(Position pos, QualifierNode qual, Id Name, List args);
+    public AmbQualifierNode JL5AmbQualifierNode(Position pos, QualifierNode qual, Id name, List args);
     
-    public AmbTypeNode JL5AmbTypeNode(Position pos, QualifierNode qual, Id Name, List args);
+    public AmbTypeNode JL5AmbTypeNode(Position pos, QualifierNode qual, Id name, List args);
 
     public ConstructorCall JL5ThisCall(Position pos, List args, List typeArgs);
 
@@ -76,7 +76,7 @@ public interface JL5NodeFactory extends NodeFactory {
 
     public ConstructorCall JL5SuperCall(Position pos, Expr outer, List args, List typeArgs);
 
-    public JL5Call JL5Call(Position pos, Receiver target, Id Name, List args, List typeArgs);
+    public JL5Call JL5Call(Position pos, Receiver target, Id name, List args, List typeArgs);
 
     public JL5New JL5New(Position pos, Expr qualifier, TypeNode tn, List arguments, ClassBody body, List typeArgs);
     
