@@ -294,199 +294,168 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         return new JL5PrimitiveType_c(this, kind);
     }
 
-    public void checkClassConformance(ClassType ct) throws SemanticException {
+    public void checkClassConformance(ClassType ct, Context context) throws SemanticException {
 
-        if (JL5Flags.isEnumModifier(ct.flags())) {
-            // check enums elsewhere - have to do something special with
-            // abstract methods and anon enum element bodies
-            // return;
-            JL5ParsedClassType pct = (JL5ParsedClassType) ct;
-            List enumConsts = pct.enumConstants();
-            boolean allAnonNull = true;
-            for (Iterator it = enumConsts.iterator(); it.hasNext();) {
-                EnumInstance ei = (EnumInstance) it.next();
-                if (ei.anonType() != null) {
-                    allAnonNull = false;
-                    break;
-                }
-            }
+    	// JLS 8.9 Enums
+    	// The optional class body of an enum constant implicitly defines an 
+    	// anonymous class declaration (¤15.9.5) that extends the immediately 
+    	// enclosing enum type
+    	if (JL5Flags.isEnumModifier(ct.flags())) {
+    		// check enums elsewhere - have to do something special with
+    		// abstract methods and anon enum element bodies
+    		// return;
+    		JL5ParsedClassType pct = (JL5ParsedClassType) ct;
+    		List<EnumInstance> enumConsts = pct.enumConstants();
+    		boolean allAnonNull = true;
+    		for (Iterator<EnumInstance> it = enumConsts.iterator(); it.hasNext();) {
+    			EnumInstance ei = it.next();
+    			if (ei.anonType() != null) {
+    				allAnonNull = false;
+    				break;
+    			}
+    		}
 
-            if (allAnonNull) {
-                super.checkClassConformance(ct);
-            }
-            else {
-                // if enum type declares abstract method ensure
-                // !!every!! enum constant decl declares anon body
-                // and !!every!! body implements this abstract
-                // method
-                for (Iterator it = ct.methods().iterator(); it.hasNext();) {
-                    MethodInstance mi = (MethodInstance) it.next();
-                    if (!mi.flags().isAbstract())
-                        continue;
-                    for (Iterator jt = enumConsts.iterator(); jt.hasNext();) {
-                        EnumInstance ei = (EnumInstance) jt.next();
-                        if (ei.anonType() == null) {
-                            throw new SemanticException("Enum constant decl: " + ei.name()
-                                    + " must delclare an anonymous subclass of: " + ct
-                                    + " and implement the abstract method: " + mi, ei.position());
-                        }
-                        else {
-                            boolean implFound = false;
-                            for (Iterator kt = ei.anonType().methods().iterator(); kt.hasNext();) {
-                                MethodInstance mj = (MethodInstance) kt.next();
-                                if (canOverride(mj, mi)) {
-                                    implFound = true;
-                                }
-                            }
-                            if (!implFound) {
-                                throw new SemanticException("Enum constant decl anonymous subclass must implement method: "
-                                        + mi, ei.position());
-                            }
-                        }
-                    }
-                }
+    		if (allAnonNull) {
+    			// That's the simplest case when enums are defined without declaring any ClassBody
+    			super.checkClassConformance(ct, context);
+    		} else {
+    			// if enum type declares abstract method ensure
+    			// !!every!! enum constant decl declares anon body
+    			// and !!every!! body implements this abstract
+    			// method
+    			for (Iterator<MethodInstance> it = ct.methods().iterator(); it.hasNext();) {
+    				MethodInstance mi = it.next();
+    				if (!mi.flags().isAbstract())
+    					continue;
+    				for (Iterator<EnumInstance> jt = enumConsts.iterator(); jt.hasNext();) {
+    					EnumInstance ei = jt.next();
+    					// Enum doesn't declare any ClassBody so it cannot implement the abstract method
+    					if (ei.anonType() == null) {
+    						throw new SemanticException("Enum constant decl: " + ei.name()
+    								+ " must declare an anonymous subclass of: " + ct
+    								+ " and implement the abstract method: " + mi, ei.position());
+    					}
+    					else {
+    						boolean implFound = false;
+    						// check if enum's anonType implements the abstract method
+    						for (Iterator<MethodInstance> kt = ei.anonType().methods().iterator(); kt.hasNext();) {
+    							MethodInstance mj = kt.next();
+    							if (canOverride(mj, mi)) {
+    								implFound = true;
+    							}
+    						}
+    						if (!implFound) {
+    							throw new SemanticException("Enum constant decl anonymous subclass must implement method: "
+    									+ mi, ei.position());
+    						}
+    					}
+    				}
+    			}
 
-                // still need to check superInterfaces to ensure this
-                // class implements the methods except they can be
-                // abstract (previous checks ensure okay)
-                List superInterfaces = abstractSuperInterfaces(ct);
-                for (Iterator it = superInterfaces.iterator(); it.hasNext();) {
-                    ReferenceType rt = (ReferenceType) it.next();
-                    if (equals(rt, ct))
-                        continue;
-                    for (Iterator jt = rt.methods().iterator(); jt.hasNext();) {
-                        MethodInstance mi = (MethodInstance) jt.next();
-                        if (!mi.flags().isAbstract())
-                            continue;
+    			// still need to check superInterfaces to ensure this
+    			// class implements the methods except they can't be
+    			// abstract (previous checks ensure okay)
+    			List<Type> superInterfaces = abstractSuperInterfaces(ct);
+    			for (Iterator<Type> it = superInterfaces.iterator(); it.hasNext();) {
+    				Type t = (Type) it.next();
+    				if (t instanceof StructType) {
+    					StructType rt = (StructType) it;
+    					if (typeEquals(rt, ct, context))
+    						continue;
+    					for (Iterator<MethodInstance> jt = rt.methods().iterator(); jt.hasNext();) {
+    						MethodInstance mi = jt.next();
+    						if (!mi.flags().isAbstract())
+    							continue;
 
-                        boolean implFound = false;
-                        // don't need to look in super classes as the only
-                        // one is java.lang.Enum so just look here and
-                        // there
-                        for (Iterator kt = ct.methods().iterator(); kt.hasNext();) {
-                            MethodInstance mj = (MethodInstance) kt.next();
-                            if ((canOverride(mj, mi))) {
-                                implFound = true;
-                                break;
-                            }
-                        }
-                        for (Iterator kt = ct.superType().toReference().methods().iterator(); kt.hasNext();) {
-                            MethodInstance mj = (MethodInstance) kt.next();
-                            if ((canOverride(mj, mi))) {
-                                implFound = true;
-                                break;
-                            }
-                        }
+    						boolean implFound = false;
+    						// don't need to look in super classes as the only
+    						// one is java.lang.Enum so just look here and
+    						// there
+    						
+    						for (Iterator<MethodInstance>  kt = ct.methods().iterator(); kt.hasNext();) {
+    							MethodInstance mj = kt.next();
+    							if ((canOverride(mj, mi))) {
+    								implFound = true;
+    								break;
+    							}
+    						}
+    						for (Iterator<MethodInstance>  kt = ct.superClass().toClass().methods().iterator(); !implFound && kt.hasNext();) {
+    							MethodInstance mj = kt.next();
+    							if ((canOverride(mj, mi))) {
+    								implFound = true;
+    								break;
+    							}
+    						}
 
-                        if (!implFound) {
-                            throw new SemanticException(ct.fullName()
-                                    + " should be declared abstract: it does not define: "
-                                    + mi.signature() + ", which is declared in "
-                                    + rt.toClass().fullName(), ct.position());
-                        }
-                    }
-                }
-            }
-        }
-        else {
-            superCheckClassConformance(ct);
-        }
-    }
-
-	// a copy of checkClassConformance from TypeSystem_c, but modified to use a new method
-	// to get the set of methods that have the same name and formal types as the one we're looking for.
-	// necessary to properly handle generic methods.
-    protected void superCheckClassConformance(ClassType ct) throws SemanticException {
-        if (ct.flags().isAbstract()) {
-            // don't need to check abstract classes and interfaces            
-            return;
-        }
-
-        // build up a list of superclasses and interfaces that ct 
-        // extends/implements that may contain abstract methods that 
-        // ct must define.
-        List superInterfaces = abstractSuperInterfaces(ct);
-
-        // check each abstract method of the classes and interfaces in
-        // superInterfaces
-        for (Iterator i = superInterfaces.iterator(); i.hasNext(); ) {
-            ReferenceType rt = (ReferenceType)i.next();
-            for (Iterator j = rt.methods().iterator(); j.hasNext(); ) {
-                MethodInstance mi = (MethodInstance)j.next();
-                if (!mi.flags().isAbstract()) {
-                    // the method isn't abstract, so ct doesn't have to
-                    // implement it.
-                    continue;
-                }
-
-                boolean implFound = false;
-                ReferenceType curr = ct;
-                while (curr != null && !implFound) {
-                    List possible = ((JL5ParsedClassType)curr).methods((JL5MethodInstance) mi);
-                    for (Iterator k = possible.iterator(); k.hasNext(); ) {
-                        MethodInstance mj = (MethodInstance)k.next();
-                        if (!mj.flags().isAbstract() && 
-                            ((isAccessible(mi, ct) && isAccessible(mj, ct)) || 
-                                    isAccessible(mi, mj.container().toClass()))) {
-                            // The method mj may be a suitable implementation of mi.
-                            // mj is not abstract, and either mj's container 
-                            // can access mi (thus mj can really override mi), or
-                            // mi and mj are both accessible from ct (e.g.,
-                            // mi is declared in an interface that ct implements,
-                            // and mj is defined in a superclass of ct).
-                            
-                            // If neither the method instance mj nor the method 
-                            // instance mi is declared in the class type ct, then 
-                            // we need to check that it has appropriate protections.
-                            if (!equals(ct, mj.container()) && !equals(ct, mi.container())) {
-                                try {
-                                    // check that mj can override mi, which
-                                    // includes access protection checks.
-                                    checkOverride(mj, mi);
-                                }
-                                catch (SemanticException e) {
-                                    // change the position of the semantic
-                                    // exception to be the class that we
-                                    // are checking.
-                                    throw new SemanticException(e.getMessage(),
-                                        ct.position());
-                                }
-                            }
-                            else {
-                                // the method implementation mj or mi was
-                                // declared in ct. So other checks will take
-                                // care of access issues
-                            }
-                            implFound = true;
-                            break;
-                        }
-                    }
-
-                    if (curr == mi.container()) {
-                        // we've reached the definition of the abstract 
-                        // method. We don't want to look higher in the 
-                        // hierarchy; this is not an optimization, but is 
-                        // required for correctness. 
-                        break;
-                    }
-                    
-                    curr = curr.superType() ==  null ?
-                           null : curr.superType().toReference();
-                }
-
-
-                // did we find a suitable implementation of the method mi?
-                if (!implFound && !ct.flags().isAbstract()) {
-                    throw new SemanticException(ct.fullName() + " should be " +
-                            "declared abstract; it does not define " +
-                            mi.signature() + ", which is declared in " +
-                            rt.toClass().fullName(), ct.position());
-                }
-            }
-        }
+    						if (!implFound) {
+    							throw new SemanticException(ct.fullName()
+    									+ " should be declared abstract: it does not define: "
+    									+ mi.signature() + ", which is declared in "
+    									+ rt.toClass().fullName(), ct.position());
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    	else {
+    		checkClassConformance(ct, context);
+    	}
     }
 
 
+    @Override
+    /**
+     * This is a copy paste from TypeSystem_c.
+     * If we modify the StructType to declaire methods(MethodInstance), we can use super implementation
+     */
+    public MethodInstance findImplementingMethod(ClassType ct, MethodInstance mi, boolean includeAbstract, Context context) {
+    	StructType curr = ct;
+    	while (curr != null) {
+    		// methods returns all the mi that match the name and hasFormals
+    		// that are compatible as defined in JL5ProcedureInstance_c
+    		// Note that we could use the super implementation if StructType defined
+    		// a methods(MethodInstance)
+    		List<MethodInstance> possible = 
+    			((JL5ParsedClassType)curr).methods((JL5MethodInstance) mi);
+    		for (Iterator<MethodInstance> k = possible.iterator(); k.hasNext(); ) {
+    			MethodInstance mj = k.next();
+    			if ((includeAbstract || !mj.flags().isAbstract()) && 
+    					((isAccessible(mi, context) && isAccessible(mj, context)) || 
+    							isAccessible(mi, context))) {
+    				// The method mj may be a suitable implementation of mi.
+    				// mj is not abstract, and either mj's container 
+    				// can access mi (thus mj can really override mi), or
+    				// mi and mj are both accessible from ct (e.g.,
+    				// mi is declared in an interface that ct implements,
+    				// and mj is defined in a superclass of ct).
+    				return mj;                    
+    			}
+    		}
+    		if (curr.typeEquals(mi.container(), context)) {
+    			// we've reached the definition of the abstract 
+    			// method. We don't want to look higher in the 
+    			// hierarchy; this is not an optimization, but is 
+    			// required for correctness. 
+    			break;
+    		}
+
+    		if (curr instanceof ObjectType) {
+    			ObjectType ot = (ObjectType) curr;
+    			if (ot.superClass() instanceof StructType) {
+    				curr = (StructType) ot.superClass();
+    			}
+    			else {
+    				curr = null;
+    			}
+    		}
+    		else {
+    			curr = null;
+    		}
+    	}
+    	return null;
+    }
+    
     public EnumInstance findEnumConstant(ReferenceType container, String name, Context c)
             throws SemanticException {
         ClassType ct = null;
