@@ -1607,6 +1607,82 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         return new LubType_c(this, lst);
     }
 
+    /**
+     * TODO Comes from JL5MethodInstance and need to be integrated to the type system
+     * @param mj
+     * @param quiet
+     * @return
+     * @throws SemanticException
+     */
+    public boolean canOverride(MethodInstance mj, boolean quiet) throws SemanticException{
+
+        MethodInstance mi = this;
+
+        if (!(mi.name().equals(mj.name()) && ((JL5MethodInstance)mi).hasSameFormals((JL5ProcedureInstance) mj))) {
+            if (quiet) return false;
+            throw new SemanticException("Arguments or type variables are different", mi.position());
+        }
+
+	    // substitute the type parameters of this method for those of the other method,
+	    // so that they can be properly compared to one another
+	mj = (MethodInstance) ((JL5MethodInstance)mj).typeArguments(this.typeVariables());
+	
+        // changed to isSubtype may need to add bridge methods - even when no generics used - covariant return types 
+        // equals part handles two void return types
+        if (! ts.isImplicitCastValid(mi.returnType(), mj.returnType()) && !ts.equals(mi.returnType() , mj.returnType())){
+            if (quiet) return false;
+            throw new SemanticException(mi.signature() + " in " + mi.container() +
+                                        " cannot override " + 
+                                        mj.signature() + " in " + mj.container() + 
+                                        "; attempting to use incompatible " +
+                                        "return type\n" +                                        
+                                        "found: " + mi.returnType() + "\n" +
+                                        "required: " + mj.returnType(), 
+                                        mi.position());
+        } 
+
+        if (! ts.throwsSubset(mi, mj)) {
+            if (quiet) return false;
+            throw new SemanticException(mi.signature() + " in " + mi.container() +
+                                        " cannot override " + 
+                                        mj.signature() + " in " + mj.container() + 
+                                        "; the throw set is not a subset of the " +
+                                        "overridden method's throw set", 
+                                        mi.position());
+        }   
+
+        if (mi.flags().moreRestrictiveThan(mj.flags())) {
+            if (quiet) return false;
+            throw new SemanticException(mi.signature() + " in " + mi.container() +
+                                        " cannot override " + 
+                                        mj.signature() + " in " + mj.container() + 
+                                        "; attempting to assign weaker " + 
+                                        "access privileges", 
+                                        mi.position());
+        }
+
+        if (mi.flags().isStatic() != mj.flags().isStatic()) {
+            if (quiet) return false;
+            throw new SemanticException(mi.signature() + " in " + mi.container() +
+                                        " cannot override " + 
+                                        mj.signature() + " in " + mj.container() + 
+                                        "; overridden method is " + 
+                                        (mj.flags().isStatic() ? "" : "not") +
+                                        "static", 
+                                        mi.position());
+        }
+
+        if (mi != mj && !mi.equals(mj) && mj.flags().isFinal()) {
+	    // mi can "override" a final method mj if mi and mj are the same method instance.
+            throw new SemanticException(mi.signature() + " in " + mi.container() +
+                                        " cannot override " + 
+                                        mj.signature() + " in " + mj.container() + 
+                                        "; overridden method is final", 
+                                        mi.position());
+        }
+
+        return true;
+    }
     @Override
     public boolean canOverride(MethodInstance mi, MethodInstance mj) {
         return super.canOverride(mi, mj) || super.canOverride(mi, (MethodInstance) ((JL5MethodInstance)mj).erasure());
@@ -1620,7 +1696,6 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
             super.checkOverride(mi, (MethodInstance) ((JL5MethodInstance)mj).erasure());
         }
     }
-
     
     public static class TypeVariableEquals implements Predicate2<TypeVariable> {
     	Context context;

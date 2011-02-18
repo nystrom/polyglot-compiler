@@ -28,6 +28,15 @@ public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends Pro
         typeVariables = new ArrayList<TypeVariable>();
     }
 
+	
+	public JL5ProcedureInstance<T> formalTypes(List<Type> formalTypes) {
+		return (JL5ProcedureInstance<T>) super.formalTypes(formalTypes);
+	}
+
+	public JL5ProcedureInstance<T> throwTypes(List<Type> throwTypes) {
+		return (JL5ProcedureInstance<T>) super.throwTypes(throwTypes);
+	}
+	
     public List<TypeVariable> typeVariables(){
         if (typeArguments == null || typeArguments.size() == 0)
             return typeVariables;
@@ -173,7 +182,7 @@ public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends Pro
         return (substFormals = r);
     }
 
-    public JL5ProcedureInstance erasure() {
+    public JL5ProcedureInstance<T> erasure() {
         JL5TypeSystem ts = (JL5TypeSystem) typeSystem();
         JL5ProcedureInstance_c n = (JL5ProcedureInstance_c) this.copy();
         List<Type> erasedFormals = new ArrayList<Type>();
