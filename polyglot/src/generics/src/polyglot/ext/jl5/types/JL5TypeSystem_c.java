@@ -205,26 +205,6 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         }
     }
 
-    public PrimitiveType primitiveOf(Type t) {
-        if (t.isPrimitive())
-            return (PrimitiveType) t;
-        if (equals(t, FloatWrapper()))
-            return Float();
-        if (equals(t, DoubleWrapper()))
-            return Double();
-        if (equals(t, LongWrapper()))
-            return Long();
-        if (equals(t, IntegerWrapper()))
-            return Int();
-        if (equals(t, ShortWrapper()))
-            return Short();
-        if (equals(t, ByteWrapper()))
-            return Byte();
-        if (equals(t, CharacterWrapper()))
-            return Char();
-        return null;
-    }
-
     public ClassType classOf(Type t) {
         if (t.isClass())
             return (ClassType) t;
@@ -245,61 +225,6 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         if (equals(t, Boolean()))
             return BooleanWrapper();
         return null;
-    }
-
-    public boolean isAutoEquivalent(Type t1, Type t2) {
-        if (t1.isPrimitive()) {
-            if (t1.isInt() && equals(INTEGER_WRAPPER, t2))
-                return true;
-            if (t1.isByte() && equals(BYTE_WRAPPER, t2))
-                return true;
-            if (t1.isShort() && equals(SHORT_WRAPPER, t2))
-                return true;
-            if (t1.isChar() && equals(CHARACTER_WRAPPER, t2))
-                return true;
-            if (t1.isBoolean() && equals(BOOLEAN_WRAPPER, t2))
-                return true;
-            if (t1.isLong() && equals(LONG_WRAPPER, t2))
-                return true;
-            if (t1.isDouble() && equals(DOUBLE_WRAPPER, t2))
-                return true;
-            if (t1.isFloat() && equals(FLOAT_WRAPPER, t2))
-                return true;
-        }
-        else if (t2.isPrimitive()) {
-            if (t2.isInt() && equals(INTEGER_WRAPPER, t1))
-                return true;
-            if (t2.isByte() && equals(BYTE_WRAPPER, t1))
-                return true;
-            if (t2.isShort() && equals(SHORT_WRAPPER, t1))
-                return true;
-            if (t2.isChar() && equals(CHARACTER_WRAPPER, t1))
-                return true;
-            if (t2.isBoolean() && equals(BOOLEAN_WRAPPER, t1))
-                return true;
-            if (t2.isLong() && equals(LONG_WRAPPER, t1))
-                return true;
-            if (t2.isDouble() && equals(DOUBLE_WRAPPER, t1))
-                return true;
-            if (t2.isFloat() && equals(FLOAT_WRAPPER, t1))
-                return true;
-        }
-        return false;
-    }
-
-    public boolean isNumericWrapper(Type t) {
-        if (equals(INTEGER_WRAPPER, t) || equals(BYTE_WRAPPER, t) || equals(SHORT_WRAPPER, t)
-                || equals(CHARACTER_WRAPPER, t) || equals(LONG_WRAPPER, t)
-                || equals(DOUBLE_WRAPPER, t) || equals(FLOAT_WRAPPER, t))
-            return true;
-        return false;
-    }
-
-    public boolean isIntOrLessWrapper(Type t) {
-        if (equals(INTEGER_WRAPPER, t) || equals(BYTE_WRAPPER, t) || equals(SHORT_WRAPPER, t)
-                || equals(CHARACTER_WRAPPER, t))
-            return true;
-        return false;
     }
 
     protected final Flags TOP_LEVEL_CLASS_FLAGS = JL5Flags.setAnnotationModifier(JL5Flags.setEnumModifier(super.TOP_LEVEL_CLASS_FLAGS));

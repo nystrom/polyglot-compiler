@@ -63,19 +63,11 @@ public interface JL5TypeSystem extends TypeSystem {
 
     ClassType FloatWrapper();
 
-    PrimitiveType primitiveOf(Type t);
-
     ClassType classOf(Type t);
 
     boolean equivalent(TypeObject t1, TypeObject t2);
 
     Type erasure(Type t);
-
-    boolean isAutoEquivalent(Type t1, Type t2);
-
-    boolean isNumericWrapper(Type t);
-
-    boolean isIntOrLessWrapper(Type t1);
 
     EnumInstance enumInstance(Position pos, ClassType ct, Flags f, String name,
             ParsedClassType anonType);
