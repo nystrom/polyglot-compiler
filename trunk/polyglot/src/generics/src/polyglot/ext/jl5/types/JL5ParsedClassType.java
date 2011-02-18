@@ -2,7 +2,7 @@ package polyglot.ext.jl5.types;
 
 import java.util.List;
 
-import polyglot.types.LazyClassInitializer;
+import polyglot.types.MethodInstance;
 import polyglot.types.ParsedClassType;
 import polyglot.types.TypeObject;
 
@@ -32,7 +32,7 @@ public interface JL5ParsedClassType extends ParsedClassType {
     boolean isGeneric();
 
 	// find methods with compatible name and formals as the given one
-    List methods(JL5MethodInstance mi);
+    List<MethodInstance> methods(JL5MethodInstance mi);
 
     LazyClassInitializer init();
 

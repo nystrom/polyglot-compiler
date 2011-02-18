@@ -106,13 +106,14 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
         super.addMethod(mi);
     }
 
-	// find methods with compatible name and formals as the given one
-    public List methods(JL5MethodInstance mi) {
+    /**
+     * find methods with compatible name and formals as the given one
+     */
+    public List<MethodInstance> methods(JL5MethodInstance mi) {
         List l = new LinkedList();
-
-        for (Object o : methodsNamed(mi.name())) {
-            JL5ProcedureInstance pi = (JL5ProcedureInstance) o;
-            if (pi.hasSameFormals(mi)) {
+        List<JL5ProcedureInstance> methods = (List) methodsNamed(mi.name());
+        for (JL5ProcedureInstance pi : methods) {
+            if (pi.hasFormals(mi)) {
                 l.add(pi);
             }
         }
