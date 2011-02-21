@@ -1,9 +1,11 @@
 package polyglot.ext.jl5.types;
 
+import polyglot.ast.TypeNode;
 import polyglot.main.Report;
 import polyglot.types.Context;
 import polyglot.types.MethodInstance;
 import polyglot.types.SemanticException;
+import polyglot.types.Type;
 import polyglot.types.TypeEnv_c;
 
 public class JL5TypeEnv_c extends TypeEnv_c {
@@ -14,7 +16,40 @@ public class JL5TypeEnv_c extends TypeEnv_c {
 		super(context);
 		this.jts = (JL5TypeSystem) super.ts;
 	}
-	
+
+    public boolean isImplicitCastValid(Type fromType, Type toType){
+        if (isAutoUnboxingValid(fromType, toType)) {
+        	return true;
+        }
+        
+        if (toType instanceof TypeVariable) {
+            return isClassToIntersectionValid(fromType, toType);
+        }
+        //FIXME
+        return super.isImplicitCastValid(fromType, toType);
+    }
+    
+    
+    //FIXME
+    private boolean isClassToIntersectionValid(Type fromType, Type toType){
+        TypeVariable it = (TypeVariable)toType;
+        if (it.bounds() == null || it.bounds().isEmpty()) return true;
+        return isImplicitCastValid(fromType, ((TypeNode)it.bounds().get(0)).type());
+    }
+    
+    public boolean isAutoUnboxingValid(Type fromType, Type toType){
+        if (!toType.isPrimitive()) return false;
+        if (toType.isInt() && typeEquals(fromType, jts.IntegerWrapper())) return true;
+        if (toType.isBoolean() && typeEquals(fromType, jts.BooleanWrapper())) return true;
+        if (toType.isByte() && typeEquals(fromType, jts.ByteWrapper())) return true;
+        if (toType.isShort() && typeEquals(fromType, jts.ShortWrapper())) return true;
+        if (toType.isChar() && typeEquals(fromType, jts.CharacterWrapper())) return true;
+        if (toType.isLong() && typeEquals(fromType, jts.LongWrapper())) return true;
+        if (toType.isDouble() && typeEquals(fromType, jts.DoubleWrapper())) return true;
+        if (toType.isFloat() && typeEquals(fromType, jts.FloatWrapper())) return true;
+        return false;
+    }
+    
 	@Override
 	public boolean canOverride(MethodInstance mi, MethodInstance mj) {
 		return super.canOverride(mi, mj) || super.canOverride(mi, ((JL5MethodInstance)mj).erasure());
