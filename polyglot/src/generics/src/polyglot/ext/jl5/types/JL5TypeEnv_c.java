@@ -16,10 +16,19 @@ public class JL5TypeEnv_c extends TypeEnv_c {
 	}
 	
 	@Override
-    public void checkOverride(MethodInstance mi, MethodInstance mj) throws SemanticException {
-    	// Override to force to always allow covariant return as we are in JL5 
-    	checkOverride(mi, mj, true);
-    }
+	public boolean canOverride(MethodInstance mi, MethodInstance mj) {
+		return super.canOverride(mi, mj) || super.canOverride(mi, ((JL5MethodInstance)mj).erasure());
+	}
+
+	@Override
+	public void checkOverride(MethodInstance mi, MethodInstance mj) throws SemanticException {
+		// Override to force to always allow covariant return as we are in JL5
+		try {
+			checkOverride(mi, mj, true); 
+		} catch (SemanticException e) {
+			checkOverride(mi, ((JL5MethodInstance)mj).erasure(), true);				
+		}
+	}
 
 	@Override
     public void checkOverride(MethodInstance mii, MethodInstance mjj, boolean allowCovariantReturn) throws SemanticException {

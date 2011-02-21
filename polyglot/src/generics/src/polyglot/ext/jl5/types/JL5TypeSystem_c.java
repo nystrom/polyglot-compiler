@@ -1613,20 +1613,6 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     	return new JL5TypeEnv_c(context);
         }
     
-    @Override
-    public boolean canOverride(MethodInstance mi, MethodInstance mj) {
-        return super.canOverride(mi, mj) || super.canOverride(mi, (MethodInstance) ((JL5MethodInstance)mj).erasure());
-    }
-
-    @Override
-    public void checkOverride(MethodInstance mi, MethodInstance mj) throws SemanticException {
-        try {
-            super.checkOverride(mi, mj);
-        } catch (SemanticException e) {
-            super.checkOverride(mi, (MethodInstance) ((JL5MethodInstance)mj).erasure());
-        }
-    }
-    
     public static class TypeVariableEquals implements Predicate2<TypeVariable> {
     	Context context;
     	public TypeVariableEquals(Context context) {
