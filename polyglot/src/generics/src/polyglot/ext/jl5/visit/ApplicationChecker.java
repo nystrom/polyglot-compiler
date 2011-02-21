@@ -17,7 +17,7 @@ public class ApplicationChecker extends ContextVisitor
 
     protected Node leaveCall(Node old, Node n, NodeVisitor v) throws SemanticException {
         if (n instanceof ApplicationCheck){
-	        return ((ApplicationCheck)n).applicationCheck((ApplicationChecker) v);
+	        return ((ApplicationCheck)n).applicationCheck((ApplicationChecker) v, context());
         }
 	    return n;
     }

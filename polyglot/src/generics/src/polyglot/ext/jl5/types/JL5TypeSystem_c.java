@@ -47,6 +47,7 @@ import polyglot.types.ObjectType;
 import polyglot.types.ParsedClassType;
 import polyglot.types.PrimitiveType;
 import polyglot.types.ProcedureDef;
+import polyglot.types.QName;
 import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.StructType;
@@ -281,6 +282,15 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 
     }
 
+    public boolean typeExtendsAnnotation(Type t) {
+		if (t instanceof ClassType) {
+			ClassType ct = (ClassType) t;
+			return ((ClassType)ct.superClass()).fullName().equals(QName.make("java.lang.annotation.Annotation"));
+		}
+	
+		return false;
+    }
+    
     public LazyClassInitializer defaultClassInitializer() {
         if (defaultClassInit == null) {
             defaultClassInit = new JL5LazyClassInitializer_c(this);
@@ -636,9 +646,9 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
                 return true;
             if (JL5Flags.isAnnotationModifier(((JL5ParsedClassType) t).flags()))
                 return true;
-            if (((JL5ParsedClassType) t).fullName().equals("java.lang.String"))
+            if (((JL5ParsedClassType) t).fullName().equals(QName.make("java.lang.String")))
                 return true;
-            if (((JL5ParsedClassType) t).fullName().equals("java.lang.Class"))
+            if (((JL5ParsedClassType) t).fullName().equals(QName.make("java.lang.Class")))
                 return true;
         }
         if (t.isArray()) {
@@ -717,12 +727,12 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 
             for (Iterator it = applAnnots.iterator(); it.hasNext();) {
                 AnnotationElem next = (AnnotationElem) it.next();
-                if (((ClassType) next.typeName().type()).fullName().equals("java.lang.annotation.Target")) {
+                if (((ClassType) next.typeName().type()).fullName().equals(QName.make("java.lang.annotation.Target"))) {
                     if (next instanceof NormalAnnotationElem) {
                         for (Iterator elems = ((NormalAnnotationElem) next).elements().iterator(); elems.hasNext();) {
                             ElementValuePair elemVal = (ElementValuePair) elems.next();
                             if (elemVal.value() instanceof JL5Field) {
-                                String check = ((JL5Field) elemVal.value()).name();
+                                Name check = ((JL5Field) elemVal.value()).name().id();
                                 appCheckValue(check, n);
                             }
                             else if (elemVal.value() instanceof ArrayInit) {
@@ -736,7 +746,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
                                     for (Iterator vals = val.elements().iterator(); vals.hasNext();) {
                                         Object nextVal = vals.next();
                                         if (nextVal instanceof JL5Field) {
-                                            String valCheck = ((JL5Field) nextVal).name();
+                                            Name valCheck = ((JL5Field) nextVal).name().id();
                                             appCheckValue(valCheck, n);
                                         }
 
@@ -753,41 +763,41 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         }
     }
 
-    private void appCheckValue(String val, Node n) throws SemanticException {
-        if (val.equals("ANNOTATION_TYPE")) {
+    private void appCheckValue(Name val, Node n) throws SemanticException {
+        if (val.equals(Name.make("ANNOTATION_TYPE"))) {
             if (!(n instanceof ClassDecl)
-                    || !JL5Flags.isAnnotationModifier(((ClassDecl) n).flags())) {
+                    || !JL5Flags.isAnnotationModifier(((ClassDecl) n).flags().flags())) {
                 throw new SemanticException("Annotation type not applicable to this kind of declaration", n.position());
             }
         }
-        else if (val.equals("CONSTRUCTOR")) {
+        else if (val.equals(Name.make("CONSTRUCTOR"))) {
             if (!(n instanceof ConstructorDecl)) {
                 throw new SemanticException("Annotation type not applicable to this kind of declaration", n.position());
             }
         }
-        else if (val.equals("FIELD")) {
+        else if (val.equals(Name.make("FIELD"))) {
             if (!(n instanceof FieldDecl)) {
                 throw new SemanticException("Annotation type not applicable to this kind of declaration", n.position());
             }
         }
-        else if (val.equals("LOCAL_VARIABLE")) {
+        else if (val.equals(Name.make("LOCAL_VARIABLE"))) {
             if (!(n instanceof LocalDecl)) {
                 throw new SemanticException("Annotation type not applicable to this kind of declaration", n.position());
             }
         }
-        else if (val.equals("METHOD")) {
+        else if (val.equals(Name.make("METHOD"))) {
             if (!(n instanceof MethodDecl)) {
                 throw new SemanticException("Annotation type not applicable to this kind of declaration", n.position());
             }
         }
-        else if (val.equals("PACKAGE")) {
+        else if (val.equals(Name.make("PACKAGE"))) {
         }
-        else if (val.equals("PARAMETER")) {
+        else if (val.equals(Name.make("PARAMETER"))) {
             if (!(n instanceof Formal)) {
                 throw new SemanticException("Annotation type not applicable to this kind of declaration", n.position());
             }
         }
-        else if (val.equals("TYPE")) {
+        else if (val.equals(Name.make("TYPE"))) {
             if (!(n instanceof ClassDecl)) {
                 throw new SemanticException("Annotation type not applicable to this kind of declaration", n.position());
             }
@@ -1190,17 +1200,17 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
             if (appliedAnnots != null) {
                 for (Iterator jt = appliedAnnots.iterator(); jt.hasNext();) {
                     AnnotationElem next = (AnnotationElem) jt.next();
-                    if (((ClassType) next.typeName().type()).fullName().equals("java.lang.annotation.Retention")) {
+                    if (((ClassType) next.typeName().type()).fullName().equals(QName.make("java.lang.annotation.Retention"))) {
                         for (Iterator elems = ((NormalAnnotationElem) next).elements().iterator(); elems.hasNext();) {
                             ElementValuePair elem = (ElementValuePair) elems.next();
                             if (elem.name().equals("value")) {
                                 if (elem.value() instanceof JL5Field) {
-                                    String val = ((JL5Field) elem.value()).name();
-                                    if (val.equals("RUNTIME")) {
+                                    Name val = ((JL5Field) elem.value()).name().id();
+                                    if (val.equals(Name.make("RUNTIME"))) {
                                         runtimeAnnotations.add(annot);
                                         sorted = true;
                                     }
-                                    else if (val.equals("SOURCE")) {
+                                    else if (val.equals(Name.make("SOURCE"))) {
                                         sourceAnnotations.add(annot);
                                         sorted = true;
                                     }

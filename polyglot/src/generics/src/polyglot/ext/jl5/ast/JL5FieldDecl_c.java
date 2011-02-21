@@ -16,6 +16,7 @@ import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.ext.jl5.visit.ApplicationCheck;
 import polyglot.ext.jl5.visit.ApplicationChecker;
 import polyglot.ext.jl5.visit.JL5AmbiguityRemover;
+import polyglot.types.Context;
 import polyglot.types.SemanticException;
 import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
@@ -91,7 +92,7 @@ public class JL5FieldDecl_c extends FieldDecl_c implements JL5FieldDecl, Applica
         return super.typeCheck(tc);
     }
 
-    public Node applicationCheck(ApplicationChecker appCheck) throws SemanticException {
+    public Node applicationCheck(ApplicationChecker appCheck, Context ctx) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)appCheck.typeSystem();
         for( Iterator it = annotations.iterator(); it.hasNext(); ){
             AnnotationElem next = (AnnotationElem)it.next();

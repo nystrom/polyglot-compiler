@@ -33,6 +33,7 @@ import polyglot.types.ConstructorInstance;
 import polyglot.types.Context;
 import polyglot.types.Flags;
 import polyglot.types.ParsedClassType;
+import polyglot.types.QName;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
@@ -296,7 +297,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
         }
     }
 
-    public Node applicationCheck(ApplicationChecker appCheck) throws SemanticException {
+    public Node applicationCheck(ApplicationChecker appCheck, Context ctx) throws SemanticException {
 
         // check proper used of predefined annotations
         JL5TypeSystem ts = (JL5TypeSystem) appCheck.typeSystem();
@@ -306,16 +307,15 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
         }
 
         // check annotation circularity
-        if (JL5Flags.isAnnotationModifier(flags())) {
-            JL5ParsedClassType ct = (JL5ParsedClassType) type();
+        if (JL5Flags.isAnnotationModifier(flags().flags())) {
+            JL5ParsedClassType ct = (JL5ParsedClassType) type;
             for (Iterator it = ct.annotationElems().iterator(); it.hasNext();) {
                 AnnotationElemInstance ai = (AnnotationElemInstance) it.next();
-                if (ai.type() instanceof ClassType
-                        && ((ClassType) ((ClassType) ai.type()).superType()).fullName().equals("java.lang.annotation.Annotation")) {
+                if (ts.isTypeExtendsAnnotation(ai.type())) {
                     JL5ParsedClassType other = (JL5ParsedClassType) ai.type();
                     for (Iterator otherIt = other.annotationElems().iterator(); otherIt.hasNext();) {
                         AnnotationElemInstance aj = (AnnotationElemInstance) otherIt.next();
-                        if (aj.type().equals(ct)) {
+                        if (ts.typeEquals(aj.type(), ct, ctx)) {
                             throw new SemanticException("cyclic annotation element type", aj.position());
                         }
                     }

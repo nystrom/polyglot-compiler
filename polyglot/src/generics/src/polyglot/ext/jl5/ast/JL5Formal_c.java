@@ -15,6 +15,7 @@ import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.visit.ApplicationCheck;
 import polyglot.ext.jl5.visit.ApplicationChecker;
 import polyglot.types.ArrayType;
+import polyglot.types.Context;
 import polyglot.types.Flags;
 import polyglot.types.SemanticException;
 import polyglot.util.CodeWriter;
@@ -103,7 +104,7 @@ public class JL5Formal_c extends Formal_c implements JL5Formal, ApplicationCheck
         
     }
 
-    public Node applicationCheck(ApplicationChecker appCheck) throws SemanticException {
+    public Node applicationCheck(ApplicationChecker appCheck, Context ctx) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)appCheck.typeSystem();
         for( Iterator it = annotations.iterator(); it.hasNext(); ){
             AnnotationElem next = (AnnotationElem)it.next();
