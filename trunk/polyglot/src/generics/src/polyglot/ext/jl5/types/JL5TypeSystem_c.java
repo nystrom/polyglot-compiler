@@ -342,7 +342,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     						// check if enum's anonType implements the abstract method
     						for (Iterator<MethodInstance> kt = ei.anonType().methods().iterator(); kt.hasNext();) {
     							MethodInstance mj = kt.next();
-    							if (canOverride(mj, mi)) {
+    							if (canOverride(mj, mi, context)) {
     								implFound = true;
     							}
     						}
@@ -376,14 +376,14 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     						
     						for (Iterator<MethodInstance>  kt = ct.methods().iterator(); kt.hasNext();) {
     							MethodInstance mj = kt.next();
-    							if ((canOverride(mj, mi))) {
+    							if ((canOverride(mj, mi, context))) {
     								implFound = true;
     								break;
     							}
     						}
     						for (Iterator<MethodInstance>  kt = ct.superClass().toClass().methods().iterator(); !implFound && kt.hasNext();) {
     							MethodInstance mj = kt.next();
-    							if ((canOverride(mj, mi))) {
+    							if ((canOverride(mj, mi, context))) {
     								implFound = true;
     								break;
     							}
@@ -401,7 +401,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     		}
     	}
     	else {
-    		checkClassConformance(ct, context);
+    		super.checkClassConformance(ct, context);
     	}
     }
 
@@ -647,18 +647,21 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         return false;
     }
 
-    public boolean isBaseCastValid(Type fromType, Type toType) {
-        if (toType.isArray()) {
+    public boolean isBaseCastValid(Type fromType, Type toType, Context context) {
+    	assert_(fromType);
+    	assert_(toType);
+    	if (toType.isArray()) {
             Type base = ((ArrayType) toType).base();
             assert_(base);
-            return fromType.isImplicitCastValidImpl(base);
+    		return env(context).isImplicitCastValid(fromType, base);
         }
         return false;
     }
 
-    public boolean numericConversionBaseValid(Type t, Object value) {
+    public boolean numericConversionBaseValid(Type t, Object value, Context context) {
+    	assert_(t);
         if (t.isArray()) {
-            return super.numericConversionValid(((ArrayType) t).base(), value);
+        	return env(context).numericConversionValid(((ArrayType) t).base(), value);
         }
         return false;
     }
