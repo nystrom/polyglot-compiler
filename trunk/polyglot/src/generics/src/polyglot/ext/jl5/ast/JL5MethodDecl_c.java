@@ -231,7 +231,7 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
         return this;
     }
 
-    public Node applicationCheck(ApplicationChecker appCheck) throws SemanticException {
+    public Node applicationCheck(ApplicationChecker appCheck, Context ctx) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)appCheck.typeSystem();
         for( Iterator it = annotations.iterator(); it.hasNext(); ){
             AnnotationElem next = (AnnotationElem)it.next();

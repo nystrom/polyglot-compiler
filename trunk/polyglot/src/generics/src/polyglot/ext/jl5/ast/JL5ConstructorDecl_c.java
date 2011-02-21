@@ -260,7 +260,7 @@ public class JL5ConstructorDecl_c extends ConstructorDecl_c implements JL5Constr
         
     }
 
-    public Node applicationCheck(ApplicationChecker appCheck) throws SemanticException {
+    public Node applicationCheck(ApplicationChecker appCheck, Context ctx) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)appCheck.typeSystem();
         for( Iterator it = annotations.iterator(); it.hasNext(); ){
             AnnotationElem next = (AnnotationElem)it.next();

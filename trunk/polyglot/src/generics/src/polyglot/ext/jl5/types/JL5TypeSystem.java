@@ -37,6 +37,8 @@ public interface JL5TypeSystem extends TypeSystem {
 
     ParsedClassType createClassType(Source fromSource);
 
+    boolean isTypeExtendsAnnotation(Type t);
+    
     ClassType Class(Type t);
 
     ClassType Enum();

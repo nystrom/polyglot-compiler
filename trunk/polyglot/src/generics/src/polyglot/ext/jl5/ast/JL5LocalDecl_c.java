@@ -16,6 +16,7 @@ import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.ext.jl5.types.TypeVariable.TVarDecl;
 import polyglot.ext.jl5.visit.ApplicationCheck;
 import polyglot.ext.jl5.visit.ApplicationChecker;
+import polyglot.types.Context;
 import polyglot.types.Flags;
 import polyglot.types.SemanticException;
 import polyglot.util.CodeWriter;
@@ -81,7 +82,7 @@ public class JL5LocalDecl_c extends LocalDecl_c implements JL5LocalDecl, Applica
         return super.typeCheck(tc);
     }
    
-    public Node applicationCheck(ApplicationChecker appCheck) throws SemanticException {
+    public Node applicationCheck(ApplicationChecker appCheck, Context ctx) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)appCheck.typeSystem();
         for( Iterator it = annotations.iterator(); it.hasNext(); ){
             AnnotationElem next = (AnnotationElem)it.next();
