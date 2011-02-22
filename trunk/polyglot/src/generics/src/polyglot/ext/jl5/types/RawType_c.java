@@ -127,7 +127,7 @@ public class RawType_c extends GenericTypeRef_c implements RawType {
     public boolean equalsImpl(TypeObject t) {
         if (t instanceof RawType) {
             RawType rt = (RawType) t;
-            return typeSystem().equals(this.baseType(), rt.baseType());
+            return ts.equals((TypeObject)this.baseType(), (TypeObject)rt.baseType());
         }
         return false;
     }

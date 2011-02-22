@@ -195,7 +195,7 @@ public class IntersectionType_c extends ClassType_c implements IntersectionType 
     public boolean equalsImpl(TypeObject other) {
         if (!super.equalsImpl(other)) {
             if (other instanceof ReferenceType) {
-                return typeSystem().isSubtype(this, (Type) other) && typeSystem().isSubtype((Type) other, this);
+                return ts.isSubtype(this, (Type) other, null) && typeSystem().isSubtype((Type) other, this, null);
             }
         }
         return true;

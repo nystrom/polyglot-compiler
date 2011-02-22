@@ -40,7 +40,7 @@ public class AnySuperType_c extends Wildcard_c implements AnySuperType, Signatur
     public boolean equalsImpl(TypeObject t) {
         if (t instanceof AnySuperType) {
             AnySuperType other = (AnySuperType) t;
-            return ts.equals(bound(), other.bound());
+            return ts.equals((TypeObject)bound(), (TypeObject)other.bound());
         }
         return false;
     }
