@@ -230,6 +230,80 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         return null;
     }
 
+
+    @Override
+    public boolean isByte(Type t) {
+    	Context context = emptyContext();
+    	if (typeEquals(t, ByteWrapper(), context)) {
+    		return true;
+    	}
+    	return super.isByte(t);
+    }
+    
+    @Override
+    public boolean isBoolean(Type t) {
+    	Context context = emptyContext();
+    	if (typeEquals(t, BooleanWrapper(), context)) {
+    		return true;
+    	}
+    	return super.isBoolean(t);
+    }
+    
+    @Override
+    public boolean isChar(Type t) {
+    	Context context = emptyContext();
+    	if (typeEquals(t, CharacterWrapper(), context)) {
+    		return true;
+    	}
+    	return super.isChar(t);
+    }
+    
+    @Override
+    public boolean isShort(Type t) {
+    	Context context = emptyContext();
+    	if (typeEquals(t, ShortWrapper(), context)) {
+    		return true;
+    	}
+    	return super.isShort(t);
+    }
+    
+    @Override
+    public boolean isInt(Type t) {
+    	Context context = emptyContext();
+    	if (typeEquals(t, IntegerWrapper(), context)) {
+    		return true;
+    	}
+    	return super.isInt(t);
+    }
+    
+    @Override
+    public boolean isLong(Type t) {
+    	Context context = emptyContext();
+    	if (typeEquals(t, LongWrapper(), context)) {
+    		return true;
+    	}
+    	return super.isLong(t);
+    }
+
+    @Override
+    public boolean isFloat(Type t) {
+    	Context context = emptyContext();
+    	if (typeEquals(t, FloatWrapper(), context)) {
+    		return true;
+    	}
+    	return super.isFloat(t);
+    }
+
+    @Override
+    public boolean isDouble(Type t) {
+    	Context context = emptyContext();
+    	if (typeEquals(t, DoubleWrapper(), context)) {
+    		return true;
+    	}
+    	return super.isDouble(t);
+    }
+	
+    
     protected final Flags TOP_LEVEL_CLASS_FLAGS = JL5Flags.setAnnotationModifier(JL5Flags.setEnumModifier(super.TOP_LEVEL_CLASS_FLAGS));
 
     protected final Flags MEMBER_CLASS_FLAGS = JL5Flags.setAnnotationModifier(JL5Flags.setEnumModifier(super.MEMBER_CLASS_FLAGS));
@@ -815,16 +889,9 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         }
     }
 
-    public boolean equivalent(TypeObject arg1, TypeObject arg2) {
-        if (arg1 instanceof GenericTypeRef)
-            return ((GenericTypeRef) arg1).equivalentImpl(arg2);
-        if (arg1 instanceof TypeVariable)
-            return ((TypeVariable) arg1).equivalentImpl(arg2);
-        if (arg1 instanceof JL5PrimitiveType)
-            return ((JL5PrimitiveType) arg1).equivalentImpl(arg2);
-        if (arg1 instanceof JL5ParsedClassType)
-            return ((JL5ParsedClassType) arg1).equivalentImpl(arg2);
-        return false;
+    public boolean equivalent(Type fromType, Type toType) {
+    	Context context = emptyContext();
+    	return env(context).equivalent(fromType, toType);
     }
 
     public AnyType anyType() {
@@ -1480,18 +1547,6 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         }
     }
 
-    @Override
-    public boolean isImplicitCastValid(Type fromType, Type toType) {
-        if (toType instanceof TypeVariable) {
-            TypeVariable tv = (TypeVariable) toType;
-            return super.isImplicitCastValid(fromType, tv.lowerBound())
-                    || super.isImplicitCastValid(fromType, toType);
-        }
-        else {
-            return super.isImplicitCastValid(fromType, toType);
-        }
-    }
-    
     public ConstructorInstance findJL5Constructor(Type container, JL5ConstructorMatcher matcher) throws SemanticException {
     	assert_(container);
 

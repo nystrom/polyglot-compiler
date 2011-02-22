@@ -13,7 +13,6 @@ import polyglot.types.ReferenceType;
 import polyglot.types.Resolver;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
-import sun.util.calendar.Era;
 
 /* A reference to an instantiation of a parameterized type */
 

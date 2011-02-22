@@ -28,7 +28,6 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
     // these are annotations that have been declared on (applied to) the type
     protected List annotations;
     protected List<TypeVariable> typeVariables;
-//    protected List typeArguments;
 
     public JL5ParsedClassType_c( TypeSystem ts, LazyClassInitializer init, Source fromSource){
         super(ts, init, fromSource);
@@ -119,38 +118,6 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
         }
 	return l;
     }
-    
-    public boolean isImplicitCastValidImpl(Type toType){
-        if (isAutoUnboxingValid(toType)) return true;
-        return super.isImplicitCastValidImpl(toType);
-    }
-
-    private boolean isClassToIntersectionValid(Type toType){
-        TypeVariable it = (TypeVariable)toType;
-        if (it.bounds() == null || it.bounds().isEmpty()) return true;
-        return ts.isImplicitCastValid(this, it.bounds().get(0));
-    }
-    
-    private boolean isAutoUnboxingValid(Type toType){
-        if (!toType.isPrimitive()) return false;
-        if (this.fullName().equals("java.lang.Integer")) return ts.isImplicitCastValid(ts.Int(), toType);
-        if (this.fullName().equals("java.lang.Boolean")) return ts.isImplicitCastValid(ts.Boolean(), toType);
-        if (this.fullName().equals("java.lang.Byte")) return ts.isImplicitCastValid(ts.Byte(), toType);
-        if (this.fullName().equals("java.lang.Short")) return ts.isImplicitCastValid(ts.Short(), toType);
-        if (this.fullName().equals("java.lang.Character")) return ts.isImplicitCastValid(ts.Char(), toType);
-        if (this.fullName().equals("java.lang.Long")) return ts.isImplicitCastValid(ts.Long(), toType);
-        if (this.fullName().equals("java.lang.Float")) return ts.isImplicitCastValid(ts.Float(), toType);
-        if (this.fullName().equals("java.lang.Double")) return ts.isImplicitCastValid(ts.Double(), toType);
-        /*if (toType.isInt() && this.fullName().equals("java.lang.Integer")) return true;
-        if (toType.isBoolean() && this.fullName().equals("java.lang.Boolean")) return true;
-        if (toType.isByte() && this.fullName().equals("java.lang.Byte")) return true;
-        if (toType.isShort() && this.fullName().equals("java.lang.Short")) return true;
-        if (toType.isChar() && this.fullName().equals("java.lang.Character")) return true;
-        if (toType.isLong() && this.fullName().equals("java.lang.Long")) return true;
-        if (toType.isDouble() && this.fullName().equals("java.lang.Double")) return true;
-        if (toType.isFloat() && this.fullName().equals("java.lang.Float")) return true;*/
-        return false;
-    }
 
     public List<TypeVariable> typeVariables(){
         return typeVariables;
@@ -212,209 +179,21 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
         return this.init;
     }
 
-    /*public List typeArguments(){
-        return typeArguments;
-    }
-
-    public void typeArguments(List args){
-        this.typeArguments = args;
-    }
-   
-    public boolean isParameterized(){
-        if (typeArguments != null && !typeArguments.isEmpty()) return true;
-        return false;
-    }
-    
-    public String translate(Resolver c){
-        StringBuffer sb = new StringBuffer(super.translate(c));
-        if (isParameterized()){
-            sb.append("<");
-            for (Iterator it = typeArguments().iterator(); it.hasNext(); ){
-                sb.append(((Type)it.next()).translate(c));
-                if (it.hasNext()){
-                    sb.append(", ");
-                }
-            }
-            sb.append(">");
-        }
-        return sb.toString();
-    }*/
-
-    public boolean numericConversionValidImpl(long l){
-        return numericConversionValid(new Long(l));
-    }
-
-    public boolean numericConversionValidImpl(Object value){
-        if (value == null) return false;
-
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (value instanceof Float){
-            //if (ts.equals(this, ts.FloatWrapper())) return true;
-            return false;
-        }
-        if (value instanceof Double){
-            //if (ts.equals(this, ts.DoubleWrapper())) return true;
-            return false;
-        }
-
-        long v;
-        if (value instanceof Number){
-            v = ((Number) value).longValue();
-        }
-        else if (value instanceof Character){
-            v = ((Character) value).charValue();
-        }
-        else {
-            return false;
-        }
-
-        if (ts.equals(this, ts.LongWrapper()) && value instanceof Long) return true;
-        if (ts.equals(this, ts.IntegerWrapper()) && value instanceof Integer) return Integer.MIN_VALUE <= v && v <= Integer.MAX_VALUE;
-        if (ts.equals(this, ts.CharacterWrapper()) && value instanceof Character) return Character.MIN_VALUE <= v && v <= Character.MAX_VALUE;
-        if (ts.equals(this, ts.ShortWrapper()) && value instanceof Short) return Short.MIN_VALUE <= v && v <= Short.MAX_VALUE;
-        if (ts.equals(this, ts.ByteWrapper()) && value instanceof Byte) return Byte.MIN_VALUE <= v && v <= Byte.MAX_VALUE;
-
-        return false;
-    }
-
-
-// 	// a straw man?  two class types are equal if they have the same name
-//     public boolean equalsImpl(TypeObject t) {
-// 	System.out.println("comparing " + this + " and " + t);
-// 	if (t instanceof JL5ParsedClassType) {
-// 	    JL5ParsedClassType ct = (JL5ParsedClassType) t;
-// 	    return this.fullName().equals(ct.fullName());
-// 	}
-// 	return false;
-//     }
-    
-    /*public boolean equalsImpl(TypeObject t){
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (t instanceof PrimitiveType){ 
-            if (this.isBoolean() && ((Type)t).isBoolean()) return true;
-            if (this.isInt() && ((Type)t).isInt()) return true;
-            if (this.isByte() && ((Type)t).isByte()) return true;
-            if (this.isShort() && ((Type)t).isShort()) return true;
-            if (this.isChar() && ((Type)t).isChar()) return true;
-            if (this.isLong() && ((Type)t).isLong()) return true;
-            if (this.isFloat() && ((Type)t).isFloat()) return true;
-            if (this.isDouble() && ((Type)t).isDouble()) return true;
-        }
-        return super.equalsImpl(t);
-    }*/
-
-    public boolean equivalentImpl(TypeObject t){
-   //     JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (t instanceof PrimitiveType){ 
-            if (this.isBoolean() && ((Type)t).isBoolean()) return true;
-            if (this.isInt() && ((Type)t).isInt()) return true;
-            if (this.isByte() && ((Type)t).isByte()) return true;
-            if (this.isShort() && ((Type)t).isShort()) return true;
-            if (this.isChar() && ((Type)t).isChar()) return true;
-            if (this.isLong() && ((Type)t).isLong()) return true;
-            if (this.isFloat() && ((Type)t).isFloat()) return true;
-            if (this.isDouble() && ((Type)t).isDouble()) return true;
-        }
-        return false;
-    }
-
-    public boolean isNumeric(){
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (this.equals(ts.IntegerWrapper())) return true;
-        if (this.equals(ts.ByteWrapper())) return true;
-        if (this.equals(ts.ShortWrapper())) return true;
-        if (this.equals(ts.CharacterWrapper())) return true;
-        if (this.equals(ts.LongWrapper())) return true;
-        if (this.equals(ts.FloatWrapper())) return true;
-        if (this.equals(ts.DoubleWrapper())) return true;
-        return false;
-    }
-
-    public boolean isByte(){
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (this.equals(ts.ByteWrapper())) return true;
-        return false;
-    }
-
-    public boolean isShort(){
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (this.equals(ts.ShortWrapper())) return true;
-        return false; 
-    }
-
-    public boolean isIntOrLess(){
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (this.equals(ts.IntegerWrapper())) return true;
-        if (this.equals(ts.ByteWrapper())) return true;
-        if (this.equals(ts.ShortWrapper())) return true;
-        if (this.equals(ts.CharacterWrapper())) return true;
-        return false; 
-    }
-
-    public boolean isInt(){
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (this.equals(ts.IntegerWrapper())) return true;
-        return false;
-    }
-
+    /**
+     * If class is a box type, returns its primitive counterpart
+     */
+    @Override
     public PrimitiveType toPrimitive() {
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (this.equals(ts.IntegerWrapper())) return typeSystem().Int();
-        if (this.equals(ts.ByteWrapper())) return typeSystem().Byte();
-        if (this.equals(ts.ShortWrapper())) return typeSystem().Short();
-        if (this.equals(ts.CharacterWrapper())) return typeSystem().Char();
-        if (this.equals(ts.LongWrapper())) return typeSystem().Long();
-        if (this.equals(ts.FloatWrapper())) return typeSystem().Float();
-        if (this.equals(ts.DoubleWrapper())) return typeSystem().Double();
+        TypeSystem ts = typeSystem();
+        if (ts.isBoolean(this)) return (PrimitiveType) ts.Boolean();
+        if (ts.isByte(this)) return (PrimitiveType) ts.Byte();
+        if (ts.isShort(this)) return (PrimitiveType) ts.Short();
+        if (ts.isChar(this)) return (PrimitiveType) ts.Char();
+        if (ts.isInt(this)) return (PrimitiveType) ts.Int();
+        if (ts.isLong(this)) return (PrimitiveType) ts.Long();
+        if (ts.isFloat(this)) return (PrimitiveType) ts.Float();
+        if (ts.isDouble(this)) return (PrimitiveType) ts.Double();
         return super.toPrimitive();
-    }
-
-    public boolean isBoolean(){
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (this.equals(ts.BooleanWrapper())) return true;
-        return false;
-    }
-
-    public boolean isChar(){
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (this.equals(ts.CharacterWrapper())) return true;
-        return false;
-    }
-
-    public boolean isFloat(){
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (this.equals(ts.FloatWrapper())) return true;
-        return false;
-    }
-
-    public boolean isLong(){
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (this.equals(ts.LongWrapper())) return true;
-        return false;
-    }
-    
-    public boolean isDouble(){
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (this.equals(ts.DoubleWrapper())) return true;
-        return false;
-    }
-
-
-    public boolean isCastValidImpl(Type toType){
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        if (isNumeric() || isBoolean()){
-            if (isBoolean() && toType.isBoolean()) return true;
-            if (isByte() && (toType.isByte() || toType.isShort() || toType.isInt() || toType.isLong() || toType.isFloat() || toType.isDouble())) return true;
-            if (isShort() && (toType.isShort() || toType.isInt() || toType.isLong() || toType.isFloat() || toType.isDouble())) return true;
-            if (isChar() && (toType.isChar() || toType.isInt() || toType.isLong() || toType.isFloat() || toType.isDouble())) return true;
-            if (isInt() && (toType.isInt() || toType.isLong() || toType.isFloat() || toType.isDouble())) return true;
-            if (isLong() && (toType.isLong() || toType.isFloat() || toType.isDouble())) return true;
-            if (isFloat() && (toType.isFloat() || toType.isDouble())) return true;
-            if (isDouble() && toType.isDouble()) return true;
-
-            //if (toType.isPrimitive()) return ts.isCastValid(toPrimitive(), toType);
-        }
-        return super.isCastValidImpl(toType);
     }
     
     public String translate(Resolver c) {
