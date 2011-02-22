@@ -1,5 +1,6 @@
 package polyglot.ext.jl5.types;
 
+import polyglot.ast.TypeNode;
 import polyglot.types.ReferenceType;
 import polyglot.types.Resolver;
 import polyglot.types.TypeObject;
@@ -36,7 +37,7 @@ public class AnySubType_c extends Wildcard_c implements AnySubType, SignatureTyp
     public boolean equalsImpl(TypeObject t) {
         if (t instanceof AnySubType) {
             AnySubType other = (AnySubType) t;
-            return ts.equals(bound(), other.bound());
+            return ts.equals((TypeObject)bound(), (TypeObject)other.bound());
         }
         return false;
     }

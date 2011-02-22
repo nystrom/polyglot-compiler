@@ -6,6 +6,7 @@ import java.util.List;
 
 import polyglot.types.ClassType;
 import polyglot.types.ConstructorInstance;
+import polyglot.types.Context;
 import polyglot.types.FieldInstance;
 import polyglot.types.MethodInstance;
 import polyglot.types.Named;
@@ -122,9 +123,10 @@ public class ParameterizedType_c extends GenericTypeRef_c implements Parameteriz
      }
      */
     public boolean equivalentImpl(TypeObject t) {
+    	Context ctx = ts.emptyContext();
         if (!(t instanceof ParameterizedType))
             return false;
-        if (ts.equals(((ParameterizedType) t).baseType(), this.baseType())) {
+        if (ts.typeEquals(((ParameterizedType) t).baseType(), this.baseType(), ctx)) {
             int i = 0;
             for (i = 0; i < ((ParameterizedType) t).typeArguments().size()
                     && i < this.typeArguments().size(); i++) {
@@ -147,7 +149,7 @@ public class ParameterizedType_c extends GenericTypeRef_c implements Parameteriz
                             return false;
                     }
                     else {
-                        if (!ts.equals(bound1, bound2))
+                        if (!ts.typeEquals(bound1, bound2, ctx))
                             return false;
                     }
                     continue;
@@ -166,7 +168,7 @@ public class ParameterizedType_c extends GenericTypeRef_c implements Parameteriz
                             return false;
                     }
                     else {
-                        if (!ts.equals(bound1, bound2))
+                        if (!ts.typeEquals(bound1, bound2, ctx))
                             return false;
                     }
                     continue;
@@ -177,7 +179,7 @@ public class ParameterizedType_c extends GenericTypeRef_c implements Parameteriz
                     continue;
                 }
                 else {
-                    if (!typeSystem().equals(t1, t2))
+                    if (!ts.typeEquals(t1, t2, ctx))
                         return false;
                     continue;
                 }
@@ -193,12 +195,12 @@ public class ParameterizedType_c extends GenericTypeRef_c implements Parameteriz
     public boolean equalsImpl(TypeObject t) {
         if (t instanceof ParameterizedType) {
             ParameterizedType other = (ParameterizedType) t;
-            if (ts.equals(baseType(), other.baseType())
+            if (ts.equals((TypeObject)baseType(), (TypeObject)other.baseType())
                     && (typeArguments().size() == other.typeArguments().size())) {
                 for (int i = 0; i < typeArguments().size(); i++) {
                     Type arg1 = typeArguments().get(i);
                     Type arg2 = other.typeArguments().get(i);
-                    if (!ts.equals(arg1, arg2))
+                    if (!ts.equals((TypeObject)arg1, (TypeObject)arg2))
                         return false;
                 }
                 return true;

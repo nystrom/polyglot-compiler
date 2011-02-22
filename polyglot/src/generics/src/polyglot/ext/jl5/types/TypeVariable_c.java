@@ -174,9 +174,8 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
                 //(ts.equals(declaringMethod(), arg2.declaringMethod())); 
             }
             else if (declaredIn().equals(TVarDecl.CLASSTV)) {
-                return (arg2.declaredIn().equals(TVarDecl.CLASSTV)) &&
-                    declaringClass().equals(arg2.declaringClass());
-//                    (ts.equals(declaringClass(), arg2.declaringClass()));
+            	return (arg2.declaredIn().equals(TVarDecl.CLASSTV)) &&
+            		ts.equals((TypeObject)declaringClass(), (TypeObject)arg2.declaringClass());
             }
             return true;
         }
@@ -212,15 +211,17 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
     }
 */
     public boolean isEquivalent(TypeObject arg2) {
-        if (arg2 instanceof TypeVariable) {
-            if (this.erasureType() instanceof ParameterizedType
-                    && ((TypeVariable) arg2).erasureType() instanceof ParameterizedType) {
-                return typeSystem().equals(((ParameterizedType) this.erasureType()).baseType(), ((ParameterizedType) ((TypeVariable) arg2).erasureType()).baseType());
-            } else {
-                return typeSystem().equals(this.erasureType(), ((TypeVariable) arg2).erasureType());
-            }
-        }
-        return false;
+    	if (arg2 instanceof TypeVariable) {
+    		if (this.erasureType() instanceof ParameterizedType
+    				&& ((TypeVariable) arg2).erasureType() instanceof ParameterizedType) {
+    			return typeSystem().equals((TypeObject)((ParameterizedType) this.erasureType()).baseType(), 
+    					(TypeObject) ((ParameterizedType) ((TypeVariable) arg2).erasureType()).baseType());
+    		} else {
+    			return typeSystem().equals((TypeObject) this.erasureType(), 
+    					(TypeObject) ((TypeVariable) arg2).erasureType());
+    		}
+    	}
+    	return false;
     }
 
     public Type erasureType() {

@@ -151,25 +151,6 @@ public class JL5TypeEnv_c extends TypeEnv_c {
         return false; 
     }
     
-    /**
-     * @deprecated
-     * @param fromType
-     * @param toType
-     * @return
-     */
-    private boolean isAutoUnboxingValid(Type fromType, Type toType){
-        if (!toType.isPrimitive()) return false;
-        if (toType.isInt() && typeEquals(fromType, jts.IntegerWrapper())) return true;
-        if (toType.isBoolean() && typeEquals(fromType, jts.BooleanWrapper())) return true;
-        if (toType.isByte() && typeEquals(fromType, jts.ByteWrapper())) return true;
-        if (toType.isShort() && typeEquals(fromType, jts.ShortWrapper())) return true;
-        if (toType.isChar() && typeEquals(fromType, jts.CharacterWrapper())) return true;
-        if (toType.isLong() && typeEquals(fromType, jts.LongWrapper())) return true;
-        if (toType.isDouble() && typeEquals(fromType, jts.DoubleWrapper())) return true;
-        if (toType.isFloat() && typeEquals(fromType, jts.FloatWrapper())) return true;
-        return false;
-    }
-    
 	@Override
 	public boolean canOverride(MethodInstance mi, MethodInstance mj) {
 		return super.canOverride(mi, mj) || super.canOverride(mi, ((JL5MethodInstance)mj).erasure());
