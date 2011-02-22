@@ -1,6 +1,7 @@
 package polyglot.ext.jl5.types;
 
 import polyglot.types.ArrayType_c;
+import polyglot.types.Ref;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
 import polyglot.util.Position;
@@ -9,7 +10,7 @@ public class JL5ArrayType_c extends ArrayType_c implements JL5ArrayType, Signatu
 
     protected boolean  variable;
 
-    public JL5ArrayType_c(TypeSystem ts, Position pos, Type base){
+    public JL5ArrayType_c(TypeSystem ts, Position pos, Ref<? extends Type> base){
         super(ts, pos, base);
     }
     

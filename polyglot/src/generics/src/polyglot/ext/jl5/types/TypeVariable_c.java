@@ -5,6 +5,7 @@ import java.util.List;
 
 import polyglot.types.ClassType_c;
 import polyglot.types.ClassType;
+import polyglot.types.Context;
 import polyglot.types.Flags;
 import polyglot.types.ReferenceType;
 import polyglot.types.Resolver;
@@ -150,7 +151,7 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
         upperBound = b;
         upperBound.boundOf(this);
     }
-
+    
     public boolean isCastValidImpl(Type toType) {
         return ts.isCastValid(upperBound(), toType);
     }

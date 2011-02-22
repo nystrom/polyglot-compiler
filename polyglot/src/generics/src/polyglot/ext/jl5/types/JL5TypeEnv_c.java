@@ -4,9 +4,12 @@ import polyglot.ast.TypeNode;
 import polyglot.main.Report;
 import polyglot.types.Context;
 import polyglot.types.MethodInstance;
+import polyglot.types.PrimitiveType;
+import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeEnv_c;
+import polyglot.types.TypeObject;
 
 public class JL5TypeEnv_c extends TypeEnv_c {
 
@@ -17,27 +20,144 @@ public class JL5TypeEnv_c extends TypeEnv_c {
 		this.jts = (JL5TypeSystem) super.ts;
 	}
 
-    public boolean isImplicitCastValid(Type fromType, Type toType){
-        if (isAutoUnboxingValid(fromType, toType)) {
-        	return true;
-        }
-        
-        if (toType instanceof TypeVariable) {
-            return isClassToIntersectionValid(fromType, toType);
-        }
-        //FIXME
-        return super.isImplicitCastValid(fromType, toType);
-    }
     
+	public boolean isImplicitCastValid(Type fromType, Type toType) {
+
+		if (toType instanceof TypeVariable) {
+			// what does it mean to implicitly cast to a TypeVariable ?
+			assert(false);
+			TypeVariable tv = (TypeVariable) toType;
+			return super.isImplicitCastValid(fromType, tv.lowerBound())
+			|| super.isImplicitCastValid(fromType, toType);
+		}
+		//from ClassType to TypeVariable
+//		if (toType instanceof TypeVariable){
+//			return isClassToIntersectionValid(fromType, toType);
+//		}
+
+		// boxing
+		if ((toType instanceof ReferenceType) && 
+				(fromType instanceof PrimitiveType)) {
+			return isImplicitCastValid(fromType, jts.classOf(toType));
+		}
+
+		// unboxing
+		if ((fromType instanceof ReferenceType) && 
+				(toType instanceof PrimitiveType)) {
+			return isImplicitCastValid(jts.classOf(fromType), toType);
+		} 
+
+		// from Ref to Ref or only Primitive and Arrays involved
+		return super.isImplicitCastValid(fromType, toType);
+	}
     
-    //FIXME
+	/**
+	 * @deprecated
+	 * @param fromType
+	 * @param toType
+	 * @return
+	 */
     private boolean isClassToIntersectionValid(Type fromType, Type toType){
         TypeVariable it = (TypeVariable)toType;
         if (it.bounds() == null || it.bounds().isEmpty()) return true;
         return isImplicitCastValid(fromType, ((TypeNode)it.bounds().get(0)).type());
     }
+
+    /**
+     * Returns true if <code>value</code> can be implicitly cast to
+     * Primitive or Box type <code>t</code>.
+     */
+    @Override
+    public boolean numericConversionValid(Type t, Object value) {
+    	if (t instanceof PrimitiveType) {
+    		return super.numericConversionValid(t, value);
+    	} else {
+    		// boxing / unboxing
+            if (value == null) return false;
+
+        	if (value instanceof Float || value instanceof Double)
+        	    return false;
+
+            long v;
+            if (value instanceof Number){
+                v = ((Number) value).longValue();
+            }
+            else if (value instanceof Character){
+                v = ((Character) value).charValue();
+            }
+            else {
+                return false;
+            }
+
+            if (typeEquals(t, jts.LongWrapper()) && value instanceof Long) return true;
+            if (typeEquals(t, jts.IntegerWrapper()) && value instanceof Integer) return Integer.MIN_VALUE <= v && v <= Integer.MAX_VALUE;
+            if (typeEquals(t, jts.CharacterWrapper()) && value instanceof Character) return Character.MIN_VALUE <= v && v <= Character.MAX_VALUE;
+            if (typeEquals(t, jts.ShortWrapper()) && value instanceof Short) return Short.MIN_VALUE <= v && v <= Short.MAX_VALUE;
+            if (typeEquals(t, jts.ByteWrapper()) && value instanceof Byte) return Byte.MIN_VALUE <= v && v <= Byte.MAX_VALUE;
+
+            return false;
+    	}
+    }
     
-    public boolean isAutoUnboxingValid(Type fromType, Type toType){
+    @Override
+    public boolean isSubtype(Type t1, Type t2) {
+    	// does t1 is a subtype of t2 ?
+    	// If t1 is a 
+    	return super.isSubtype(t1, t2);
+    }
+    
+    /**
+     * Take into account boxing and unboxing cast
+     */
+    @Override
+    public boolean isCastValid(Type fromType, Type toType) {
+    	// boxing / unboxing cast check
+    	if (fromType.isPrimitive() && toType.isReference()) {
+    		return jts.equivalent(fromType, toType);
+    	}
+    	
+    	if (fromType.isReference() && toType.isPrimitive()) {
+    		// check if fromType is a boxed type
+    		PrimitiveType pt = fromType.toPrimitive();
+    		
+    		// if fromType is a box, as toPrimitive returns != null
+    		// then we use primitive to primitive cast conversion rules
+    		if (pt != null) {
+    			return super.isCastValid(pt, toType);
+    		}
+    	}
+
+    	// regular casts
+    	return super.isCastValid(fromType, toType);
+    }
+
+    
+    public boolean equivalent(Type fromType, Type toType) {
+        if (fromType instanceof GenericTypeRef)
+            return ((GenericTypeRef) fromType).equivalentImpl(toType);
+        if (fromType instanceof TypeVariable)
+            return ((TypeVariable) fromType).equivalentImpl(toType);
+        
+    	if ((fromType instanceof JL5PrimitiveType) || (fromType instanceof JL5ParsedClassType)) {
+	        if (fromType.isBoolean() && toType.isBoolean()) return true;
+	        if (fromType.isInt() && toType.isInt()) return true;
+	        if (fromType.isByte() && toType.isByte()) return true;
+	        if (fromType.isShort() && toType.isShort()) return true;
+	        if (fromType.isChar() && toType.isChar()) return true;
+	        if (fromType.isLong() && toType.isLong()) return true;
+	        if (fromType.isFloat() && toType.isFloat()) return true;
+	        if (fromType.isDouble() && toType.isDouble()) return true;
+    	}
+        return false; 
+    }
+    
+    /**
+     * @deprecated
+     * @param fromType
+     * @param toType
+     * @return
+     */
+    private boolean isAutoUnboxingValid(Type fromType, Type toType){
         if (!toType.isPrimitive()) return false;
         if (toType.isInt() && typeEquals(fromType, jts.IntegerWrapper())) return true;
         if (toType.isBoolean() && typeEquals(fromType, jts.BooleanWrapper())) return true;
