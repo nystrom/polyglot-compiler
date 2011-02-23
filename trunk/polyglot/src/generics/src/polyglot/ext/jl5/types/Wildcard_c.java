@@ -30,9 +30,5 @@ public abstract class Wildcard_c extends Type_c implements Wildcard {
     public void bound(ReferenceType bound) {
         this.bound = bound;
     }
-
-    public final boolean isSubtypeImpl(Type t) {
-        return false;
-    }
     
 }
