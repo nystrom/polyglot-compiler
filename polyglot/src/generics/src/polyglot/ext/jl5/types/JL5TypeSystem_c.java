@@ -46,14 +46,12 @@ import polyglot.types.NoMemberException;
 import polyglot.types.ObjectType;
 import polyglot.types.ParsedClassType;
 import polyglot.types.PrimitiveType;
-import polyglot.types.ProcedureDef;
 import polyglot.types.QName;
 import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.StructType;
 import polyglot.types.Type;
 import polyglot.types.TypeEnv;
-import polyglot.types.TypeEnv_c;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 import polyglot.types.TypeSystem_c;
@@ -891,7 +889,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 
     public boolean equivalent(Type fromType, Type toType) {
     	Context context = emptyContext();
-    	return env(context).equivalent(fromType, toType);
+    	return ((JL5Context)env(context)).equivalent(fromType, toType);
     }
 
     public AnyType anyType() {
@@ -981,8 +979,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     public MethodInstance findJL5Method(Type container, JL5MethodMatcher matcher) throws SemanticException {
     	assert_(container); 
 
-    	Name name = matcher.name();
-    	List<Type> explicitTypeArgTypes = matcher.getExplicitTypeArgs(); 
+    	Name name = matcher.name(); 
 
     	// Filters by method name (JLS 15.12.2.1)
     	// Filters on parameter size (including variable arity) and accessibility
@@ -1521,30 +1518,54 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     }
 
     @Override
-    public boolean isSubtype(Type t1, Type t2) {
-        if (t2 instanceof TypeVariable) {
-            TypeVariable tv = (TypeVariable) t2;
-            return super.isSubtype(t1, t2) || super.isSubtype(t1, tv.lowerBound());
-        }
-        else if (t2 instanceof LubType) {
-            LubType lt = (LubType) t2;
-            for (Type e : lt.lubElements()) {
-                if (isSubtype(t1, e))
-                    return true;
-            }
-            return isSubtype(t1, lt.calculateLub());
-        }
-        else if (t2 instanceof IntersectionType) {
-            IntersectionType it = (IntersectionType) t2;
-            for (Type b : it.bounds()) {
-                if (!isSubtype(t1, b))
-                    return false;
-            }
-            return true;
-        }
-        else {
-            return super.isSubtype(t1, t2);
-        }
+    public boolean isSubtype(Type t1, Type t2, Context ctx) {
+    	//CHECK: Need to double check correctness of this method 
+
+    	// these rules come from each implementation
+    	// of Wildcard, LubType and IntersectionType
+    	if (t1 instanceof Wildcard) {
+    		return false;
+    	}
+
+    	if (t1 instanceof LubType) {
+    		LubType lubType = (LubType) t1;
+    		Type ancestor = t2;
+    		for (Type elem : lubType.lubElements()) {
+    			if (!isSubtype(elem, ancestor, ctx)) return false;
+    		}
+    		return true;    		
+    	}
+
+    	if (t1 instanceof IntersectionType) {
+    		IntersectionType it = (IntersectionType) t1;
+    		Type ancestor = t2;
+    		for (Type b : it.bounds()) {
+    			if (isSubtype(b, ancestor, ctx)) return true;
+    		}
+    		return false;
+    	}
+
+    	// these come from the old implementation of JL5TypeSystem
+    	if (t2 instanceof TypeVariable) {
+    		TypeVariable tv = (TypeVariable) t2;
+    		return super.isSubtype(t1, t2, ctx) || super.isSubtype(t1, tv.lowerBound(), ctx);
+    	} else if (t2 instanceof LubType) {
+    		LubType lt = (LubType) t2;
+    		for (Type e : lt.lubElements()) {
+    			if (isSubtype(t1, e, ctx))
+    				return true;
+    		}
+    		return isSubtype(t1, lt.calculateLub(), ctx);
+    	} else if (t2 instanceof IntersectionType) {
+    		IntersectionType it = (IntersectionType) t2;
+    		for (Type b : it.bounds()) {
+    			if (!isSubtype(t1, b, ctx))
+    				return false;
+    		}
+    		return true;
+    	} else {
+    		return super.isSubtype(t1, t2, ctx);
+    	}
     }
 
     public ConstructorInstance findJL5Constructor(Type container, JL5ConstructorMatcher matcher) throws SemanticException {

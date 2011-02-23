@@ -198,13 +198,4 @@ public class LubType_c extends IntersectionType_c implements LubType {
         }
         return true;
     }
-
-    @Override
-    public boolean isSubtypeImpl(Type ancestor) {
-        for (Type elem : lubElements()) {
-            if (!ts.isSubtype(elem, ancestor)) return false;
-        }
-        return true;
-    }
-
 }

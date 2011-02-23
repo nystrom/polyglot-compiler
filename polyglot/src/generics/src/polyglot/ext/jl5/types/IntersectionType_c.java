@@ -169,14 +169,6 @@ public class IntersectionType_c extends ClassType_c implements IntersectionType 
     }
 
     @Override
-    public boolean isSubtypeImpl(Type ancestor) {
-        for (Type b : bounds()) {
-            if (typeSystem().isSubtype(b, ancestor)) return true;
-        }
-        return false;
-    }
-
-    @Override
     public boolean isCastValidImpl(Type toType) {
         for (Type b : bounds()) {
             if (typeSystem().isCastValid(b, toType)) return true;
