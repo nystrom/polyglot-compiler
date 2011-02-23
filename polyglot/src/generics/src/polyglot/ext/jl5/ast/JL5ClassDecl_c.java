@@ -66,23 +66,18 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
     public JL5ClassDecl_c(Position pos, FlagAnnotations flags, Id name, TypeNode superClass,
             List interfaces, ClassBody body) {
         super(pos, flags.classicFlags(), name, superClass, interfaces, body);
+        List<AnnotationElem> l;
         if (flags.annotations() != null) {
-            this.annotations = TypedList.copyAndCheck(flags.annotations(), AnnotationElem.class, false);
+            l = flags.annotations();
         } else {
-            this.annotations = new TypedList(new LinkedList(), AnnotationElem.class, false);
+        	l = Collections.EMPTY_LIST;
         }
-
+        this.annotations = TypedList.copyAndCheck(flags.annotations(), AnnotationElem.class, false);
     }
 
     public JL5ClassDecl_c(Position pos, FlagAnnotations fl, Id name, TypeNode superType,
             List interfaces, ClassBody body, List<ParamTypeNode> paramTypes) {
-
-        super(pos, fl.classicFlags(), name, superType, interfaces, body);
-        if (fl.annotations() != null) {
-            this.annotations = TypedList.copyAndCheck(fl.annotations(), AnnotationElem.class, false);
-        } else {
-            this.annotations = new TypedList(new LinkedList(), AnnotationElem.class, false);
-        }
+    	this(pos, fl, name, superType, interfaces, body);
         this.paramTypes = paramTypes;
     }
 
@@ -111,27 +106,23 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
 
     protected ClassDecl reconstruct(TypeNode superClass, List interfaces, ClassBody body,
             List annotations, List paramTypes) {
-        if (superClass != this.superClass || !CollectionUtil.allEqual(interfaces, this.interfaces)
-                || body != this.body || !CollectionUtil.allEqual(annotations, this.annotations)
-                || !CollectionUtil.allEqual(paramTypes, this.paramTypes)) {
-            JL5ClassDecl_c n = (JL5ClassDecl_c) copy();
-            n.superClass = superClass;
-            n.interfaces = TypedList.copyAndCheck(interfaces, TypeNode.class, false);
-            n.body = body;
+    	ClassDecl superCopy = super.reconstruct(superClass, interfaces, body);
+        if ( !CollectionUtil.equals(annotations, this.annotations)
+                || !CollectionUtil.equals(paramTypes, this.paramTypes)) {
+            JL5ClassDecl_c n = (JL5ClassDecl_c) superCopy.copy();
             n.annotations = TypedList.copyAndCheck(annotations, AnnotationElem.class, false);
             n.paramTypes = paramTypes;
             return n;
         }
-        return this;
+
+        return superCopy;
     }
 
     public Node visitChildren(NodeVisitor v) {
         List annots = visitList(this.annotations, v);
         List paramTypes = visitList(this.paramTypes, v);
-        TypeNode superClass = (TypeNode) visitChild(this.superClass, v);
-        List interfaces = visitList(this.interfaces, v);
-        ClassBody body = (ClassBody) visitChild(this.body, v);
-        return reconstruct(superClass, interfaces, body, annots, paramTypes);
+        JL5ClassDecl_c cd = (JL5ClassDecl_c) super.visitChildren(v);
+        return cd.reconstruct(cd.superClass(), cd.interfaces(), cd.body(), annots, paramTypes);
     }
 
     /*
