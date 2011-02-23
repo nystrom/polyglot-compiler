@@ -8,6 +8,7 @@ import java.util.List;
 
 import polyglot.ast.ClassBody;
 import polyglot.ast.Expr;
+import polyglot.ast.FlagsNode;
 import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ast.Term;
@@ -39,7 +40,7 @@ public class EnumConstantDecl_c extends Term_c implements EnumConstantDecl
 {   
     protected List args;
     protected Id name;
-    protected Flags flags;
+    protected FlagsNode flags;
     protected List annotations;
     protected ClassBody body;
     protected EnumInstance enumInstance;
@@ -100,7 +101,7 @@ public class EnumConstantDecl_c extends Term_c implements EnumConstantDecl
         return anonType;
     }
 
-    public Flags flags(){
+    public FlagsNode flags(){
         return flags;
     }
     

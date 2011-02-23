@@ -168,33 +168,35 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
             }
         }
 
+    	Flags flags = flags().flags();
+
         // repeat super class type checking so it can be specialized
         // to handle inner enum classes which indeed do have
         // static methods
         if (tc.context().currentClass().flags().isInterface()) {
-            if (flags().isProtected() || flags().isPrivate()) {
+            if (flags.isProtected() || flags.isPrivate()) {
                 throw new SemanticException("Interface methods must be public.",
                                             position());
             }
         }
 
         try {
-            ts.checkMethodFlags(flags());
+            ts.checkMethodFlags(flags);
         }
         catch (SemanticException e) {
             throw new SemanticException(e.getMessage(), position());
         }
 
-	    if (body == null && ! (flags().isAbstract() || flags().isNative())) {
+	    if (body == null && ! (flags.isAbstract() || flags.isNative())) {
 	        throw new SemanticException("Missing method body.", position());
 	    }
 
-	    if (body != null && flags().isAbstract()) {
+	    if (body != null && flags.isAbstract()) {
 	        throw new SemanticException(
 		    "An abstract method cannot have a body.", position());
 	    }
 
-	    if (body != null && flags().isNative()) {
+	    if (body != null && flags.isNative()) {
 	        throw new SemanticException(
 		    "A native method cannot have a body.", position());
 	    }
@@ -211,7 +213,7 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
 
         // check that inner classes do not declare static methods
         // unless class is enum
-        if (flags().isStatic() && !JL5Flags.isEnumModifier(methodInstance().container().toClass().flags()) && 
+        if (flags.isStatic() && !JL5Flags.isEnumModifier(methodInstance().container().toClass().flags()) && 
               methodInstance().container().toClass().isInnerClass()) {
             // it's a static method in an inner class.
             throw new SemanticException("Inner classes cannot declare " + 

@@ -12,6 +12,8 @@ import polyglot.ast.ClassDecl;
 import polyglot.ast.ClassDecl_c;
 import polyglot.ast.ConstructorCall;
 import polyglot.ast.ConstructorDecl;
+import polyglot.ast.FlagsNode;
+import polyglot.ast.FlagsNode_c;
 import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
@@ -60,7 +62,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
     protected List sourceAnnotations;
 
     protected List<ParamTypeNode> paramTypes = new ArrayList<ParamTypeNode>();
-
+    
     public JL5ClassDecl_c(Position pos, FlagAnnotations flags, Id name, TypeNode superClass,
             List interfaces, ClassBody body) {
         super(pos, flags.classicFlags(), name, superClass, interfaces, body);
@@ -158,7 +160,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
 
     protected void disambiguateSuperType(AmbiguityRemover ar) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem) ar.typeSystem();
-        if (JL5Flags.isAnnotationModifier(flags())) {
+        if (JL5Flags.isAnnotationModifier(flags().flags())) {
             this.type.superType(ts.Annotation());
         } else {
             super.disambiguateSuperType(ar);
@@ -184,16 +186,18 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
     }
 
     public Node typeCheck(TypeChecker tc) throws SemanticException {
-        if (JL5Flags.isEnumModifier(flags()) && flags().isAbstract()) {
+    	Flags flags = flags().flags();
+    	
+        if (JL5Flags.isEnumModifier(flags) && flags.isAbstract()) {
             throw new SemanticException("Enum types cannot have abstract modifier", this.position());
         }
-        if (JL5Flags.isEnumModifier(flags()) && flags().isPrivate() && !type().isInnerClass()) {
+        if (JL5Flags.isEnumModifier(flags) && flags.isPrivate() && !type().isInnerClass()) {
             throw new SemanticException("Enum types cannot have explicit private modifier", this.position());
         }
-        if (JL5Flags.isEnumModifier(flags()) && flags().isFinal()) {
+        if (JL5Flags.isEnumModifier(flags) && flags.isFinal()) {
             throw new SemanticException("Enum types cannot have explicit final modifier", this.position());
         }
-        if (JL5Flags.isAnnotationModifier(flags()) && flags().isPrivate()) {
+        if (JL5Flags.isAnnotationModifier(flags) && flags.isPrivate()) {
             throw new SemanticException("Annotation types cannot have explicit private modifier", this.position());
         }
 
@@ -235,7 +239,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
         // set up ct with annots
         ct.annotations(this.annotations);
 
-        if (JL5Flags.isEnumModifier(flags())) {
+        if (JL5Flags.isEnumModifier(flags().flags())) {
             for (Iterator it = type().constructors().iterator(); it.hasNext();) {
                 ConstructorInstance ci = (ConstructorInstance) it.next();
                 if (!ci.flags().clear(Flags.PRIVATE).equals(Flags.NONE)) {
@@ -345,11 +349,11 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
 
     protected Node addGenEnumMethods(TypeSystem ts, NodeFactory nf) {
         if (JL5Flags.isEnumModifier(type.flags())) {
-
             JL5ClassBody newBody = (JL5ClassBody) body();
             // add values method
             FlagAnnotations vmFlags = new FlagAnnotations();
-            vmFlags.classicFlags(Flags.PUBLIC.set(Flags.STATIC.set(Flags.FINAL)));
+            newBody.position();
+            vmFlags.classicFlags(nf.FlagsNode(position(), Flags.PUBLIC.Static().Final()));
             Block valuesB = nf.Block(position());
             valuesB = valuesB.append(nf.Return(position(), nf.NullLit(position())));
             JL5MethodDecl valuesMeth = ((JL5NodeFactory) nf).JL5MethodDecl(position(), vmFlags, nf.CanonicalTypeNode(position(), ts.arrayOf(this.type())), "values", Collections.EMPTY_LIST, Collections.EMPTY_LIST, valuesB, null);
@@ -366,14 +370,14 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
             // add valueOf method
             ArrayList formals = new ArrayList();
             FlagAnnotations fl = new FlagAnnotations();
-            fl.classicFlags(JL5Flags.NONE);
+            fl.classicFlags(nf.FlagsNode(position(), Flags.NONE));
             fl.annotations(new ArrayList());
             JL5Formal f1 = ((JL5NodeFactory) nf).JL5Formal(position(), fl, nf.CanonicalTypeNode(position(), ts.String()), "arg1");
             f1 = (JL5Formal) f1.localInstance(ts.localInstance(position(), JL5Flags.NONE, ts.String(), "arg1"));
             formals.add(f1);
 
             FlagAnnotations voFlags = new FlagAnnotations();
-            voFlags.classicFlags(Flags.PUBLIC.set(Flags.STATIC));
+            voFlags.classicFlags(nf.FlagsNode(position(), Flags.PUBLIC.Static()));
 
             Block valueOfB = nf.Block(position());
             valueOfB = valueOfB.append(nf.Return(position(), nf.NullLit(position())));
@@ -401,7 +405,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
         ConstructorInstance ci = ts.defaultConstructor(position(), this.type);
         this.type.addConstructor(ci);
         Block block = null;
-        if (this.type.superType() instanceof ClassType && !JL5Flags.isEnumModifier(flags())) {
+        if (this.type.superType() instanceof ClassType && !JL5Flags.isEnumModifier(flags().flags())) {
             ConstructorInstance sci = ts.defaultConstructor(position(), (ClassType) this.type.superType());
             ConstructorCall cc = nf.SuperCall(position(), Collections.EMPTY_LIST);
             cc = cc.constructorInstance(sci);
@@ -413,11 +417,11 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
         ConstructorDecl cd;
         FlagAnnotations fl = new FlagAnnotations();
         fl.annotations(new ArrayList());
-        if (!JL5Flags.isEnumModifier(flags())) {
-            fl.classicFlags(Flags.PUBLIC);
+        if (!JL5Flags.isEnumModifier(flags().flags())) {
+            fl.classicFlags(nf.FlagsNode(position(), Flags.PUBLIC));
             cd = ((JL5NodeFactory) nf).JL5ConstructorDecl(position(), fl, name, Collections.EMPTY_LIST, Collections.EMPTY_LIST, block, new ArrayList());
         } else {
-            fl.classicFlags(Flags.PRIVATE);
+        	fl.classicFlags(nf.FlagsNode(position(), Flags.PRIVATE));
             /*
              * ArrayList formalTypes = new ArrayList(); FlagAnnotations fa = new
              * FlagAnnotations(); fa.classicFlags(Flags.NONE);
@@ -443,20 +447,20 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
         for (Iterator it = annotations.iterator(); it.hasNext();) {
             print((AnnotationElem) it.next(), w, tr);
         }
-        if (flags.isInterface()) {
-            if (JL5Flags.isAnnotationModifier(flags)) {
-                w.write(JL5Flags.clearAnnotationModifier(flags).clearInterface().clearAbstract().translate());
+        if (flags.flags().isInterface()) {
+            if (JL5Flags.isAnnotationModifier(flags.flags())) {
+                w.write(JL5Flags.clearAnnotationModifier(flags.flags()).clearInterface().clearAbstract().translate());
                 w.write("@");
             } else {
-                w.write(flags.clearInterface().clearAbstract().translate());
+                w.write(flags.flags().clearInterface().clearAbstract().translate());
             }
         } else {
-            w.write(flags.translate());
+            w.write(flags.flags().translate());
         }
 
-        if (flags.isInterface()) {
+        if (flags.flags().isInterface()) {
             w.write("interface ");
-        } else if (JL5Flags.isEnumModifier(flags)) {
+        } else if (JL5Flags.isEnumModifier(flags.flags())) {
         } else {
             w.write("class ");
         }
@@ -473,7 +477,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
         }
 
         if (!interfaces.isEmpty() && !JL5Flags.isAnnotationModifier(type.flags())) {
-            if (flags.isInterface()) {
+            if (flags.flags().isInterface()) {
                 w.write(" extends ");
             } else {
                 w.write(" implements ");

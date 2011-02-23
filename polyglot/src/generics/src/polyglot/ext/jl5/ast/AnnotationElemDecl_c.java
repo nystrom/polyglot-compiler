@@ -4,6 +4,7 @@ import java.util.List;
 
 import polyglot.ast.ArrayInit;
 import polyglot.ast.Expr;
+import polyglot.ast.FlagsNode;
 import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ast.Term;
@@ -28,7 +29,7 @@ import polyglot.visit.TypeChecker;
 public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
 
     protected TypeNode type;
-    protected Flags flags;
+    protected FlagsNode flags;
     protected Expr defaultVal;
     protected Id name;
     protected AnnotationElemInstance ai;
@@ -54,7 +55,7 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
         return type;
     }
     
-    public AnnotationElemDecl flags(Flags flags){
+    public AnnotationElemDecl flags(FlagsNode flags){
         if (!flags.equals(this.flags)){
             AnnotationElemDecl_c n = (AnnotationElemDecl_c) copy();
             n.flags = flags;
@@ -63,7 +64,7 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
         return this;
     }
     
-    public Flags flags(){
+    public FlagsNode flags(){
         return flags;
     }
 
@@ -163,9 +164,9 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
 
             JL5ParsedClassType ct = (JL5ParsedClassType)c.currentClassScope();
 
-            Flags f = flags;
+            FlagsNode f = flags;
 
-            f = f.Public().Abstract();
+            f = f.flags(f.flags().Public().Abstract());
 
             AnnotationElemInstance ai = ts.annotationElemInstance(position(), ct, f, type().type(), name(), defaultVal == null ? false : true);
             return flags(f).annotationElemInstance(ai);
@@ -208,10 +209,10 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
             }
         }
 
-        if (flags.contains(Flags.NATIVE) ){
+        if (flags.flags().isNative()){
             throw new SemanticException("Modifier native is not allowed here", position());
         }
-        if (flags.contains(Flags.PRIVATE) ){
+        if (flags.flags().isPrivate()){
             throw new SemanticException("Modifier private is not allowed here", position());
         }
 
@@ -234,7 +235,7 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
         w.begin(0);
         
-        Flags f = flags();
+        Flags f = flags().flags();
         f = f.clearPublic();
         f = f.clearAbstract();
         

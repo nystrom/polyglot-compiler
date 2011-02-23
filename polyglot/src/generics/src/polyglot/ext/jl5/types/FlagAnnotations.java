@@ -3,16 +3,17 @@ package polyglot.ext.jl5.types;
 import java.util.LinkedList;
 import java.util.List;
 
+import polyglot.ast.FlagsNode;
 import polyglot.ext.jl5.ast.AnnotationElem;
 import polyglot.types.Flags;
 import polyglot.util.TypedList;
 
 public class FlagAnnotations {
 
-    protected Flags classicFlags;
+    protected FlagsNode classicFlags;
     protected List annotations;
 
-    public FlagAnnotations(Flags classic, List annots){
+    public FlagAnnotations(FlagsNode classic, List annots){
         this.classicFlags = classic;
         this.annotations = annots;
     }
@@ -20,20 +21,12 @@ public class FlagAnnotations {
     public FlagAnnotations(){
     }
 
-    public Flags classicFlags(){
-        if (classicFlags == null){
-            classicFlags = Flags.NONE;
-        }
+    public FlagsNode classicFlags(){
         return classicFlags;
     }
 
-    public FlagAnnotations classicFlags(Flags flags){
-        if (this.classicFlags != null){
-            this.classicFlags = this.classicFlags.set(flags);
-        }
-        else {
-            this.classicFlags = flags;
-        }
+    public FlagAnnotations classicFlags(FlagsNode flags){
+        this.classicFlags = flags;
         return this;
     }
 
