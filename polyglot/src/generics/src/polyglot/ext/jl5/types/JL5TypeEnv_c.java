@@ -111,6 +111,11 @@ public class JL5TypeEnv_c extends TypeEnv_c {
      */
     @Override
     public boolean isCastValid(Type fromType, Type toType) {
+    	
+    	if (fromType instanceof TypeVariable) {
+    		return isCastValid(((TypeVariable) fromType).upperBound(), toType);
+    	}
+    	
     	// boxing / unboxing cast check
     	if (fromType.isPrimitive() && toType.isReference()) {
     		return jts.equivalent(fromType, toType);

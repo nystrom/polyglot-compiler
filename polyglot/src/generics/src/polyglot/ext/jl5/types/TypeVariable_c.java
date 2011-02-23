@@ -154,10 +154,6 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
         upperBound = b;
         upperBound.boundOf(this);
     }
-    
-    public boolean isCastValidImpl(Type toType) {
-        return ts.isCastValid(upperBound(), toType);
-    }
 
 //     public boolean isImplicitCastValidImpl(Type toType) {
 //         return ts.isImplicitCastValid(upperBound(), toType);
