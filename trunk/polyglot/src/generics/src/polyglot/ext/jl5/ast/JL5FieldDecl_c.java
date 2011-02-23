@@ -80,7 +80,7 @@ public class JL5FieldDecl_c extends FieldDecl_c implements JL5FieldDecl, Applica
     }
     public Node typeCheck(TypeChecker tc) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
-        if (type().type() instanceof TypeVariable && (tc.context().currentClass().flags().isStatic() || flags().isStatic())){
+        if (type().type() instanceof TypeVariable && (tc.context().currentClass().flags().isStatic() || flags().flags().isStatic())){
             if (tc.context().currentClass().flags().isStatic() && tc.context().currentClass() instanceof JL5ParsedClassType && ((JL5ParsedClassType)tc.context().currentClass()).hasTypeVariable(((TypeVariable)type().type()).name())){
             }
             else {

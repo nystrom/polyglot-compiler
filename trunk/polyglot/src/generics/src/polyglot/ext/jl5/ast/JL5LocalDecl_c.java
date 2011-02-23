@@ -70,8 +70,8 @@ public class JL5LocalDecl_c extends LocalDecl_c implements JL5LocalDecl, Applica
     }
 
     public Node typeCheck(TypeChecker tc) throws SemanticException {
-        if (!flags().clear(Flags.FINAL).equals(Flags.NONE)){
-            throw new SemanticException("Modifier: "+flags().clearFinal()+" not allowed here.", position());
+        if (!flags().flags().clearFinal().equals(Flags.NONE)){
+            throw new SemanticException("Modifier: "+flags().flags().clearFinal()+" not allowed here.", position());
         }
         if (type().type() instanceof TypeVariable && tc.context().inStaticContext()){
             if (((TypeVariable)type().type()).declaredIn().equals(TVarDecl.CLASSTV))

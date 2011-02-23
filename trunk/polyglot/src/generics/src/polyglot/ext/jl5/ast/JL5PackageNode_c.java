@@ -3,6 +3,7 @@ package polyglot.ext.jl5.ast;
 import java.util.LinkedList;
 import java.util.List;
 
+import polyglot.ast.FlagsNode;
 import polyglot.ast.Node;
 import polyglot.ast.PackageNode_c;
 import polyglot.ext.jl5.types.FlagAnnotations;
@@ -16,7 +17,7 @@ import polyglot.visit.TypeChecker;
 
 public class JL5PackageNode_c extends PackageNode_c implements JL5PackageNode {
 
-    protected Flags classicFlags;
+    protected FlagsNode classicFlags;
     protected List annotations;
     
     public JL5PackageNode_c(Position pos, FlagAnnotations flags, polyglot.types.Package package_){
@@ -55,7 +56,7 @@ public class JL5PackageNode_c extends PackageNode_c implements JL5PackageNode {
     }
     
     public Node typeCheck(TypeChecker tc) throws SemanticException {
-        if (!classicFlags.equals(Flags.NONE)){
+        if (!classicFlags.flags().equals(Flags.NONE)){
             throw new SemanticException ("Modifier "+classicFlags+" not allowed here.", position());
         }
         return super.typeCheck(tc);

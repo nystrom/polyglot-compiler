@@ -2,6 +2,7 @@ package polyglot.ext.jl5.types;
 
 import java.util.List;
 
+import polyglot.types.ClassDef.Kind;
 import polyglot.types.ClassType;
 import polyglot.types.ReferenceType;
 import polyglot.types.Type;

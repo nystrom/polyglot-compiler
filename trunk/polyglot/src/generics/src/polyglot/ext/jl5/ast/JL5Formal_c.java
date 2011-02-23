@@ -95,8 +95,8 @@ public class JL5Formal_c extends Formal_c implements JL5Formal, ApplicationCheck
     }
     
     public Node typeCheck(TypeChecker tc) throws SemanticException {
-        if (!flags().clear(Flags.FINAL).equals(Flags.NONE)){
-            throw new SemanticException("Modifier: "+flags().clearFinal()+" not allowed here.", position());
+        if (!flags().flags().clearFinal().equals(Flags.NONE)){
+            throw new SemanticException("Modifier: "+flags().flags().clearFinal()+" not allowed here.", position());
         }
         JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
         ts.checkDuplicateAnnotations(annotations);

@@ -4,10 +4,10 @@ import java.util.List;
 
 import polyglot.ast.ClassBody;
 import polyglot.ast.ClassMember;
+import polyglot.ast.FlagsNode;
 import polyglot.ast.Id;
 import polyglot.ext.jl5.types.EnumInstance;
 import polyglot.types.ConstructorInstance;
-import polyglot.types.Flags;
 import polyglot.types.ParsedClassType;
 
 /**
@@ -47,6 +47,6 @@ public interface EnumConstantDecl extends ClassMember
 
     List annotations();
 
-    Flags flags();
+    FlagsNode flags();
 
 }

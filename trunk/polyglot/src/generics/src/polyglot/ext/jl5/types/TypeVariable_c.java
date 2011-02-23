@@ -3,10 +3,13 @@ package polyglot.ext.jl5.types;
 import java.util.Collections;
 import java.util.List;
 
-import polyglot.types.ClassType_c;
+import polyglot.types.ClassDef.Kind;
+import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
-import polyglot.types.Context;
+import polyglot.types.ClassType_c;
 import polyglot.types.Flags;
+import polyglot.types.Name;
+import polyglot.types.Ref;
 import polyglot.types.ReferenceType;
 import polyglot.types.Resolver;
 import polyglot.types.Type;
@@ -16,7 +19,7 @@ import polyglot.util.Position;
 
 public class TypeVariable_c extends ClassType_c implements TypeVariable, SignatureType {
 
-    protected String name;
+    protected  Name name;
 
     protected Flags flags;
 
@@ -28,9 +31,9 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
     protected ClassType declaringClass;
     protected JL5ProcedureInstance declaringProcedure;
 
-    public TypeVariable_c(TypeSystem ts, Position pos, String id,
-			  List<ReferenceType> bounds) {
-        super(ts, pos);
+    public TypeVariable_c(TypeSystem ts, Position pos, Name id,
+    		Ref<? extends ClassDef> def, List<ReferenceType> bounds) {
+    	super(ts, pos, def);
         this.name = id;
         this.upperBound = ((JL5TypeSystem)ts).intersectionType(bounds);
         upperBound.boundOf(this);
