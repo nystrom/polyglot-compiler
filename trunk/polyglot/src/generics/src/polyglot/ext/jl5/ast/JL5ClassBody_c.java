@@ -5,13 +5,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import polyglot.ast.Block;
-import polyglot.ast.ClassBody;
+import polyglot.ast.ClassBody_c;
 import polyglot.ast.ClassMember;
 import polyglot.ast.ConstructorCall;
 import polyglot.ast.ConstructorDecl;
-import polyglot.ast.MethodDecl;
 import polyglot.ast.Node;
-import polyglot.ast.ClassBody_c;
 import polyglot.ext.jl5.types.AnnotationElemInstance;
 import polyglot.ext.jl5.types.EnumInstance;
 import polyglot.ext.jl5.types.JL5Flags;
@@ -21,12 +19,14 @@ import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.types.ClassType;
 import polyglot.types.FieldInstance;
 import polyglot.types.MethodInstance;
+import polyglot.types.Name;
+import polyglot.types.QName;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeChecker;
 
 public class JL5ClassBody_c extends ClassBody_c implements JL5ClassBody {
 
@@ -34,58 +34,58 @@ public class JL5ClassBody_c extends ClassBody_c implements JL5ClassBody {
         super(pos, members);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
-        duplicateEnumConstantDeclCheck(tc); 
-        duplicateEnumConstantDeclFieldCheck(tc);
-        checkCCallEnumConstructors(tc);
-        checkAbsMembers(tc);
-        checkGenMethConflicts(tc);
-        duplicateAnnotationElemDeclCheck(tc);
-        duplicateErasureMethodCheck(tc);
-        return super.typeCheck(tc);
+    
+    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
+    	JL5ClassBody_c n = (JL5ClassBody_c) super.conformanceCheck(tc);
+    	
+    	n.duplicateEnumConstantDeclCheck(tc); 
+    	n.duplicateEnumConstantDeclFieldCheck(tc);
+    	n.checkCCallEnumConstructors(tc);
+    	//CHECK a bunch of code in checkAbsMembers is commented
+    	n.checkAbsMembers(tc);
+    	n.checkGenMethConflicts(tc);
+    	n.duplicateAnnotationElemDeclCheck(tc);
+    	n.duplicateErasureMethodCheck(tc);
+
+        return n;
     }
 
-    protected MethodInstance erasureMethod(JL5TypeSystem ts, MethodInstance mi){
-        ArrayList miErasureFormals = new ArrayList(mi.formalTypes().size());
-        for (Iterator it = mi.formalTypes().iterator(); it.hasNext(); ) {
-            miErasureFormals.add(ts.erasure((Type) it.next()));
-        }
-        ArrayList miErasureExcTypes = new ArrayList(mi.throwTypes().size());
-        Type erasureRet = ts.erasure(mi.returnType());
-        return ts.methodInstance(mi.position(), mi.container(), mi.flags(), erasureRet, mi.name(), miErasureFormals, miErasureExcTypes);
-    }
 
-    protected void duplicateErasureMethodCheck(TypeChecker tc) throws SemanticException{
+    protected void duplicateErasureMethodCheck(ContextVisitor tc) throws SemanticException{
         JL5TypeSystem ts = (JL5TypeSystem) tc.typeSystem();
-        ArrayList l = new ArrayList(tc.context().currentClass().methods());
+        List<MethodInstance> l = new ArrayList<MethodInstance>(tc.context().currentClass().methods());
         for (int i = 0; i < l.size(); i++){
-            MethodInstance mi = (MethodInstance)l.get(i);
-            MethodInstance emi = erasureMethod(ts, mi);
+            MethodInstance mi = l.get(i);
+            MethodInstance emi = ts.erasureMethodInstance(mi);
             for (int j = i+1; j < l.size(); j++){
-                MethodInstance mj = (MethodInstance)l.get(j);
-                MethodInstance emj = erasureMethod(ts, mj);
-                if (isSameMethod(tc.typeSystem(), emi, emj)){
+                MethodInstance mj = l.get(j);
+                MethodInstance emj = ts.erasureMethodInstance(mj);
+                if (emi.isSameMethod(emj, tc.context())){
                     throw new SemanticException("Method "+mi+" and "+mj+" have the same erasure.", mj.position());
                 }
             }
         }
     }
 
-    protected void checkGenMethConflicts(TypeChecker tc) throws SemanticException{
+    protected void checkGenMethConflicts(ContextVisitor tc) throws SemanticException{
         JL5ParsedClassType type = (JL5ParsedClassType)tc.context().currentClass();
-        ArrayList list = new ArrayList(type.methods());
-        for (Iterator it = list.iterator(); it.hasNext();){
-            JL5MethodInstance mi = (JL5MethodInstance)it.next();
-            if (!mi.isCompilerGenerated() && mi.name().equals("values")  && mi.formalTypes().isEmpty()){
+        List<JL5MethodInstance> list = new ArrayList(type.methods());
+        for (Iterator<JL5MethodInstance> it = list.iterator(); it.hasNext();){
+            JL5MethodInstance mi = it.next();
+            if (!mi.isCompilerGenerated() && mi.name().equals(Name.make("values"))  && 
+            		mi.formalTypes().isEmpty()){
                 throw new SemanticException("method "+mi.name()+" is already defined in type: "+type, mi.position());
             }
-            if (!mi.isCompilerGenerated() && mi.name().equals("valueOf") && (mi.formalTypes().size() == 1) && ((Type)mi.formalTypes().get(0)).isClass() && ((ClassType)mi.formalTypes().get(0)).fullName().equals("java.lang.String")){
+            if (!mi.isCompilerGenerated() && mi.name().equals(Name.make("valueOf")) && 
+            		(mi.formalTypes().size() == 1) && 
+            		((Type)mi.formalTypes().get(0)).isClass() && 
+            		((ClassType)mi.formalTypes().get(0)).fullName().equals(QName.make("java.lang.String"))){
                 throw new SemanticException("method "+mi.name()+" is already defined in type: "+type, mi.position());
             }
         }
     }
     
-    protected void checkAbsMembers(TypeChecker tc) throws SemanticException {
+    protected void checkAbsMembers(ContextVisitor tc) throws SemanticException {
         // this will be necessary check that if the enum type 
         // (not its super types) has abstract methods then every enum constant
         // overrides them in an anon method body
@@ -116,20 +116,20 @@ public class JL5ClassBody_c extends ClassBody_c implements JL5ClassBody {
     
     }
 
-    protected boolean checkAbstractOverride(EnumConstantDecl ec, MethodInstance mi){
-        ClassBody cb = ec.body();
-        Iterator mIt = cb.members().iterator();
-        while (mIt.hasNext()){
-            Object o = mIt.next();
-            if (o instanceof MethodDecl){
-                MethodDecl md = (MethodDecl)o;
-                if (md.methodInstance().isSameMethod(mi)) return true;
-            }
-        }
-        return false;
-    }
+//    protected boolean checkAbstractOverride(EnumConstantDecl ec, MethodInstance mi){
+//        ClassBody cb = ec.body();
+//        Iterator mIt = cb.members().iterator();
+//        while (mIt.hasNext()){
+//            Object o = mIt.next();
+//            if (o instanceof MethodDecl){
+//                MethodDecl md = (MethodDecl)o;
+//                if (md.methodInstance().isSameMethod(mi)) return true;
+//            }
+//        }
+//        return false;
+//    }
 
-    protected void checkCCallEnumConstructors(TypeChecker tc) throws SemanticException{
+    protected void checkCCallEnumConstructors(ContextVisitor tc) throws SemanticException{
         JL5ParsedClassType type = (JL5ParsedClassType)tc.context().currentClass();
         Iterator it = members().iterator();
         while (it.hasNext()){
@@ -138,7 +138,8 @@ public class JL5ClassBody_c extends ClassBody_c implements JL5ClassBody {
             if (next instanceof ConstructorDecl){
                 Block body = ((ConstructorDecl)next).body();
                 if (!body.statements().isEmpty() && JL5Flags.isEnumModifier(type.flags())){
-                    if (body.statements().get(0) instanceof ConstructorCall && ((ConstructorCall)body.statements().get(0)).kind() == ConstructorCall.SUPER){
+                    if (body.statements().get(0) instanceof ConstructorCall && 
+                    		((ConstructorCall)body.statements().get(0)).kind() == ConstructorCall.SUPER){
                         throw new SemanticException("Cannot have: "+body.statements().get(0)+" in enum constructor", ((Node)body.statements().get(0)).position());
                     }
                 }
@@ -146,15 +147,15 @@ public class JL5ClassBody_c extends ClassBody_c implements JL5ClassBody {
         }
     }
     
-    protected void duplicateEnumConstantDeclFieldCheck(TypeChecker tc) throws SemanticException {
+    protected void duplicateEnumConstantDeclFieldCheck(ContextVisitor tc) throws SemanticException {
         JL5ParsedClassType type = (JL5ParsedClassType)tc.context().currentClass();
 
-        ArrayList l = new ArrayList(type.enumConstants());
-        ArrayList lf = new ArrayList(type.fields());
+        List<EnumInstance> l = new ArrayList<EnumInstance>(type.enumConstants());
+        List<FieldInstance> lf = new ArrayList<FieldInstance>(type.fields());
         for (int i = 0; i < l.size(); i++){
-            EnumInstance ei = (EnumInstance) l.get(i);
+            EnumInstance ei = l.get(i);
             for (int j = 0; j < lf.size(); j++){
-                FieldInstance fi = (FieldInstance) lf.get(j);
+                FieldInstance fi = lf.get(j);
                 if (ei.name().equals(fi.name())){
                     throw new SemanticException("Duplicate enum constant / field \"" + fi + "\" at: ",fi.position());
                 }
@@ -162,15 +163,15 @@ public class JL5ClassBody_c extends ClassBody_c implements JL5ClassBody {
         }
     }
 
-    protected void duplicateEnumConstantDeclCheck(TypeChecker tc) throws SemanticException {
+    protected void duplicateEnumConstantDeclCheck(ContextVisitor tc) throws SemanticException {
         JL5ParsedClassType type = (JL5ParsedClassType)tc.context().currentClass();
 
-        ArrayList l = new ArrayList(type.enumConstants());
+        List<EnumInstance> l = new ArrayList<EnumInstance>(type.enumConstants());
         for (int i = 0; i < l.size(); i++){
-            EnumInstance ei = (EnumInstance) l.get(i);
+            EnumInstance ei = l.get(i);
 
             for (int j = i+1; j < l.size(); j++){
-                EnumInstance ej = (EnumInstance) l.get(j);
+                EnumInstance ej = l.get(j);
 
                 if (ei.name().equals(ej.name())){
                     throw new SemanticException("Duplicate enum constant \"" + ej + "\" at ", ej.position());
@@ -179,9 +180,9 @@ public class JL5ClassBody_c extends ClassBody_c implements JL5ClassBody {
         }
     }
 
-    public void duplicateAnnotationElemDeclCheck(TypeChecker tc) throws SemanticException {
+    public void duplicateAnnotationElemDeclCheck(ContextVisitor tc) throws SemanticException {
         JL5ParsedClassType type = (JL5ParsedClassType)tc.context().currentClass();
-        ArrayList l = new ArrayList(type.annotationElems());
+        List<AnnotationElemInstance> l = new ArrayList<AnnotationElemInstance>(type.annotationElems());
         for (int i = 0; i < l.size(); i++){
             AnnotationElemInstance ai = (AnnotationElemInstance) l.get(i);
 
