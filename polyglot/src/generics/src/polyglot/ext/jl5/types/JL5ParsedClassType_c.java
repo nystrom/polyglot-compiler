@@ -5,18 +5,18 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import polyglot.types.ParsedClassType_c;
-import polyglot.frontend.Source;
-import polyglot.types.LazyClassInitializer;
+import polyglot.types.ClassDef;
 import polyglot.types.MethodInstance;
 import polyglot.types.Named;
+import polyglot.types.ParsedClassType_c;
 import polyglot.types.PrimitiveType;
+import polyglot.types.Ref;
 import polyglot.types.Resolver;
 import polyglot.types.SemanticException;
-import polyglot.types.Type;
-import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
+import polyglot.types.Types;
 import polyglot.util.InternalCompilerError;
+import polyglot.util.Position;
 import polyglot.util.TypedList;
 
 public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5ParsedClassType, SignatureType{
@@ -29,8 +29,12 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
     protected List annotations;
     protected List<TypeVariable> typeVariables;
 
-    public JL5ParsedClassType_c( TypeSystem ts, LazyClassInitializer init, Source fromSource){
-        super(ts, init, fromSource);
+    public JL5ParsedClassType_c(ClassDef def) {
+        this(def.typeSystem(), def.position(), Types.ref(def));
+    }
+
+    public JL5ParsedClassType_c(TypeSystem ts, Position pos, Ref<? extends ClassDef> def) {
+        super(ts, pos, def);
     }
     
     public void annotations(List annotations){

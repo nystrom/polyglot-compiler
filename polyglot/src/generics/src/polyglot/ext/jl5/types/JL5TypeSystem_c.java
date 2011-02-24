@@ -31,6 +31,7 @@ import polyglot.ext.jl5.types.inference.LubType;
 import polyglot.ext.jl5.types.inference.LubType_c;
 import polyglot.frontend.Source;
 import polyglot.types.ArrayType;
+import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
 import polyglot.types.ConstructorInstance;
 import polyglot.types.Context;
@@ -45,8 +46,10 @@ import polyglot.types.Name;
 import polyglot.types.NoMemberException;
 import polyglot.types.ObjectType;
 import polyglot.types.ParsedClassType;
+import polyglot.types.ParsedClassType_c;
 import polyglot.types.PrimitiveType;
 import polyglot.types.QName;
+import polyglot.types.Ref;
 import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.StructType;
@@ -301,7 +304,17 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     	return super.isDouble(t);
     }
 	
-    
+    /**
+     * Called by the type builder when instantiating types
+     */
+    public ParsedClassType createClassType(Position pos, Ref<? extends ClassDef> def) {
+    	return new JL5ParsedClassType_c(this, pos, def);
+    }
+
+    public ClassDef createClassDef(Source fromSource) {
+    	return new JL5ClassDef_c(this, fromSource);
+    }
+
     protected final Flags TOP_LEVEL_CLASS_FLAGS = JL5Flags.setAnnotationModifier(JL5Flags.setEnumModifier(super.TOP_LEVEL_CLASS_FLAGS));
 
     protected final Flags MEMBER_CLASS_FLAGS = JL5Flags.setAnnotationModifier(JL5Flags.setEnumModifier(super.MEMBER_CLASS_FLAGS));
@@ -370,9 +383,9 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         return defaultClassInit;
     }
 
-    public ParsedClassType createClassType(LazyClassInitializer init, Source fromSource) {
-        return new JL5ParsedClassType_c(this, init, fromSource);
-    }
+//    public ParsedClassType createClassType(LazyClassInitializer init, Source fromSource) {
+//        return new JL5ParsedClassType_c(this, init, fromSource);
+//    }
 
     protected PrimitiveType createPrimitive(PrimitiveType.Kind kind) {
         return new JL5PrimitiveType_c(this, kind);

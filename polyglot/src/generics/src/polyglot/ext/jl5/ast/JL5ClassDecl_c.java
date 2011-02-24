@@ -53,15 +53,12 @@ import polyglot.visit.TypeChecker;
  * class, or an anonymous class.
  */
 public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, ApplicationCheck {
-    protected List annotations;
 
+	protected List annotations;
     protected List runtimeAnnotations;
-
     protected List classAnnotations;
-
     protected List sourceAnnotations;
-
-    protected List<ParamTypeNode> paramTypes = new ArrayList<ParamTypeNode>();
+    protected List<ParamTypeNode> paramTypes;
     
     public JL5ClassDecl_c(Position pos, FlagAnnotations flags, Id name, TypeNode superClass,
             List interfaces, ClassBody body) {
@@ -75,6 +72,16 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
         this.annotations = TypedList.copyAndCheck(flags.annotations(), AnnotationElem.class, false);
     }
 
+    /**
+     * 
+     * @param pos
+     * @param fl
+     * @param name
+     * @param superType
+     * @param interfaces
+     * @param body
+     * @param paramTypes The list of Parameter type (ParamTypeNode represents a TypeVariable + its bounds)
+     */
     public JL5ClassDecl_c(Position pos, FlagAnnotations fl, Id name, TypeNode superType,
             List interfaces, ClassBody body, List<ParamTypeNode> paramTypes) {
     	this(pos, fl, name, superType, interfaces, body);
@@ -104,25 +111,26 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
         return n;
     }
 
-    protected ClassDecl reconstruct(TypeNode superClass, List interfaces, ClassBody body,
-            List annotations, List paramTypes) {
-    	ClassDecl superCopy = super.reconstruct(superClass, interfaces, body);
-        if ( !CollectionUtil.equals(annotations, this.annotations)
-                || !CollectionUtil.equals(paramTypes, this.paramTypes)) {
-            JL5ClassDecl_c n = (JL5ClassDecl_c) superCopy.copy();
-            n.annotations = TypedList.copyAndCheck(annotations, AnnotationElem.class, false);
-            n.paramTypes = paramTypes;
-            return n;
-        }
-
-        return superCopy;
+    protected ClassDecl reconstruct(FlagsNode flags, Id name, TypeNode superClass, 
+    		List<TypeNode> interfaces, ClassBody body,
+    		List annotations, List paramTypes) {
+    	ClassDecl superCopy = super.reconstruct(flags, name, superClass, interfaces, body);
+    	if ( !CollectionUtil.allEqual(annotations, this.annotations)
+    			|| !CollectionUtil.allEqual(paramTypes, this.paramTypes)) {
+    		JL5ClassDecl_c n = (JL5ClassDecl_c) superCopy.copy();
+    		n.annotations = TypedList.copyAndCheck(annotations, AnnotationElem.class, false);
+    		n.paramTypes = paramTypes;
+    		return n;
+    	}
+    	return superCopy;
     }
 
     public Node visitChildren(NodeVisitor v) {
-        List annots = visitList(this.annotations, v);
-        List paramTypes = visitList(this.paramTypes, v);
-        JL5ClassDecl_c cd = (JL5ClassDecl_c) super.visitChildren(v);
-        return cd.reconstruct(cd.superClass(), cd.interfaces(), cd.body(), annots, paramTypes);
+    	List annots = visitList(this.annotations, v);
+    	List paramTypes = visitList(this.paramTypes, v);
+    	JL5ClassDecl_c cd = (JL5ClassDecl_c) super.visitChildren(v);
+    	return cd.reconstruct(cd.flags(), cd.name(), cd.superClass(), 
+    			cd.interfaces(), cd.body(), annots, paramTypes);
     }
 
     /*
@@ -141,7 +149,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
      */
     public Context enterScope(Context c) {
         TypeSystem ts = c.typeSystem();
-        // System.out.println("enter scop with context" );//for debug
+        //CHECK why do we need to push type variable now ?        
         c = c.pushClass(type, ts.staticTarget(type).toClass());
         for (ParamTypeNode tn : paramTypes) {
             c = ((JL5Context) c).addTypeVariable((TypeVariable) tn.type());
