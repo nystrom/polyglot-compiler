@@ -15,16 +15,17 @@ import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.ext.jl5.types.JL5Flags;
 import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.JL5TypeSystem;
+import polyglot.types.ClassType;
 import polyglot.types.Context;
 import polyglot.types.Flags;
 import polyglot.types.SemanticException;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
 import polyglot.visit.CFGBuilder;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
 import polyglot.visit.TypeBuilder;
-import polyglot.visit.TypeChecker;
 
 public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
 
@@ -139,8 +140,8 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
         JL5TypeSystem ts = (JL5TypeSystem)tb.typeSystem();
 
         AnnotationElemDecl n = this;
-        // why send Object as container ??
-        AnnotationElemInstance ai = ts.annotationElemInstance(n.position(), ts.Object(), JL5Flags.NONE, ts.unknownType(position()), n.name(), defaultVal == null ? false: true);
+        //CHECK why send Object as container ??
+        AnnotationElemInstance ai = ts.annotationElemInstance(n.position(), (ClassType) ts.Object(), JL5Flags.NONE, ts.unknownType(position()), n.name(), defaultVal == null ? false: true);
 
         return n.annotationElemInstance(ai);
     }
@@ -175,33 +176,33 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
         return this;
     }
     
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
     
         JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
-        
+        Context ctx = tc.context();
         // check type - must be one of primitive, String, Class, 
         // enum, annotation or array or one of these
         if (!ts.isValidAnnotationValueType(type().type())){
             throw new SemanticException("The type: "+this.type()+" for the annotation element declaration "+this.name()+" must be a primitive, String, Class, enum type, annotation type or an array of one of these.", type().position());
         }
-  
+        
         // an annotation element cannot have the same type as the 
         // type it is declared in - direct
         // also need to check indirect cycles
-        if (type().type().equals(tc.context().currentClass())){
+        if (ts.typeEquals(type().type(), tc.context().currentClass(), ctx)) {
             throw new SemanticException("Cyclic annotation element type: "+type(), type().position());
         }
 
         // check default value matches type
         if (defaultVal != null){
             if (defaultVal instanceof ArrayInit){
-                ((ArrayInit)defaultVal).typeCheckElements(type.type());
+                ((ArrayInit)defaultVal).typeCheckElements(tc, type.type());
             }
             else {
                 boolean intConversion = false;
-                if (! ts.isImplicitCastValid(defaultVal.type(), type.type()) &&
-                    ! ts.equals(defaultVal.type(), type.type()) &&
-                    ! ts.numericConversionValid(type.type(), defaultVal.constantValue()) &&
+                if (! ts.isImplicitCastValid(defaultVal.type(), type.type(), ctx) &&
+                    ! ts.typeEquals(defaultVal.type(), type.type(), ctx) &&
+                    ! ts.numericConversionValid(type.type(), defaultVal.constantValue(), ctx) &&
                     ! ts.isBaseCastValid(defaultVal.type(), type.type()) &&
                     ! ts.numericConversionBaseValid(type.type(), defaultVal.constantValue())){
                     throw new SemanticException("The type of the default value: "+defaultVal+" does not match the annotation element type: "+type.type()+" .", defaultVal.position());

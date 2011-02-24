@@ -1,10 +1,11 @@
 package polyglot.ext.jl5.types;
 
-import polyglot.types.TypeObject_c;
 import polyglot.types.ClassType;
 import polyglot.types.Flags;
+import polyglot.types.Name;
 import polyglot.types.ReferenceType;
 import polyglot.types.Type;
+import polyglot.types.TypeObject_c;
 import polyglot.types.TypeSystem;
 import polyglot.util.Position;
 
@@ -12,11 +13,11 @@ public class AnnotationElemInstance_c extends TypeObject_c implements Annotation
     
     protected Flags flags;
     protected Type type;
-    protected String name;
+    protected Name name;
     protected ClassType container;
     protected boolean hasDefault;
         
-    public AnnotationElemInstance_c(TypeSystem ts, Position pos, ClassType ct, Flags flags, Type type, String name, boolean hasDef){
+    public AnnotationElemInstance_c(TypeSystem ts, Position pos, ClassType ct, Flags flags, Type type, Name name, boolean hasDef){
         super(ts, pos);
         this.flags = flags;
         this.type = type;
@@ -33,7 +34,7 @@ public class AnnotationElemInstance_c extends TypeObject_c implements Annotation
         return type;
     }
 
-    public String name(){
+    public Name name(){
         return name;
     }
 

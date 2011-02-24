@@ -95,7 +95,7 @@ public class ExtendedFor_c extends Loop_c implements ExtendedFor {
             t = aType.base();
         }
         //Milan: not sure if it is better to return raw type from Iterable() or to rawify it on the fly
-        else if (ts.isSubtype(t, ts.rawify(ts.Iterable()))){
+        else if (ts.isSubtype(t, ts.rawify(ts.Iterable()), tc.context())){
             t = ts.findGenericSupertype(ts.Iterable(), (ReferenceType) t);
             if (t == null) {
                 t = ts.Object();
@@ -111,7 +111,7 @@ public class ExtendedFor_c extends Loop_c implements ExtendedFor {
         // Check that type is the same as elements in expr
         LocalDecl ld = (LocalDecl)varDecls.get(0);
         Type declType = ld.type().type();
-        if (!ts.isImplicitCastValid(t, declType)){
+        if (!ts.isImplicitCastValid(t, declType, tc.context())){
             throw new SemanticException("Incompatible types in for loop. Declared type is " + 
                     declType + " but the actual type is " + t + ".", expr.position());
         }

@@ -16,6 +16,7 @@ import polyglot.ast.ConstructorDecl;
 import polyglot.ast.Expr;
 import polyglot.ast.FieldDecl;
 import polyglot.ast.Formal;
+import polyglot.ast.Id;
 import polyglot.ast.LocalDecl;
 import polyglot.ast.MethodDecl;
 import polyglot.ast.Node;
@@ -46,7 +47,6 @@ import polyglot.types.Name;
 import polyglot.types.NoMemberException;
 import polyglot.types.ObjectType;
 import polyglot.types.ParsedClassType;
-import polyglot.types.ParsedClassType_c;
 import polyglot.types.PrimitiveType;
 import polyglot.types.QName;
 import polyglot.types.Ref;
@@ -653,17 +653,17 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         return annotations;
     }
 
-    public EnumInstance enumInstance(Position pos, ClassType ct, Flags f, String name,
+    public EnumInstance enumInstance(Position pos, ClassType ct, Flags f, Id name,
             ParsedClassType anonType) {
         assert_(ct);
         return new EnumInstance_c(this, pos, ct, f, name, anonType);
     }
 
     public AnnotationElemInstance annotationElemInstance(Position pos, ClassType ct, Flags f,
-            Type type, String name, boolean hasDefault) {
+            Type type, Id name, boolean hasDefault) {
         assert_(ct);
         assert_(type);
-        return new AnnotationElemInstance_c(this, pos, ct, f, type, name, hasDefault);
+        return new AnnotationElemInstance_c(this, pos, ct, f, type, name.id(), hasDefault);
     }
 
     public Context createContext() {
