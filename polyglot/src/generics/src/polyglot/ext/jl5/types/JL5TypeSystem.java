@@ -4,6 +4,7 @@ package polyglot.ext.jl5.types;
 import java.util.List;
 
 import polyglot.ast.Expr;
+import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ext.jl5.ast.AnnotationElem;
 import polyglot.ext.jl5.types.JL5TypeSystem_c.JL5ConstructorMatcher;
@@ -20,7 +21,6 @@ import polyglot.types.Flags;
 import polyglot.types.MethodInstance;
 import polyglot.types.Name;
 import polyglot.types.ParsedClassType;
-import polyglot.types.PrimitiveType;
 import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
@@ -71,11 +71,11 @@ public interface JL5TypeSystem extends TypeSystem {
 
     Type erasure(Type t);
 
-    EnumInstance enumInstance(Position pos, ClassType ct, Flags f, String name,
+    EnumInstance enumInstance(Position pos, ClassType ct, Flags f, Id name,
             ParsedClassType anonType);
 
     AnnotationElemInstance annotationElemInstance(Position pos, ClassType ct, Flags f, Type type,
-            String name, boolean hasDefault);
+            Id name, boolean hasDefault);
 
     Context createContext();
 
