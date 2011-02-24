@@ -28,6 +28,9 @@ import polyglot.visit.TypeChecker;
 
 public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
 
+	/**
+	 * The type variable name used
+	 */
     protected String id;
 
     protected List bounds;
