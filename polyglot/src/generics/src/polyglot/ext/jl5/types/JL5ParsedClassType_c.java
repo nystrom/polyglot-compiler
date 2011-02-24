@@ -21,9 +21,9 @@ import polyglot.util.TypedList;
 
 public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5ParsedClassType, SignatureType{
     
-    protected List enumConstants;
+    protected List<EnumInstance> enumConstants;
     // these are annotation elements in the annotation type
-    protected List annotationElems;
+    protected List<AnnotationElemInstance> annotationElems;
   
     // these are annotations that have been declared on (applied to) the type
     protected List annotations;
@@ -54,7 +54,7 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
         annotationElems().add(ai);
     }
 
-    public List enumConstants(){
+    public List<EnumInstance> enumConstants(){
         if (enumConstants == null){
             enumConstants = new TypedList(new LinkedList(), EnumInstance.class, false);
             ((JL5LazyClassInitializer)init).initEnumConstants(this);
@@ -68,7 +68,7 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
     }
     
     
-    public List annotationElems(){
+    public List<AnnotationElemInstance> annotationElems(){
         if (annotationElems == null){
             annotationElems = new TypedList(new LinkedList(), AnnotationElemInstance.class, false);
             ((JL5LazyClassInitializer)init).initAnnotations(this);

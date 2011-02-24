@@ -1,14 +1,12 @@
 package polyglot.ext.jl5.ast;
 
-import java.util.List;
-
-import polyglot.ast.Node;
 import polyglot.ast.CanonicalTypeNode_c;
+import polyglot.ast.Node;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.ext.jl5.types.RawType;
 import polyglot.ext.jl5.types.TypeVariable;
-import polyglot.types.ClassType;
+import polyglot.types.Ref;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.util.ErrorInfo;
@@ -18,7 +16,7 @@ import polyglot.visit.TypeChecker;
 
 public class JL5CanonicalTypeNode_c extends CanonicalTypeNode_c implements JL5CanonicalTypeNode {
 
-    public JL5CanonicalTypeNode_c(Position pos, Type type) {
+    public JL5CanonicalTypeNode_c(Position pos, Ref<? extends Type> type) {
         super(pos, type);
     }
 
@@ -60,7 +58,7 @@ public class JL5CanonicalTypeNode_c extends CanonicalTypeNode_c implements JL5Ca
                 }
                 //require that arguments obey their bounds
                 Type b = ts.getSubstitution(pt, pt.typeVariables().get(i).upperBound());
-                if (!ts.isSubtype(arg,b)) {
+                if (!ts.isSubtype(arg,b, tc.context())) {
                     throw new SemanticException("Type argument " + arg + 
                             " is not a subtype of its declared bound " + b, position());
                 }

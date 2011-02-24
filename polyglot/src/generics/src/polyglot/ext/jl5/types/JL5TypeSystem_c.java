@@ -42,6 +42,7 @@ import polyglot.types.ImportTable;
 import polyglot.types.Matcher;
 import polyglot.types.MemberDef;
 import polyglot.types.MemberInstance;
+import polyglot.types.MethodDef;
 import polyglot.types.MethodInstance;
 import polyglot.types.Name;
 import polyglot.types.NoMemberException;
@@ -310,6 +311,33 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     public ParsedClassType createClassType(Position pos, Ref<? extends ClassDef> def) {
     	return new JL5ParsedClassType_c(this, pos, def);
     }
+
+	public MethodInstance createMethodInstance(Position position, Ref<? extends MethodDef> def) {
+		return new JL5MethodInstance_c(this, position, def);
+	}
+	
+	/**
+     * Creates an "erased" version of a method definition 
+     */
+	public MethodInstance erasureMethodInstance(MethodInstance mi) {
+        List<Type> miErasureFormals = new ArrayList<Type>(mi.formalTypes().size());
+        for (Iterator<Type> it = mi.formalTypes().iterator(); it.hasNext(); ) {
+            miErasureFormals.add(erasure(it.next()));
+        }
+
+        List<Type> miErasureExcTypes = new ArrayList<Type>(mi.throwTypes().size());
+        for (Iterator<Type> it = mi.formalTypes().iterator(); it.hasNext(); ) {
+            //CHECK this for loop wasn't here before, assume that was a bug (was just creating an empty list of size throwTypes().size())
+        	miErasureExcTypes.add(erasure(it.next()));
+        }
+        Type erasureRet = erasure(mi.returnType());
+
+		mi = mi.formalTypes(miErasureFormals);
+		mi = mi.throwTypes(miErasureExcTypes);
+		mi = mi.returnType(erasureRet);
+		
+        return mi;
+	}
 
     public ClassDef createClassDef(Source fromSource) {
     	return new JL5ClassDef_c(this, fromSource);
