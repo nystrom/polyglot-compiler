@@ -10,11 +10,11 @@ import polyglot.types.TypeObject;
 
 public interface JL5ParsedClassType extends ParsedClassType {
     void addEnumConstant(EnumInstance ei);
-    List enumConstants();
+    List<EnumInstance> enumConstants();
     EnumInstance enumConstantNamed(String name);
     
     void addAnnotationElem(AnnotationElemInstance ai);
-    List annotationElems();
+    List<AnnotationElemInstance> annotationElems();
     AnnotationElemInstance annotationElemNamed(String name);
 
     void annotations(List annotations);

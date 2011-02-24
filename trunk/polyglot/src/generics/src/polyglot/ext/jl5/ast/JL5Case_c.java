@@ -36,7 +36,7 @@ public class JL5Case_c extends Case_c implements JL5Case  {
 	if (et.isClass() && JL5Flags.isEnumModifier(et.toClass().flags()))
 	    return this;
 
-        if (! ts.isImplicitCastValid(expr.type(), ts.Int())){
+        if (! ts.isImplicitCastValid(expr.type(), ts.Int(), tc.context())){
 	    throw new SemanticException("Case label must be an enum, byte, char, short, or int.", position());
         }
 
