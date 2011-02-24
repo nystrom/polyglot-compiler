@@ -18,9 +18,11 @@ import polyglot.types.ConstructorInstance;
 import polyglot.types.Context;
 import polyglot.types.FieldInstance;
 import polyglot.types.Flags;
+import polyglot.types.MethodDef;
 import polyglot.types.MethodInstance;
 import polyglot.types.Name;
 import polyglot.types.ParsedClassType;
+import polyglot.types.Ref;
 import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
@@ -33,9 +35,10 @@ import polyglot.util.Position;
 public interface JL5TypeSystem extends TypeSystem {
     // TODO: declare any new methods needed
     //polyglot.ext.jl5.types.LazyClassInitializer defaultClassInitializer();
-    ParsedClassType createClassType(LazyClassInitializer init, Source fromSource);
 
     ParsedClassType createClassType(Source fromSource);
+    
+    MethodInstance createMethodInstance(Position position, Ref<? extends MethodDef> def);
 
     boolean isTypeExtendsAnnotation(Type t);
     
@@ -182,5 +185,7 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	ConstructorMatcher JL5ConstructorMatcher(Type targetType,
 			List<Type> paramTypes, List<Type> explicitTypeArgs, JL5Context c);
+
+	MethodInstance erasureMethodInstance(MethodInstance mi);
 
 }
