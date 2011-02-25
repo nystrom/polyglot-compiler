@@ -56,45 +56,46 @@ public class JL5Context_c extends Context_c implements JL5Context {
             return vi;
         }
 
-        try {
-            // might be static
-            if (importTable() != null) {
-                JL5ImportTable jit = (JL5ImportTable) importTable();
-                for (Iterator it = jit.explicitStaticImports().iterator(); it.hasNext();) {
-                    String next = (String) it.next();
-                    String id = StringUtil.getShortNameComponent(next);
-                    if (name.equals(id)) {
-                        Named nt = ts.forName(StringUtil.getPackageComponent(next));
-                        if (nt instanceof Type) {
-                            Type t = (Type) nt;
-                            try {
-                                vi = ts.findField(t.toClass(), name);
-                            } catch (SemanticException e) {
-                            }
-                            if (vi != null) {
-                                return vi;
-                            }
-                        }
-                    }
-                }
-                if (vi == null) {
-                    for (Iterator it = jit.onDemandStaticImports().iterator(); it.hasNext();) {
-                        String next = (String) it.next();
-                        Named nt = ts.forName(next);
-                        if (nt instanceof Type) {
-                            Type t = (Type) nt;
-                            try {
-                                vi = ts.findField(t.toClass(), name);
-                            } catch (SemanticException e) {
-                            }
-                            if (vi != null)
-                                return vi;
-                        }
-                    }
-                }
-            }
-        } catch (SemanticException e) {
-        }
+//        try {
+//            // might be static
+//            if (importTable() != null) {
+//            	//CHECK Commented because we do not support static import yet
+//                JL5ImportTable jit = (JL5ImportTable) importTable();
+//                for (Iterator it = jit.explicitStaticImports().iterator(); it.hasNext();) {
+//                    String next = (String) it.next();
+//                    String id = StringUtil.getShortNameComponent(next);
+//                    if (name.equals(id)) {
+//                        Named nt = ts.forName(StringUtil.getPackageComponent(next));
+//                        if (nt instanceof Type) {
+//                            Type t = (Type) nt;
+//                            try {
+//                                vi = ts.findField(t.toClass(), name);
+//                            } catch (SemanticException e) {
+//                            }
+//                            if (vi != null) {
+//                                return vi;
+//                            }
+//                        }
+//                    }
+//                }
+//                if (vi == null) {
+//                    for (Iterator it = jit.onDemandStaticImports().iterator(); it.hasNext();) {
+//                        String next = (String) it.next();
+//                        Named nt = ts.forName(next);
+//                        if (nt instanceof Type) {
+//                            Type t = (Type) nt;
+//                            try {
+//                                vi = ts.findField(t.toClass(), name);
+//                            } catch (SemanticException e) {
+//                            }
+//                            if (vi != null)
+//                                return vi;
+//                        }
+//                    }
+//                }
+//            }
+//        } catch (SemanticException e) {
+//        }
 
         if (outer != null) {
             return outer.findVariableSilent(name);
