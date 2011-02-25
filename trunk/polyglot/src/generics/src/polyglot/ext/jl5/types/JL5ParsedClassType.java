@@ -27,8 +27,8 @@ public interface JL5ParsedClassType extends ParsedClassType {
 
     void typeVariables(List<TypeVariable> vars);
     
-    boolean hasTypeVariable(String name);
-    TypeVariable getTypeVariable(String name);
+    boolean hasTypeVariable(Name name);
+    TypeVariable getTypeVariable(Name name);
 
     boolean isGeneric();
 

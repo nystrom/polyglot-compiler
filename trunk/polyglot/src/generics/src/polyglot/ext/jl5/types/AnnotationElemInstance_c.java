@@ -38,10 +38,6 @@ public class AnnotationElemInstance_c extends TypeObject_c implements Annotation
         return name;
     }
 
-    public ReferenceType container(){
-        return container;
-    }
-
     public boolean isCanonical(){
         return true;
     }

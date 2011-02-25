@@ -147,7 +147,7 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
         }
     }
     
-    public boolean hasTypeVariable(String name){
+    public boolean hasTypeVariable(Name name){
         if (typeVariables == null || typeVariables.isEmpty()) return false;
         for (Iterator<TypeVariable> it = typeVariables.iterator(); it.hasNext(); ){
             TypeVariable iType = it.next();
@@ -156,7 +156,7 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
         return false;
     }
 
-    public TypeVariable getTypeVariable(String name){
+    public TypeVariable getTypeVariable(Name name){
         for (Iterator<TypeVariable> it = typeVariables.iterator(); it.hasNext(); ){
             TypeVariable iType = it.next();
             if (iType.name().equals(name)) return iType;

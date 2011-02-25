@@ -8,6 +8,8 @@ import polyglot.ast.Node;
 import polyglot.ast.PackageNode_c;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.types.Flags;
+import polyglot.types.Package;
+import polyglot.types.Ref;
 import polyglot.types.SemanticException;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
@@ -15,12 +17,18 @@ import polyglot.util.TypedList;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.ContextVisitor;
 
+/**
+ * This class looks deprecated
+ * @author vcave
+ *
+ */
 public class JL5PackageNode_c extends PackageNode_c implements JL5PackageNode {
 
     protected FlagsNode classicFlags;
     protected List annotations;
-    
-    public JL5PackageNode_c(Position pos, FlagAnnotations flags, polyglot.types.Package package_){
+
+    public JL5PackageNode_c(Position pos, FlagAnnotations flags, Ref<? extends Package> package_){
+    	//CHECK JL5PackageNode_c seems this constructor is never called
         super(pos, package_);
         this.classicFlags = flags.classicFlags();
         if (flags.annotations() != null){

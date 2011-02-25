@@ -1,86 +1,85 @@
 package polyglot.ext.jl5.ast;
 
-import polyglot.ast.Expr;
-import polyglot.ast.Node;
-import polyglot.ast.Receiver;
-import polyglot.ast.TypeNode;
 import polyglot.ast.Disamb_c;
+import polyglot.ast.Node;
+import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5NoMemberException;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.types.FieldInstance;
-import polyglot.types.LocalInstance;
 import polyglot.types.Named;
 import polyglot.types.NoClassException;
 import polyglot.types.NoMemberException;
+import polyglot.types.Package;
+import polyglot.types.QName;
 import polyglot.types.Resolver;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
+import polyglot.types.Types;
 import polyglot.types.VarInstance;
 
 public class JL5Disamb_c extends Disamb_c {
 
         
+	/**
+	 * We look both for fields and enums in JL5
+	 */
+	@Override
     protected Node disambiguateTypeNodePrefix(TypeNode tn) throws SemanticException {
         Type t = tn.type();
-    
-        if (t.isReference() && exprOK()){
+   
+        if (exprOK()){
+        	// IN JL5 Search for both Fields and Enum
             try {
+            	//CHECK we can refactor upper class to isolate this change
                 FieldInstance fi = ((JL5TypeSystem)ts).findFieldOrEnum(t, ts.FieldMatcher(t, name.id(), c));
-                return ((JL5NodeFactory)nf).JL5Field(pos, tn, name).fieldInstance(fi);
+                return nf.Field(pos, tn, name).fieldInstance(fi);
             }
             catch(NoMemberException e){
                 if (e.getKind() != NoMemberException.FIELD && e.getKind() != JL5NoMemberException.ENUM_CONSTANT){
-                    throw e;
+                    // something went wrong...
+                	throw e;
                 }
             }
         }
 
-        if (t.isClass() && typeOK()){
-            Resolver tc = ts.classContextResolver(t.toClass());
-            Named n = tc.find(name);
-            if (n instanceof Type){
-                Type type = (Type)n;
-                return nf.CanonicalTypeNode(pos, type);
+        // Try member classes.
+        if (t.isClass() && typeOK()) {
+            Resolver tc = t.toClass().resolver();
+            Named n;
+            try {
+                n = tc.find(ts.MemberTypeMatcher(t, name.id(), c));
+            }
+            catch (NoClassException e) {
+                return null;
+            }
+            if (n instanceof Type) {
+                Type type = (Type) n;
+                return makeTypeNode(type);
             }
         }
+
         return null;
     }
 
-    protected Node disambiguateExprPrefix(Expr e) throws SemanticException {
-        if (exprOK()){
-            return ((JL5NodeFactory)nf).JL5Field(pos, e, name);        
-        }
-        return null;
-    }
-
-
-    protected Node disambiguateVarInstance(VarInstance vi) throws SemanticException {
-        if (vi instanceof FieldInstance) {
-            FieldInstance fi = (FieldInstance) vi;
-            Receiver r = makeMissingFieldTarget(fi);
-            return ((JL5NodeFactory)nf).JL5Field(pos, r, name).fieldInstance(fi).targetImplicit(true);
-        } else if (vi instanceof LocalInstance) {
-            LocalInstance li = (LocalInstance) vi;
-            return nf.Local(pos, name).localInstance(li);
-        }
-        return null;
-    }
-
-
+	@Override
     protected Node disambiguateNoPrefix() throws SemanticException {
-       
-        // First try local variables and fields
-        VarInstance vi = c.findVariableSilent(name);
-        
-        if (vi != null && exprOK()){
-            Node n = disambiguateVarInstance(vi);
-            if (n != null) return n;
+
+		/* begin Copy-Paste from super */
+		if (exprOK()) {
+            // First try local variables and fields.
+            VarInstance vi = c.findVariableSilent(name.id());
+            
+            if (vi != null) {
+                Node n = disambiguateVarInstance(vi);
+                if (n != null) return n;
+            }
         }
+        /* end Copy-Paste from super */
 
         //if (((JL5Context)c).inTypeVariable()){
-        TypeVariable res = ((JL5Context)c).findTypeVariableInThisScope(name);
+        TypeVariable res = ((JL5Context)c).findTypeVariableInThisScope(name.id());
         if (res != null){
             return nf.CanonicalTypeNode(pos, res);
         }
@@ -113,16 +112,18 @@ public class JL5Disamb_c extends Disamb_c {
                 }
             }
         }*/
-        
+
+        /* begin Copy-Paste from super */
+        // no variable found. try types.
         if (typeOK()) {
             try {
-                Named n = c.find(name);
+                Named n = c.find(ts.TypeMatcher(name.id()));
                 if (n instanceof Type) {
                     Type type = (Type) n;
-                    return nf.CanonicalTypeNode(pos, type);
+                    return makeTypeNode(type);
                 }
             } catch (NoClassException e) {
-                if (!name.equals(e.getClassName())) {
+                if (!name.id().toString().equals(e.getClassName())) {
                     // hmm, something else must have gone wrong
                     // rethrow the exception
                     throw e;
@@ -133,14 +134,20 @@ public class JL5Disamb_c extends Disamb_c {
             }
         }
 
-
         // Must be a package then...
         if (packageOK()) {
-            return nf.PackageNode(pos, ts.packageForName(name));
+            try {
+        	Package p = ts.packageForName(QName.make(null, name.id()));
+        	return nf.PackageNode(pos, Types.ref(p));
+            }
+            catch (SemanticException e) {
+            }
+            Package p = ts.createPackage(QName.make(null, name.id()));
+            return nf.PackageNode(pos, Types.ref(p));
         }
 
         return null;
- 
+        /* end Copy-Paste from super */ 
         
         //Node result = null;
         //if (result == null){

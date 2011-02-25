@@ -73,7 +73,7 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return n;
     }
 
-    public JL5Field JL5Field(Position pos, Receiver target, Id name){
+    public JL5Field Field(Position pos, Receiver target, Id name){
         JL5Field n = new JL5Field_c(pos, target, name);
         return n;
     }

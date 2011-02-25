@@ -112,7 +112,7 @@ public class JL5ConstructorDecl_c extends ConstructorDecl_c implements JL5Constr
         }
     }
 
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
+    public Node disambiguate(ContextVisitor ar) throws SemanticException {
         if (ar.kind() == AmbiguityRemover.SIGNATURES) {
             Context c = ar.context();
             TypeSystem ts = ar.typeSystem();

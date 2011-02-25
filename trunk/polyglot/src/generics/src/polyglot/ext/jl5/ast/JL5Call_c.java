@@ -119,7 +119,7 @@ public class JL5Call_c extends Call_c implements JL5Call {
         return n;
     }
 
-    protected Node typeCheckNullTarget(TypeChecker tc, List<Type> paramTypes, List<Type> explicitTypeArgs)
+    protected Node typeCheckNullTarget(ContextVisitor tc, List<Type> paramTypes, List<Type> explicitTypeArgs)
             throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem) tc.typeSystem();
         JL5NodeFactory nf = (JL5NodeFactory) tc.nodeFactory();

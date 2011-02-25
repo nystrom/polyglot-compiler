@@ -11,6 +11,7 @@ import polyglot.ast.Block;
 import polyglot.ast.ClassBody;
 import polyglot.ast.ConstructorCall;
 import polyglot.ast.Expr;
+import polyglot.ast.Field;
 import polyglot.ast.Formal;
 import polyglot.ast.Id;
 import polyglot.ast.Import;
@@ -36,7 +37,7 @@ public interface JL5NodeFactory extends NodeFactory {
     public JL5ClassBody JL5ClassBody(Position pos, List members);
     public JL5ConstructorDecl JL5ConstructorDecl(Position pos, FlagAnnotations flags, Id name, List formals, List throwTypes, Block body, List typeParams);
 
-    public JL5Field JL5Field(Position pos, Receiver target, Id name);
+    public Field Field(Position pos, Receiver target, Id name);
 
     public JL5Case JL5Case(Position pos, Expr expr);
 

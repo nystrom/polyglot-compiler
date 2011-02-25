@@ -1,6 +1,5 @@
 package polyglot.ext.jl5.ast;
 
-import polyglot.ast.Expr;
 import polyglot.ast.Field_c;
 import polyglot.ast.Id;
 import polyglot.ast.Node;
@@ -23,66 +22,42 @@ public class JL5Field_c extends Field_c implements JL5Field {
     }
 
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        Context c = tc.context();
-        JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
+    	Context c = tc.context();
+    	JL5TypeSystem ts = (JL5TypeSystem) tc.typeSystem();
 
-        if (! target.type().isReference()){
-            throw new SemanticException("Cannot access field \"" + name +
-             "\" " + (target instanceof Expr
-             ? "on an expression "
-             : "") +
-             "of non-reference type \"" +
-             target.type() + "\".", target.position());
-        }
+    	FieldInstance fi = ts.findFieldOrEnum(target.type(), ts.FieldMatcher(target.type(), name.id(), c));
 
-        
-        FieldInstance fi = ts.findFieldOrEnum(target.type(), ts.FieldMatcher(target.type(), name.id(), c));
 
-        if (fi == null) {
-            throw new InternalCompilerError("Cannot access field on node of type "+ target.getClass().getName() + ".");
-        }
+    	if (fi == null) {
+    		throw new InternalCompilerError("Cannot access field on node of type " +
+    				target.getClass().getName() + ".");
+    	}
 
-        JL5Field_c f = (JL5Field_c)fieldInstance(fi).type(fi.type());
-        f.checkConsistency(c);
-        
-//         if (target() != null && target().type() instanceof ParameterizedType &&  fi.type() instanceof TypeVariable){
-//             Type other = ts.findRequiredType((TypeVariable)fi.type(), (ParameterizedType)target().type());
-//             return f.type(other);
-//         }
-       
-        if (target() != null && target().type() instanceof ParameterizedType &&  fi.type() instanceof ParameterizedType){
-            if (ts.equals(((ParameterizedType)fi.type()).baseType(), ((ParameterizedType)target.type()).baseType())){
-                return f.type((ParameterizedType)target().type());
-            }
-        }
-        
-//         if (target() != null && target().type() instanceof ClassType && ((ClassType)target().type()).isAnonymous() && fi.type() instanceof TypeVariable){
-//             Type other = ts.findRequiredType((TypeVariable)fi.type(), (ParameterizedType)((ClassType)target().type()).superType());
-//             return f.type(other);    
-//         }
-      
-//         if (target() != null && target().type() instanceof JL5ParsedClassType){
-//             if (((JL5ParsedClassType)target().type()).typeVariables() != null){
-//                 if (!((JL5ParsedClassType)target().type()).typeVariables().isEmpty() && fi.type() instanceof TypeVariable){
-//                     // strictly from raw type other is erasure
-//                     Type other = ((TypeVariable)fi.type()).erasureType();
-//                     return f.type(other);
-//                 }
-//             }
-//         }
-        return f;
-        
+    	JL5Field_c f = (JL5Field_c) fieldInstance(fi).type(fi.type());  
+    	f.checkConsistency(c);
+
+    	if (target().type() instanceof ParameterizedType && 
+    			fi.type() instanceof ParameterizedType){
+    		if (ts.typeEquals(((ParameterizedType)fi.type()).baseType(), 
+    						((ParameterizedType)target.type()).baseType(),
+    						tc.context())){
+    			//CHECK why do we need to change the type of 'f' to the one of the Receiver ?
+    			return f.type((ParameterizedType)target().type());
+    		}
+    	}
+    	return f;
     }
 
     public boolean isConstant(){
+    	//CHECK isn't it enough to check for the enum modifier flag ?
         if (JL5Flags.isEnumModifier(flags())) return true;
         if (fieldInstance() instanceof EnumInstance) return true;
         return super.isConstant();
     }
+    
+    @Override
     public void checkConsistency(Context c){
-        
-        //super.checkConsistency(c);
-        //this consistency checking has problems when dealing with gen
-        //types
+        //this consistency checking has problems when dealing with gen types        
+        super.checkConsistency(c);
     }
 }

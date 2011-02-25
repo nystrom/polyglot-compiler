@@ -12,6 +12,10 @@ public interface JL5Context extends Context {
     public JL5Context pushTypeVariable(TypeVariable iType);
     public TypeVariable findTypeVariableInThisScope(Name name);
 
+    /**
+     * @deprecated
+     * @return
+     */
     public boolean inTypeVariable();
 
 

@@ -30,7 +30,7 @@ public class JL5Name extends Name {
         if (prefix == null){
             return nf.AmbExpr(pos, name);
         }
-        return nf.JL5Field(pos, prefix.toReceiver(), name);
+        return nf.Field(pos, prefix.toReceiver(), name);
     }
 
     public PackageNode toPackage(FlagAnnotations fl) {
