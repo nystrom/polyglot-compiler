@@ -1,12 +1,15 @@
 package polyglot.ext.jl5.types;
 
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import polyglot.ast.Expr;
 import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ext.jl5.ast.AnnotationElem;
+import polyglot.ext.jl5.types.JL5TypeSystem_c.AnnotationMatcher;
 import polyglot.ext.jl5.types.JL5TypeSystem_c.EnumMatcher;
 import polyglot.ext.jl5.types.JL5TypeSystem_c.JL5ConstructorMatcher;
 import polyglot.ext.jl5.types.JL5TypeSystem_c.JL5MethodMatcher;
@@ -22,6 +25,7 @@ import polyglot.types.Flags;
 import polyglot.types.MethodDef;
 import polyglot.types.MethodInstance;
 import polyglot.types.Name;
+import polyglot.types.NoMemberException;
 import polyglot.types.ParsedClassType;
 import polyglot.types.Ref;
 import polyglot.types.ReferenceType;
@@ -75,20 +79,22 @@ public interface JL5TypeSystem extends TypeSystem {
 
     Type erasure(Type t);
 
-    EnumInstance enumInstance(Position pos, ClassType ct, Flags f, Id name,
-            ParsedClassType anonType);
+    AnnotationElemInstance findAnnotation(Type container, AnnotationMatcher matcher) throws SemanticException;
 
     AnnotationElemInstance annotationElemInstance(Position pos, ClassType ct, Flags f, Type type,
             Id name, boolean hasDefault);
 
+    AnnotationMatcher AnnotationMatcher(Type container, Name name, Context ctx);
+    
     Context createContext();
-   
+
+    EnumInstance enumInstance(Position pos, ClassType ct, Flags f, Id name,
+            ParsedClassType anonType);
+
     EnumMatcher EnumMatcher(Type container, Name name, Context ctx);
     
     EnumInstance findEnumConstant(Type container, EnumMatcher matcher) throws SemanticException;
-    AnnotationElemInstance findAnnotation(ReferenceType container, String name, ClassType currClass)
-            throws SemanticException;
-
+    
     FieldInstance findFieldOrEnum(Type container, TypeSystem_c.FieldMatcher matcher) throws SemanticException;
 
     boolean isValidAnnotationValueType(Type t);
