@@ -25,7 +25,7 @@ import polyglot.util.Position;
 import polyglot.util.TypedList;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5Call_c extends Call_c implements JL5Call {
 
@@ -63,7 +63,7 @@ public class JL5Call_c extends Call_c implements JL5Call {
         return reconstruct(visited.target(), visited.name(), visited.arguments(), newTypeArguments);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         JL5Call_c n = null;
         JL5TypeSystem ts = (JL5TypeSystem) tc.typeSystem();
         JL5Context c = (JL5Context) tc.context();

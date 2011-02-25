@@ -14,7 +14,7 @@ import polyglot.types.Type;
 import polyglot.types.TypeSystem;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5Case_c extends Case_c implements JL5Case  {
 
@@ -23,7 +23,7 @@ public class JL5Case_c extends Case_c implements JL5Case  {
         super(pos, expr);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
     
         if (expr == null) {
 	        return this;

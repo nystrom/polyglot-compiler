@@ -6,7 +6,7 @@ import polyglot.ast.ClassLit_c;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.types.SemanticException;
 import polyglot.util.Position;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5ClassLit_c extends ClassLit_c implements JL5ClassLit {
 
@@ -14,7 +14,7 @@ public class JL5ClassLit_c extends ClassLit_c implements JL5ClassLit {
         super(pos, typenode);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
         return type(ts.Class(this.typeNode().type()));
     }

@@ -28,7 +28,7 @@ import polyglot.visit.CFGBuilder;
 import polyglot.visit.FlowGraph;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 /**
  * An immutable representation of a Java language extended <code>for</code>
@@ -85,7 +85,7 @@ public class ExtendedFor_c extends Loop_c implements ExtendedFor {
     }
 
     /** Type check the statement. */
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
 	    JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
 
         // Check that the expr is an array or of type Iterable

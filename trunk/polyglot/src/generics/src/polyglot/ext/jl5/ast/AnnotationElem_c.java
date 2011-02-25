@@ -15,7 +15,7 @@ import polyglot.util.Position;
 import polyglot.visit.CFGBuilder;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.Translator;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class AnnotationElem_c extends Expr_c implements AnnotationElem {
 
@@ -53,7 +53,7 @@ public class AnnotationElem_c extends Expr_c implements AnnotationElem {
         return reconstruct(tn);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
         // only make annotation elements out of annotation types
         if (!typeName.type().isClass() || !JL5Flags.isAnnotationModifier(((JL5ParsedClassType)typeName.type()).flags())){

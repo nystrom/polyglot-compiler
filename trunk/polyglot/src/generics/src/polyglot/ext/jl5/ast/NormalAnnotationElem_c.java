@@ -18,7 +18,7 @@ import polyglot.util.Position;
 import polyglot.util.TypedList;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.Translator;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class NormalAnnotationElem_c extends AnnotationElem_c implements NormalAnnotationElem {
 
@@ -55,7 +55,7 @@ public class NormalAnnotationElem_c extends AnnotationElem_c implements NormalAn
         return reconstruct(tn, elements);
     }
    
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem(); 
         Context c = tc.context();
         // check that elements refer to annotation element instances

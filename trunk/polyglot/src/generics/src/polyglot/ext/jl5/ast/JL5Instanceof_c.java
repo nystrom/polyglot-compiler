@@ -1,14 +1,14 @@
 package polyglot.ext.jl5.ast;
 
 import polyglot.ast.Expr;
+import polyglot.ast.Instanceof_c;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
-import polyglot.ast.Instanceof_c;
 import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.types.SemanticException;
 import polyglot.util.Position;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5Instanceof_c extends Instanceof_c implements JL5Instanceof {
 
@@ -16,7 +16,7 @@ public class JL5Instanceof_c extends Instanceof_c implements JL5Instanceof {
         super(pos, expr, compareType);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         if (compareType().type() instanceof ParameterizedType){
             throw new SemanticException("Type arguments not allowed here.", compareType().position());
         }

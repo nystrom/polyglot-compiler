@@ -10,7 +10,7 @@ import polyglot.util.Position;
 import polyglot.util.TypedList;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.Translator;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class MarkerAnnotationElem_c extends NormalAnnotationElem_c implements MarkerAnnotationElem {
 
@@ -22,7 +22,7 @@ public class MarkerAnnotationElem_c extends NormalAnnotationElem_c implements Ma
         return super.visitChildren(v);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         return super.typeCheck(tc);
     }
     

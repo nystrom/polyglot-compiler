@@ -12,7 +12,7 @@ import polyglot.types.Type;
 import polyglot.util.ErrorInfo;
 import polyglot.util.ErrorQueue;
 import polyglot.util.Position;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5CanonicalTypeNode_c extends CanonicalTypeNode_c implements JL5CanonicalTypeNode {
 
@@ -20,7 +20,7 @@ public class JL5CanonicalTypeNode_c extends CanonicalTypeNode_c implements JL5Ca
         super(pos, type);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         Type t = type();
         if (t instanceof RawType) {
             ErrorQueue eq = tc.errorQueue();

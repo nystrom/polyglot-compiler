@@ -19,7 +19,7 @@ import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
 import polyglot.util.Position;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5ConstructorCall_c extends ConstructorCall_c implements JL5ConstructorCall {
 
@@ -41,7 +41,7 @@ public class JL5ConstructorCall_c extends ConstructorCall_c implements JL5Constr
         return n;
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
     	ConstructorCall_c n = this;
     	
     	TypeSystem ts = tc.typeSystem();

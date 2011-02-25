@@ -23,9 +23,9 @@ import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeChecker;
 
 public class JL5LocalDecl_c extends LocalDecl_c implements JL5LocalDecl, ApplicationCheck {
 
@@ -69,7 +69,7 @@ public class JL5LocalDecl_c extends LocalDecl_c implements JL5LocalDecl, Applica
         return reconstruct(type, init, annots);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         if (!flags().flags().clearFinal().equals(Flags.NONE)){
             throw new SemanticException("Modifier: "+flags().flags().clearFinal()+" not allowed here.", position());
         }

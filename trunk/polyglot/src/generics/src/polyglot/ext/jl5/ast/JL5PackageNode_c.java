@@ -13,7 +13,7 @@ import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
 import polyglot.visit.NodeVisitor;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5PackageNode_c extends PackageNode_c implements JL5PackageNode {
 
@@ -55,7 +55,7 @@ public class JL5PackageNode_c extends PackageNode_c implements JL5PackageNode {
         return reconstruct(annotations);
     }
     
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         if (!classicFlags.flags().equals(Flags.NONE)){
             throw new SemanticException ("Modifier "+classicFlags+" not allowed here.", position());
         }

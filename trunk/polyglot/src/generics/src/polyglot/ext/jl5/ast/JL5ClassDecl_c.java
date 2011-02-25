@@ -45,7 +45,7 @@ import polyglot.util.Position;
 import polyglot.util.TypedList;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 /**
  * A <code>ClassDecl</code> is the definition of a class, abstract class, or
@@ -184,7 +184,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
         return n;
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
     	Flags flags = flags().flags();
     	
         if (JL5Flags.isEnumModifier(flags) && flags.isAbstract()) {

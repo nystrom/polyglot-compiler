@@ -1,13 +1,12 @@
 package polyglot.ext.jl5.ast;
 
 import polyglot.ast.Expr;
+import polyglot.ast.If_c;
 import polyglot.ast.Node;
 import polyglot.ast.Stmt;
-import polyglot.ast.If_c;
-import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.types.SemanticException;
 import polyglot.util.Position;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5If_c extends If_c implements JL5If  {
 
@@ -15,11 +14,9 @@ public class JL5If_c extends If_c implements JL5If  {
         super(pos, cond, consequent, alternative);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
-        JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
-        if (!ts.equals(cond.type(), ts.Boolean()) && !ts.equals(cond.type(), ts.BooleanWrapper())){
-            throw new SemanticException("Condition of if must have boolean type.", cond.position());
-        }
-        return this;
+    @Override
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
+        // ts.Boolean() handles both primitive and box typed
+        return super.typeCheck(tc);
     }
 }

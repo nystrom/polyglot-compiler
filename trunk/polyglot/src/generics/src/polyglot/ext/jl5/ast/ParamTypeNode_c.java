@@ -24,7 +24,7 @@ import polyglot.visit.AmbiguityRemover;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
 import polyglot.visit.TypeBuilder;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
 
@@ -134,7 +134,7 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
         return type(type());
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         TypeVariable tv = (TypeVariable) type();
         JL5TypeSystem ts = (JL5TypeSystem) tc.typeSystem();
         for (int i = 0; i < bounds.size(); i++) {

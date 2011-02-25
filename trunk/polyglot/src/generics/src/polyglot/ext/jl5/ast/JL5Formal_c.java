@@ -24,7 +24,7 @@ import polyglot.util.Position;
 import polyglot.util.TypedList;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5Formal_c extends Formal_c implements JL5Formal, ApplicationCheck  {
 
@@ -94,7 +94,7 @@ public class JL5Formal_c extends Formal_c implements JL5Formal, ApplicationCheck
         return super.disambiguate(ar);
     }
     
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         if (!flags().flags().clearFinal().equals(Flags.NONE)){
             throw new SemanticException("Modifier: "+flags().flags().clearFinal()+" not allowed here.", position());
         }
