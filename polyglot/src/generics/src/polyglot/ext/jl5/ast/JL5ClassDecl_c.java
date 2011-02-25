@@ -186,7 +186,8 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
 
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
     	Flags flags = flags().flags();
-    	
+    	Context ctx = tc.context();
+
         if (JL5Flags.isEnumModifier(flags) && flags.isAbstract()) {
             throw new SemanticException("Enum types cannot have abstract modifier", this.position());
         }
@@ -224,7 +225,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
             TypeNode ti = (TypeNode) paramTypes.get(i);
             for (int j = i + 1; j < paramTypes.size(); j++) {
                 TypeNode tj = (TypeNode) paramTypes.get(j);
-                if (ts.equals(ti.type(), tj.type())) {
+                if (ts.typeEquals(ti.type(), tj.type(), ctx)) {
                     throw new SemanticException("Duplicate type variable declaration.", tj.position());
                 }
             }
@@ -251,14 +252,14 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
         //disallow wildcards in supertypes and super interfaces
         if (superClass() != null) {
             Type superType = superClass().type();
-            if (!ts.equals(superType, ts.capture(superType))) {
+            if (!ts.typeEquals(superType, ts.capture(superType), ctx)) {
                 throw new SemanticException("Wildcards not allowed here.", superClass().position());
             }
         }
         for (Iterator it = interfaces().iterator(); it.hasNext();){
             TypeNode itNode = (TypeNode) it.next();
             Type ittype = itNode.type();
-            if (!ts.equals(ittype, ts.capture(ittype))) {
+            if (!ts.typeEquals(ittype, ts.capture(ittype), ctx)) {
                 throw new SemanticException("Wildcards not allowed here.", itNode.position());
             }
         }
@@ -267,8 +268,9 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
         return super.typeCheck(tc);
     }
 
-    private void checkSuperTypeTypeArgs(TypeChecker tc) throws SemanticException {
-        
+    private void checkSuperTypeTypeArgs(ContextVisitor tc) throws SemanticException {
+        TypeSystem ts = tc.typeSystem();
+        Context ctx = tc.context();
         List allInterfaces = new ArrayList();
         allInterfaces.addAll(type().interfaces());
         if (((ParsedClassType) type()).superType() != null) {
@@ -280,18 +282,18 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
             for (int j = i + 1; j < allInterfaces.size(); j++) {
                 Type other = (Type) allInterfaces.get(j);
                 if (next instanceof ParameterizedType && other instanceof ParameterizedType) {
-                    if (tc.typeSystem().equals(((ParameterizedType) next).baseType(), ((ParameterizedType) other).baseType())
-                            && !tc.typeSystem().equals(next, other)) {
+                    if (ts.typeEquals(((ParameterizedType) next).baseType(), ((ParameterizedType) other).baseType(), ctx)
+                            && !ts.typeEquals(next, other, ctx)) {
                         throw new SemanticException(((ParameterizedType) next).baseType()
                                 + " cannot be inherited with different type arguments.", position());
                     }
                 } else if (next instanceof ParameterizedType) {
-                    if (tc.typeSystem().equals(((ParameterizedType) next).baseType(), other)) {
+                    if (ts.typeEquals(((ParameterizedType) next).baseType(), other, ctx)) {
                         throw new SemanticException(((ParameterizedType) next).baseType()
                                 + " cannot be inherited with different type arguments.", position());
                     }
                 } else if (other instanceof ParameterizedType) {
-                    if (tc.typeSystem().equals(((ParameterizedType) other).baseType(), next)) {
+                    if (ts.typeEquals(((ParameterizedType) other).baseType(), next, ctx)) {
                         throw new SemanticException(((ParameterizedType) other).baseType()
                                 + " cannot be inherited with different type arguments.", position());
                     }

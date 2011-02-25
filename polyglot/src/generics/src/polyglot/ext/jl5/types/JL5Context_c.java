@@ -56,10 +56,10 @@ public class JL5Context_c extends Context_c implements JL5Context {
             return vi;
         }
 
+//    	//CHECK Commented because we do not support static import yet
 //        try {
 //            // might be static
 //            if (importTable() != null) {
-//            	//CHECK Commented because we do not support static import yet
 //                JL5ImportTable jit = (JL5ImportTable) importTable();
 //                for (Iterator it = jit.explicitStaticImports().iterator(); it.hasNext();) {
 //                    String next = (String) it.next();
@@ -167,11 +167,15 @@ public class JL5Context_c extends Context_c implements JL5Context {
             return (TypeVariable) typeVars.get(name);
         }
         if (outer != null) {
+        	//CHECK the method name suggests we shouldn't recurse on outer
             return ((JL5Context) outer).findTypeVariableInThisScope(name);
         }
         return null;
     }
 
+    /**
+     * @deprecated
+     */
     public boolean inTypeVariable() {
         return kind == TYPE_VAR;
     }

@@ -16,6 +16,7 @@ import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.util.Position;
+import polyglot.visit.ContextVisitor;
 
 public class JL5AmbQualifierNode_c extends AmbQualifierNode_c implements JL5AmbQualifierNode {
 
@@ -36,8 +37,10 @@ public class JL5AmbQualifierNode_c extends AmbQualifierNode_c implements JL5AmbQ
         return n;
     }
 
-    public Node disambiguate(AmbiguityRemover sc) throws SemanticException {
+    public Node disambiguate(ContextVisitor sc) throws SemanticException {
         Node n = sc.nodeFactory().disamb().disambiguate(this, sc, position(), qual, name);
+        // Create a parameterized type out of the JL5ParsedClassType
+        //CHECK JL5AmbQualifierNode_c transforms JL5ParsedClassType to ParameterizedType whereas JL5AmbTypeNode distinguish between Raw and ParameterizedType
         if (n instanceof CanonicalTypeNode && ((CanonicalTypeNode)n).type() instanceof JL5ParsedClassType){
             ParameterizedType pt = ((JL5TypeSystem)sc.typeSystem()).parameterizedType((JL5ParsedClassType)((CanonicalTypeNode)n).type());
             ArrayList typeArgs = new ArrayList(typeArguments.size());

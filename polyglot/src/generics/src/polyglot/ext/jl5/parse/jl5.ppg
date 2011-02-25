@@ -828,14 +828,14 @@ override array_creation_expression ::=
     
 override field_access ::=
     primary:a DOT IDENTIFIER:b
-        {: RESULT = parser.nf.JL5Field(parser.pos(a, b, b), a,
+        {: RESULT = parser.nf.Field(parser.pos(a, b, b), a,
            b.getIdentifier()); :}
     |   SUPER:n DOT IDENTIFIER:a
-        {: RESULT = parser.nf.JL5Field(parser.pos(a),
+        {: RESULT = parser.nf.Field(parser.pos(a),
            parser.nf.Super(parser.pos(n)),
            a.getIdentifier()); :}
     |   name:a DOT SUPER:n DOT IDENTIFIER:b
-        {: RESULT = parser.nf.JL5Field(parser.pos(b),
+        {: RESULT = parser.nf.Field(parser.pos(b),
            parser.nf.Super(parser.pos(n), a.toType()),
            b.getIdentifier()); :}
 ;
