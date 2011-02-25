@@ -465,11 +465,11 @@ extend import_declaration ::=
 	;
 static_single_type_import_declaration ::= 
 		IMPORT:a STATIC:b name:c SEMICOLON:d
-        {: RESULT = parser.nf.JL5Import(parser.pos(a, d), JL5Import.MEMBER, c.toString()); :}
+        {: RESULT = parser.nf.Import(parser.pos(a, d), JL5Import.MEMBER, c.toString(), true); :}
 	;
 static_type_import_on_demand_declaration ::=
 		IMPORT:a STATIC:b name:c DOT MULT SEMICOLON:d
-        {: RESULT = parser.nf.JL5Import(parser.pos(a, d), JL5Import.ALL_MEMBERS, c.toString()); :}
+        {: RESULT = parser.nf.Import(parser.pos(a, d), JL5Import.ALL_MEMBERS, c.toString(), true); :}
 	;
 extend type_declaration ::=
     enum_declaration:a

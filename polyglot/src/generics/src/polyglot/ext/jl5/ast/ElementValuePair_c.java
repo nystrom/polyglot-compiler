@@ -67,7 +67,7 @@ public class ElementValuePair_c extends Expr_c implements ElementValuePair {
         return reconstruct(value);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException{
+    public Node typeCheck(ContextVisitor tc) throws SemanticException{
         JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
         ts.checkValueConstant(value);
 

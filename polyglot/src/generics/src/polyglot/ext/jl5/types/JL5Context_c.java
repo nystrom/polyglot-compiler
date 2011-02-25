@@ -60,7 +60,7 @@ public class JL5Context_c extends Context_c implements JL5Context {
             // might be static
             if (importTable() != null) {
                 JL5ImportTable jit = (JL5ImportTable) importTable();
-                for (Iterator it = jit.memberImports().iterator(); it.hasNext();) {
+                for (Iterator it = jit.explicitStaticImports().iterator(); it.hasNext();) {
                     String next = (String) it.next();
                     String id = StringUtil.getShortNameComponent(next);
                     if (name.equals(id)) {
@@ -78,7 +78,7 @@ public class JL5Context_c extends Context_c implements JL5Context {
                     }
                 }
                 if (vi == null) {
-                    for (Iterator it = jit.staticClassImports().iterator(); it.hasNext();) {
+                    for (Iterator it = jit.onDemandStaticImports().iterator(); it.hasNext();) {
                         String next = (String) it.next();
                         Named nt = ts.forName(next);
                         if (nt instanceof Type) {

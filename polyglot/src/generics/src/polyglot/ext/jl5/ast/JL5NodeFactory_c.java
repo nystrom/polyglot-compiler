@@ -213,8 +213,13 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return n;
     }
 
-    public JL5Import JL5Import(Position pos, Import.Kind kind, QName name){
-        JL5Import n = new JL5Import_c(pos, kind, name);
+    public JL5Import Import(Position pos, Import.Kind kind, QName name){
+        JL5Import n = new JL5Import_c(pos, kind, name, false);
+        return n;
+    }
+
+    public JL5Import Import(Position pos, Import.Kind kind, QName name, boolean isStatic){
+        JL5Import n = new JL5Import_c(pos, kind, name, isStatic);
         return n;
     }
 
