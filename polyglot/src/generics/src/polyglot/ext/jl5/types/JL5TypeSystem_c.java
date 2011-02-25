@@ -30,6 +30,7 @@ import polyglot.ext.jl5.types.inference.InferenceSolver;
 import polyglot.ext.jl5.types.inference.InferenceSolver_c;
 import polyglot.ext.jl5.types.inference.LubType;
 import polyglot.ext.jl5.types.inference.LubType_c;
+import polyglot.ext.jl5.types.reflect.JL5ClassFileLazyClassInitializer;
 import polyglot.frontend.Source;
 import polyglot.types.ArrayType;
 import polyglot.types.ClassDef;
@@ -59,6 +60,8 @@ import polyglot.types.TypeEnv;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 import polyglot.types.TypeSystem_c;
+import polyglot.types.reflect.ClassFile;
+import polyglot.types.reflect.ClassFileLazyClassInitializer;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 import polyglot.util.Predicate2;
@@ -213,7 +216,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     public ClassType classOf(Type t) {
         if (t.isClass())
             return (ClassType) t;
-        if (equals(t, Float()))
+        if (typeEquals(t, Float()))
             return FloatWrapper();
         if (equals(t, Double()))
             return DoubleWrapper();
@@ -404,6 +407,12 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		return false;
     }
 
+    @Override
+    public ClassFileLazyClassInitializer classFileLazyClassInitializer(
+    		ClassFile clazz) {
+    	return new JL5ClassFileLazyClassInitializer(clazz, this);
+    }
+    
     protected PrimitiveType createPrimitive(PrimitiveType.Kind kind) {
         return new JL5PrimitiveType_c(this, kind);
     }
