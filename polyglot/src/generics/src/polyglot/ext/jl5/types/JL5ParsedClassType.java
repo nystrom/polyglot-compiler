@@ -3,6 +3,7 @@ package polyglot.ext.jl5.types;
 import java.util.List;
 
 import polyglot.types.MethodInstance;
+import polyglot.types.Name;
 import polyglot.types.ParsedClassType;
 import polyglot.types.TypeObject;
 
@@ -11,7 +12,7 @@ import polyglot.types.TypeObject;
 public interface JL5ParsedClassType extends ParsedClassType {
     void addEnumConstant(EnumInstance ei);
     List<EnumInstance> enumConstants();
-    EnumInstance enumConstantNamed(String name);
+    EnumInstance enumConstantNamed(Name name);
     
     void addAnnotationElem(AnnotationElemInstance ai);
     List<AnnotationElemInstance> annotationElems();

@@ -35,7 +35,8 @@ public class JL5Field_c extends Field_c implements JL5Field {
              target.type() + "\".", target.position());
         }
 
-        FieldInstance fi = ts.findFieldOrEnum(target.type().toReference(), name, c.currentClass());
+        
+        FieldInstance fi = ts.findFieldOrEnum(target.type(), ts.FieldMatcher(target.type(), name.id(), c));
 
         if (fi == null) {
             throw new InternalCompilerError("Cannot access field on node of type "+ target.getClass().getName() + ".");

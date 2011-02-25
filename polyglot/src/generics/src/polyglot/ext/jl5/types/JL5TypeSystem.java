@@ -7,6 +7,7 @@ import polyglot.ast.Expr;
 import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ext.jl5.ast.AnnotationElem;
+import polyglot.ext.jl5.types.JL5TypeSystem_c.EnumMatcher;
 import polyglot.ext.jl5.types.JL5TypeSystem_c.JL5ConstructorMatcher;
 import polyglot.ext.jl5.types.JL5TypeSystem_c.JL5MethodMatcher;
 import polyglot.ext.jl5.types.inference.InferenceSolver;
@@ -28,7 +29,9 @@ import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
+import polyglot.types.TypeSystem_c;
 import polyglot.types.TypeSystem_c.ConstructorMatcher;
+import polyglot.types.TypeSystem_c.FieldMatcher;
 import polyglot.types.TypeSystem_c.MethodMatcher;
 import polyglot.util.Position;
 
@@ -79,20 +82,14 @@ public interface JL5TypeSystem extends TypeSystem {
             Id name, boolean hasDefault);
 
     Context createContext();
-
-    EnumInstance findEnumConstant(ReferenceType container, Name name, ClassType currClass)
-            throws SemanticException;
-
+   
+    EnumMatcher EnumMatcher(Type container, Name name, Context ctx);
+    
+    EnumInstance findEnumConstant(Type container, EnumMatcher matcher) throws SemanticException;
     AnnotationElemInstance findAnnotation(ReferenceType container, String name, ClassType currClass)
             throws SemanticException;
 
-    EnumInstance findEnumConstant(ReferenceType container, String name, Context c)
-            throws SemanticException;
-
-    EnumInstance findEnumConstant(ReferenceType container, String name) throws SemanticException;
-
-    FieldInstance findFieldOrEnum(ReferenceType container, String name, ClassType currClass)
-            throws SemanticException;
+    FieldInstance findFieldOrEnum(Type container, TypeSystem_c.FieldMatcher matcher) throws SemanticException;
 
     boolean isValidAnnotationValueType(Type t);
 

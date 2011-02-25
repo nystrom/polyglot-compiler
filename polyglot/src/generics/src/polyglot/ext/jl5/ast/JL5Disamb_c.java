@@ -27,7 +27,7 @@ public class JL5Disamb_c extends Disamb_c {
     
         if (t.isReference() && exprOK()){
             try {
-                FieldInstance fi = ((JL5TypeSystem)ts).findFieldOrEnum(t.toReference(), name, c.currentClass());
+                FieldInstance fi = ((JL5TypeSystem)ts).findFieldOrEnum(t, ts.FieldMatcher(t, name.id(), c));
                 return ((JL5NodeFactory)nf).JL5Field(pos, tn, name).fieldInstance(fi);
             }
             catch(NoMemberException e){

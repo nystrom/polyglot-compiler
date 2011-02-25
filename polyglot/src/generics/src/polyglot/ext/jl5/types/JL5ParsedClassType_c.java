@@ -6,7 +6,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import polyglot.types.ClassDef;
+import polyglot.types.FieldInstance;
 import polyglot.types.MethodInstance;
+import polyglot.types.Name;
 import polyglot.types.Named;
 import polyglot.types.ParsedClassType_c;
 import polyglot.types.PrimitiveType;
@@ -80,11 +82,11 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
         return super.initialized() && this.enumConstants != null && this.annotationElems != null;
     }
     
-    public EnumInstance enumConstantNamed(String name){
-        for(Iterator it = enumConstants().iterator(); it.hasNext();){
-            EnumInstance ei = (EnumInstance)it.next();
-            if (ei.name().equals(name)){
-                return ei;
+    public EnumInstance enumConstantNamed(Name name) {
+        for (Iterator<EnumInstance> i = enumConstants().iterator(); i.hasNext(); ) {
+        	EnumInstance fi = i.next();
+            if (fi.name().equals(name)) {
+                return fi;
             }
         }
         return null;
