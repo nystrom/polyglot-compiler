@@ -214,27 +214,27 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     }
 
     public ClassType classOf(Type t) {
+    	Context context = emptyContext();
         if (t.isClass())
             return (ClassType) t;
-        if (typeEquals(t, Float()))
+        if (typeEquals(t, Float(), context))
             return FloatWrapper();
-        if (equals(t, Double()))
+        if (typeEquals(t, Double(), context))
             return DoubleWrapper();
-        if (equals(t, Long()))
+        if (typeEquals(t, Long(), context))
             return LongWrapper();
-        if (equals(t, Int()))
+        if (typeEquals(t, Int(), context))
             return IntegerWrapper();
-        if (equals(t, Short()))
+        if (typeEquals(t, Short(), context))
             return ShortWrapper();
-        if (equals(t, Byte()))
+        if (typeEquals(t, Byte(), context))
             return ByteWrapper();
-        if (equals(t, Char()))
+        if (typeEquals(t, Char(), context))
             return CharacterWrapper();
-        if (equals(t, Boolean()))
+        if (typeEquals(t, Boolean(), context))
             return BooleanWrapper();
         return null;
     }
-
 
     @Override
     public boolean isByte(Type t) {
@@ -413,8 +413,8 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     	return new JL5ClassFileLazyClassInitializer(clazz, this);
     }
     
-    protected PrimitiveType createPrimitive(PrimitiveType.Kind kind) {
-        return new JL5PrimitiveType_c(this, kind);
+    protected PrimitiveType createPrimitive(Name name) {
+        return new JL5PrimitiveType_c(this, name);
     }
 
     public void checkClassConformance(ClassType ct, Context context) throws SemanticException {
@@ -578,39 +578,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     	}
     	return null;
     }
-    
-    public EnumInstance findEnumConstant(ReferenceType container, String name, Context c)
-            throws SemanticException {
-        ClassType ct = null;
-        if (c != null)
-            ct = c.currentClass();
-        return findEnumConstant(container, name, ct);
-    }
 
-    public EnumInstance findEnumConstant(ReferenceType container, String name, ClassType currClass)
-            throws SemanticException {
-        Collection enumConstants = findEnumConstants(container, name);
-        if (enumConstants.size() == 0) {
-            throw new NoMemberException(JL5NoMemberException.ENUM_CONSTANT, "Enum Constant: \""
-                    + name + "\" not found in type \"" + container + "\".");
-        }
-        Iterator i = enumConstants.iterator();
-        EnumInstance ei = (EnumInstance) i.next();
-
-        if (i.hasNext()) {
-            EnumInstance ei2 = (EnumInstance) i.next();
-
-            throw new SemanticException("Enum Constant \"" + name
-                    + "\" is ambiguous; it is defined in both " + ei.container() + " and "
-                    + ei2.container() + ".");
-        }
-
-        if (currClass != null && !isAccessible(ei, currClass)) {
-            throw new SemanticException("Cannot access " + ei + ".");
-        }
-
-        return ei;
-    }
 
     public AnnotationElemInstance findAnnotation(ReferenceType container, String name,
             ClassType currClass) throws SemanticException {
@@ -634,32 +602,6 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
             throw new SemanticException("Cannot access " + ai + ".");
         }
         return ai;
-    }
-
-    public EnumInstance findEnumConstant(ReferenceType container, String name)
-            throws SemanticException {
-        return findEnumConstant(container, name, (ClassType) null);
-    }
-
-    public Set findEnumConstants(ReferenceType container, String name) {
-        assert_(container);
-        if (container == null) {
-            throw new InternalCompilerError("Cannot access enum constant \"" + name
-                    + "\" within a null container type.");
-        }
-        EnumInstance ei = null;
-
-        if (container instanceof JL5ParsedClassType) {
-            ei = ((JL5ParsedClassType) container).enumConstantNamed(name);
-        }
-
-        if (ei != null) {
-            return Collections.singleton(ei);
-        }
-
-        Set enumConstants = new HashSet();
-
-        return enumConstants;
     }
 
     public Set findAnnotations(ReferenceType container, String name) {
@@ -696,20 +638,108 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         return new JL5Context_c(this);
     }
 
-    public FieldInstance findFieldOrEnum(ReferenceType container, String name, ClassType currClass)
-            throws SemanticException {
-
+    public FieldInstance findFieldOrEnum(Type container, TypeSystem_c.FieldMatcher matcher) throws SemanticException {
         FieldInstance fi = null;
-
         try {
-            fi = findField(container, name, currClass);
+            fi = super.findField(container, matcher);
         } catch (NoMemberException e) {
-            fi = findEnumConstant(container, name, currClass);
+        	// nothing in fields, look for enums
+        	EnumMatcher enumMatcher = EnumMatcher(container, matcher.name(), matcher.context());
+            fi = findEnumConstant(container, enumMatcher);
         }
-
         return fi;
     }
 
+    /**
+     * find enum constant in a container matching matcher requisites
+     * @param container
+     * @param matcher
+     * @return
+     * @throws SemanticException
+     */
+    public EnumInstance findEnumConstant(Type container, EnumMatcher matcher)
+            throws SemanticException {
+    	Context context = matcher.context();
+    	
+    	Collection<EnumInstance> enumConstants = findEnumConstants(container, matcher);
+
+    	if (enumConstants.size() == 0) {
+    	    throw new NoMemberException(JL5NoMemberException.ENUM_CONSTANT, 
+    	                                "Enum Constant " + matcher.signature() +
+    	                                " not found in type \"" +
+    	                                container + "\".");
+    	}
+
+    	Iterator<EnumInstance> i = enumConstants.iterator();
+    	EnumInstance fi = i.next();
+
+    	if (i.hasNext()) {
+    		EnumInstance fi2 = i.next();
+
+    	    throw new SemanticException("Enum Constant " + matcher.name() +
+    	                                " is ambiguous; it is defined in both " +
+    	                                fi.container() + " and " +
+    	                                fi2.container() + "."); 
+    	}
+
+    	if (context != null && ! isAccessible(fi, context)) {
+    	    throw new SemanticException("Cannot access " + fi + ".");
+    	}
+
+    	return fi;
+    }
+    
+    /**
+     * Returns a set of enum constant named <code>name</code> defined
+     * in type <code>container</code> or a supertype.  The list
+     * returned may be empty.
+     */
+    protected Set<EnumInstance> findEnumConstants(Type container, EnumMatcher matcher) {
+	Name name = matcher.name();
+
+	Context context = matcher.context();
+	assert_(container);
+
+	if (container == null) {
+	    throw new InternalCompilerError("Cannot access field \"" + name +
+	    "\" within a null container type.");
+	}
+
+	if (container instanceof JL5ParsedClassType) {
+	    EnumInstance fi = ((JL5ParsedClassType) container).enumConstantNamed(name);
+	    if (fi != null) {
+		try {
+		    fi = matcher.instantiate(fi);
+		    if (fi != null)
+			return Collections.singleton(fi);
+		}
+		catch (SemanticException e) {
+		}
+		return Collections.EMPTY_SET;
+	    }
+	}
+
+	Set<FieldInstance> enums = new HashSet<FieldInstance>();
+
+	if (container instanceof ObjectType) {
+	    ObjectType ot = (ObjectType) container;
+	    if (ot.superClass() != null && ot.superClass() instanceof StructType) {
+		Set<EnumInstance> superFields = findEnumConstants((StructType) ot.superClass(), matcher);
+		enums.addAll(superFields);
+	    }
+
+	    for (Type it : ot.interfaces()) {
+		if (it instanceof StructType) {
+		    Set<EnumInstance> superFields = findEnumConstants((StructType) it, matcher);
+		    enums.addAll(superFields);
+		}
+	    }
+	}
+
+	return enums;
+    }
+
+    
     public MethodInstance methodInstance(Position pos, ReferenceType container, Flags flags,
             Type returnType, String name, List argTypes, List excTypes) {
 
@@ -1832,5 +1862,24 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     	public List<Type> getExplicitTypeArgs() {
     		return explicitTypeArgs;
     	}
+    }
+    
+    public EnumMatcher EnumMatcher(Type container, Name name, Context ctx) {
+    	return new EnumMatcher(container, name, ctx);
+    }
+    
+    /**
+     * Enum matcher is a field matcher which we cast the return type to EnumInstance
+     * @author vcave
+     *
+     */
+    public static class EnumMatcher extends FieldMatcher {
+
+		protected EnumMatcher(Type container, Name name, Context context) {
+			super(container, name, context);
+		}
+		public EnumInstance instantiate(EnumInstance mi) throws SemanticException {
+			return (EnumInstance) super.instantiate(mi);
+		}
     }
 }

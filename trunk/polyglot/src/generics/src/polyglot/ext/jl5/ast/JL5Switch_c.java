@@ -47,7 +47,8 @@ public class JL5Switch_c extends Switch_c implements JL5Switch  {
                 Node swElem = (Node)it.next();
                 if (swElem instanceof Case && ((Case)swElem).expr() instanceof AmbExpr){
                     AmbExpr amb = (AmbExpr)((Case)swElem).expr();
-                    FieldInstance fi = ts.findFieldOrEnum(sw.expr().type().toReference(), amb.name(), context.currentClass());
+                    
+                    FieldInstance fi = ts.findFieldOrEnum(sw.expr().type(), ts.FieldMatcher(sw.expr().type(), amb.name().id(), context));
                     if (fi instanceof EnumInstance){
                     
                         JL5Field caseField = nf.JL5Field(swElem.position(), nf.CanonicalTypeNode(sw.expr().type().position(), sw.expr().type()), amb.name());
