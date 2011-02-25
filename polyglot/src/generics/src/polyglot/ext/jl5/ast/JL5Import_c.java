@@ -17,9 +17,10 @@ import polyglot.types.TypeSystem;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
 import polyglot.util.StringUtil;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.PrettyPrinter;
 import polyglot.visit.TypeBuilder;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5Import_c extends Import_c implements JL5Import{
     
@@ -38,7 +39,7 @@ public class JL5Import_c extends Import_c implements JL5Import{
         return this;
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
     
         // check package exists
         String pkgName = StringUtil.getFirstComponent(name);

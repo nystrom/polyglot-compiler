@@ -34,7 +34,7 @@ import polyglot.visit.CFGBuilder;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
 import polyglot.visit.TypeBuilder;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class EnumConstantDecl_c extends Term_c implements EnumConstantDecl
 {   
@@ -239,7 +239,7 @@ public class EnumConstantDecl_c extends Term_c implements EnumConstantDecl
         return tc;
     }
     
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
         Context c = tc.context();
         ClassType ct = c.currentClass();

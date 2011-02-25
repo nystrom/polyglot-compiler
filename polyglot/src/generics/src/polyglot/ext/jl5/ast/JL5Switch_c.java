@@ -21,7 +21,7 @@ import polyglot.types.SemanticException;
 import polyglot.util.Position;
 import polyglot.visit.AmbiguityRemover;
 import polyglot.visit.NodeVisitor;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5Switch_c extends Switch_c implements JL5Switch  {
 
@@ -37,7 +37,7 @@ public class JL5Switch_c extends Switch_c implements JL5Switch  {
         return tc.bypass(elements);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
         JL5Context context = (JL5Context)tc.context();
         JL5NodeFactory nf = (JL5NodeFactory)tc.nodeFactory();

@@ -14,7 +14,7 @@ import polyglot.types.FieldInstance;
 import polyglot.types.SemanticException;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5Field_c extends Field_c implements JL5Field {
 
@@ -22,7 +22,7 @@ public class JL5Field_c extends Field_c implements JL5Field {
         super(pos, target, name);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         Context c = tc.context();
         JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
 

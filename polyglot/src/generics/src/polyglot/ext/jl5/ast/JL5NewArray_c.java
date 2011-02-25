@@ -4,9 +4,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import polyglot.ast.ArrayInit;
+import polyglot.ast.NewArray_c;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
-import polyglot.ast.NewArray_c;
 import polyglot.ext.jl5.types.AnyType;
 import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.ParameterizedType;
@@ -15,7 +15,7 @@ import polyglot.types.ClassType;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.util.Position;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5NewArray_c extends NewArray_c implements JL5NewArray {
 
@@ -23,7 +23,7 @@ public class JL5NewArray_c extends NewArray_c implements JL5NewArray {
         super(pos, baseType, dims, addDims, init);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         Type t = baseType.type();
         if (t instanceof TypeVariable){
             throw new SemanticException("Generic array creation.", baseType.position());

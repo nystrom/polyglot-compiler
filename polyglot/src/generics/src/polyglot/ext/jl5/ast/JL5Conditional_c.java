@@ -1,13 +1,14 @@
 package polyglot.ext.jl5.ast;
 
+import polyglot.ast.Conditional_c;
 import polyglot.ast.Expr;
 import polyglot.ast.Node;
-import polyglot.ast.Conditional_c;
 import polyglot.ext.jl5.types.JL5TypeSystem;
+import polyglot.types.Context;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.util.Position;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5Conditional_c extends Conditional_c implements JL5Conditional  {
 
@@ -15,9 +16,10 @@ public class JL5Conditional_c extends Conditional_c implements JL5Conditional  {
         super(pos, cond, consequent, alternative);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
-        if (!ts.equals(cond.type(), ts.Boolean()) && !ts.equals(cond.type(), ts.BooleanWrapper())){
+        Context ctx = tc.context();
+        if (!ts.typeEquals(cond.type(), ts.Boolean(), ctx) && !ts.typeEquals(cond.type(), ts.BooleanWrapper(), ctx)){
             throw new SemanticException("Condition of ternary expression must be of type boolean.", cond.position());
         }
 
@@ -29,7 +31,7 @@ public class JL5Conditional_c extends Conditional_c implements JL5Conditional  {
         // From the JLS, section:
         // If the second and third operands have the same type (which may be
         // the null type), then that is the type of the conditional expression.
-        if (ts.equals(t1, t2) || ts.equivalent(t1, t2)) {
+        if (ts.typeEquals(t1, t2, ctx) || ts.equivalent(t1, t2)) {
             return type(t1);
         }
 
@@ -50,13 +52,13 @@ public class JL5Conditional_c extends Conditional_c implements JL5Conditional  {
 
             if (t1.isIntOrLess() &&
                 t2.isInt() &&
-                ts.numericConversionValid(t1, e2.constantValue())) {
+                ts.numericConversionValid(t1, e2.constantValue(), ctx)) {
                     return type(t1);
             }
 
             if (t2.isIntOrLess() &&
                 t1.isInt() &&
-                ts.numericConversionValid(t2, e1.constantValue())) {
+                ts.numericConversionValid(t2, e1.constantValue(), ctx)) {
                     return type(t2);
             }
 
@@ -86,10 +88,10 @@ public class JL5Conditional_c extends Conditional_c implements JL5Conditional  {
         // if neither type is assignment compatible with the other type.
 
         if (t1.isReference() && t2.isReference()) {
-            if (ts.isImplicitCastValid(t1, t2)) {
+            if (ts.isImplicitCastValid(t1, t2, ctx)) {
                 return type(t2);
             }
-            if (ts.isImplicitCastValid(t2, t1)) {
+            if (ts.isImplicitCastValid(t2, t1, ctx)) {
                 return type(t1);
             }
         }

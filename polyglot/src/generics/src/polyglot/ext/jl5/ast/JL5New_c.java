@@ -6,11 +6,15 @@ import java.util.List;
 
 import polyglot.ast.ClassBody;
 import polyglot.ast.Expr;
+import polyglot.ast.New_c;
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
 import polyglot.ast.TypeNode;
-import polyglot.ast.New_c;
-import polyglot.ext.jl5.types.*;
+import polyglot.ext.jl5.types.JL5Context;
+import polyglot.ext.jl5.types.JL5Flags;
+import polyglot.ext.jl5.types.JL5TypeSystem;
+import polyglot.ext.jl5.types.ParameterizedType;
+import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.types.ClassType;
 import polyglot.types.Context;
 import polyglot.types.SemanticException;
@@ -19,9 +23,9 @@ import polyglot.types.TypeSystem;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
-import polyglot.visit.AmbiguityRemover;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5New_c extends New_c implements JL5New  {
 
@@ -138,7 +142,7 @@ public class JL5New_c extends New_c implements JL5New  {
         return this;
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         if (tn.type().isClass()) {
             ClassType ct = (ClassType) tn.type();
             if (JL5Flags.isEnumModifier(ct.flags())) {
@@ -198,7 +202,7 @@ public class JL5New_c extends New_c implements JL5New  {
         return n.typeCheckEpilogue(tc);
     }
 
-    protected Node typeCheckEpilogue(TypeChecker tc) throws SemanticException {
+    protected Node typeCheckEpilogue(ContextVisitor tc) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem) tc.typeSystem();
 
         List<Type> paramTypes = new ArrayList<Type>(arguments.size());

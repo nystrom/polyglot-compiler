@@ -9,7 +9,7 @@ import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.util.Position;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5Catch_c extends Catch_c implements JL5Catch {
 

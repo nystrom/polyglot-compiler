@@ -14,7 +14,7 @@ import polyglot.util.Position;
 import polyglot.visit.CFGBuilder;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.Translator;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class ElementValuePair_c extends Expr_c implements ElementValuePair {
 

@@ -37,7 +37,7 @@ import polyglot.util.Position;
 import polyglot.util.TypedList;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeChecker;
+import polyglot.visit.ContextVisitor;
 
 public class JL5ConstructorDecl_c extends ConstructorDecl_c implements JL5ConstructorDecl, ApplicationCheck {
 
@@ -203,7 +203,7 @@ public class JL5ConstructorDecl_c extends ConstructorDecl_c implements JL5Constr
     }
     
    
-    public Node typeCheck(TypeChecker tc) throws SemanticException {
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
         
         // check throws clauses are not parameterized
         for (Iterator it = throwTypes.iterator(); it.hasNext(); ){
