@@ -13,7 +13,5 @@ public interface AnnotationElemInstance extends MemberInstance {
 
     public Name name();
 
-    public ReferenceType container();
-
     public boolean hasDefault();
 }

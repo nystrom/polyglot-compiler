@@ -61,7 +61,9 @@ public class NormalAnnotationElem_c extends AnnotationElem_c implements NormalAn
         // check that elements refer to annotation element instances
         for (Iterator it = elements().iterator(); it.hasNext(); ){
             ElementValuePair next = (ElementValuePair)it.next();
-            AnnotationElemInstance ai = ts.findAnnotation(typeName().type().toReference(), next.name(), c.currentClass());
+            
+            AnnotationElemInstance ai = ts.findAnnotation(typeName().type(), 
+            		ts.AnnotationMatcher(typeName().type(), next.name().id(), c));
             // and value has to be the right type
             if (! ts.isImplicitCastValid(next.value().type(), ai.type()) &&
                 ! ts.equals(next.value().type(), ai.type()) &&

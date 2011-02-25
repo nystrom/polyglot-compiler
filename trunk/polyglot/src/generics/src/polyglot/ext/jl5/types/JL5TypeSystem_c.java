@@ -60,8 +60,10 @@ import polyglot.types.TypeEnv;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 import polyglot.types.TypeSystem_c;
+import polyglot.types.TypeSystem_c.FieldMatcher;
 import polyglot.types.reflect.ClassFile;
 import polyglot.types.reflect.ClassFileLazyClassInitializer;
+import polyglot.util.Copy;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 import polyglot.util.Predicate2;
@@ -580,15 +582,23 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     }
 
 
-    public AnnotationElemInstance findAnnotation(ReferenceType container, String name,
-            ClassType currClass) throws SemanticException {
-        Collection annotations = findAnnotations(container, name);
+    public EnumInstance enumInstance(Position pos, ClassType ct, Flags f, Id name,
+            ParsedClassType anonType) {
+        assert_(ct);
+        return new EnumInstance_c(this, pos, ct, f, name, anonType);
+    }
+
+
+    public AnnotationElemInstance findAnnotation(Type container, AnnotationMatcher matcher) throws SemanticException {
+        Collection<AnnotationElemInstance> annotations = findAnnotations(container, matcher);
+        Name name = matcher.name();
+
         if (annotations.size() == 0) {
-            throw new NoMemberException(JL5NoMemberException.ANNOTATION, "Annotation: \"" + name
+            throw new NoMemberException(JL5NoMemberException.ANNOTATION, "Annotation \"" + name
                     + "\" not found in type \"" + container + "\".");
         }
-        Iterator i = annotations.iterator();
-        AnnotationElemInstance ai = (AnnotationElemInstance) i.next();
+        Iterator<AnnotationElemInstance> i = annotations.iterator();
+        AnnotationElemInstance ai = i.next();
 
         if (i.hasNext()) {
             AnnotationElemInstance ai2 = (AnnotationElemInstance) i.next();
@@ -598,35 +608,65 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
                     + ai2.container() + ".");
         }
 
-        if (currClass != null && !isAccessible(ai, currClass)) {
+        Context context = matcher.context();
+        if (context != null && !isAccessible(ai, context)) {
             throw new SemanticException("Cannot access " + ai + ".");
         }
         return ai;
     }
+    
+    /**
+     * Returns a set of annotations named <code>name</code> defined
+     * in type <code>container</code> or a supertype.  The list
+     * returned may be empty.
+     */
+    protected Set<AnnotationElemInstance> findAnnotations(Type container, AnnotationMatcher matcher) {
+    	Name name = matcher.name();
 
-    public Set findAnnotations(ReferenceType container, String name) {
-        assert_(container);
-        if (container == null) {
-            throw new InternalCompilerError("Cannot access annotation \"" + name
-                    + "\" within a null container type.");
-        }
-        AnnotationElemInstance ai = ((JL5ParsedClassType) container).annotationElemNamed(name);
+    	Context context = matcher.context();
+    	assert_(container);
 
-        if (ai != null) {
-            return Collections.singleton(ai);
-        }
+    	if (container == null) {
+    		throw new InternalCompilerError("Cannot access annotation \"" + name +
+    		"\" within a null container type.");
+    	}
 
-        Set annotations = new HashSet();
+    	if (container instanceof JL5ParsedClassType) {
+    		AnnotationElemInstance fi = ((JL5ParsedClassType) container).annotationElemNamed(name);
+    		if (fi != null) {
+    			try {
+    				fi = matcher.instantiate(fi);
+    				if (fi != null)
+    					return Collections.singleton(fi);
+    			}
+    			catch (SemanticException e) {
+    			}
+    			return Collections.EMPTY_SET;
+    		}
+    	}
+    	//CHECK previous code wasn't recursing on super 
 
-        return annotations;
+    	// if not found look in super classes
+    	Set<AnnotationElemInstance> annot = new HashSet<AnnotationElemInstance>();
+
+    	if (container instanceof ObjectType) {
+    		ObjectType ot = (ObjectType) container;
+    		if (ot.superClass() != null && ot.superClass() instanceof StructType) {
+    			Set<AnnotationElemInstance> superFields = findAnnotations((StructType) ot.superClass(), matcher);
+    			annot.addAll(superFields);
+    		}
+
+    		for (Type it : ot.interfaces()) {
+    			if (it instanceof StructType) {
+    				Set<AnnotationElemInstance> superFields = findAnnotations((StructType) it, matcher);
+    				annot.addAll(superFields);
+    			}
+    		}
+    	}
+
+    	return annot;
     }
-
-    public EnumInstance enumInstance(Position pos, ClassType ct, Flags f, Id name,
-            ParsedClassType anonType) {
-        assert_(ct);
-        return new EnumInstance_c(this, pos, ct, f, name, anonType);
-    }
-
+    
     public AnnotationElemInstance annotationElemInstance(Position pos, ClassType ct, Flags f,
             Type type, Id name, boolean hasDefault) {
         assert_(ct);
@@ -695,48 +735,48 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
      * returned may be empty.
      */
     protected Set<EnumInstance> findEnumConstants(Type container, EnumMatcher matcher) {
-	Name name = matcher.name();
+    	Name name = matcher.name();
 
-	Context context = matcher.context();
-	assert_(container);
+    	Context context = matcher.context();
+    	assert_(container);
 
-	if (container == null) {
-	    throw new InternalCompilerError("Cannot access field \"" + name +
-	    "\" within a null container type.");
-	}
+    	if (container == null) {
+    		throw new InternalCompilerError("Cannot access field \"" + name +
+    		"\" within a null container type.");
+    	}
 
-	if (container instanceof JL5ParsedClassType) {
-	    EnumInstance fi = ((JL5ParsedClassType) container).enumConstantNamed(name);
-	    if (fi != null) {
-		try {
-		    fi = matcher.instantiate(fi);
-		    if (fi != null)
-			return Collections.singleton(fi);
-		}
-		catch (SemanticException e) {
-		}
-		return Collections.EMPTY_SET;
-	    }
-	}
+    	if (container instanceof JL5ParsedClassType) {
+    		EnumInstance fi = ((JL5ParsedClassType) container).enumConstantNamed(name);
+    		if (fi != null) {
+    			try {
+    				fi = matcher.instantiate(fi);
+    				if (fi != null)
+    					return Collections.singleton(fi);
+    			}
+    			catch (SemanticException e) {
+    			}
+    			return Collections.EMPTY_SET;
+    		}
+    	}
+    	//CHECK previous code wasn't recursing on super
+    	Set<EnumInstance> enums = new HashSet<EnumInstance>();
 
-	Set<FieldInstance> enums = new HashSet<FieldInstance>();
+    	if (container instanceof ObjectType) {
+    		ObjectType ot = (ObjectType) container;
+    		if (ot.superClass() != null && ot.superClass() instanceof StructType) {
+    			Set<EnumInstance> superFields = findEnumConstants((StructType) ot.superClass(), matcher);
+    			enums.addAll(superFields);
+    		}
 
-	if (container instanceof ObjectType) {
-	    ObjectType ot = (ObjectType) container;
-	    if (ot.superClass() != null && ot.superClass() instanceof StructType) {
-		Set<EnumInstance> superFields = findEnumConstants((StructType) ot.superClass(), matcher);
-		enums.addAll(superFields);
-	    }
+    		for (Type it : ot.interfaces()) {
+    			if (it instanceof StructType) {
+    				Set<EnumInstance> superFields = findEnumConstants((StructType) it, matcher);
+    				enums.addAll(superFields);
+    			}
+    		}
+    	}
 
-	    for (Type it : ot.interfaces()) {
-		if (it instanceof StructType) {
-		    Set<EnumInstance> superFields = findEnumConstants((StructType) it, matcher);
-		    enums.addAll(superFields);
-		}
-	    }
-	}
-
-	return enums;
+    	return enums;
     }
 
     
@@ -1881,5 +1921,64 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		public EnumInstance instantiate(EnumInstance mi) throws SemanticException {
 			return (EnumInstance) super.instantiate(mi);
 		}
+    }
+
+    public AnnotationMatcher AnnotationMatcher(Type container, Name name, Context ctx) {
+    	return new AnnotationMatcher(container, name, ctx);
+    }
+
+    public static class AnnotationMatcher implements Copy, Matcher<AnnotationElemInstance> {
+    	protected Type container;
+    	protected Name name;
+    	protected Context context;
+
+    	protected AnnotationMatcher(Type container, Name name, Context context) {
+    		super();
+    		this.container = container;
+    		this.name = name;
+    		this.context = context;
+    	}
+
+    	public Context context() {
+    		return context;
+    	}
+
+    	public AnnotationMatcher container(Type container) {
+    		AnnotationMatcher n = copy();
+    		n.container = container;
+    		return n;
+    	}
+
+    	public AnnotationMatcher copy() {
+    		try {
+    			return (AnnotationMatcher) super.clone();
+    		}
+    		catch (CloneNotSupportedException e) {
+    			throw new InternalCompilerError(e);
+    		}
+    	}
+
+    	public String signature() {
+    		return name.toString();
+    	}
+
+    	public Name name() {
+    		return name;
+    	}
+
+    	public AnnotationElemInstance instantiate(AnnotationElemInstance mi) throws SemanticException {
+    		if (! mi.name().equals(name)) {
+    			return null;
+    		}
+    		return mi;
+    	}
+
+    	public String toString() {
+    		return signature();
+    	}
+
+    	public Object key() {
+    		return null;
+    	}
     }
 }

@@ -92,9 +92,9 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
         return null;
     }
     
-    public AnnotationElemInstance annotationElemNamed(String name){
-        for(Iterator it = annotationElems().iterator(); it.hasNext();){
-            AnnotationElemInstance ai = (AnnotationElemInstance)it.next();
+    public AnnotationElemInstance annotationElemNamed(Name name){
+        for(Iterator<AnnotationElemInstance> it = annotationElems().iterator(); it.hasNext();){
+            AnnotationElemInstance ai = it.next();
             if (ai.name().equals(name)){
                 return ai;
             }
