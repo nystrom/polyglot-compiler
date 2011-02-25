@@ -33,8 +33,6 @@ import polyglot.types.TypeSystem_c.MethodMatcher;
 import polyglot.util.Position;
 
 public interface JL5TypeSystem extends TypeSystem {
-    // TODO: declare any new methods needed
-    //polyglot.ext.jl5.types.LazyClassInitializer defaultClassInitializer();
 
     ParsedClassType createClassType(Source fromSource);
     
