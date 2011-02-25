@@ -34,8 +34,6 @@ public interface JL5ParsedClassType extends ParsedClassType {
 	// find methods with compatible name and formals as the given one
     List<MethodInstance> methods(JL5MethodInstance mi);
 
-    LazyClassInitializer init();
-
     boolean equivalentImpl(TypeObject arg2);
     /*List typeArguments();
     void typeArguments(List args);

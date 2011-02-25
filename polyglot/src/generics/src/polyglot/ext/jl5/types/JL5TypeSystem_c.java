@@ -403,17 +403,6 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	
 		return false;
     }
-    
-    public LazyClassInitializer defaultClassInitializer() {
-        if (defaultClassInit == null) {
-            defaultClassInit = new JL5LazyClassInitializer_c(this);
-        }
-        return defaultClassInit;
-    }
-
-//    public ParsedClassType createClassType(LazyClassInitializer init, Source fromSource) {
-//        return new JL5ParsedClassType_c(this, init, fromSource);
-//    }
 
     protected PrimitiveType createPrimitive(PrimitiveType.Kind kind) {
         return new JL5PrimitiveType_c(this, kind);

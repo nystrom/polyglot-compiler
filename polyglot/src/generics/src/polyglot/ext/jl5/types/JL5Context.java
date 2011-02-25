@@ -18,6 +18,4 @@ public interface JL5Context extends Context {
     public JL5Context addTypeVariable(TypeVariable type);
 
     public JL5TypeSystem typeSystem();
-    
-	public boolean equivalent(Type fromType, Type toType);
 }

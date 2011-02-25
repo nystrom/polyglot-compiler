@@ -57,22 +57,21 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
     public List<EnumInstance> enumConstants(){
         if (enumConstants == null){
             enumConstants = new TypedList(new LinkedList(), EnumInstance.class, false);
-            ((JL5LazyClassInitializer)init).initEnumConstants(this);
-            freeInit();
+            assert(false);
+            // CHECK: lazy init has been erased because it wasn't doing anything 
+            // ((JL5LazyClassInitializer)init).initEnumConstants(this);
+            // freeInit();
         }
         return enumConstants;
     }
-   
-    protected void freeInit(){
-        
-    }
-    
-    
+
     public List<AnnotationElemInstance> annotationElems(){
         if (annotationElems == null){
             annotationElems = new TypedList(new LinkedList(), AnnotationElemInstance.class, false);
-            ((JL5LazyClassInitializer)init).initAnnotations(this);
-            freeInit();
+            assert(false);
+            // CHECK: lazy init has been erased because it wasn't doing anything 
+            // ((JL5LazyClassInitializer)init).initAnnotations(this);
+            // freeInit();
         }
         return annotationElems;
     }
@@ -177,10 +176,6 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
             sb.append(">");
         }
         return sb.toString();
-    }
-
-    public LazyClassInitializer init(){
-        return this.init;
     }
 
     /**

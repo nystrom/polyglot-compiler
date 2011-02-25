@@ -3,9 +3,11 @@ package polyglot.ext.jl5.types;
 import java.util.List;
 
 import polyglot.frontend.Source;
+import polyglot.types.ClassDef;
+import polyglot.types.ClassDef.Kind;
 import polyglot.types.Flags;
-import polyglot.types.LazyClassInitializer;
-import polyglot.types.TypeSystem;
+import polyglot.types.Name;
+import polyglot.types.Ref;
 
 /* A reference to a generic type */
 
@@ -13,12 +15,8 @@ public abstract class GenericTypeRef_c extends JL5ParsedClassType_c implements G
 
     protected JL5ParsedClassType baseType;
 
-    public GenericTypeRef_c(TypeSystem ts, LazyClassInitializer init, Source fromSource) {
-        super(ts, init, fromSource);
-    }
-
     public GenericTypeRef_c(JL5ParsedClassType t) {
-        super(t.typeSystem(), t.init(), t.fromSource());
+        super(t.typeSystem(), t.position(), (Ref<? extends ClassDef>) t.def());
         this.baseType = t;
     }
 
@@ -34,7 +32,7 @@ public abstract class GenericTypeRef_c extends JL5ParsedClassType_c implements G
         return baseType.inStaticContext();
     }
 
-    public String name() {
+    public Name name() {
         return baseType.name();
     }
 
@@ -46,16 +44,9 @@ public abstract class GenericTypeRef_c extends JL5ParsedClassType_c implements G
         return baseType.flags();
     }
 
-    /*
-     * public ReferenceType toReference() { return this.baseType; }
-     * 
-     * public ClassType toClass(){ return this.baseType; }
-     */
-
     public JL5ParsedClassType baseType() {
         return this.baseType;
     }
-
 
     public boolean isGeneric() {
         return baseType.isGeneric();
