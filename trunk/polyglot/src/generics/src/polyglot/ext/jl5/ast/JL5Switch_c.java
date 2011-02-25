@@ -15,13 +15,11 @@ import polyglot.ext.jl5.types.JL5Flags;
 import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.frontend.Job;
-import polyglot.frontend.Pass;
 import polyglot.types.FieldInstance;
 import polyglot.types.SemanticException;
 import polyglot.util.Position;
-import polyglot.visit.AmbiguityRemover;
-import polyglot.visit.NodeVisitor;
 import polyglot.visit.ContextVisitor;
+import polyglot.visit.NodeVisitor;
 
 public class JL5Switch_c extends Switch_c implements JL5Switch  {
 
@@ -33,7 +31,7 @@ public class JL5Switch_c extends Switch_c implements JL5Switch  {
         return ar.bypass(elements);
     }
 
-    public NodeVisitor typeCheckEnter(TypeChecker tc) throws SemanticException {
+    public NodeVisitor typeCheckEnter(ContextVisitor tc) throws SemanticException {
         return tc.bypass(elements);
     }
 

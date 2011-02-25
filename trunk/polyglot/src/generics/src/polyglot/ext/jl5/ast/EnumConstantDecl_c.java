@@ -232,7 +232,7 @@ public class EnumConstantDecl_c extends Term_c implements EnumConstantDecl
         return this;
     }
 
-    public NodeVisitor typeCheckEnter(TypeChecker tc) throws SemanticException {
+    public NodeVisitor typeCheckEnter(ContextVisitor tc) throws SemanticException {
         if (body != null){
             return tc.bypass(body);
         }

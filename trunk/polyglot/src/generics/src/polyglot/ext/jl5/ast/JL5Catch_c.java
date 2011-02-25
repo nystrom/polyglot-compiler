@@ -17,7 +17,7 @@ public class JL5Catch_c extends Catch_c implements JL5Catch {
         super(pos, formal, body);
     }
 
-    public Node typeCheck(TypeChecker tc) throws SemanticException{
+    public Node typeCheck(ContextVisitor tc) throws SemanticException{
         Type t = formal.type().type();
         if (t instanceof ParameterizedType){
             throw new SemanticException("Cannot have a parameterized type for a catch formal", formal.position());

@@ -85,8 +85,10 @@ public interface JL5NodeFactory extends NodeFactory {
 
     public JL5Instanceof JL5Instanceof(Position pos, Expr expr, TypeNode tn);
 
-    public JL5Import JL5Import(Position pos, Import.Kind kind, QName Name);
+    public JL5Import Import(Position pos, Import.Kind kind, QName Name);
 
+    public JL5Import Import(Position pos, Import.Kind kind, QName Name, String isStatic);
+    
     public JL5Catch JL5Catch(Position pos, Formal formal, Block body);
 
     public JL5NewArray JL5NewArray(Position pos, TypeNode baseType, List dims, int addDims, ArrayInit init);
