@@ -30,10 +30,17 @@ object Main {
     job.put("clock", jobClock)
     jobClock.register
 
+    
     println("parsing " + job)
-    val ast = parse(job) match { case Some(x) => x case None => return null }
+    val ast = parse(job) match { 
+    	case Some(x) => 
+    			x 
+    	case None => 
+    		return null 
+    	}
+    println("done parsing" + job)
 //    next
-    //println("initing " + job)
+    println("initing " + job)    
 
     val ast2 = initTypes(job, ast) match { case Some(x) => x case None => return null }
     println("done initing " + job)
@@ -45,7 +52,7 @@ object Main {
     ast3
   }
 
-  def runJob(job: Job, ast: polyglot.ast.Node): Boolean = {
+  def runJob(job: Job, ast: polyglot.ast.Node): polyglot.ast.Node = {
     //globalClock.register
 
     
@@ -85,30 +92,37 @@ object Main {
 //	  *****
     val ast3 = ast
     println("conformanceChecking" + job)
-    val ast4 = checkConformance(job, ast3) match { case Some(x) => x case None => return false }
+    val ast4 = checkConformance(job, ast3) match { case Some(x) => x case None => return null }
     println("Done conformanceChecking" + job)
     next
 
     println("reachChecking" + job)
-    val ast5 = reachChecked(job, ast4) match { case Some(x) => x case None => return false }
+    val ast5 = reachChecked(job, ast4) match { case Some(x) => x case None => return null }
     println("Done reachChecking" + job)
     next
 
     println("exceptionsChecking" + job)
-    val ast6 = exceptionsChecked(job, ast5) match { case Some(x) => x case None => return false }
+    val ast6 = exceptionsChecked(job, ast5) match { case Some(x) => x case None => return null }
     println("Done exceptionChecking" + job)
-    next
 
-    println("exitPathsCheck" + job)
-    val ast7 = exitPathsChecked(job, ast6) match { case Some(x) => x case None => return false }
-    println("Done exitPathChecking" + job)
-    next
+    ast6
+//    println("exitPathsCheck" + job)
+//    val ast7 = exitPathsChecked(job, ast6) match { case Some(x) => x case None => return false }
+//    println("Done exitPathChecking" + job)
+//    next
 
+    
+  }
+  
+  def runJobFinal(job: Job, ast: polyglot.ast.Node): Boolean = {
+	  
     println("codeGenerated" + job)
-    val ast8 = codeGenerate(job, ast7)
+    val ast8 = codeGenerate(job, ast)
     println("Done code generation" + job)
 
-    true
+    ast8
+	  
+	  
   }
 
   def parse(job: Job): Option[polyglot.ast.Node] = {
@@ -121,7 +135,7 @@ object Main {
 
       val ast = p.parse
 
-      println("done parsing")
+      
 
       source.close
 
@@ -222,7 +236,15 @@ object Main {
     val exceptions = new java.util.IdentityHashMap[Node, polyglot.types.Ref[java.util.Collection[polyglot.types.Type]]]();
     val completes = new java.util.IdentityHashMap[Node, polyglot.types.Ref[java.lang.Boolean]]();
 
-    val ast2 = ast.visit(new polyglot.visit.NodeVisitor {
+    val ast1 = ast.visit(new polyglot.visit.NodeVisitor {
+      override def leave(parent: Node, old: Node, n: polyglot.ast.Node, v: polyglot.visit.NodeVisitor) =
+        {
+    		n.accept(new polyglot.dispatch.BreakContinueSetup(ts, breaks, continues), parent)
+    		n
+    	}
+    })
+
+    val ast2 = ast1.visit(new polyglot.visit.NodeVisitor {
       override def leave(parent: Node, old: Node, n: polyglot.ast.Node, v: polyglot.visit.NodeVisitor) =
         {
           n.accept(new polyglot.dispatch.ThrowSetup(ts, exceptions), parent)
@@ -230,7 +252,7 @@ object Main {
         }
     })
 
-    val ast3 = ast.visit(new polyglot.visit.NodeVisitor {
+    val ast3 = ast2.visit(new polyglot.visit.NodeVisitor {
       override def leave(parent: Node, old: Node, n: polyglot.ast.Node, v: polyglot.visit.NodeVisitor) =
         {
           n.accept(new polyglot.dispatch.ReachSetup(ts, breaks, continues, exceptions,
@@ -280,16 +302,18 @@ object Main {
   }
 
   def exitPathsChecked(job: Job, ast: Node): Option[Node] = {
+	
+	//val ast2 = ast.visit(new polyglot.dispatch.dataflow.InitChecker())
     val ast2 = ast.visit(new polyglot.dispatch.dataflow.ExitChecker())
-    job.ast(ast2)
-    Some(ast2)
+    job.ast(ast)
+    Some(ast)
   }
 
   def codeGenerate(job: Job, ast: Node) = {
     val ts = job.extensionInfo.typeSystem
     val nf = job.extensionInfo.nodeFactory
 
-    val n = new polyglot.frontend.OutputGoal(job, new polyglot.visit.Translator(job, ts, nf, Globals.Extension().targetFactory()))
+    val n = new polyglot.frontend.OutputGoal(job, new polyglot.visit.Translator(job, ts, nf, Globals.Extension().targetFactory()), ast)
     n.runTask
   }
 

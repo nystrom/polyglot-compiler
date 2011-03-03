@@ -15,18 +15,25 @@ import polyglot.visit.Translator;
 public class OutputGoal extends SourceGoal_c
 {
     protected Translator translator;
+    protected Node ast;
 
     /**
      * Create a Translator.  The output of the visitor is a collection of files
      * whose names are added to the collection <code>outputFiles</code>.
      */
+    public OutputGoal(Job job, Translator translator, Node ast) {
+    	super("CodeGenerated", job);
+        this.translator = translator;
+        this.ast = ast;
+    }
+    
     public OutputGoal(Job job, Translator translator) {
     	super("CodeGenerated", job);
         this.translator = translator;
     }
 
     public boolean runTask() {
-        Node ast = job().ast();
+        //Node ast = job().ast();
 
         if (ast == null) {
             throw new InternalCompilerError("AST is null");

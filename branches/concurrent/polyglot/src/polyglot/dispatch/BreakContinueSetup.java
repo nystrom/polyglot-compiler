@@ -17,6 +17,7 @@ import polyglot.ast.Labeled_c;
 import polyglot.ast.LocalClassDecl_c;
 import polyglot.ast.Node;
 import polyglot.ast.Node_c;
+import polyglot.ast.Stmt_c;
 import polyglot.ast.Switch_c;
 import polyglot.ast.Term;
 import polyglot.ast.Term_c;
@@ -39,13 +40,16 @@ public class BreakContinueSetup {
         return (Clock) Globals.currentJob().get("clock");
     }
 
-    public BreakContinueSetup(TypeSystem ts, Map<Node, Ref<Collection<Name>>> breaks, Map<Node, Ref<Collection<Name>>> continues) {
+	public BreakContinueSetup(TypeSystem ts,
+			Map<Node, Ref<Collection<Name>>> breaks,
+			Map<Node, Ref<Collection<Name>>> continues) {
 	this.ts = ts;
 	this.breaks = breaks;
 	this.continues = continues;
     }
 
-    public void visit(Node_c n, Node parent) {}
+	public void visit(Node_c n, Node parent) {
+	}
 
     Ref<Collection<Name>> breaksRef(Term n) {
 	Ref<Collection<Name>> r = breaks.get(n);
@@ -132,6 +136,13 @@ public class BreakContinueSetup {
 	unionChildContinues(n);
     }
 
+	
+
+	public void visit(final Stmt_c n, Node parent) {
+		unionChildBreaks(n);
+		unionChildContinues(n);
+	}
+
     public void visit(LocalClassDecl_c n, Node parent) {
 	noBreaks(n);
 	noContinues(n);
@@ -150,7 +161,8 @@ public class BreakContinueSetup {
 	removeContinueLabel(n, c, labelId);
     }
 
-    private void removeBreakLabel(Term n, final Ref<Collection<Name>> b, final Name labelId) {
+	private void removeBreakLabel(Term n, final Ref<Collection<Name>> b,
+			final Name labelId) {
 	breaksRef(n).setResolver(new Callable<Collection<Name>>() {
 	    public Collection<Name> call() {
 		Set<Name> ns = new HashSet<Name>(b.get());
@@ -160,7 +172,8 @@ public class BreakContinueSetup {
 	}, jobClock());
     }
     
-    private void removeContinueLabel(Term n, final Ref<Collection<Name>> b, final Name labelId) {
+	private void removeContinueLabel(Term n, final Ref<Collection<Name>> b,
+			final Name labelId) {
 	continuesRef(n).setResolver(new Callable<Collection<Name>>() {
 	    public Collection<Name> call() {
 		Set<Name> ns = new HashSet<Name>(b.get());
@@ -171,7 +184,8 @@ public class BreakContinueSetup {
     }
 
     public void visit(final Case_c n, Node parent) {
-	noBreaks(n); noContinues(n);
+		noBreaks(n);
+		noContinues(n);
     }
 
     public void visit(final Switch_c n, Node parent) {
@@ -209,7 +223,8 @@ public class BreakContinueSetup {
 	case BREAK:
 	    breaksRef(n).setResolver(new Callable<Collection<Name>>() {
 		public Collection<Name> call() {
-		    Name label = n.labelNode() != null ? n.labelNode().id() : null;
+					Name label = n.labelNode() != null ? n.labelNode().id()
+							: null;
 		    if (n.reachableRef().get())
 			return Collections.<Name> singleton(label);
 		    else
@@ -222,7 +237,8 @@ public class BreakContinueSetup {
 	    noBreaks(n);
 	    continuesRef(n).setResolver(new Callable<Collection<Name>>() {
 		public Collection<Name> call() {
-		    Name label = n.labelNode() != null ? n.labelNode().id() : null;
+					Name label = n.labelNode() != null ? n.labelNode().id()
+							: null;
 		    if (n.reachableRef().get())
 			return Collections.<Name> singleton(label);
 		    else
