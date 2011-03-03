@@ -16,26 +16,20 @@ object Futures {
     
   }
    
-  
   def makeClocked[T](clock: Clock, c: polyglot.types.Ref.Callable[T]) = { //,  = {
     //new Exception("registering new future on " + clock).printStackTrace
 	var b : Set[SettableFuture[T]] = Set[SettableFuture[T]]()
     val f = new SettableFuture[T](null, c)
-    //println("makeClocked: made new future on "  + clock  + " future: " + f.f.toString)
     
     f.f = delayedFuture[T] {
-      println("makeClocked: done blocking future " + f.f.toString + " on " + clock)
-      println("makeClocked: before calling next " )
       
 //      clock.next
 //      next
       f.callable.call.asInstanceOf[T]
     }
 	
-//	println("makeClocked: before starting future on " + clock + " f: " + f.f.toString)
 //    f.start
     f
-    
     
 //    b += f
     
@@ -44,7 +38,6 @@ object Futures {
 
   def make[T](c: polyglot.types.Ref.Callable[T]) = {
     //new Exception("making unclocked future").printStackTrace
-	 println("makeUnclocked: before making unclocked future")
 
     val f = new SettableFuture[T](null, c)
     f.f = delayedFuture[T] {
@@ -56,32 +49,38 @@ object Futures {
   }
 
   def finish(r: Runnable) = {
-    println("starting finish " + r)
     funicular.finish(r.run)
-    println("done with finish " + r)
   }
 
   def async(job: polyglot.frontend.Job) = {
-    println("running job " + job)
+
+    funicular.finish {
     
     var node:polyglot.ast.Node = null
+      var node1: polyglot.ast.Node = null
     funicular.finish {
     	node = polyglot.Main.runJob1(job);
     }
     
+      funicular.finish {
+
+        //funicular.async {
     val ast = node.asInstanceOf[polyglot.ast.Node]
+        node1 = polyglot.Main.runJob(job, ast)
+        //}
+      }
+      
+      funicular.finish {
+    	  val astFinal = node1.asInstanceOf[polyglot.ast.Node]
+    	  polyglot.Main.runJobFinal(job, astFinal)
     
+      }
     
-    funicular.async {
-      println("during running job " + job + "I am: " + this)
-     polyglot.Main.runJob(job, ast)
     }
   }
 
   def async(r: Runnable) = {
-    println("running runnable " + r)
     funicular.async {
-      println("during running runnable " + r)
       r.run
     }
   }

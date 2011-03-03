@@ -305,7 +305,8 @@ public class ReachSetup {
 				// There is a reachable break statement that exits the switch
 				// statement.
 				for (SwitchElement x : n.elements()) {
-					if (breaksRef(x).get().contains(null))
+					final Ref<Collection<Name>> b = breaksRef(x);
+					if (b.get().contains(null))
 						return true;
 				}
 				return false;

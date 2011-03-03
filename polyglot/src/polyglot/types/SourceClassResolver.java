@@ -264,8 +264,8 @@ public class SourceClassResolver extends LoadedClassResolver
         Futures.async(job);
 
         // Block until PreTypeCheck is reached
-        funicular.Clock c = (Clock) job.get("clock");
-        c.next();
+//			funicular.Clock c = (Clock) job.get("clock");
+//			 c.next();
 //        Goal g = scheduler.PreTypeCheck(job);
 //
 //        if (! scheduler.reached(g)) {
