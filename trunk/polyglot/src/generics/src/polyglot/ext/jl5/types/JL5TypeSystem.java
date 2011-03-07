@@ -1,8 +1,6 @@
 package polyglot.ext.jl5.types;
 
 
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import polyglot.ast.Expr;
@@ -25,7 +23,6 @@ import polyglot.types.Flags;
 import polyglot.types.MethodDef;
 import polyglot.types.MethodInstance;
 import polyglot.types.Name;
-import polyglot.types.NoMemberException;
 import polyglot.types.ParsedClassType;
 import polyglot.types.Ref;
 import polyglot.types.ReferenceType;
@@ -35,7 +32,6 @@ import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 import polyglot.types.TypeSystem_c;
 import polyglot.types.TypeSystem_c.ConstructorMatcher;
-import polyglot.types.TypeSystem_c.FieldMatcher;
 import polyglot.types.TypeSystem_c.MethodMatcher;
 import polyglot.util.Position;
 
@@ -184,8 +180,7 @@ public interface JL5TypeSystem extends TypeSystem {
 	MethodMatcher JL5MethodMatcher(Type targetType, Name id,
 			List<Type> paramTypes, List<Type> explicitTypeArgs, JL5Context c);
 
-	ConstructorMatcher JL5ConstructorMatcher(Type targetType,
-			List<Type> paramTypes, List<Type> explicitTypeArgs, JL5Context c);
+	ConstructorMatcher JL5ConstructorMatcher(Type container, List<Type> argTypes, List<Type> explicitTypeArgs, Context context);
 
 	MethodInstance erasureMethodInstance(MethodInstance mi);
 

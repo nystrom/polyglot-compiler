@@ -22,7 +22,7 @@ public class StringUtil
 
     /**
      * Given the name for a class, returns the portion which appears to
-     * constitute the package -- i.e., all characters after the last
+     * constitute the class name -- i.e., all characters after the last
      * dot, or all the characters if the name has no dot.
      **/
     public static String getShortNameComponent(String fullName) {
