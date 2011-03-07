@@ -6,38 +6,42 @@ import java.util.List;
 
 import polyglot.ast.ClassBody;
 import polyglot.ast.Expr;
+import polyglot.ast.New;
 import polyglot.ast.New_c;
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
 import polyglot.ast.TypeNode;
-import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5Flags;
 import polyglot.ext.jl5.types.JL5TypeSystem;
-import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.types.ClassType;
+import polyglot.types.ConstructorDef;
+import polyglot.types.ConstructorInstance;
 import polyglot.types.Context;
+import polyglot.types.Name;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
+import polyglot.types.TypeSystem_c.ConstructorMatcher;
+import polyglot.types.Types;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
-import polyglot.visit.ContextVisitor;
+import polyglot.visit.TypeChecker;
 
 public class JL5New_c extends New_c implements JL5New  {
 
     protected List typeArguments;
 
     public JL5New_c(Position pos, Expr qualifier, TypeNode tn, List arguments, ClassBody body,
-            List typeArguments) {
+            List<TypeNode> typeArguments) {
         super(pos, qualifier, tn, arguments, body);
         this.typeArguments = typeArguments;
     }
 
-    public List typeArguments() {
+    public List<TypeNode> typeArguments() {
         return typeArguments;
     }
 
@@ -70,79 +74,85 @@ public class JL5New_c extends New_c implements JL5New  {
         TypeNode tn = (TypeNode) visitChild(this.tn, v);
         List arguments = visitList(this.arguments, v);
         ClassBody body = (ClassBody) visitChild(this.body, v);
-        List typeArgs = visitList(this.typeArguments, v);
+        List<TypeNode> typeArgs = visitList(this.typeArguments, v);
         return reconstruct(qualifier, tn, arguments, body, typeArgs);
     }
 
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
-        if (ar.kind() != AmbiguityRemover.ALL) {
-            return this;
+
+    /**
+     * @param ar
+     * @param ct
+     * @throws SemanticException
+     */
+    @Override
+    protected New findQualifier(TypeChecker ar, ClassType ct) throws SemanticException {
+        // If we're instantiating a non-static member class, add a "this"
+        // qualifier.
+        NodeFactory nf = ar.nodeFactory();
+        TypeSystem ts = ar.typeSystem();
+        Context c = ar.context();
+
+        // Search for the outer class of the member.  The outer class is
+        // not just ct.outer(); it may be a subclass of ct.outer().
+        Type outer = null;
+        
+        Name name = ct.name();
+        ClassType t = c.currentClass();
+        
+        // We're in one scope too many.
+        if (t == anonType) {
+            t = t.outer();
         }
+        
+        // Search all enclosing classes for the type.
+        while (t != null) {
+            try {
+                Type mt = ts.findMemberType(t, name, c);
 
-        if (qualifier == null) {
-            ClassType ct = tn.type().toClass();
-
-            if (!ct.isMember() || ct.flags().isStatic()) {
-                return this;
-            }
-
-            // If we're instantiating a non-static member class, add a "this"
-            // qualifier.
-            NodeFactory nf = ar.nodeFactory();
-            TypeSystem ts = ar.typeSystem();
-            Context c = ar.context();
-
-            // Search for the outer class of the member.  The outer class is
-            // not just ct.outer(); it may be a subclass of ct.outer().
-            Type outer = null;
-
-            String name = ct.name();
-            ClassType t = c.currentClass();
-
-            // We're in one scope too many.
-            if (t == anonType) {
-                t = t.outer();
-            }
-
-            while (t != null) {
-                try {
-                    // HACK: PolyJ outer() doesn't work
-                    t = ts.staticTarget(t).toClass();
-                    ClassType mt = ts.findMemberClass(t, name, c.currentClass());
-
-                    if (ts.equals(mt, ct)
-                            || (ct instanceof ParameterizedType && ts.equals(mt, ((ParameterizedType) ct).baseType()))) {
-                        outer = t;
-                        break;
+                if (mt instanceof ClassType) {
+                    ClassType cmt = (ClassType) mt;
+                    //CHECK class definition should be the same whether or not the type has been parameterized
+                    //IF that's true we don't need to override this method
+                    if (cmt.def() == ct.def()) {
+                    	//JL5
+                        //|| (t instanceof ParameterizedType && ts.equals(mt, ((ParameterizedType) c).baseType()))) {
+                    	//JL5-
+                    	outer = t;
+                    	break;
                     }
-                } catch (SemanticException e) {
                 }
-
-                t = t.outer();
             }
-
-            if (outer == null) {
-                throw new SemanticException("Could not find non-static member class \"" + name
-                        + "\".", position());
+            catch (SemanticException e) {
             }
-
-            // Create the qualifier.
-            Expr q;
-
-            if (outer.equals(c.currentClass())) {
-                q = nf.This(position());
-            }
-            else {
-                q = nf.This(position(), nf.CanonicalTypeNode(position(), outer));
-            }
-
-            return qualifier(q);
+            
+            t = t.outer();
         }
+        
+        if (outer == null) {
+            throw new SemanticException("Could not find non-static member class \"" +
+                                        name + "\".", position());
+        }
+        
+        // Create the qualifier.
+        Expr q;
 
-        return this;
+        if (outer.typeEquals(c.currentClass(), ar.context())) {
+            q = nf.This(position().startOf());
+        }
+        else {
+            q = nf.This(position().startOf(),
+                        nf.CanonicalTypeNode(position(), outer));
+        }
+        
+        q = q.type(outer);
+        return qualifier(q);
     }
 
+    @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
+        TypeSystem ts = tc.typeSystem();
+
+        //JL5
         if (tn.type().isClass()) {
             ClassType ct = (ClassType) tn.type();
             if (JL5Flags.isEnumModifier(ct.flags())) {
@@ -152,136 +162,54 @@ public class JL5New_c extends New_c implements JL5New  {
         if (tn.type() instanceof TypeVariable) {
             throw new SemanticException("Cannot instantiate a type variable type.", tn.position());
         }
-        JL5New_c n = this;
+    	//JL5-
 
-        if (qualifier != null) {
-            // We have not disambiguated the type node yet.
-
-            // Get the qualifier type first.
-            Type qt = qualifier.type();
-
-            if (!qt.isClass()) {
-                throw new SemanticException("Cannot instantiate member class of a non-class type.", qualifier.position());
-            }
-
-            // Disambiguate the type node as a member of the qualifier type.
-            TypeNode tn = disambiguateTypeNode(tc, qt.toClass());
-            ClassType ct = tn.type().toClass();
-
-            /*
-             FIXME: check super types as well.
-             if (! ct.isMember() || ! ts.isEnclosed(ct, qt.toClass())) {
-             throw new SemanticException("Class \"" + qt +
-             "\" does not enclose \"" + ct + "\".",
-             qualifier.position());
-             }
-             */
-
-            // According to JLS2 15.9.1, the class type being
-            // instantiated must be inner.
-            if (!ct.isInnerClass()) {
-                throw new SemanticException("Cannot provide a containing instance for non-inner class "
-                        + ct.fullName() + ".", qualifier.position());
-            }
-
-            n = (JL5New_c) n.objectType(tn);
-        }
-        else {
-            ClassType ct = tn.type().toClass();
-
-            if (ct.isMember()) {
-                for (ClassType t = ct; t.isMember(); t = t.outer()) {
-                    if (!t.flags().isStatic()) {
-                        throw new SemanticException("Cannot allocate non-static member class \""
-                                + t + "\".", position());
-                    }
-                }
-            }
+        List<Type> argTypes = new ArrayList<Type>(arguments.size());
+        
+        for (Iterator<Expr> i = this.arguments.iterator(); i.hasNext(); ) {
+            Expr e = i.next();
+            argTypes.add(e.type());
         }
 
-        return n.typeCheckEpilogue(tc);
-    }
-
-    protected Node typeCheckEpilogue(ContextVisitor tc) throws SemanticException {
-        JL5TypeSystem ts = (JL5TypeSystem) tc.typeSystem();
-
-        List<Type> paramTypes = new ArrayList<Type>(arguments.size());
+    	//JL5
         List<Type> explicitTypeArgs = null;
-        
-        for (Iterator i = this.arguments.iterator(); i.hasNext();) {
-            Expr e = (Expr) i.next();
-            paramTypes.add(e.type());
-        }
-        
         if (typeArguments != null && !typeArguments.isEmpty()) {
             explicitTypeArgs = new ArrayList<Type>();
-            for (Iterator it = typeArguments().iterator(); it.hasNext();) {
-                explicitTypeArgs.add(((TypeNode) it.next()).type());
+            for (Iterator<TypeNode> it = typeArguments().iterator(); it.hasNext();) {
+                explicitTypeArgs.add((it.next()).type());
             }
         }
+    	//JL5-
 
+        typeCheckFlags(tc);
+        typeCheckNested(tc);
+        
         ClassType ct = tn.type().toClass();
-
-        if (this.body == null) {
-            if (ct.flags().isInterface()) {
-                throw new SemanticException("Cannot instantiate an interface.", position());
-            }
-
-            if (ct.flags().isAbstract()) {
-                throw new SemanticException("Cannot instantiate an abstract class.", position());
-            }
-        }
-        else {
-            if (ct.flags().isFinal()) {
-                throw new SemanticException("Cannot create an anonymous subclass of a final class.", position());
-            }
-
-            if (ct.flags().isInterface() && !arguments.isEmpty()) {
-                throw new SemanticException("Cannot pass arguments to an anonymous class that "
-                        + "implements an interface.", ((Expr) arguments.get(0)).position());
-            }
-        }
-
-        if (!ct.flags().isInterface()) {
+        ConstructorInstance ci;
+        
+        if (! ct.flags().isInterface()) {
             Context c = tc.context();
-            if (body != null) {
-                // Enter the body of this class so we can access protected
-                // super-constructors.
-
-                // temporarily set the super type; we'll set it correctly below
-                anonType.superType(ct);
-
-                c = c.pushClass(anonType, anonType);
+            if (anonType != null) {
+                c = c.pushClass(anonType, anonType.asType());
             }
-            ci = ts.findJL5Constructor(ct, paramTypes, explicitTypeArgs, (JL5Context)c);
+            //JL5
+            ConstructorMatcher matcher = ((JL5TypeSystem) ts).JL5ConstructorMatcher(ct, argTypes, explicitTypeArgs, c);
+            //JL5-
+            
+            ci = ts.findConstructor(ct, matcher);
         }
         else {
-            ci = ts.defaultConstructor(position(), ct);
+            ConstructorDef dci = ts.defaultConstructor(this.position(), Types.<ClassType>ref(ct));
+            ci = dci.asInstance();
+        }
+        
+        New n = this.constructorInstance(ci);
+        
+        if (anonType != null) {
+            // The type of the new expression is the anonymous type, not the base type.
+            ct = anonType.asType();
         }
 
-        JL5New_c n = (JL5New_c) this.constructorInstance(ci).type(ct);
-
-        if (n.body == null) {
-            return n;
-        }
-
-        // Now, need to read symbols, clean, disambiguate, and type check
-        // the body.
-
-        if (!ct.flags().isInterface()) {
-            anonType.superType(ct);
-        }
-        else {
-            anonType.superType(ts.Object());
-            anonType.addInterface(ct);
-        }
-
-        // The type of the new expression is actually the anon type.
-        n = (JL5New_c) n.type(anonType);
-
-        // Now, run the four passes on the body.
-        ClassBody body = n.typeCheckBody(tc, ct);
-
-        return n.body(body);
+        return n.type(ct);
     }
 }
