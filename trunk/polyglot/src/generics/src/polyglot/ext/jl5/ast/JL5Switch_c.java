@@ -7,6 +7,7 @@ import java.util.List;
 import polyglot.ast.AmbExpr;
 import polyglot.ast.Case;
 import polyglot.ast.Expr;
+import polyglot.ast.Field;
 import polyglot.ast.Node;
 import polyglot.ast.Switch_c;
 import polyglot.ext.jl5.types.EnumInstance;
@@ -51,9 +52,9 @@ public class JL5Switch_c extends Switch_c implements JL5Switch  {
                     FieldInstance fi = ts.findFieldOrEnum(sw.expr().type(), ts.FieldMatcher(sw.expr().type(), amb.name().id(), context));
                     if (fi instanceof EnumInstance){
                     
-                        JL5Field caseField = nf.Field(swElem.position(), nf.CanonicalTypeNode(sw.expr().type().position(), sw.expr().type()), amb.name());
-                        caseField = (JL5Field)caseField.fieldInstance(fi);
-                        caseField = (JL5Field)caseField.targetImplicit(true);
+                        Field caseField = nf.Field(swElem.position(), nf.CanonicalTypeNode(sw.expr().type().position(), sw.expr().type()), amb.name());
+                        caseField = caseField.fieldInstance(fi);
+                        caseField = caseField.targetImplicit(true);
                         swElem = ((Case)swElem).expr(caseField);
                         elems.add(swElem);
                     }
