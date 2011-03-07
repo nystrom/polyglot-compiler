@@ -20,13 +20,13 @@ import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.ext.jl5.visit.ApplicationCheck;
 import polyglot.ext.jl5.visit.ApplicationChecker;
-import polyglot.ext.jl5.visit.JL5AmbiguityRemover;
+import polyglot.types.ClassType;
 import polyglot.types.Context;
 import polyglot.types.Flags;
-import polyglot.types.ParsedClassType;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
+import polyglot.types.Types;
 import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
@@ -46,24 +46,23 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
     protected List sourceAnnotations;
     protected List<ParamTypeNode> paramTypes;
     
-    public JL5MethodDecl_c(Position pos, FlagAnnotations flags, TypeNode returnType, Id name, List formals, List throwTypes, Block body){
+    public JL5MethodDecl_c(Position pos, FlagAnnotations flags, TypeNode returnType, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body){
         super(pos, flags.classicFlags(), returnType, name, formals, throwTypes, body);
         if (flags.annotations() != null){
             this.annotations = flags.annotations();
-        }
-        else {
+        } else {
             this.annotations = new TypedList(new LinkedList(), AnnotationElem.class, true);
         }
        
         this.paramTypes = new ArrayList<ParamTypeNode>();
     }
     
-    public JL5MethodDecl_c(Position pos, FlagAnnotations flags, TypeNode returnType, Id name, List formals, List throwTypes, Block body, List paramTypes){
+    public JL5MethodDecl_c(Position pos, FlagAnnotations flags, TypeNode returnType, Id name, 
+    		List<Formal> formals, List<TypeNode> throwTypes, Block body, List<ParamTypeNode> paramTypes){
         super(pos, flags.classicFlags(), returnType, name, formals, throwTypes, body);
         if (flags.annotations() != null){
             this.annotations = flags.annotations();
-        }
-        else {
+        } else {
             this.annotations = new TypedList(new LinkedList(), AnnotationElem.class, true);
         }
         this.paramTypes = paramTypes;
@@ -71,8 +70,7 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
     
     
     public boolean isGeneric(){
-        if (!paramTypes.isEmpty()) return true;
-        return false;
+    	return !paramTypes.isEmpty(); 
     }
     
     public boolean isCompilerGenerated(){
@@ -85,7 +83,7 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
         return n;
     }
 
-    public List annotations(){
+    public List<AnnotationElem> annotations(){
         return this.annotations;
     }
 
@@ -95,11 +93,11 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
         return n;    
     }
     
-    public List paramTypes(){
+    public List<ParamTypeNode> paramTypes(){
         return this.paramTypes;
     }
 
-    public JL5MethodDecl paramTypes(List paramTypes){
+    public JL5MethodDecl paramTypes(List<ParamTypeNode> paramTypes){
         JL5MethodDecl_c n = (JL5MethodDecl_c) copy();
         n.paramTypes = paramTypes;
         return n;
@@ -120,38 +118,31 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
                                                             
     }
 
-    public NodeVisitor disambiguateEnter(AmbiguityRemover ar) throws SemanticException {
-        if (ar.kind() == JL5AmbiguityRemover.TYPE_VARS) {
-            return ar.bypass(formals).bypass(returnType).bypass(throwTypes).bypass(body);
-        }
-        else {
-            return super.disambiguateEnter(ar);
-        }
-    }
+//    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
+//        if (ar.kind() == AmbiguityRemover.SIGNATURES) {
+//            Context c = ar.context();
+//            TypeSystem ts = ar.typeSystem();
+//            ParsedClassType ct = c.currentClassScope();
+//            JL5MethodInstance mi = (JL5MethodInstance)makeMethodInstance(ct, ts);
+//            List<TypeVariable> pTypes = new ArrayList<TypeVariable>();
+//            //CHECK: seems this would be handled directly by the TS when calling ts.createMethodInstance() in MethodDef.asInstance()
+//            for (Iterator<ParamTypeNode> it = paramTypes.iterator(); it.hasNext(); ){
+//                TypeVariable tv = (TypeVariable) it.next().type();
+//                pTypes.add(tv);
+//            }
+//            mi.typeVariables(pTypes);
+//            return flags(mi.flags()).methodInstance(mi);
+//         }
+//         return this;
+//    }
 
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
-        if (ar.kind() == AmbiguityRemover.SIGNATURES) {
-            Context c = ar.context();
-            TypeSystem ts = ar.typeSystem();
-            ParsedClassType ct = c.currentClassScope();
-            JL5MethodInstance mi = (JL5MethodInstance)makeMethodInstance(ct, ts);
-            List<TypeVariable> pTypes = new ArrayList<TypeVariable>();
-            for (Iterator<ParamTypeNode> it = paramTypes.iterator(); it.hasNext(); ){
-                TypeVariable tv = (TypeVariable) it.next().type();
-                pTypes.add(tv);
-            }
-            mi.typeVariables(pTypes);
-            return flags(mi.flags()).methodInstance(mi);
-         }
-         return this;
-    }
-
+    @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        // check no duplicate annotations used
+        // JL5: Check no duplicate annotations used
         JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
         ts.checkDuplicateAnnotations(annotations);
    
-        // check throws clauses are not parameterized
+        // JL5: Check throws clauses are not parameterized
         for (Iterator it = throwTypes.iterator(); it.hasNext(); ){
             TypeNode tn = (TypeNode)it.next();
             Type next = tn.type();
@@ -160,7 +151,7 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
             }
         }
         
-        // check at most last formal is variable
+        // JL5: Check at most last formal is variable
         for (int i = 0; i < formals.size(); i++){
             JL5Formal f = (JL5Formal)formals.get(i);
             if (i != formals.size()-1 && f.isVariable()){
@@ -168,69 +159,73 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
             }
         }
 
-    	Flags flags = flags().flags();
+        return super.typeCheck(tc);
+    }
 
-        // repeat super class type checking so it can be specialized
-        // to handle inner enum classes which indeed do have
-        // static methods
-        if (tc.context().currentClass().flags().isInterface()) {
-            if (flags.isProtected() || flags.isPrivate()) {
-                throw new SemanticException("Interface methods must be public.",
-                                            position());
-            }
-        }
 
-        try {
-            ts.checkMethodFlags(flags);
-        }
-        catch (SemanticException e) {
-            throw new SemanticException(e.getMessage(), position());
-        }
+    /**
+     * Mostly a copy paste from the super class with variations for JL5
+     */
+    @Override
+    protected void checkFlags(ContextVisitor tc, Flags flags) throws SemanticException {
+    	TypeSystem ts = tc.typeSystem();
 
-	    if (body == null && ! (flags.isAbstract() || flags.isNative())) {
-	        throw new SemanticException("Missing method body.", position());
-	    }
+    	if (tc.context().currentClass().flags().isInterface()) {
+    		if (flags.isProtected() || flags.isPrivate()) {
+    			throw new SemanticException("Interface methods must be public.", position());
+    		}
 
-	    if (body != null && flags.isAbstract()) {
-	        throw new SemanticException(
-		    "An abstract method cannot have a body.", position());
-	    }
+    		if (flags.isStatic()) {
+    			throw new SemanticException("Interface methods cannot be static.", position());
+    		}
+    	}
 
-	    if (body != null && flags.isNative()) {
-	        throw new SemanticException(
-		    "A native method cannot have a body.", position());
-	    }
+    	try {
+    		ts.checkMethodFlags(flags);
+    	}
+    	catch (SemanticException e) {
+    		throw new SemanticException(e.getMessage(), position());
+    	}
 
-        for (Iterator i = throwTypes().iterator(); i.hasNext(); ) {
-            TypeNode tn = (TypeNode) i.next();
-            Type t = tn.type();
-            if (! t.isThrowable()) {
-                throw new SemanticException("Type \"" + t +
-                    "\" is not a subclass of \"" + ts.Throwable() + "\".",
-                    tn.position());
-            }
-        }
+    	Type container = Types.get(methodDef().container());
+    	ClassType ct = container.toClass();
 
-        // check that inner classes do not declare static methods
-        // unless class is enum
-        if (flags.isStatic() && !JL5Flags.isEnumModifier(methodInstance().container().toClass().flags()) && 
-              methodInstance().container().toClass().isInnerClass()) {
-            // it's a static method in an inner class.
-            throw new SemanticException("Inner classes cannot declare " + 
-                    "static methods.", this.position());             
-        }
-        
-        if (mi instanceof JL5MethodInstance) {
-            JL5MethodInstance m = (JL5MethodInstance) mi;
-            if (m.isGeneric()) {
-                ((JL5TypeSystem)tc.typeSystem()).checkTVForwardReference(m.typeVariables());
-            }
-        };
-        
+    	if (body == null && ! (flags.isAbstract() || flags.isNative())) {
+    		throw new SemanticException("Missing method body.", position());
+    	}
 
-        overrideMethodCheck(tc);
+    	if (body != null && ct.flags().isInterface()) {
+    		throw new SemanticException(
+    				"Interface methods cannot have a body.", position());
+    	}
 
-        return this;
+    	if (body != null && flags.isAbstract()) {
+    		throw new SemanticException(
+    				"An abstract method cannot have a body.", position());
+    	}
+
+    	if (body != null && flags.isNative()) {
+    		throw new SemanticException(
+    				"A native method cannot have a body.", position());
+    	}
+
+    	// check that inner classes do not declare static methods
+    	// JL5: unless class is enum
+    	//CHECK refactor this to a utility method in super to avoid copy-paste
+    	if (ct != null && flags.isStatic() && ct.isInnerClass() &&
+    			!JL5Flags.isEnumModifier(flags().flags())) {
+    		// it's a static method in an inner class.
+    		throw new SemanticException("Inner classes cannot declare " + 
+    				"static methods.", this.position());             
+    	}
+
+    	// JL5: Checking forward reference on TypeVariable
+    	if (mi instanceof JL5MethodInstance) {
+    		JL5MethodInstance m = (JL5MethodInstance) mi;
+    		if (m.isGeneric()) {
+    			((JL5TypeSystem)tc.typeSystem()).checkTVForwardReference(m.typeVariables());
+    		}
+    	}
     }
 
     public Node applicationCheck(ApplicationChecker appCheck, Context ctx) throws SemanticException {
