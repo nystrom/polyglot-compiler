@@ -31,31 +31,28 @@ object Main {
     jobClock.register
 
     
-    println("parsing " + job)
+    println("pass: parsing " + job)
     val ast = parse(job) match { 
     	case Some(x) => 
     			x 
     	case None => 
     		return null 
     	}
-    println("done parsing" + job)
+    println("pass: done parsing" + job)
 //    next
-    println("initing " + job)    
+    println("pass: initing " + job)    
 
     val ast2 = initTypes(job, ast) match { case Some(x) => x case None => return null }
-    println("done initing " + job)
+    println("pass: done initing " + job)
     
-    println("checking " + job)
+    println("pass: checking " + job)
     val ast3 = checkTypes(job, ast2) match { case Some(x) => x case None => return null }
-    println("done checking " + job)
+    println("pass: done checking " + job)
     
     ast3
   }
 
   def runJob(job: Job, ast: polyglot.ast.Node): polyglot.ast.Node = {
-    //globalClock.register
-
-    
 
     // Basic pattern:
     // All futures created in a phase are registered on jobClock.
@@ -91,19 +88,17 @@ object Main {
 //    next
 //	  *****
     val ast3 = ast
-    println("conformanceChecking" + job)
+    println("pass: conformanceChecking" + job)
     val ast4 = checkConformance(job, ast3) match { case Some(x) => x case None => return null }
-    println("Done conformanceChecking" + job)
-    next
+    println("pass: Done conformanceChecking" + job)
 
-    println("reachChecking" + job)
+    println("pass: reachChecking" + job)
     val ast5 = reachChecked(job, ast4) match { case Some(x) => x case None => return null }
-    println("Done reachChecking" + job)
-    next
+    println("pass: Done reachChecking" + job)
 
-    println("exceptionsChecking" + job)
+    println("pass: exceptionsChecking" + job)
     val ast6 = exceptionsChecked(job, ast5) match { case Some(x) => x case None => return null }
-    println("Done exceptionChecking" + job)
+    println("pass: Done exceptionChecking" + job)
 
     ast6
 //    println("exitPathsCheck" + job)
@@ -116,9 +111,9 @@ object Main {
   
   def runJobFinal(job: Job, ast: polyglot.ast.Node): Boolean = {
 	  
-    println("codeGenerated" + job)
+	println("pass: codeGenerated" + job)
     val ast8 = codeGenerate(job, ast)
-    println("Done code generation" + job)
+    println("pass: Done code generation" + job)
 
     ast8
 	  

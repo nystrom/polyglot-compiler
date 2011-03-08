@@ -282,14 +282,25 @@ public class InitChecker extends NodeVisitor {
 	    if (e.getKey() instanceof Local) {
 		Local l = (Local) e.getKey();
 		DefiniteAssignmentFlowItem item = e.getValue();
+
+				if (child.context().isLocal(l.name().id())) {
 		Count c;
 		if (item.locals == null)
 		    c = null;
 		else
 		    c = item.locals.get(l.localInstance().def());
-		if (c == null) c = Count.ZERO;
+					if (c == null)
+						c = Count.ZERO;
 		if (c == Count.ZERO) {
-		    Globals.Compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, "Local variable " + l.name() + " may not have been initialized.", l.position());
+						Globals.Compiler()
+								.errorQueue()
+								.enqueue(
+										ErrorInfo.SEMANTIC_ERROR,
+										"Local variable "
+												+ l.name()
+												+ " may not have been initialized.",
+										l.position());
+					}
 		}
 	    }
 	}

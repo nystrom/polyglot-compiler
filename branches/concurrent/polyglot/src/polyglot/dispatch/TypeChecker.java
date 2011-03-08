@@ -160,7 +160,8 @@ public class TypeChecker extends Visitor {
 
     public Expr convert(Expr e, Type t, Context c) {
 	if (! ts.isSubtype(e.type(), t, c)) {
-	     CanonicalTypeNode tn = nf.CanonicalTypeNode(e.position(), Types.ref(t));
+			CanonicalTypeNode tn = nf.CanonicalTypeNode(e.position(),
+					Types.ref(t));
 	     Cast cast = (Cast) nf.Cast(e.position(), tn, e).type(t);
 	     return setContext(cast, c);
 	}
@@ -176,7 +177,8 @@ public class TypeChecker extends Visitor {
     }
 
     public Expr convertToString(Expr e, Context c) {
-	CanonicalTypeNode tn = nf.CanonicalTypeNode(e.position(), Types.ref(ts.String()));
+		CanonicalTypeNode tn = nf.CanonicalTypeNode(e.position(),
+				Types.ref(ts.String()));
 	Id id = nf.Id(e.position(), Name.make("valueOf"));
 	Call call = nf.Call(e.position(), tn, id, e);
 	call = setContext(call, c);
@@ -184,7 +186,8 @@ public class TypeChecker extends Visitor {
     }
 
     public Node visit(Node_c n, Context context) throws SemanticException {
-	System.out.println("missing node " + n + " instanceof " + n.getClass().getName());
+		System.out.println("missing node " + n + " instanceof "
+				+ n.getClass().getName());
 	return (Node_c) acceptChildren(n);
     }
 
@@ -198,7 +201,8 @@ public class TypeChecker extends Visitor {
 	List<Expr> dims = new ArrayList<Expr>();
 	for (Expr expr : n.dims()) {
 	    if (! ts.isImplicitCastValid(expr.type(), ts.Int(), context)) {
-		throw new SemanticException("Array dimension must be an integer.", expr.position());
+				throw new SemanticException(
+						"Array dimension must be an integer.", expr.position());
 	    }
 
 	    dims.add(convert(expr, ts.Int(), context));

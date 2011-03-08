@@ -148,7 +148,8 @@ public class ThrowSetup {
     }
 
     public void visit(final Try_c n, Node parent) {
-	throwsRef(n).setResolver(new Callable<Collection<Type>>() {
+	throwsRef(n).setResolver(
+			new Callable<Collection<Type>>() {
 	    public Collection<Type> call() {
 		if (! n.reachableRef().get())
 		    return Collections.emptySet();
@@ -159,11 +160,12 @@ public class ThrowSetup {
 		for (Catch cb : n.catchBlocks()) {
 		    Type ct = cb.catchType();
 		    for (Type t : types) {
-			if (ts.isSubtype(ct, t, n.context())) {
+			if (ts.isSubtype(t, ct, n.context())) { //saurako: changed ct, t to t, ct
 			    ss.remove(t);
 			}
-			ss.addAll(throwsRef(cb).get());
 		    }
+		    Collection<Type> t2 = throwsRef(cb).get(); 
+			ss.addAll(t2);
 		}
 		return packSet(ss);
 	    }

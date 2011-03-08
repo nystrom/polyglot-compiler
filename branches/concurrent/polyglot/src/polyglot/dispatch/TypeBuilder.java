@@ -90,7 +90,7 @@ public class TypeBuilder extends Visitor {
 			throws SemanticException {
 		if (n.package_() != null) {
 			tb = tb.pushPackage(Types.get(n.package_().package_())).pushStatic(
-					true);
+					false);//true);
 		}
 		SourceFile_c n1 = (SourceFile_c) acceptChildren(n, tb);
 		return n1;
@@ -171,7 +171,7 @@ public class TypeBuilder extends Visitor {
 
 	public Node visit(ConstructorCall_c n, TypeBuilderContext tb)
 			throws SemanticException {
-		n = (ConstructorCall_c) acceptChildren(n, tb.pushStatic(true));
+		n = (ConstructorCall_c) acceptChildren(n, tb.pushStatic(false));//true
 
 		// Remove super() calls for java.lang.Object.
 		if (n.kind() == ConstructorCall_c.SUPER
@@ -193,7 +193,9 @@ public class TypeBuilder extends Visitor {
 		final New_c n0 = n;
 		n.constructorInstanceRef().setResolver(new Runnable() {
 			public void run() {
-				n0.checked();
+//				n0.checked();
+				n0.checkedRef().update(n0);
+				
 			}
 		}, jobClock());
 

@@ -41,7 +41,7 @@ public class TypeBuilderContext implements Copy
         this.ts = ts;
         this.nf = nf;
         this.outer = null;
-        this.inStaticContext = true;
+        this.inStaticContext = false; //true;
     }
     
     public Object copy() {
