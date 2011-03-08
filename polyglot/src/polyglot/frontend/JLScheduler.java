@@ -86,7 +86,11 @@ public class JLScheduler extends Scheduler {
 
 			@Override
 			public boolean runTask() {
-				return polyglot.Main$.MODULE$.runJob(job);
+				Object o = polyglot.Main$.MODULE$.runJob1(job);
+				if(o != null)
+					return true;
+				return false;
+				
 			}
 		}.intern(this);
 	}

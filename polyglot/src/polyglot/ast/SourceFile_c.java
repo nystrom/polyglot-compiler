@@ -32,14 +32,10 @@ public class SourceFile_c extends Node_c implements SourceFile
 
     public SourceFile_c(Position pos, PackageNode package_, List<Import> imports, List<TopLevelDecl> decls) {
 	super(pos);
-	System.out.println("creating SourceFile");
 //	assert(imports != null && decls != null && ! decls.isEmpty()); // package_ may be null, imports empty
-	System.out.println("creating SourceFile 2");
 	this.package_ = package_;
 	this.imports = TypedList.copyAndCheck(imports, Import.class, true);
 	this.decls = TypedList.copyAndCheck(decls, TopLevelDecl.class, true);
-	
-	System.out.println("created " + this);
     }
 
     /** Get the source of the source file. */

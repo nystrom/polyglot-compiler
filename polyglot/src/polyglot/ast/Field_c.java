@@ -158,8 +158,8 @@ public class Field_c extends Expr_c implements Field
 		    // all is OK.
 		    return;
 		}
-		System.out.println("(found) rfi is " + rfi.def());
-		System.out.println("(actual) fi is " + fi.def());
+//		System.out.println("(found) rfi is " + rfi.def());
+//		System.out.println("(actual) fi is " + fi.def());
 	    }
 	    throw new InternalCompilerError("Field " + this + " has an " +
 	                                    "implicit target, but the name " + name.id() + " resolves to " +

@@ -51,20 +51,20 @@ class Future[A](name: String, eval: () => A, initClocks: Seq[funicular.Clock]) e
   }
 
   def start: Unit = {
-    println("starting " + this)
+//    println("starting " + this)
     startLock.withLock {
       if (isStarted) {
         return
       }
       isStarted = true
     }
-    println("spawning " + this)
+//    println("spawning " + this)
     Runtime.runAsync(clocks, this.run, this.toString)
-    println("spawned " + this)
+//    println("spawned " + this)
   }
 
   private def run: Unit = {
-    println("running " + this)
+//    println("running " + this)
     try {
       result = Some(eval())
     } catch {
@@ -73,7 +73,7 @@ class Future[A](name: String, eval: () => A, initClocks: Seq[funicular.Clock]) e
         }
     }
     finally {
-    println("Releasing latch: " + this.toString)
+//    println("Releasing latch: " + this.toString)
       latch.release
     }
   }

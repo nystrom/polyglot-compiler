@@ -44,6 +44,9 @@ public class ExceptionCheckerContext implements Copy
      */
     protected Set<Type> catchable;
     
+    public Set<Type> getCatchable() {
+		return catchable;
+	}
     /**
      * The throws set, calculated bottom up.
      */
@@ -82,6 +85,15 @@ public class ExceptionCheckerContext implements Copy
         ec.catchable = new HashSet<Type>(catchableTypes);
         ec.throwsSet = new SubtypeSet(ts.Throwable());
         return ec;
+    }
+    
+    public void push(ExceptionCheckerContext ec, Collection<Type> catchableTypes){
+    	if(ec.catchable == null)
+    		ec.catchable = new HashSet<Type>(catchableTypes);
+    	else
+    		ec.catchable.addAll(catchableTypes);
+    	
+    	return;
     }
     public ExceptionCheckerContext pushCatchAllThrowable() {
         ExceptionCheckerContext ec = this.push();
@@ -139,6 +151,9 @@ public class ExceptionCheckerContext implements Copy
                         }
                     }
                 }           
+                if(exceptionCaught){
+                	break;
+                }
                 if (!exceptionCaught && ec.throwsSet != null) {
                     // add t to ec's throwsSet.
                     ec.throwsSet.add(t); 

@@ -37,8 +37,8 @@ public class ExceptionChecker extends Visitor {
     }
 
     public Node visit(ClassBody_c n, ExceptionCheckerContext ec) {
-	ec = ec.push();
-	Term t = (Term) ecNode(n, ec);
+	ExceptionCheckerContext ec1 = ec.push();
+	Term t = (Term) ecNode(n, ec1);
 	//System.out.println("exceptions for " + t + " = " + ec.throwsSet());
 	return t;
     }
@@ -118,8 +118,8 @@ public class ExceptionChecker extends Visitor {
     }
 
     public Node visit(MethodDecl_c n, ExceptionCheckerContext ec) {
-	ec = ec.push(new ExceptionCheckerContext.CodeTypeReporter("Method " + n.methodDef().signature())).push(n.methodDef().asInstance().throwTypes());
-	Term t = (Term) ecNode(n, ec);
+    	ExceptionCheckerContext ec1 = ec.push(new ExceptionCheckerContext.CodeTypeReporter("Method " + n.methodDef().signature())).push(n.methodDef().asInstance().throwTypes());
+	Term t = (Term) ecNode(n, ec1);
 	//System.out.println("exceptions for " + t + " = " + ec.throwsSet());
 	return t;
     }
@@ -162,7 +162,9 @@ public class ExceptionChecker extends Visitor {
     }
 
     public Node visit(Term_c n, ExceptionCheckerContext ec) {
-	Term t = (Term) ecNode(n, ec.push());
+
+    	ExceptionCheckerContext ec1 = ec.push();
+	Term t = (Term) ecNode(n, ec1);
 	//System.out.println("exceptions for " + t + " = " + ec.throwsSet());
 	return t;
     }
@@ -220,10 +222,16 @@ public class ExceptionChecker extends Visitor {
 	for (Iterator<Catch> i = n.catchBlocks().iterator(); i.hasNext(); ) {
 	    Catch cb = (Catch) i.next();
 
-	    ec = ec.push();
-	    cb = (Catch) accept(cb, ec);
+	    
+//	    ec = ec.push();
+//	    cb = (Catch) accept(cb, ec);
+//	    catchBlocks.add(cb);
+//	    ec = ec.pop();
+	    
+	    newec = newec.push();
+	    cb = (Catch) accept(cb, newec);
 	    catchBlocks.add(cb);
-	    ec = ec.pop();
+	    newec = newec.pop();
 	}
 
 	Block finallyBlock = null;
@@ -246,9 +254,13 @@ public class ExceptionChecker extends Visitor {
 	// now that all the exceptions have been added to the exception checker,
 	// call the super method, which should set the exceptions field of 
 	// Term_c.
-	Try_c t = (Try_c)ecNode(n, ec);
+	Try_c t = (Try_c)ecNode(n, newec);//ec);
 
-	return t.tryBlock(tryBlock).catchBlocks(catchBlocks).finallyBlock(finallyBlock);
+	ec.push(ec, newec.getCatchable());
+	
+
+	Node n1 = t.tryBlock(tryBlock).catchBlocks(catchBlocks).finallyBlock(finallyBlock); 
+	return n1;
     }
 
 }
