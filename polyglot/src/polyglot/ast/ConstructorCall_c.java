@@ -12,6 +12,7 @@ import java.util.*;
 
 import polyglot.frontend.Globals;
 import polyglot.types.*;
+import polyglot.types.Types.Granularity;
 import polyglot.util.*;
 import polyglot.visit.NodeVisitor;
 
@@ -32,7 +33,7 @@ public class ConstructorCall_c extends Stmt_c implements ConstructorCall
 	this.kind = kind;
 	this.qualifier = qualifier;
 	this.arguments = TypedList.copyAndCheck(arguments, Expr.class, true);
-	this.ci = Types.<ConstructorInstance>lazyRef();
+	this.ci = Types.<ConstructorInstance>lazyRef(Granularity.CLASS_LEVEL);
     }
 
     /** Get the qualifier of the constructor call. */

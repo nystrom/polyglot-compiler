@@ -58,6 +58,7 @@ import polyglot.types.TypeSystem;
 import polyglot.types.Types;
 import polyglot.types.Ref.Callable;
 import polyglot.types.Ref.Handler;
+import polyglot.types.Types.Granularity;
 import polyglot.types.VarDef_c.ConstantValue;
 import polyglot.util.ErrorInfo;
 import polyglot.util.Position;
@@ -212,7 +213,7 @@ public class TypeBuilder extends Visitor {
 
 			n = (New_c) n.anonType(type);
 
-			Ref<Type> t = Types.<Type> lazyRef(ts.unknownType(n.position()));
+			Ref<Type> t = Types.<Type> lazyRef(ts.unknownType(n.position()), Granularity.OTHER);
 			type.superType(t);
 			t.setResolver(new Callable<Type>() {
 				public Type call() {
@@ -225,7 +226,7 @@ public class TypeBuilder extends Visitor {
 				}
 			}, jobClock());
 
-			Ref<Type> ti = Types.<Type> lazyRef(ts.unknownType(n.position()));
+			Ref<Type> ti = Types.<Type> lazyRef(ts.unknownType(n.position()), Granularity.OTHER);
 			type.addInterface(ti);
 			ti.setResolver(new Callable<Type>() {
 				public Type call() {
@@ -277,7 +278,7 @@ public class TypeBuilder extends Visitor {
 		if (n.typeRef() == null) {
 			final AmbTypeNode_c n1 = n;
 			final Ref<Type> r = Types.<Type> lazyRef(ts.unknownType(n
-					.position()));
+					.position()), Granularity.OTHER);
 			r.setResolver(new Callable<Type>() {
 				public Type call() {
 					TypeNode tn = (TypeNode) n1.checked();
@@ -296,7 +297,7 @@ public class TypeBuilder extends Visitor {
 		n = (AmbQualifierNode_c) acceptChildren(n, tb);
 		final AmbQualifierNode_c n1 = n;
 		final Ref<Qualifier> r = Types.<Qualifier> lazyRef(ts
-				.unknownQualifier(n.position()));
+				.unknownQualifier(n.position()), Granularity.OTHER);
 		r.setResolver(new Callable<Qualifier>() {
 			public Qualifier call() {
 				QualifierNode tn = (QualifierNode) n1.checked();
@@ -714,7 +715,7 @@ public class TypeBuilder extends Visitor {
 	private Ref<Type> cycleCheckingRef(final ClassDef cd,
 			final TypeNode superClass) {
 		Ref<Type> s = Types
-				.<Type> lazyRef(ts.unknownType(superClass.position()));
+				.<Type> lazyRef(ts.unknownType(superClass.position()), Granularity.OTHER);
 		Callable<Type> resolver = cycleCheckingResolver(cd, superClass);
 		s.setResolver(resolver, jobClock());
 		return s;

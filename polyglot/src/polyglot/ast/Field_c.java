@@ -14,6 +14,7 @@ import polyglot.types.Flags;
 import polyglot.types.Ref;
 import polyglot.types.Types;
 import polyglot.types.VarInstance;
+import polyglot.types.Types.Granularity;
 import polyglot.util.CodeWriter;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
@@ -38,7 +39,7 @@ public class Field_c extends Expr_c implements Field
 	this.target = target;
 	this.name = name;
 	this.targetImplicit = false;
-	this.fi = Types.<FieldInstance>lazyRef();
+	this.fi = Types.<FieldInstance>lazyRef(Granularity.LOWER_LEVEL);
     }
 
     /** Get the target of the field. */

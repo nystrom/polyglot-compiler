@@ -190,6 +190,9 @@ object Main {
     Some(ast2)
   }
 
+  /*
+   * following methods added by saurako
+   */
   def checkConformance(job: Job, ast: Node): Option[Node] = {
 
     val ts = job.extensionInfo.typeSystem

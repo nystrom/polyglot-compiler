@@ -30,6 +30,7 @@ import polyglot.types.SemanticException;
 import polyglot.types.TypeSystem;
 import polyglot.types.Types;
 import polyglot.types.Ref.Handler;
+import polyglot.types.Types.Granularity;
 import polyglot.types.Types_noFuture;
 import polyglot.util.CodeWriter;
 import polyglot.util.ErrorInfo;
@@ -118,7 +119,27 @@ public abstract class Node_c implements Node
         this.error = null;
         this.job = Globals.currentJob();
         assert job != null;
-        this.checked = Types.<Node>lazyRef(null); 
+
+        this.checked = Types.<Node>lazyRef(null, Types.Granularity.OTHER);
+        setChecked();
+        addCopyHook(new Handler<Node>() {
+	    public void handle(Node t) {
+		((Node_c) t).setChecked();
+	    }
+	});
+    }
+    
+    public Node_c(Position pos, Types.Granularity grain) {
+    	assert(pos != null);
+        this.position = pos;
+        this.error = null;
+        this.job = Globals.currentJob();
+        assert job != null;
+//        this.checked = Types.<Node>lazyRef(null, Granularity.OTHER);
+//        StackTraceElement[] ste = Thread.currentThread().getStackTrace();
+//        String className = ste[2].getClassName();
+        
+        this.checked = Types.<Node>lazyRef(null, grain);
         setChecked();
         addCopyHook(new Handler<Node>() {
 	    public void handle(Node t) {

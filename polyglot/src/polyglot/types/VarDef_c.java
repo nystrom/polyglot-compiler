@@ -7,6 +7,7 @@
 
 package polyglot.types;
 
+import polyglot.types.Types.Granularity;
 import polyglot.util.Position;
 
 /**
@@ -29,7 +30,7 @@ public abstract class VarDef_c extends Def_c implements VarDef
     	this.flags = flags;
     	this.type = type;
     	this.name = name;
-    	this.constantRef = Types.<ConstantValue>lazyRef(null);
+    	this.constantRef = Types.<ConstantValue>lazyRef(null, Granularity.OTHER);
     }
 
     public static class ConstantValue {

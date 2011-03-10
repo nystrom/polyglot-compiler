@@ -12,6 +12,7 @@ import polyglot.frontend.Globals;
 import polyglot.frontend.Job;
 import polyglot.types.*;
 import polyglot.types.Ref.Handler;
+import polyglot.types.Types.Granularity;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
 
@@ -51,8 +52,8 @@ public abstract class Expr_c extends Term_c implements Expr
     public Expr_c(Position pos) {
 	super(pos);
 	TypeSystem ts = Globals.TS();
-	this.typeRef = Types.<Type>lazyRef(ts.unknownType(position()));
-	this.constantValueRef = Types.lazyRef(ConstantValueVisitor.NOT_CONSTANT);
+	this.typeRef = Types.<Type>lazyRef(ts.unknownType(position()), Granularity.EXPR);
+	this.constantValueRef = Types.lazyRef(ConstantValueVisitor.NOT_CONSTANT, Granularity.EXPR);
 	updateType();
 	updateCV();
 	addCopyHook(new Handler<Node>() {

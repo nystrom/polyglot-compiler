@@ -28,6 +28,7 @@ import polyglot.types.Ref;
 import polyglot.types.TypeSystem;
 import polyglot.types.Types;
 import polyglot.types.Ref.Callable;
+import polyglot.types.Types.Granularity;
 import polyglot.visit.NodeVisitor;
 
 public class BreakContinueSetup {
@@ -54,7 +55,7 @@ public class BreakContinueSetup {
     Ref<Collection<Name>> breaksRef(Term n) {
 	Ref<Collection<Name>> r = breaks.get(n);
 	if (r == null) {
-	    r = Types.<Collection<Name>> lazyRef(null);
+			r = Types.<Collection<Name>> lazyRef(null, Granularity.OTHER);
 	    breaks.put(n, r);
 	}
 	return r;
@@ -63,7 +64,7 @@ public class BreakContinueSetup {
     Ref<Collection<Name>> continuesRef(Term n) {
 	Ref<Collection<Name>> r = continues.get(n);
 	if (r == null) {
-	    r = Types.<Collection<Name>> lazyRef(null);
+			r = Types.<Collection<Name>> lazyRef(null, Granularity.OTHER);
 	    continues.put(n, r);
 	}
 	return r;
@@ -189,7 +190,7 @@ public class BreakContinueSetup {
     }
 
     public void visit(final Switch_c n, Node parent) {
-	final Ref<Collection<Name>> b = Types.lazyRef(null);
+		final Ref<Collection<Name>> b = Types.lazyRef(null, Granularity.OTHER);
 	unionChildBreaks(b, n);
 	removeBreakLabel(n, b, null);
 
