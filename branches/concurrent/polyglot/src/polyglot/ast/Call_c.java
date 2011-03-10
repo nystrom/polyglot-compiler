@@ -12,6 +12,7 @@ import java.util.*;
 
 import polyglot.frontend.Globals;
 import polyglot.types.*;
+import polyglot.types.Types.Granularity;
 import polyglot.util.*;
 import polyglot.visit.ExceptionCheckerContext;
 import polyglot.visit.NodeVisitor;
@@ -36,7 +37,7 @@ public class Call_c extends Expr_c implements Call {
 	this.name = name;
 	this.arguments = TypedList.copyAndCheck(arguments, Expr.class, true);
 	this.targetImplicit = (target == null);
-	this.mi = Types.<MethodInstance>lazyRef();
+	this.mi = Types.<MethodInstance>lazyRef(Granularity.METHOD_LEVEL);
     }
 
     /** Get the target object or type of the call. */

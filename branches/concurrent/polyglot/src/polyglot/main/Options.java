@@ -70,6 +70,13 @@ public class Options {
     /** Use SimpleCodeWriter instead of OptimalCodeWriter */
     public boolean use_simple_code_writer = false;
     
+    public boolean use_future_at_level_none = false;
+    public boolean use_future_at_level_file = false;
+    public boolean use_future_at_level_class = false;
+    public boolean use_future_at_level_method = false;
+    public boolean use_future_at_level_all = true; //default case
+	
+    
     /**
      * Constructor
      */
@@ -367,6 +374,52 @@ public class Options {
         	use_simple_code_writer = true;
         	i++;
         }
+        /*
+         * saurako: use futures at selective levels
+         */
+        else if (args[i].equals("-usefuturesat")) {
+        	
+        	i++;
+        	
+        	ArrayList<String> levels = new ArrayList<String>();
+        	levels.add("none"); 	//sequential: rather than using futures, use lazy refs
+        	levels.add("file"); 	//use futures only at the file granularity
+        	levels.add("class"); 	//use futures only at the class granularity
+        	levels.add("method"); 	//use futures only at the method granularity
+        	levels.add("all"); 		//use futures everywhere -- default
+        	
+        	if(!levels.contains(args[i])){
+        		StringBuilder s = new StringBuilder("-usefutureat option must be followed by either of:");
+        		s.append("1. none");
+        		s.append("2. file");
+        		s.append("3. class");
+        		s.append("4. method");
+        		s.append("5. all"); // default
+        		throw new UsageError(s.toString());
+        	}
+        	
+        	//set the necessary flag.
+        	if(args[i].equalsIgnoreCase("none")){
+        		use_future_at_level_all = false;
+        		use_future_at_level_none = true;
+        	}
+        	else if(args[i].equalsIgnoreCase("file")){
+        		use_future_at_level_all = false;
+        		use_future_at_level_file = true;
+        	}
+        	else if(args[i].equalsIgnoreCase("class")){
+        		use_future_at_level_all = false;
+        		use_future_at_level_class = true;
+        	}
+        	else if(args[i].equalsIgnoreCase("method")){
+        		use_future_at_level_all = false;
+        		use_future_at_level_method = true;
+        	} 
+        	//else it has to all and defaults apply.
+        	i++;
+        	
+        }
+        
         else if (!args[i].startsWith("-")) {
             source.add(args[i]);
             File f = new File(args[i]).getParentFile();

@@ -27,8 +27,8 @@ public abstract class Term_c extends Node_c implements Term
 
     public Term_c(Position pos) {
 	super(pos);
-	reachableRef = Types.<Boolean> lazyRef(null);
-	throwsRef = Types.<Collection<Type>> lazyRef(null);
+	reachableRef = Types.<Boolean> lazyRef(null, Types.Granularity.LOWER_LEVEL);
+	throwsRef = Types.<Collection<Type>> lazyRef(null, Types.Granularity.LOWER_LEVEL);
     }
     
     public Ref<Boolean> reachableRef() { return reachableRef; }

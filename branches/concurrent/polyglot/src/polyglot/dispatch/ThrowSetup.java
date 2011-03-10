@@ -31,6 +31,7 @@ import polyglot.types.Ref;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
 import polyglot.types.Ref.Callable;
+import polyglot.types.Types.Granularity;
 import polyglot.util.InternalCompilerError;
 import polyglot.visit.NodeVisitor;
 

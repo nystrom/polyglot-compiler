@@ -12,6 +12,7 @@ import polyglot.types.LocalInstance;
 import polyglot.types.Ref;
 import polyglot.types.Types;
 import polyglot.types.VarInstance;
+import polyglot.types.Types.Granularity;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
 import polyglot.visit.NodeVisitor;
@@ -28,7 +29,7 @@ public class Local_c extends Expr_c implements Local
     super(pos);
     assert(name != null);
     this.name = name;
-    this.li = Types.<LocalInstance>lazyRef();
+    this.li = Types.<LocalInstance>lazyRef(Granularity.LOWER_LEVEL);
   }
 
   /** Get the name of the local. */

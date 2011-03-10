@@ -56,6 +56,7 @@ import polyglot.types.Type;
 import polyglot.types.TypeSystem;
 import polyglot.types.Types;
 import polyglot.types.Ref.Callable;
+import polyglot.types.Types.Granularity;
 import polyglot.util.InternalCompilerError;
 
 public class ReachSetup {
@@ -116,7 +117,7 @@ public class ReachSetup {
 	Ref<Boolean> completesRef(Term n) {
 		Ref<Boolean> r = completes.get(n);
 		if (r == null) {
-			r = Types.<Boolean> lazyRef(null);
+			r = Types.<Boolean> lazyRef(null, Granularity.OTHER);
 			completes.put(n, r);
 		}
 		return r;
@@ -125,7 +126,7 @@ public class ReachSetup {
 	Ref<Collection<Name>> breaksRef(Term n) {
 		Ref<Collection<Name>> r = breaks.get(n);
 		if (r == null) {
-			r = Types.<Collection<Name>> lazyRef(null);
+			r = Types.<Collection<Name>> lazyRef(null, Granularity.OTHER);
 			breaks.put(n, r);
 		}
 		return r;
@@ -134,7 +135,7 @@ public class ReachSetup {
 	Ref<Collection<Name>> continuesRef(Term n) {
 		Ref<Collection<Name>> r = continues.get(n);
 		if (r == null) {
-			r = Types.<Collection<Name>> lazyRef(null);
+			r = Types.<Collection<Name>> lazyRef(null, Granularity.OTHER);
 			continues.put(n, r);
 		}
 		return r;

@@ -14,6 +14,7 @@ import polyglot.frontend.Job;
 import polyglot.types.Ref;
 import polyglot.types.TypeSystem;
 import polyglot.types.Types;
+import polyglot.types.Types.Granularity;
 import polyglot.util.ErrorInfo;
 
 public class ReachChecker extends Visitor {
@@ -38,7 +39,7 @@ public class ReachChecker extends Visitor {
     Ref<Boolean> completesRef(Term n) {
 	Ref<Boolean> r = completes.get(n);
 	if (r == null) {
-	    r = Types.<Boolean> lazyRef(null);
+	    r = Types.<Boolean> lazyRef(null, Granularity.OTHER);
 	    r.update(false);
 	    completes.put(n, r);
 	}

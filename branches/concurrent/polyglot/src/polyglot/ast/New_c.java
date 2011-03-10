@@ -40,7 +40,7 @@ public class New_c extends Expr_c implements New
         this.tn = tn;
 	this.arguments = TypedList.copyAndCheck(arguments, Expr.class, true);
 	this.body = body;
-	this.ci = Types.<ConstructorInstance>lazyRef();
+	this.ci = Types.<ConstructorInstance>lazyRef(Types.Granularity.CLASS_LEVEL);
     }
 
     public List<Def> defs() {

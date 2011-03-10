@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import polyglot.frontend.ExtensionInfo;
 import polyglot.frontend.Source;
 import polyglot.main.Report;
+import polyglot.types.Types.Granularity;
 import polyglot.types.reflect.ClassFile;
 import polyglot.types.reflect.ClassFileLazyClassInitializer;
 import polyglot.util.CollectionUtil;
@@ -1623,7 +1624,7 @@ public class TypeSystem_c implements TypeSystem
 		QName name = getTransformedClassName(ct);
 
 		TypeSystem_c ts = this;
-		Ref<ClassDef> sym = Types.lazyRef(unknownClassDef());
+		Ref<ClassDef> sym = Types.lazyRef(unknownClassDef(), Granularity.CLASS_LEVEL);
 //		Goal resolver = Globals.Scheduler().LookupGlobalTypeDef(sym, name);
 //		resolver.update(Goal.Status.SUCCESS);
 //		sym.setResolver(resolver);
