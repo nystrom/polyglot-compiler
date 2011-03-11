@@ -8,12 +8,15 @@ import java.util.List;
 import polyglot.ast.Block;
 import polyglot.ast.Formal;
 import polyglot.ast.Id;
+import polyglot.ast.MethodDecl;
 import polyglot.ast.MethodDecl_c;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.FlagAnnotations;
+import polyglot.ext.jl5.types.JL5ConstructorDef;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5Flags;
+import polyglot.ext.jl5.types.JL5MethodDef;
 import polyglot.ext.jl5.types.JL5MethodInstance;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.ParameterizedType;
@@ -23,6 +26,8 @@ import polyglot.ext.jl5.visit.ApplicationChecker;
 import polyglot.types.ClassType;
 import polyglot.types.Context;
 import polyglot.types.Flags;
+import polyglot.types.MethodDef;
+import polyglot.types.Ref;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
@@ -40,21 +45,14 @@ import polyglot.visit.TypeBuilder;
 public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, ApplicationCheck {
 
     protected boolean compilerGenerated;
-    protected List annotations;
+    protected List<AnnotationElem> annotations;
     protected List runtimeAnnotations;
     protected List classAnnotations;
     protected List sourceAnnotations;
     protected List<ParamTypeNode> paramTypes;
     
     public JL5MethodDecl_c(Position pos, FlagAnnotations flags, TypeNode returnType, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body){
-        super(pos, flags.classicFlags(), returnType, name, formals, throwTypes, body);
-        if (flags.annotations() != null){
-            this.annotations = flags.annotations();
-        } else {
-            this.annotations = new TypedList(new LinkedList(), AnnotationElem.class, true);
-        }
-       
-        this.paramTypes = new ArrayList<ParamTypeNode>();
+        this(pos, flags, returnType, name, formals, throwTypes, body, new ArrayList<ParamTypeNode>());
     }
     
     public JL5MethodDecl_c(Position pos, FlagAnnotations flags, TypeNode returnType, Id name, 
@@ -67,7 +65,6 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
         }
         this.paramTypes = paramTypes;
     }
-    
     
     public boolean isGeneric(){
     	return !paramTypes.isEmpty(); 
@@ -87,7 +84,7 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
         return this.annotations;
     }
 
-    public JL5MethodDecl annotations(List annotations){
+    public JL5MethodDecl annotations(List<AnnotationElem> annotations){
         JL5MethodDecl_c n = (JL5MethodDecl_c) copy();
         n.annotations = annotations;
         return n;    
@@ -118,24 +115,29 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
                                                             
     }
 
-//    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
-//        if (ar.kind() == AmbiguityRemover.SIGNATURES) {
-//            Context c = ar.context();
-//            TypeSystem ts = ar.typeSystem();
-//            ParsedClassType ct = c.currentClassScope();
-//            JL5MethodInstance mi = (JL5MethodInstance)makeMethodInstance(ct, ts);
-//            List<TypeVariable> pTypes = new ArrayList<TypeVariable>();
-//            //CHECK: seems this would be handled directly by the TS when calling ts.createMethodInstance() in MethodDef.asInstance()
-//            for (Iterator<ParamTypeNode> it = paramTypes.iterator(); it.hasNext(); ){
-//                TypeVariable tv = (TypeVariable) it.next().type();
-//                pTypes.add(tv);
-//            }
-//            mi.typeVariables(pTypes);
-//            return flags(mi.flags()).methodInstance(mi);
-//         }
-//         return this;
-//    }
+    @Override
+    public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
+    	MethodDecl n = (MethodDecl) super.buildTypesOverride(tb);
+    	MethodDef def = n.methodDef();
+    	
+    	// Create a list of type refs for type variables
+        List<Ref<? extends Type>> pTypes = new ArrayList<Ref<? extends Type>>(paramTypes().size());
+        for (ParamTypeNode p : paramTypes()) {
+        	pTypes.add(p.typeRef());
+        }
+                    
+        ((JL5MethodDef)def).setTypeVariableTypes(pTypes);
+        return n;
+    }
 
+    @Override
+    public Node visitSignature(NodeVisitor v) {
+    	JL5ConstructorDecl_c n = (JL5ConstructorDecl_c) super.visitSignature(v);
+    	List<AnnotationElem> annotations = visitList(this.annotations, v);
+    	List<ParamTypeNode> paramTypes = visitList(this.paramTypes, v);
+    	return reconstruct(annotations, paramTypes);
+    }
+    
     @Override
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
         // JL5: Check no duplicate annotations used
@@ -230,41 +232,41 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
 
     public Node applicationCheck(ApplicationChecker appCheck, Context ctx) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)appCheck.typeSystem();
-        for( Iterator it = annotations.iterator(); it.hasNext(); ){
-            AnnotationElem next = (AnnotationElem)it.next();
-            ts.checkAnnotationApplicability(next, this);
+        for(AnnotationElem a : annotations()){
+            ts.checkAnnotationApplicability(a, this);
         }
         return this;         
     }
-    
-    public Node visitChildren(NodeVisitor v){
-        List annotations = visitList(this.annotations, v);
-        List paramTypes = visitList(this.paramTypes, v);
-        List formals = visitList(this.formals, v);
-        TypeNode returnType = (TypeNode) visitChild(this.returnType, v);
-        List throwTypes = visitList(this.throwTypes, v);
-        Block body = (Block) visitChild(this.body, v);
-        return reconstruct(returnType, formals, throwTypes, body, annotations, paramTypes);
+
+    protected JL5MethodDecl_c reconstruct(List<AnnotationElem> annotations, List<ParamTypeNode> paramTypes) {
+    	if (!CollectionUtil.allEqual(annotations, this.annotations) || 
+    			!CollectionUtil.allEqual(paramTypes, this.paramTypes)) {
+    		JL5MethodDecl_c n = (JL5MethodDecl_c) this.copy();
+    		n.annotations = TypedList.copyAndCheck(this.annotations, AnnotationElem.class, true);
+    		n.paramTypes = TypedList.copyAndCheck(this.paramTypes, ParamTypeNode.class, true);
+    		return n;
+    	}
+    	return this;
     }
     
     public void translate(CodeWriter w, Translator tr){
         if (isCompilerGenerated()) return;
         
-        for (Iterator it = annotations.iterator(); it.hasNext(); ){
-            print((AnnotationElem)it.next(), w, tr);
+        for (AnnotationElem a : annotations){
+            print(a, w, tr);
         }
 
         super.translate(w, tr);
     }
 
-    public void prettyPrintHeader(Flags flags, CodeWriter w, PrettyPrinter tr) {
+    public void prettyPrintHeader(CodeWriter w, PrettyPrinter tr) {
         w.begin(0);
-        w.write(flags.translate());
+    	print(flags, w, tr);
 
         if ((paramTypes != null) && !paramTypes.isEmpty()){
             w.write("<");
-            for (Iterator it = paramTypes.iterator(); it.hasNext(); ){
-                ParamTypeNode next = (ParamTypeNode)it.next();
+            for (Iterator<ParamTypeNode> it = paramTypes.iterator(); it.hasNext(); ){
+                ParamTypeNode next = it.next();
                 print(next, w, tr);
                 if (it.hasNext()){
                     w.write(", ");
@@ -272,40 +274,43 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
             }
             w.write("> ");
         }
-        
-        print(returnType, w, tr);
-        w.write(" " + name + "(");
-        w.begin(0);
+    	print(returnType, w, tr);
+    	w.allowBreak(2, 2, " ", 1);
+    	w.write(name + "(");
 
-        for (Iterator i = formals.iterator(); i.hasNext(); ) {
-            Formal f = (Formal) i.next();
-            print(f, w, tr);
+    	w.allowBreak(2, 2, "", 0);
+    	w.begin(0);
 
-            if (i.hasNext()) {
-                w.write(",");
-                w.allowBreak(0, " ");
-            }
-        }
+    	for (Iterator<Formal> i = formals.iterator(); i.hasNext(); ) {
+    	    Formal f = i.next();
+    	    
+    	    print(f, w, tr);
 
-        w.end();
-        w.write(")");
+    	    if (i.hasNext()) {
+    		w.write(",");
+    		w.allowBreak(0, " ");
+    	    }
+    	}
 
-        if (! throwTypes().isEmpty()) {
-            w.allowBreak(6);
-            w.write("throws ");
+    	w.end();
+    	w.write(")");
 
-            for (Iterator i = throwTypes().iterator(); i.hasNext(); ) {
-                TypeNode tn = (TypeNode) i.next();
-                print(tn, w, tr);
+    	if (! throwTypes().isEmpty()) {
+    	    w.allowBreak(6);
+    	    w.write("throws ");
 
-                if (i.hasNext()) {
-                    w.write(",");
-                    w.allowBreak(4, " ");
-                }
-            }
-        }
+    	    for (Iterator i = throwTypes().iterator(); i.hasNext(); ) {
+    	        TypeNode tn = (TypeNode) i.next();
+    		print(tn, w, tr);
 
-        w.end();
+    		if (i.hasNext()) {
+    		    w.write(",");
+    		    w.allowBreak(4, " ");
+    		}
+    	    }
+    	}
+
+    	w.end();
     }
 
 
