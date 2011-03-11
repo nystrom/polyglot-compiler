@@ -35,6 +35,8 @@ import polyglot.frontend.Source;
 import polyglot.types.ArrayType;
 import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
+import polyglot.types.ConstructorDef;
+import polyglot.types.ConstructorDef_c;
 import polyglot.types.ConstructorInstance;
 import polyglot.types.Context;
 import polyglot.types.FieldInstance;
@@ -44,6 +46,7 @@ import polyglot.types.Matcher;
 import polyglot.types.MemberDef;
 import polyglot.types.MemberInstance;
 import polyglot.types.MethodDef;
+import polyglot.types.MethodDef_c;
 import polyglot.types.MethodInstance;
 import polyglot.types.Name;
 import polyglot.types.NoMemberException;
@@ -310,6 +313,49 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     	return super.isDouble(t);
     }
 	
+    @Override
+    public MethodDef methodDef(Position pos,
+    		Ref<? extends StructType> container, Flags flags,
+    		Ref<? extends Type> returnType, Name name,
+    		List<Ref<? extends Type>> argTypes, List<Ref<? extends Type>> excTypes) {
+    	return methodDef(pos, container, flags, returnType, name, argTypes, excTypes, new ArrayList<Ref<? extends Type>>());
+    }
+
+    @Override
+    public ConstructorDef constructorDef(Position pos,
+    		Ref<? extends ClassType> container,
+    		Flags flags, List<Ref<? extends Type>> argTypes,
+    		List<Ref<? extends Type>> excTypes) {
+    	return constructorDef(pos, container, flags, argTypes, excTypes, new ArrayList<Ref<? extends Type>>());
+    }
+    
+    public MethodDef methodDef(Position pos,
+    		Ref<? extends StructType> container, Flags flags,
+    		Ref<? extends Type> returnType, Name name,
+    		List<Ref<? extends Type>> argTypes, List<Ref<? extends Type>> excTypes,
+    		List<Ref<? extends Type>> tvTypes) {
+
+    	assert_(container);
+    	assert_(returnType);
+    	assert_(argTypes);
+    	assert_(excTypes);
+    	assert_(tvTypes);
+    	return new JL5MethodDef_c(this, pos, container, flags,
+    			returnType, name, argTypes, excTypes, tvTypes);
+    }
+
+    public ConstructorDef constructorDef(Position pos,
+    		Ref<? extends ClassType> container,
+    		Flags flags, List<Ref<? extends Type>> argTypes,
+    		List<Ref<? extends Type>> excTypes,
+    		List<Ref<? extends Type>> tvTypes) {
+    	assert_(container);
+    	assert_(argTypes);
+    	assert_(excTypes);
+    	return new JL5ConstructorDef_c(this, pos, container, flags,
+    			argTypes, excTypes, tvTypes);
+    }
+
     /**
      * Called by the type builder when instantiating types
      */
