@@ -10,10 +10,10 @@ public interface JL5ConstructorDecl extends ConstructorDecl{
     public JL5ConstructorDecl setCompilerGenerated(boolean val);
 
         
-    public List paramTypes();
-    public JL5ConstructorDecl paramTypes(List paramTypes);
+    public List<ParamTypeNode> paramTypes();
+    public JL5ConstructorDecl paramTypes(List<ParamTypeNode> paramTypes);
     
-    public List annotations();
+    public List<AnnotationElem> annotations();
     public List runtimeAnnotations();
     public List classAnnotations();
     public List sourceAnnotations();
