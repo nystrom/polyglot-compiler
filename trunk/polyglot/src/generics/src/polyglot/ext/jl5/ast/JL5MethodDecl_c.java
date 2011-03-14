@@ -145,8 +145,7 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
         ts.checkDuplicateAnnotations(annotations);
    
         // JL5: Check throws clauses are not parameterized
-        for (Iterator it = throwTypes.iterator(); it.hasNext(); ){
-            TypeNode tn = (TypeNode)it.next();
+        for (TypeNode tn : throwTypes){
             Type next = tn.type();
             if (next instanceof ParameterizedType){
                 throw new SemanticException("Cannot use parameterized type "+next+" in a throws clause", tn.position());
@@ -156,7 +155,7 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
         // JL5: Check at most last formal is variable
         for (int i = 0; i < formals.size(); i++){
             JL5Formal f = (JL5Formal)formals.get(i);
-            if (i != formals.size()-1 && f.isVariable()){
+            if (i != formals.size()-1 && f.isVarargs()){
                 throw new SemanticException("Only last formal can be variable in method declaration.", f.position());
             }
         }

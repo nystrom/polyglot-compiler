@@ -122,7 +122,7 @@ public class JL5Method extends Method{
                 Type t = (Type)it.next();
                 if (!it.hasNext()){
                     ArrayType at = ((JL5TypeSystem)ts).arrayType(t.position(), ((ArrayType)t).base());
-                    ((JL5ArrayType)at).setVariable();
+                    ((JL5ArrayType)at).setVarargs();
                     newFormals.add(at);
                 } 
                 else{
@@ -158,7 +158,7 @@ public class JL5Method extends Method{
                 Type t = (Type)it.next();
                 if (!it.hasNext()){
                     ArrayType at = ((JL5TypeSystem)ts).arrayType(t.position(), ((ArrayType)t).base());
-                    ((JL5ArrayType)at).setVariable();
+                    ((JL5ArrayType)at).setVarargs();
                     newFormals.add(at);
                 } 
                 else{

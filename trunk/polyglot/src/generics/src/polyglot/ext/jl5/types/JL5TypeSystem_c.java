@@ -3,10 +3,12 @@ package polyglot.ext.jl5.types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import polyglot.ast.ArrayInit;
@@ -36,7 +38,6 @@ import polyglot.types.ArrayType;
 import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
 import polyglot.types.ConstructorDef;
-import polyglot.types.ConstructorDef_c;
 import polyglot.types.ConstructorInstance;
 import polyglot.types.Context;
 import polyglot.types.FieldInstance;
@@ -46,7 +47,6 @@ import polyglot.types.Matcher;
 import polyglot.types.MemberDef;
 import polyglot.types.MemberInstance;
 import polyglot.types.MethodDef;
-import polyglot.types.MethodDef_c;
 import polyglot.types.MethodInstance;
 import polyglot.types.Name;
 import polyglot.types.NoMemberException;
@@ -63,7 +63,6 @@ import polyglot.types.TypeEnv;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 import polyglot.types.TypeSystem_c;
-import polyglot.types.TypeSystem_c.FieldMatcher;
 import polyglot.types.reflect.ClassFile;
 import polyglot.types.reflect.ClassFileLazyClassInitializer;
 import polyglot.util.Copy;
@@ -1112,9 +1111,32 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         assert_(pkg);
         return new JL5ImportTable(this, systemResolver, pkg);
     }
+	
+    Map<Ref<? extends Type>,Type> varargsArrayTypeCache = new HashMap<Ref<? extends Type>,Type>();
+    
+    /**
+     * Factory method for ArrayTypes with varargs support.
+     * We maintain a separate cache for varargs array type.
+     */
+    protected ArrayType arrayType(Position pos, Ref<? extends Type> type, boolean varargs) {
+    	if(varargs) {
+    		ArrayType t = (ArrayType) varargsArrayTypeCache.get(type);
+    		if (t == null) {
+    			t = createArrayType(pos, type, varargs);
+    			varargsArrayTypeCache.put(type, t);
+    		}
+    		return t;
+    	} else {
+    		return super.arrayType(pos, type);
+    	}
+    }
 
-    public ArrayType arrayType(Position pos, Type type) {
-        return new JL5ArrayType_c(this, pos, type);
+    protected ArrayType createArrayType(Position pos, Ref<? extends Type> type) {
+    	return createArrayType(pos, type, false);
+    }
+
+    protected ArrayType createArrayType(Position pos, Ref<? extends Type> type, boolean varArgs) {
+    	return new JL5ArrayType_c(this, pos, type, varArgs);
     }
 
     public boolean isEquivalent(TypeObject arg1, TypeObject arg2) {
