@@ -147,6 +147,15 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return n;
     }
 
+    @Override
+    public polyglot.ast.ArrayTypeNode ArrayTypeNode(Position pos, TypeNode base) {
+    	return this.ArrayTypeNode(pos, base, false);
+    }
+
+    public polyglot.ast.ArrayTypeNode ArrayTypeNode(Position pos, TypeNode base, boolean varargs) {
+    	return new JL5ArrayTypeNode_c(pos, base, varargs);
+    }
+    
     public ParamTypeNode ParamTypeNode(Position pos, List bounds, String id){
         ParamTypeNode n = new ParamTypeNode_c(pos, bounds, id);
         return n;

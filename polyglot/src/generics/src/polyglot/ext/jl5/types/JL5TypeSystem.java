@@ -184,4 +184,9 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	MethodInstance erasureMethodInstance(MethodInstance mi);
 
+	/**
+	 * Return array type representing a variable argument
+	 */
+	Type arrayOf(Position position, Ref<? extends Type> typeRef, boolean varargs);
+
 }

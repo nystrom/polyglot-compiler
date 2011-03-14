@@ -94,7 +94,7 @@ public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends Pro
             Type last = (Type) formalTypes().get(numFormals-1);
             if (last instanceof JL5ArrayType) {
                 JL5ArrayType lastAsArr = (JL5ArrayType) last;
-                if (lastAsArr.isVariable()) return true;
+                if (lastAsArr.isVarargs()) return true;
             }
         }
         return false;
@@ -116,8 +116,7 @@ public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends Pro
             
             if (it1.hasNext()) {//not last formal parameter
 //                if (! ts.isImplicitCastValid(t2, t1, context)) return false;
-            }
-            else if (t1.isArray() && ((JL5ArrayType)t1).isVariable()) {
+            } else if (t1.isArray() && ((JL5ArrayType)t1).isVarargs()) {
                 JL5ArrayType vartype = (JL5ArrayType)t1;
                 if (!it2.hasNext()) {
                     return ts.isImplicitCastValid(t2, vartype, context) || ts.isImplicitCastValid(t2, vartype.base(), context);
