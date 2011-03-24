@@ -12,6 +12,7 @@ import polyglot.ast.Block;
 import polyglot.ast.ClassBody;
 import polyglot.ast.ConstructorCall;
 import polyglot.ast.ConstructorCall.Kind;
+import polyglot.ast.CanonicalTypeNode;
 import polyglot.ast.Disamb;
 import polyglot.ast.Expr;
 import polyglot.ast.Formal;
@@ -31,6 +32,7 @@ import polyglot.types.Package;
 import polyglot.types.QName;
 import polyglot.types.Ref;
 import polyglot.types.Type;
+import polyglot.types.Types;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
 
@@ -232,10 +234,8 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return n;
     }
 
-    public JL5CanonicalTypeNode CanonicalTypeNode(Position pos, Type t){
-	    // call super to perform a check for the type being canonical
-	Node oldn = super.CanonicalTypeNode(pos, t);
-        JL5CanonicalTypeNode n = new JL5CanonicalTypeNode_c(pos, t);
+    public JL5CanonicalTypeNode CanonicalTypeNode(Position pos, Type type) {
+        JL5CanonicalTypeNode n = new JL5CanonicalTypeNode_c(pos, Types.<Type>ref(type));
         return n;
     }
     public JL5Catch JL5Catch(Position pos, Formal formal, Block body){
