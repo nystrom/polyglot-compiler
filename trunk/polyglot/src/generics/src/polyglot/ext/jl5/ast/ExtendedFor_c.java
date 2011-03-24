@@ -7,12 +7,12 @@ import polyglot.ast.Block;
 import polyglot.ast.Expr;
 import polyglot.ast.Local;
 import polyglot.ast.LocalDecl;
+import polyglot.ast.Loop_c;
 import polyglot.ast.NewArray;
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory;
 import polyglot.ast.Stmt;
 import polyglot.ast.Term;
-import polyglot.ast.Loop_c;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.types.ArrayType;
@@ -25,10 +25,10 @@ import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 import polyglot.visit.AscriptionVisitor;
 import polyglot.visit.CFGBuilder;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.FlowGraph;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.ContextVisitor;
 
 /**
  * An immutable representation of a Java language extended <code>for</code>
@@ -116,15 +116,18 @@ public class ExtendedFor_c extends Loop_c implements ExtendedFor {
                     declType + " but the actual type is " + t + ".", expr.position());
         }
 
-        if (expr instanceof Local && ld.localInstance().equals(((Local)expr).localInstance())){
+        //CHECK Not sure initialization check should be done here
+        if (expr instanceof Local && ld.localDef().asInstance().equals(((Local)expr).localInstance())){
             throw new SemanticException("Variable: "+expr+" may not have been initialized", expr.position());
         }
+
+        //CHECK Not sure initialization check should be done here
         if (expr instanceof NewArray){
             if (((NewArray)expr).init() != null){
-                for (Iterator it = ((NewArray)expr).init().elements().iterator(); it.hasNext(); ){
-                    Expr next = (Expr)it.next();
-                    if (next instanceof Local && ld.localInstance().equals(((Local)next).localInstance())){
-                        throw new SemanticException("Varaible: "+next+" may not have been initialized", next.position());
+                for (Iterator<Expr> it = ((NewArray)expr).init().elements().iterator(); it.hasNext(); ){
+                    Expr next = it.next();
+                    if (next instanceof Local && ld.localDef().asInstance().equals(((Local)next).localInstance())){
+                        throw new SemanticException("Variable: "+next+" may not have been initialized", next.position());
                     }
                 }
             }
@@ -133,7 +136,15 @@ public class ExtendedFor_c extends Loop_c implements ExtendedFor {
 	    return this;
     }
 
+    /**
+     * @deprecated
+     * @param la
+     * @param origLd
+     * @param nf
+     * @return
+     */
     public Block updateBody(Expr la, Stmt origLd, NodeFactory nf){
+    	//CHECK deprecated and not sure what it was about 
         Block b = null;
         if (body() instanceof Block){
             b = ((Block)body()).prepend(nf.Eval(position(), la)).prepend(origLd);
@@ -151,10 +162,10 @@ public class ExtendedFor_c extends Loop_c implements ExtendedFor {
     public void printVarDecl(Object decl, CodeWriter w, PrettyPrinter tr){
         if (decl instanceof LocalDecl){
             LocalDecl ld = (LocalDecl)decl;
-            w.write(ld.flags().translate());
+            print(ld.flags(), w, tr);
             print(ld.type(), w, tr);
             w.write(" ");
-            w.write(ld.name());
+            tr.print(this, ld.name(), w);
         }
     }
 
