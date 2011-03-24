@@ -1,6 +1,5 @@
 package polyglot.ext.jl5.ast;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,10 +14,9 @@ import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.ext.jl5.visit.ApplicationCheck;
 import polyglot.ext.jl5.visit.ApplicationChecker;
-import polyglot.ext.jl5.visit.JL5AmbiguityRemover;
-import polyglot.types.ClassType;
 import polyglot.types.Context;
 import polyglot.types.SemanticException;
+import polyglot.types.Type;
 import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
@@ -30,7 +28,7 @@ import polyglot.visit.PrettyPrinter;
 public class JL5FieldDecl_c extends FieldDecl_c implements JL5FieldDecl, ApplicationCheck {
 
     protected boolean compilerGenerated;
-    protected List annotations;
+    protected List<AnnotationElem> annotations;
     protected List runtimeAnnotations;
     protected List classAnnotations;
     protected List sourceAnnotations;
@@ -45,17 +43,17 @@ public class JL5FieldDecl_c extends FieldDecl_c implements JL5FieldDecl, Applica
         }
     }
 
-    public List annotations(){
+    public List<AnnotationElem> annotations(){
         return this.annotations;
     }
 
-    public JL5FieldDecl annotations(List annotations){
+    public JL5FieldDecl annotations(List<AnnotationElem> annotations){
         JL5FieldDecl_c n = (JL5FieldDecl_c) copy();
         n.annotations = TypedList.copyAndCheck(annotations, AnnotationElem.class, true);
         return n;
     }
     
-    protected JL5FieldDecl reconstruct(TypeNode type, Expr init, List annotations){
+    protected JL5FieldDecl reconstruct(TypeNode type, Expr init, List<AnnotationElem> annotations){
         if( this.type() != type || this.init() != init || !CollectionUtil.allEqual(this.annotations, annotations)){
             JL5FieldDecl_c n = (JL5FieldDecl_c) copy();
             n.type = type;
@@ -67,24 +65,19 @@ public class JL5FieldDecl_c extends FieldDecl_c implements JL5FieldDecl, Applica
     }
     
     public Node visitChildren(NodeVisitor v){
-        TypeNode type = (TypeNode) visitChild(this.type(), v);
-        Expr init = (Expr) visitChild(this.init(), v);
-        List annotations = visitList(this.annotations, v);
-        return reconstruct(type, init, annotations);
+    	JL5FieldDecl_c n = (JL5FieldDecl_c) super.visitChildren(v);
+        List<AnnotationElem> annotations = n.visitList(this.annotations, v);
+        return n.reconstruct(n.type(), n.init(), annotations);
     }
-   
-    public NodeVisitor disambiguateEnter(AmbiguityRemover ar) throws SemanticException {
-        if (ar.kind() == JL5AmbiguityRemover.TYPE_VARS){
-            return ar.bypass(type).bypass(init);
-        }
-        return super.disambiguateEnter(ar);
-    }
+
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
         JL5ParsedClassType currentClass = (JL5ParsedClassType) tc.context().currentClass();
-        if ((type().type() instanceof TypeVariable) && 
+        Type type = type().type();
+        // captures the scenario of a generic static inner class<T> declaring a static field of type T
+        if ((type instanceof TypeVariable) && 
         		(currentClass.flags().isStatic() || flags().flags().isStatic())){
             if (currentClass.flags().isStatic() && 
-            		currentClass.hasTypeVariable(((TypeVariable)type().type()).name())){
+            		currentClass.hasTypeVariable(((TypeVariable)type).name())){
             }
             else {
                 throw new SemanticException("Cannot access non-static type "+((TypeVariable)type().type()).name()+" in a static context.", position());
@@ -103,19 +96,17 @@ public class JL5FieldDecl_c extends FieldDecl_c implements JL5FieldDecl, Applica
     
     public Node applicationCheck(ApplicationChecker appCheck, Context ctx) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)appCheck.typeSystem();
-        for( Iterator it = annotations.iterator(); it.hasNext(); ){
-            AnnotationElem next = (AnnotationElem)it.next();
-            ts.checkAnnotationApplicability(next, this);
+        for(AnnotationElem ae : annotations){
+            ts.checkAnnotationApplicability(ae, this);
         }
         return this;
    }
-    
 
     public void prettyPrint(CodeWriter w, PrettyPrinter tr){
         if (isCompilerGenerated()) return;
 
-        for (Iterator it = annotations.iterator(); it.hasNext(); ){
-            print((AnnotationElem)it.next(), w, tr);
+        for(AnnotationElem ae : annotations){
+            print(ae, w, tr);
         }
         super.prettyPrint(w, tr);
     }
