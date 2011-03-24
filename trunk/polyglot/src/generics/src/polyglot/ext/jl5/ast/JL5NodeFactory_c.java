@@ -12,17 +12,14 @@ import polyglot.ast.Block;
 import polyglot.ast.ClassBody;
 import polyglot.ast.ConstructorCall;
 import polyglot.ast.ConstructorCall.Kind;
-import polyglot.ast.CanonicalTypeNode;
 import polyglot.ast.Disamb;
 import polyglot.ast.Expr;
 import polyglot.ast.Formal;
 import polyglot.ast.Id;
 import polyglot.ast.Import;
 import polyglot.ast.New;
-import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
 import polyglot.ast.NodeFactory_c;
-import polyglot.ast.PackageNode;
-import polyglot.ast.PackageNode_c;
 import polyglot.ast.QualifierNode;
 import polyglot.ast.Receiver;
 import polyglot.ast.Stmt;
@@ -144,8 +141,8 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return n;
     }
     
-    public PackageNode JL5PackageNode(Position pos, FlagAnnotations fl, Ref<? extends Package> p) {
-        PackageNode n = new JL5PackageNode_c(pos, fl, p);
+    public JL5PackageNode JL5PackageNode(Position pos, FlagAnnotations fl, Ref<? extends Package> p) {
+    	JL5PackageNode n = new JL5PackageNode_c(pos, fl, p);
         return n;
     }
 
@@ -273,7 +270,6 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return n;
     }
 
-    
     public Binary.Operator getBinOpFromAssignOp(Assign.Operator op){
         if (op == Assign.ADD_ASSIGN) return Binary.ADD;
         if (op == Assign.BIT_OR_ASSIGN) return Binary.BIT_OR;
@@ -297,7 +293,6 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
     public New New(Position pos, Expr outer, TypeNode objectType, List args, ClassBody body) {
         return new JL5New_c(pos, outer, objectType, args, body, null);
     }
-
     
     // TODO:  Override factory methods for overriden AST nodes.
     // TODO:  Override factory methods for AST nodes with new extension nodes.
