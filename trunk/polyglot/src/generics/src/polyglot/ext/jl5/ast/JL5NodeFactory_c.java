@@ -20,6 +20,8 @@ import polyglot.ast.Import;
 import polyglot.ast.New;
 import polyglot.ast.Node;
 import polyglot.ast.NodeFactory_c;
+import polyglot.ast.PackageNode;
+import polyglot.ast.PackageNode_c;
 import polyglot.ast.QualifierNode;
 import polyglot.ast.Receiver;
 import polyglot.ast.Stmt;
@@ -27,6 +29,7 @@ import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.types.Package;
 import polyglot.types.QName;
+import polyglot.types.Ref;
 import polyglot.types.Type;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
@@ -134,16 +137,13 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         JL5Formal n = new JL5Formal_c(pos, flags, type, name);
         return n;
     }
-    public JL5Formal JL5Formal(Position pos, FlagAnnotations flags, TypeNode type, Id name, boolean variable){
-        JL5Formal n = new JL5Formal_c(pos, flags, type, name, variable);
-        return n;
-    }
     public JL5LocalDecl JL5LocalDecl(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr init){
         JL5LocalDecl n = new JL5LocalDecl_c(pos, flags, type, name, init);
         return n;
     }
-    public JL5PackageNode JL5PackageNode(Position pos, FlagAnnotations fl, Package package_){
-        JL5PackageNode n = new JL5PackageNode_c(pos, fl, package_);
+    
+    public PackageNode JL5PackageNode(Position pos, FlagAnnotations fl, Ref<? extends Package> p) {
+        PackageNode n = new JL5PackageNode_c(pos, fl, p);
         return n;
     }
 

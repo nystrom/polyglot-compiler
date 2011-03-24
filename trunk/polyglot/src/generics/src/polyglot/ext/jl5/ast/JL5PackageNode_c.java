@@ -17,10 +17,9 @@ import polyglot.util.TypedList;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.ContextVisitor;
 
+
 /**
- * This class looks deprecated
- * @author vcave
- *
+ * An ast node representing a package with support for annotations
  */
 public class JL5PackageNode_c extends PackageNode_c implements JL5PackageNode {
 
@@ -28,7 +27,6 @@ public class JL5PackageNode_c extends PackageNode_c implements JL5PackageNode {
     protected List annotations;
 
     public JL5PackageNode_c(Position pos, FlagAnnotations flags, Ref<? extends Package> package_){
-    	//CHECK JL5PackageNode_c seems this constructor is never called
         super(pos, package_);
         this.classicFlags = flags.classicFlags();
         if (flags.annotations() != null){
