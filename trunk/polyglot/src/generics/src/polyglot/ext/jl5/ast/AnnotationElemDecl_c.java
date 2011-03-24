@@ -13,11 +13,11 @@ import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.AnnotationElemInstance;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.ext.jl5.types.JL5Flags;
-import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.types.ClassType;
 import polyglot.types.Context;
 import polyglot.types.Flags;
+import polyglot.types.MemberDef;
 import polyglot.types.SemanticException;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
@@ -41,6 +41,7 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
         this.flags = flags.classicFlags();
         this.defaultVal = defaultVal;
         this.name = name;
+        throw new RuntimeException("Annotation elements declaration are not yet supported");
     }
     
     public AnnotationElemDecl type(TypeNode type){
@@ -121,20 +122,22 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
         return reconstruct(type, defVal);
     }
 
-    public NodeVisitor addMembersEnter(AddMemberVisitor am) {
-        JL5ParsedClassType ct = (JL5ParsedClassType)am.context().currentClassScope();
+//  CHECK AnnotationElemDecl comment code to be able to compile the generic extension
+//    public NodeVisitor addMembersEnter(AddMemberVisitor am) {
+//        JL5ParsedClassType ct = (JL5ParsedClassType)am.context().currentClassScope();
+//
+//        ct.addAnnotationElem(this.ai);
+//        return am.bypassChildren(this);
+//    }
 
-        ct.addAnnotationElem(this.ai);
-        return am.bypassChildren(this);
-    }
-
-    public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
-        // this may not be neccessary - I think this is for scopes for
-        // symbol checking? - in fields and meths there many anon inner 
-        // classes and thus a scope is needed - but in annots there 
-        // cannot be ???
-        return tb.pushCode();
-    }
+//  CHECK AnnotationElemDecl comment code to be able to compile the generic extension
+//    public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
+//        // this may not be neccessary - I think this is for scopes for
+//        // symbol checking? - in fields and meths there many anon inner 
+//        // classes and thus a scope is needed - but in annots there 
+//        // cannot be ???
+//        return tb.pushCode();
+//    }
 
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         JL5TypeSystem ts = (JL5TypeSystem)tb.typeSystem();
@@ -145,36 +148,36 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
 
         return n.annotationElemInstance(ai);
     }
-
-    public NodeVisitor disambiguateEnter(AmbiguityRemover ar) throws SemanticException {
-        if (ar.kind() == AmbiguityRemover.SUPER){
-            return ar.bypassChildren(this);
-        }
-        else if (ar.kind() == AmbiguityRemover.SIGNATURES){
-            if (defaultVal != null){
-                return ar.bypass(defaultVal);
-            }
-        }
-        return ar;
-    }
-
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
-        if (ar.kind() == AmbiguityRemover.SIGNATURES){
-            Context c = ar.context();
-            JL5TypeSystem ts = (JL5TypeSystem)ar.typeSystem();
-
-            JL5ParsedClassType ct = (JL5ParsedClassType)c.currentClassScope();
-
-            FlagsNode f = flags;
-
-            f = f.flags(f.flags().Public().Abstract());
-
-            AnnotationElemInstance ai = ts.annotationElemInstance(position(), ct, f, type().type(), name(), defaultVal == null ? false : true);
-            return flags(f).annotationElemInstance(ai);
-        }
-
-        return this;
-    }
+//    CHECK Commented AnnotationElemDecl_c code to be able to compile the generic extension
+//    public NodeVisitor disambiguateEnter(AmbiguityRemover ar) throws SemanticException {
+//        if (ar.kind() == AmbiguityRemover.SUPER){
+//            return ar.bypassChildren(this);
+//        }
+//        else if (ar.kind() == AmbiguityRemover.SIGNATURES){
+//            if (defaultVal != null){
+//                return ar.bypass(defaultVal);
+//            }
+//        }
+//        return ar;
+//    }
+//
+//    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
+//        if (ar.kind() == AmbiguityRemover.SIGNATURES){
+//            Context c = ar.context();
+//            JL5TypeSystem ts = (JL5TypeSystem)ar.typeSystem();
+//
+//            JL5ParsedClassType ct = (JL5ParsedClassType)c.currentClassScope();
+//
+//            FlagsNode f = flags;
+//
+//            f = f.flags(f.flags().Public().Abstract());
+//
+//            AnnotationElemInstance ai = ts.annotationElemInstance(position(), ct, f, type().type(), name(), defaultVal == null ? false : true);
+//            return flags(f).annotationElemInstance(ai);
+//        }
+//
+//        return this;
+//    }
     
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
     
@@ -250,4 +253,10 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
         w.write(";");
         w.end();
     }
+
+	@Override
+	public MemberDef memberDef() {
+		// CHECK AnnotationElemDecl Auto-generated code to be able to compile the generic extension
+		return null;
+	}
 }
