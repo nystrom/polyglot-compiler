@@ -23,6 +23,7 @@ import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.FlagAnnotations;
 import polyglot.types.Package;
 import polyglot.types.QName;
+import polyglot.types.Ref;
 import polyglot.util.Position;
 
 /**
@@ -55,11 +56,10 @@ public interface JL5NodeFactory extends NodeFactory {
     public JL5FieldDecl JL5FieldDecl(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr init);
     
     public JL5Formal JL5Formal(Position pos, FlagAnnotations flags, TypeNode type, Id name);
-    public JL5Formal JL5Formal(Position pos, FlagAnnotations flags, TypeNode type, Id name, boolean variable);
     
     public JL5LocalDecl JL5LocalDecl(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr init);
    
-    public JL5PackageNode JL5PackageNode(Position pos, FlagAnnotations flags, Package package_);
+    public JL5PackageNode JL5PackageNode(Position pos, FlagAnnotations fl, Ref<? extends Package> p);
 
     public ParamTypeNode ParamTypeNode(Position pos, List bounds, String id);
     
@@ -88,7 +88,7 @@ public interface JL5NodeFactory extends NodeFactory {
 
     public JL5Import Import(Position pos, Import.Kind kind, QName Name);
 
-    public JL5Import Import(Position pos, Import.Kind kind, QName Name, String isStatic);
+    public JL5Import Import(Position pos, Import.Kind kind, QName Name, boolean isStatic);
     
     public JL5Catch JL5Catch(Position pos, Formal formal, Block body);
 
