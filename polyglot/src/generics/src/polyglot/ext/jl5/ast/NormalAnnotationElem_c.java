@@ -65,9 +65,9 @@ public class NormalAnnotationElem_c extends AnnotationElem_c implements NormalAn
             AnnotationElemInstance ai = ts.findAnnotation(typeName().type(), 
             		ts.AnnotationMatcher(typeName().type(), next.name().id(), c));
             // and value has to be the right type
-            if (! ts.isImplicitCastValid(next.value().type(), ai.type()) &&
-                ! ts.equals(next.value().type(), ai.type()) &&
-                ! ts.numericConversionValid(ai.type(), next.value().constantValue()) && 
+            if (! ts.isImplicitCastValid(next.value().type(), ai.type(), c) &&
+                ! ts.typeEquals(next.value().type(), ai.type(), c) &&
+                ! ts.numericConversionValid(ai.type(), next.value().constantValue(), c) && 
                 ! ts.isBaseCastValid(next.value().type(), ai.type()) &&
                 ! ts.numericConversionBaseValid(ai.type(), next.value().constantValue())){
                 throw new SemanticException("The type of the value: "+next.value().type()+" for element: "+next.name()+" does not match the declared annotation type: "+ai.type(), next.value().position());
