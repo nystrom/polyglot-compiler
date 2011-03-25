@@ -10,6 +10,7 @@ import polyglot.ast.Binary;
 import polyglot.ast.Block;
 import polyglot.ast.ClassBody;
 import polyglot.ast.ConstructorCall;
+import polyglot.ast.ConstructorDecl;
 import polyglot.ast.Expr;
 import polyglot.ast.Field;
 import polyglot.ast.Formal;
@@ -36,6 +37,7 @@ public interface JL5NodeFactory extends NodeFactory {
     public EnumConstantDecl EnumConstantDecl(Position pos, FlagAnnotations flags, Id name, List args);
     public JL5ClassDecl JL5ClassDecl(Position pos, FlagAnnotations flags, Id name, TypeNode superType, List interfaces, ClassBody body, List paramTypes);
     public JL5ClassBody JL5ClassBody(Position pos, List members);
+    public JL5ConstructorDecl JL5ConstructorDecl(Position pos, FlagAnnotations flags, Id name, List formals, List throwTypes, Block body);
     public JL5ConstructorDecl JL5ConstructorDecl(Position pos, FlagAnnotations flags, Id name, List formals, List throwTypes, Block body, List typeParams);
 
     public Field Field(Position pos, Receiver target, Id name);
@@ -103,6 +105,5 @@ public interface JL5NodeFactory extends NodeFactory {
     public JL5Return JL5Return(Position pos, Expr expr);
     
     public Binary.Operator getBinOpFromAssignOp(Assign.Operator op);
-    
 }
 

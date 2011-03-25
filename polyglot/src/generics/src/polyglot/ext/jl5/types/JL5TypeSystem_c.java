@@ -317,9 +317,10 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     		Ref<? extends StructType> container, Flags flags,
     		Ref<? extends Type> returnType, Name name,
     		List<Ref<? extends Type>> argTypes, List<Ref<? extends Type>> excTypes) {
-    	return methodDef(pos, container, flags, returnType, name, argTypes, excTypes, new ArrayList<Ref<? extends Type>>());
+    	return methodDef(pos, container, flags, returnType, name, argTypes, excTypes, new ArrayList<Ref<? extends Type>>(), false);
     }
 
+    
     @Override
     public ConstructorDef constructorDef(Position pos,
     		Ref<? extends ClassType> container,
@@ -332,7 +333,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     		Ref<? extends StructType> container, Flags flags,
     		Ref<? extends Type> returnType, Name name,
     		List<Ref<? extends Type>> argTypes, List<Ref<? extends Type>> excTypes,
-    		List<Ref<? extends Type>> tvTypes) {
+    		List<Ref<? extends Type>> tvTypes, boolean compilerGenerated) {
 
     	assert_(container);
     	assert_(returnType);
@@ -340,7 +341,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
     	assert_(excTypes);
     	assert_(tvTypes);
     	return new JL5MethodDef_c(this, pos, container, flags,
-    			returnType, name, argTypes, excTypes, tvTypes);
+    			returnType, name, argTypes, excTypes, tvTypes, compilerGenerated);
     }
 
     public ConstructorDef constructorDef(Position pos,

@@ -21,24 +21,8 @@ public class JL5MethodInstance_c extends JL5FunctionInstance_c<MethodDef> implem
     protected Flags flags;
     protected StructType container;
     
-    protected boolean compilerGenerated;
-    
     public JL5MethodInstance_c(TypeSystem ts, Position pos, Ref<? extends MethodDef> def) {
         super(ts, pos, def);
-    }
-
-    public boolean isCompilerGenerated(){
-        return compilerGenerated;
-    }
-        
-    public JL5MethodInstance setCompilerGenerated(boolean val){
-        if (compilerGenerated != val) {
-            JL5MethodInstance_c mi = (JL5MethodInstance_c)copy();
-            mi.compilerGenerated = val;
-        
-            return mi;
-        }
-        return this;
     }
     
     public JL5MethodInstance container(StructType container) {

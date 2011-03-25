@@ -13,6 +13,7 @@ import polyglot.ast.Node;
 import polyglot.ext.jl5.types.AnnotationElemInstance;
 import polyglot.ext.jl5.types.EnumInstance;
 import polyglot.ext.jl5.types.JL5Flags;
+import polyglot.ext.jl5.types.JL5MethodDef;
 import polyglot.ext.jl5.types.JL5MethodInstance;
 import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.JL5TypeSystem;
@@ -72,11 +73,12 @@ public class JL5ClassBody_c extends ClassBody_c implements JL5ClassBody {
         List<JL5MethodInstance> list = new ArrayList(type.methods());
         for (Iterator<JL5MethodInstance> it = list.iterator(); it.hasNext();){
             JL5MethodInstance mi = it.next();
-            if (!mi.isCompilerGenerated() && mi.name().equals(Name.make("values"))  && 
+            JL5MethodDef def = ((JL5MethodDef)mi.def());
+            if (!def.isCompilerGenerated() && mi.name().equals(Name.make("values"))  && 
             		mi.formalTypes().isEmpty()){
                 throw new SemanticException("method "+mi.name()+" is already defined in type: "+type, mi.position());
             }
-            if (!mi.isCompilerGenerated() && mi.name().equals(Name.make("valueOf")) && 
+            if (!def.isCompilerGenerated() && mi.name().equals(Name.make("valueOf")) && 
             		(mi.formalTypes().size() == 1) && 
             		((Type)mi.formalTypes().get(0)).isClass() && 
             		((ClassType)mi.formalTypes().get(0)).fullName().equals(QName.make("java.lang.String"))){

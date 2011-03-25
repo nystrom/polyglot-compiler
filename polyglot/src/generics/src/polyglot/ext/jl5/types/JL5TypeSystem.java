@@ -1,6 +1,5 @@
 package polyglot.ext.jl5.types;
 
-
 import java.util.List;
 
 import polyglot.ast.Expr;
@@ -27,6 +26,7 @@ import polyglot.types.ParsedClassType;
 import polyglot.types.Ref;
 import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
+import polyglot.types.StructType;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
@@ -37,150 +37,168 @@ import polyglot.util.Position;
 
 public interface JL5TypeSystem extends TypeSystem {
 
-    ParsedClassType createClassType(Source fromSource);
-    
-    MethodInstance createMethodInstance(Position position, Ref<? extends MethodDef> def);
+	ParsedClassType createClassType(Source fromSource);
 
-    boolean isTypeExtendsAnnotation(Type t);
-    
-    ClassType Class(Type t);
+	MethodInstance createMethodInstance(Position position,
+			Ref<? extends MethodDef> def);
 
-    ClassType Enum();
+	boolean isTypeExtendsAnnotation(Type t);
 
-    ClassType Annotation();
+	ClassType Class(Type t);
 
-    ClassType Iterable();
+	ClassType Enum();
 
-    ClassType Iterator();
+	ClassType Annotation();
 
-    ClassType IntegerWrapper();
+	ClassType Iterable();
 
-    ClassType ByteWrapper();
+	ClassType Iterator();
 
-    ClassType ShortWrapper();
+	ClassType IntegerWrapper();
 
-    ClassType BooleanWrapper();
+	ClassType ByteWrapper();
 
-    ClassType CharacterWrapper();
+	ClassType ShortWrapper();
 
-    ClassType LongWrapper();
+	ClassType BooleanWrapper();
 
-    ClassType DoubleWrapper();
+	ClassType CharacterWrapper();
 
-    ClassType FloatWrapper();
+	ClassType LongWrapper();
 
-    ClassType classOf(Type t);
+	ClassType DoubleWrapper();
 
-    boolean equivalent(TypeObject t1, TypeObject t2);
+	ClassType FloatWrapper();
 
-    Type erasure(Type t);
+	ClassType classOf(Type t);
 
-    AnnotationElemInstance findAnnotation(Type container, AnnotationMatcher matcher) throws SemanticException;
+	boolean equivalent(TypeObject t1, TypeObject t2);
 
-    AnnotationElemInstance annotationElemInstance(Position pos, ClassType ct, Flags f, Type type,
-            Id name, boolean hasDefault);
+	Type erasure(Type t);
 
-    AnnotationMatcher AnnotationMatcher(Type container, Name name, Context ctx);
-    
-    Context createContext();
+	AnnotationElemInstance findAnnotation(Type container,
+			AnnotationMatcher matcher) throws SemanticException;
 
-    EnumInstance enumInstance(Position pos, ClassType ct, Flags f, Id name,
-            ParsedClassType anonType);
+	AnnotationElemInstance annotationElemInstance(Position pos, ClassType ct,
+			Flags f, Type type, Id name, boolean hasDefault);
 
-    EnumMatcher EnumMatcher(Type container, Name name, Context ctx);
-    
-    EnumInstance findEnumConstant(Type container, EnumMatcher matcher) throws SemanticException;
-    
-    FieldInstance findFieldOrEnum(Type container, TypeSystem_c.FieldMatcher matcher) throws SemanticException;
+	AnnotationMatcher AnnotationMatcher(Type container, Name name, Context ctx);
 
-    boolean isValidAnnotationValueType(Type t);
+	Context createContext();
 
-    boolean numericConversionBaseValid(Type t, Object value);
+	EnumInstance enumInstance(Position pos, ClassType ct, Flags f, Id name,
+			ParsedClassType anonType);
 
-    boolean isBaseCastValid(Type from, Type to);
+	EnumMatcher EnumMatcher(Type container, Name name, Context ctx);
 
-    void checkDuplicateAnnotations(List annotations) throws SemanticException;
+	EnumInstance findEnumConstant(Type container, EnumMatcher matcher)
+			throws SemanticException;
 
-    void checkValueConstant(Expr value) throws SemanticException;
+	FieldInstance findFieldOrEnum(Type container,
+			TypeSystem_c.FieldMatcher matcher) throws SemanticException;
 
-    Flags flagsForBits(int bits);
+	boolean isValidAnnotationValueType(Type t);
 
-    void checkAnnotationApplicability(AnnotationElem annotation, Node n) throws SemanticException;
+	boolean numericConversionBaseValid(Type t, Object value);
 
-    TypeVariable typeVariable(Position pos, String name, List bounds);
+	boolean isBaseCastValid(Type from, Type to);
 
-    ParameterizedType parameterizedType(JL5ParsedClassType type);
+	void checkDuplicateAnnotations(List annotations) throws SemanticException;
 
-    RawType rawType(JL5ParsedClassType ct);
+	void checkValueConstant(Expr value) throws SemanticException;
 
-    ArrayType arrayType(Position pos, Type base);
+	Flags flagsForBits(int bits);
 
-    /* void handleTypeRestrictions(List typeVariables, List typeArguments) throws SemanticException;
-     void resetTypeRestrictions(List typeVariables, List typeArguments) throws SemanticException;*/
+	void checkAnnotationApplicability(AnnotationElem annotation, Node n)
+			throws SemanticException;
 
-    //      Type findRequiredType(TypeVariable iType, ParameterizedType pType);
-    boolean equals(TypeObject arg1, TypeObject arg2);
+	TypeVariable typeVariable(Position pos, String name, List bounds);
 
-    AnyType anyType();
+	ParameterizedType parameterizedType(JL5ParsedClassType type);
 
-    AnySuperType anySuperType(ReferenceType t);
+	RawType rawType(JL5ParsedClassType ct);
 
-    AnySubType anySubType(ReferenceType t);
+	ArrayType arrayType(Position pos, Type base);
 
-    boolean isEquivalent(TypeObject arg1, TypeObject arg2);
+	/*
+	 * void handleTypeRestrictions(List typeVariables, List typeArguments)
+	 * throws SemanticException; void resetTypeRestrictions(List typeVariables,
+	 * List typeArguments) throws SemanticException;
+	 */
 
-    List<ReferenceType> allAncestorsOf(ReferenceType rt);
-    ParameterizedType findGenericSupertype(ReferenceType base, ReferenceType t);
+	// Type findRequiredType(TypeVariable iType, ParameterizedType pType);
+	boolean equals(TypeObject arg1, TypeObject arg2);
 
+	AnyType anyType();
 
-    IntersectionType intersectionType(List<ReferenceType> elems);
-    LubType lubType(List<ClassType> lst);
+	AnySuperType anySuperType(ReferenceType t);
 
-    Type getSubstitution(GenericTypeRef orig, Type curr);
+	AnySubType anySubType(ReferenceType t);
 
-    void sortAnnotations(List annots, List runtimeAnnots, List classAnnots, List sourceAnnots);
+	boolean isEquivalent(TypeObject arg1, TypeObject arg2);
 
-    boolean needsUnboxing(Type to, Type from);
+	List<ReferenceType> allAncestorsOf(ReferenceType rt);
 
-    boolean needsBoxing(Type to, Type from);
+	ParameterizedType findGenericSupertype(ReferenceType base, ReferenceType t);
 
-    //  Set<ReferenceType> superTypesOf(ReferenceType t);
+	IntersectionType intersectionType(List<ReferenceType> elems);
 
-    boolean checkIntersectionBounds(List<? extends ReferenceType> bounds, boolean quiet)
-            throws SemanticException;
+	LubType lubType(List<ClassType> lst);
 
-    List<ReferenceType> concreteBounds(List<? extends ReferenceType> bounds);
+	Type getSubstitution(GenericTypeRef orig, Type curr);
 
-    Type applySubstitution(Type toBeSubed, List<TypeVariable> orig, List<Type> sub);
+	void sortAnnotations(List annots, List runtimeAnnots, List classAnnots,
+			List sourceAnnots);
 
-    <T extends Type> List<T> applySubstitution(List<T> listToSub, List<TypeVariable> orig,
-            List<Type> typeArgs);
+	boolean needsUnboxing(Type to, Type from);
 
-    Type rawify(Type t);
+	boolean needsBoxing(Type to, Type from);
 
-    Type rawifyBareGenericType(Type t);
+	// Set<ReferenceType> superTypesOf(ReferenceType t);
 
-    List rawifyBareGenericTypeList(List l);
+	boolean checkIntersectionBounds(List<? extends ReferenceType> bounds,
+			boolean quiet) throws SemanticException;
 
-    Type capture(Type t);
+	List<ReferenceType> concreteBounds(List<? extends ReferenceType> bounds);
 
-    boolean checkContains(ParameterizedType desc, ParameterizedType ancestor);
+	Type applySubstitution(Type toBeSubed, List<TypeVariable> orig,
+			List<Type> sub);
 
-    MethodInstance findJL5Method(Type container, JL5MethodMatcher matcher)  throws SemanticException;
+	<T extends Type> List<T> applySubstitution(List<T> listToSub,
+			List<TypeVariable> orig, List<Type> typeArgs);
 
-    ConstructorInstance findJL5Constructor(Type container, JL5ConstructorMatcher context) throws SemanticException;
+	Type rawify(Type t);
 
-    void checkTVForwardReference(List<TypeVariable> name) throws SemanticException;
-    
-    InferenceSolver inferenceSolver(JL5ProcedureInstance pi, List<Type> actuals);
-    InferenceSolver inferenceSolver(List<TypeVariable> typeVars, List<Type> formals, List<Type> actuals);
-    
-    boolean typeVariableEquals(TypeVariable type1, TypeVariable type2, Context context);
+	Type rawifyBareGenericType(Type t);
+
+	List rawifyBareGenericTypeList(List l);
+
+	Type capture(Type t);
+
+	boolean checkContains(ParameterizedType desc, ParameterizedType ancestor);
+
+	MethodInstance findJL5Method(Type container, JL5MethodMatcher matcher)
+			throws SemanticException;
+
+	ConstructorInstance findJL5Constructor(Type container,
+			JL5ConstructorMatcher context) throws SemanticException;
+
+	void checkTVForwardReference(List<TypeVariable> name)
+			throws SemanticException;
+
+	InferenceSolver inferenceSolver(JL5ProcedureInstance pi, List<Type> actuals);
+
+	InferenceSolver inferenceSolver(List<TypeVariable> typeVars,
+			List<Type> formals, List<Type> actuals);
+
+	boolean typeVariableEquals(TypeVariable type1, TypeVariable type2,
+			Context context);
 
 	MethodMatcher JL5MethodMatcher(Type targetType, Name id,
 			List<Type> paramTypes, List<Type> explicitTypeArgs, JL5Context c);
 
-	ConstructorMatcher JL5ConstructorMatcher(Type container, List<Type> argTypes, List<Type> explicitTypeArgs, Context context);
+	ConstructorMatcher JL5ConstructorMatcher(Type container,
+			List<Type> argTypes, List<Type> explicitTypeArgs, Context context);
 
 	MethodInstance erasureMethodInstance(MethodInstance mi);
 
@@ -188,5 +206,16 @@ public interface JL5TypeSystem extends TypeSystem {
 	 * Return array type representing a variable argument
 	 */
 	Type arrayOf(Position position, Ref<? extends Type> typeRef, boolean varargs);
+
+	MethodDef methodDef(Position pos, Ref<? extends StructType> container,
+			Flags flags, Ref<? extends Type> returnType, Name name,
+			List<Ref<? extends Type>> argTypes,
+			List<Ref<? extends Type>> excTypes);
+
+	MethodDef methodDef(Position pos, Ref<? extends StructType> container,
+			Flags flags, Ref<? extends Type> returnType, Name name,
+			List<Ref<? extends Type>> argTypes,
+			List<Ref<? extends Type>> excTypes,
+			List<Ref<? extends Type>> tvTypes, boolean compilerGenerated);
 
 }

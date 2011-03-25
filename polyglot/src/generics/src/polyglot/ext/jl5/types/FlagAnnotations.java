@@ -1,11 +1,11 @@
 package polyglot.ext.jl5.types;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import polyglot.ast.FlagsNode;
 import polyglot.ext.jl5.ast.AnnotationElem;
-import polyglot.types.Flags;
 import polyglot.util.TypedList;
 
 public class FlagAnnotations {
@@ -18,7 +18,13 @@ public class FlagAnnotations {
         this.annotations = annots;
     }
 
-    public FlagAnnotations(){
+    public FlagAnnotations(FlagsNode classic){
+    	this();
+    	this.classicFlags = classic;
+    }
+
+    public FlagAnnotations() {
+        this.annotations = new ArrayList();
     }
 
     public FlagsNode classicFlags(){

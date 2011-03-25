@@ -12,13 +12,14 @@ import polyglot.ast.Block;
 import polyglot.ast.ClassBody;
 import polyglot.ast.ConstructorCall;
 import polyglot.ast.ConstructorCall.Kind;
+import polyglot.ast.ConstructorDecl;
 import polyglot.ast.Disamb;
 import polyglot.ast.Expr;
+import polyglot.ast.FlagsNode;
 import polyglot.ast.Formal;
 import polyglot.ast.Id;
 import polyglot.ast.Import;
 import polyglot.ast.New;
-import polyglot.ast.NodeFactory;
 import polyglot.ast.NodeFactory_c;
 import polyglot.ast.QualifierNode;
 import polyglot.ast.Receiver;
@@ -64,15 +65,25 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         JL5ClassBody n = new JL5ClassBody_c(pos, members);
         return n;
     }
+
+    @Override
+    public ConstructorDecl ConstructorDecl(Position pos, FlagsNode flags, Id name,
+            List<Formal> formals, List<TypeNode> throwTypes,
+            Block body) {
+    	// JL5ConstructorDecl is a bit different as we use the same object to store annotations and flags
+    	// but we want to be able to call the regular api to reuse super implementation 
+        FlagAnnotations fl = new FlagAnnotations();
+        fl.classicFlags(flags);
+    	return JL5ConstructorDecl(pos, fl, name, formals, throwTypes, body);
+    }
+
+    public JL5ConstructorDecl JL5ConstructorDecl(Position pos, FlagAnnotations flags, Id name, List formals, List throwTypes, Block body){
+    	return new JL5ConstructorDecl_c(pos, flags, name, formals, throwTypes, body);
+    }
+
     public JL5ConstructorDecl JL5ConstructorDecl(Position pos, FlagAnnotations flags, Id name, List formals, List throwTypes, Block body, List typeParams){
-        JL5ConstructorDecl n;
-        if (typeParams == null){
-            n = new JL5ConstructorDecl_c(pos, flags, name, formals, throwTypes, body);
-        }
-        else {
-            n = new JL5ConstructorDecl_c(pos, flags, name, formals, throwTypes, body, typeParams);
-        }
-        return n;
+    	assert (typeParams != null);
+    	return new JL5ConstructorDecl_c(pos, flags, name, formals, throwTypes, body, typeParams);
     }
 
     public JL5Field Field(Position pos, Receiver target, Id name){

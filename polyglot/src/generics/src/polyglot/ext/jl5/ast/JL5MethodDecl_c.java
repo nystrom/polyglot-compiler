@@ -57,6 +57,11 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
     
     public JL5MethodDecl_c(Position pos, FlagAnnotations flags, TypeNode returnType, Id name, 
     		List<Formal> formals, List<TypeNode> throwTypes, Block body, List<ParamTypeNode> paramTypes){
+    	this(pos, flags, returnType, name, formals, throwTypes, body, paramTypes, false);
+    }
+
+    public JL5MethodDecl_c(Position pos, FlagAnnotations flags, TypeNode returnType, Id name, 
+    		List<Formal> formals, List<TypeNode> throwTypes, Block body, List<ParamTypeNode> paramTypes, boolean compilerGenerated){
         super(pos, flags.classicFlags(), returnType, name, formals, throwTypes, body);
         if (flags.annotations() != null){
             this.annotations = flags.annotations();
@@ -64,20 +69,10 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
             this.annotations = new TypedList(new LinkedList(), AnnotationElem.class, true);
         }
         this.paramTypes = paramTypes;
+        this.compilerGenerated = compilerGenerated;
     }
-    
     public boolean isGeneric(){
     	return !paramTypes.isEmpty(); 
-    }
-    
-    public boolean isCompilerGenerated(){
-        return compilerGenerated;
-    }
-
-    public JL5MethodDecl setCompilerGenerated(boolean val){
-        JL5MethodDecl_c n = (JL5MethodDecl_c) copy();
-        n.compilerGenerated = val;
-        return n;
     }
 
     public List<AnnotationElem> annotations(){
