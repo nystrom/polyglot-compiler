@@ -4,9 +4,5 @@ import polyglot.types.MethodDef;
 import polyglot.types.MethodInstance;
 
 public interface JL5MethodInstance extends JL5FunctionInstance<MethodDef>, MethodInstance {
-
-    public boolean isCompilerGenerated();
-    public JL5MethodInstance setCompilerGenerated(boolean val);
-    
     JL5MethodInstance erasure();
 }

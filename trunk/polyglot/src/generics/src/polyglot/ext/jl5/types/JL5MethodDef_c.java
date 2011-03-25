@@ -17,11 +17,11 @@ import polyglot.util.Position;
 /**
  * Copy paste from MethodDef_c with support for typeVariables
  */
-public class JL5MethodDef_c extends JL5ProcedureDef_c implements MethodDef {
+public class JL5MethodDef_c extends JL5ProcedureDef_c implements MethodDef, JL5MethodDef {
 
     protected Name name;
     protected Ref<? extends Type> returnType;
-
+    protected boolean compilerGenerated;
     /** Used for deserializing types. */
     protected JL5MethodDef_c() { }
 
@@ -29,10 +29,11 @@ public class JL5MethodDef_c extends JL5ProcedureDef_c implements MethodDef {
 	 		    Ref<? extends StructType> container,
 	                    Flags flags, Ref<? extends Type> returnType, Name name,
 			    List<Ref<? extends Type>> formalTypes, List<Ref<? extends Type>> throwTypes,
-			    List<Ref<? extends Type>> typeVariableTypes) {
+			    List<Ref<? extends Type>> typeVariableTypes, boolean compilerGenerated) {
         super(ts, pos, container, flags, formalTypes, throwTypes, typeVariableTypes);
 	this.returnType = returnType;
 	this.name = name;
+	this.compilerGenerated = compilerGenerated;
     }
     
     protected transient MethodInstance asInstance;
@@ -86,5 +87,10 @@ public class JL5MethodDef_c extends JL5ProcedureDef_c implements MethodDef {
     public String designator() {
         return "method";
     }
+
+	@Override
+	public boolean isCompilerGenerated() {
+		return compilerGenerated;
+	}
 
 }
