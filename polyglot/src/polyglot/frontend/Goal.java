@@ -7,7 +7,7 @@ import polyglot.types.Ref;
 
 public interface Goal extends Ref<Goal.Status> {
     public static enum Status {
-        NEW, RUNNING, SUCCESS, FAIL, UNREACHABLE, RUNNING_RECURSIVE, RUNNING_WILL_FAIL;
+        NEW, RUNNING, SUCCESS, FAIL, UNREACHABLE, RUNNING_RECURSIVE, RUNNING_WILL_FAIL, TYPE_INIT_COMPLETED;
     };
     
     Status state();

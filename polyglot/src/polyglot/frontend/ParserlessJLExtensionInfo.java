@@ -12,6 +12,7 @@ import java.io.Reader;
 import polyglot.ast.NodeFactory;
 import polyglot.ast.NodeFactory_c;
 import polyglot.interp.BytecodeCache;
+import polyglot.main.Options;
 import polyglot.main.Version;
 import polyglot.types.LoadedClassResolver;
 import polyglot.types.MemberClassResolver;

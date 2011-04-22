@@ -2,7 +2,9 @@ package polyglot.frontend;
 
 import polyglot.ast.Node;
 import polyglot.main.Report;
-import polyglot.util.*;
+import polyglot.util.ErrorQueue;
+import polyglot.util.InternalCompilerError;
+import polyglot.util.StringUtil;
 import polyglot.visit.NodeVisitor;
 
 
