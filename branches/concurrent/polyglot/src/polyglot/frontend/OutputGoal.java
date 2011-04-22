@@ -33,7 +33,7 @@ public class OutputGoal extends SourceGoal_c
     }
 
     public boolean runTask() {
-        //Node ast = job().ast();
+        Node ast = job().ast();
 
         if (ast == null) {
             throw new InternalCompilerError("AST is null");

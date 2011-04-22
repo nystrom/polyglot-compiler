@@ -3,6 +3,7 @@ package polyglot.frontend;
 import polyglot.ast.NodeFactory;
 import polyglot.main.Options;
 import polyglot.types.TypeSystem;
+import polyglot.util.Position;
 
 public class Globals {
     /**
@@ -31,5 +32,6 @@ public class Globals {
 
     public static Scheduler Scheduler() { return Extension().scheduler(); }
     public static Job currentJob() { return Scheduler().currentJob(); }
+    public static Job currentJob(Position pos) { return Scheduler().currentJob(pos); }
     public static Goal currentGoal() { return Scheduler().currentGoal(); }
 }

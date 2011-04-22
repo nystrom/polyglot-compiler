@@ -68,15 +68,38 @@ public class JLScheduler extends Scheduler {
 	public List<Goal> goals(Job job) {
 		List<Goal> goals = new ArrayList<Goal>();
 
-		goals.add(CompileGoal(job));
-
-		if (Globals.Options().interpret || !Globals.Options().output_source) {
-			goals.add(BytecodeCached(job));
-		} else if (Globals.Options().output_source) {
-			goals.add(CodeGenerated(job));
-		}
-
-		goals.add(End(job));
+//		goals.add(CompileGoalScala(job));
+//		goals.add(End(job));
+		
+			//parse
+		   	goals.add(Parsed(job));
+		   	
+		   	//initialize
+		   	goals.add(ImportTableInitialized(job));
+	        goals.add(TypesInitialized(job));
+	        goals.add(PreTypeCheck(job));
+//	        //check types
+	        goals.add(TypeChecked(job));
+	        
+	        //conformance check
+	        goals.add(ConformanceChecked(job));
+//	        
+//	        goals.add(PreTypeCheck2(job));
+//	        goals.add(ReachChecked(job));
+//	        
+	        //exception check
+	        
+//	        goals.add(ThrowSetup(job));
+//	        goals.add(ExceptionsChecked(job));
+	        
+//	        goals.add(ExitPathsChecked(job));
+//	        goals.add(InitializationsChecked(job));
+//	        goals.add(ConstructorCallsChecked(job));
+//	        goals.add(ForwardReferencesChecked(job));
+//	        goals.add(Serialized(job));
+	        goals.add(CodeGenerated(job));
+	        goals.add(End(job));
+	        
 
 		return goals;
 	}
@@ -96,7 +119,17 @@ public class JLScheduler extends Scheduler {
 	}
 
 	public Goal Parsed(Job job) {
-		return new ParserGoal(extInfo.compiler(), job).intern(this);
+		final Goal p = new ParserGoal(extInfo.compiler(), job).intern(this);
+		
+		p.setResolver(
+				new Runnable(){
+					public void run(){
+						p.runTask();
+					}
+				}
+				
+				, null);
+		return p;
 	}
 
 	public Goal ImportTableInitialized(Job job) {
@@ -134,23 +167,7 @@ public class JLScheduler extends Scheduler {
 		return new VisitorGoal("PreTypeCheck", job, new ContextSetter(job, ts,
 				nf)).intern(this);
 	}
-	/**
-	 * 
-	 
-	rather than return a goal, just run the visitor. -- check this.
-	inline the following into runJob
-	none of it is concurrent except 1. exceptionchecked and reach checked. -- coz they use refs 
-	 order - 
-	 conformance checked
-	 pretypechecked2
-	 exceptions
-	 reachchecked
-	 
-	 same thing - create a bunch of futures none of them should run till of them are created.
-	 
-	 get the exception 
-	 
-	 */
+	
 	public Goal PreTypeCheck2(final Job job) {
 		final TypeSystem ts = job.extensionInfo().typeSystem();
 
@@ -164,16 +181,6 @@ public class JLScheduler extends Scheduler {
 		return new VisitorGoal("PreTypeCheck2", job, new NodeVisitor() {
 			@Override
 			public Node leave(Node parent, Node old, Node n, NodeVisitor v) {
-
-				// /** True if the term is may complete normally. */
-				// public Ref<Boolean> completesRef();
-				//
-				// /** Labels that may break out of this term. Result may
-				// include null for unlabeled break. */
-				// public Ref<Collection<Name>> breaksRef();
-				// /** Labels that may continue out of this term. Result may
-				// include null for unlabeled continue. */
-				// public Ref<Collection<Name>> continuesRef();
 
 				n.accept(new BreakContinueSetup(ts, breaks, continues), parent);
 				n.accept(new ThrowSetup(ts, exceptions), parent);
@@ -209,10 +216,32 @@ public class JLScheduler extends Scheduler {
 		}).intern(this);
 	}
 
+	public Goal ThrowSetup(final Job job) {
+		final TypeSystem ts = job.extensionInfo().typeSystem();
+		NodeFactory nf = job.extensionInfo().nodeFactory();
+		
+		final Map<Node, Ref<Collection<Name>>> breaks = new IdentityHashMap<Node, Ref<Collection<Name>>>();
+		final Map<Node, Ref<Collection<Name>>> continues = new IdentityHashMap<Node, Ref<Collection<Name>>>();
+		final Map<Node, Ref<Collection<Type>>> exceptions = new IdentityHashMap<Node, Ref<Collection<Type>>>();
+		final Map<Node, Ref<Boolean>> completes = new IdentityHashMap<Node, Ref<Boolean>>();
+
+		return new VisitorGoal("ThrowsSetup", job, new NodeVisitor() {
+			@Override
+			public Node leave(Node parent, Node old, Node n, NodeVisitor v) {
+				n.accept(new BreakContinueSetup(ts, breaks, continues), parent);
+				n.accept(new ThrowSetup(ts, exceptions), parent);
+				n.accept(new ReachSetup(ts, breaks, continues, exceptions,
+						completes), parent);
+				return n;
+			}
+		}).intern(this);
+	}
+
+	
 	public Goal TypeChecked(final Job job) {
 		final TypeSystem ts = job.extensionInfo().typeSystem();
 		final NodeFactory nf = job.extensionInfo().nodeFactory();
-		return new VisitorGoal("TypeChecked", job, new NodeVisitor() {
+		final Goal g = new VisitorGoal("TypeChecked", job, new NodeVisitor() {
 			@Override
 			// public Node override(Node parent, Node n) {
 			// // FIXME: order very important here -- need to check cycles for
@@ -239,6 +268,15 @@ public class JLScheduler extends Scheduler {
 				return m;
 			}
 		}).intern(this);
+		
+		g.setResolver(
+				new Runnable(){
+					public void run(){
+						g.runTask();
+					}	
+				}				
+				, null);
+		return g;
 	}
 
 	public Goal EnsureNoErrors(final Job job) {
