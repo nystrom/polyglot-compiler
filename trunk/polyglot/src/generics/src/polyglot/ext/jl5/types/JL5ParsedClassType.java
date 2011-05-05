@@ -2,7 +2,6 @@ package polyglot.ext.jl5.types;
 
 import java.util.List;
 
-import polyglot.types.MethodInstance;
 import polyglot.types.Name;
 import polyglot.types.ParsedClassType;
 import polyglot.types.TypeObject;
@@ -31,9 +30,6 @@ public interface JL5ParsedClassType extends ParsedClassType {
     TypeVariable getTypeVariable(Name name);
 
     boolean isGeneric();
-
-	// find methods with compatible name and formals as the given one
-    List<MethodInstance> methods(JL5MethodInstance mi);
 
     boolean equivalentImpl(TypeObject arg2);
     /*List typeArguments();

@@ -2,7 +2,6 @@ package polyglot.ext.jl5.types;
 
 import polyglot.types.Name;
 import polyglot.types.PrimitiveType_c;
-import polyglot.types.Type;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 
@@ -25,4 +24,9 @@ public class JL5PrimitiveType_c extends PrimitiveType_c implements JL5PrimitiveT
         if (this.isVoid()) return "V";
         throw new RuntimeException("Unknown primitive type: "+this);
     }
+
+	@Override
+	public boolean equivalentImpl(TypeObject arg2) {
+		return equalsImpl(arg2);
+	}
 }

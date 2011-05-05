@@ -31,11 +31,22 @@ import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
 import polyglot.visit.CFGBuilder;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
 import polyglot.visit.TypeBuilder;
-import polyglot.visit.ContextVisitor;
+import polyglot.visit.TypeChecker;
 
+/**
+ * An element of an enum constant decl
+ * 
+ * Example: 'SUNDAY' in
+ * 
+ * public enum Day {
+ *   SUNDAY, MONDAY, TUESDAY, WEDNESDAY, 
+ *   THURSDAY, FRIDAY, SATURDAY 
+ * }
+ */
 public class EnumConstantDecl_c extends Term_c implements EnumConstantDecl
 {   
     protected List args;
@@ -55,8 +66,7 @@ public class EnumConstantDecl_c extends Term_c implements EnumConstantDecl
         this.flags = flags.classicFlags();
         this.annotations = flags.annotations();
     }
-        
-    
+
     /** get args */
     public List args(){
         return args;

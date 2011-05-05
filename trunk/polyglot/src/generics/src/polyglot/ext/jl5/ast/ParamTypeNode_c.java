@@ -11,20 +11,22 @@ import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.ext.jl5.visit.JL5AmbiguityRemover;
+import polyglot.frontend.SetResolverGoal;
 import polyglot.types.ArrayType;
 import polyglot.types.ClassType;
 import polyglot.types.Context;
 import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
+import polyglot.types.TypeSystem;
+import polyglot.types.Types;
 import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
-import polyglot.visit.AmbiguityRemover;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
 import polyglot.visit.TypeBuilder;
-import polyglot.visit.ContextVisitor;
 
 public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
 
@@ -85,53 +87,53 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
     }
 
     // nothing needed for buildTypesEnter - not a code block like methods
-
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
-        // makes a new TypeVariable with a list of bounds which
-        // are unknown types
-        JL5TypeSystem ts = (JL5TypeSystem) tb.typeSystem();
-
-        ArrayList typeList = new ArrayList(bounds.size());
-        for (int i = 0; i < bounds.size(); i++) {
-            typeList.add(ts.unknownType(position()));
-        }
-
-        TypeVariable iType = ts.typeVariable(position(), id, typeList);
-
-        return type(iType);
-
+    	if (type == null) {
+    		// makes a new TypeVariable with a list of bounds which
+    		// are unknown types
+    		JL5TypeSystem ts = (JL5TypeSystem) tb.typeSystem();
+    		ArrayList typeList = new ArrayList(bounds.size());
+    		for (int i = 0; i < bounds.size(); i++) {
+    			typeList.add(typeRef(Types.lazyRef(ts.unknownType(position()), new SetResolverGoal(tb.job()))));
+    		}
+    		TypeVariable iType = ts.typeVariable(position(), id, typeList);
+    		return typeRef(Types.lazyRef(iType));
+    	} else {
+    		return this;
+    	}
     }
 
-    public NodeVisitor disambiguateEnter(AmbiguityRemover ar) throws SemanticException {
-        if (ar.kind() == JL5AmbiguityRemover.TYPE_VARS) {
-            return ar.bypass(bounds);
-        }
-        else {
-            return super.disambiguateEnter(ar);
-        }
+    //CHECK bypass bounds
+//    public NodeVisitor disambiguateEnter(AmbiguityRemover ar) throws SemanticException {
+//        if (ar.kind() == JL5AmbiguityRemover.TYPE_VARS) {
+//            return ar.bypass(bounds);
+//        }
+//        else {
+//            return super.disambiguateEnter(ar);
+//        }
+//    }
 
-    }
+    public Node disambiguate(ContextVisitor ar) throws SemanticException {
+    	// all of the children (bounds list) will have already been 
+    	// disambiguated and should there for be actual types
+    	JL5TypeSystem ts = (JL5TypeSystem) ar.typeSystem();
 
-    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
-        // all of the children (bounds list) will have already been 
-        // disambiguated and should there for be actual types
-        JL5TypeSystem ts = (JL5TypeSystem) ar.typeSystem();
-
-        if (ar.kind() == AmbiguityRemover.ALL) {
-            ArrayList<ReferenceType> typeList = new ArrayList<ReferenceType>();
-            for (Iterator it = bounds.iterator(); it.hasNext();) {
-		TypeNode tn = (TypeNode) it.next();
-		Type t = tn.type();
-		if (t instanceof ClassType)
-		    typeList.add((ReferenceType) t);
-		else
-		    throw new SemanticException("Unexpected type bound in type variable declaration", tn.position());
-            }
-            TypeVariable tv = (TypeVariable) type();
-            tv.bounds(typeList);
-            //note: bounds are checked in typeCheck()
-        }
-        return type(type());
+    	//CHECK AmbiguityRemove.ALL
+    	//        if (ar.kind() == AmbiguityRemover.ALL) {
+    	ArrayList<ReferenceType> typeList = new ArrayList<ReferenceType>();
+    	for (Iterator it = bounds.iterator(); it.hasNext();) {
+    		TypeNode tn = (TypeNode) it.next();
+    		Type t = tn.type();
+    		if (t instanceof ClassType)
+    			typeList.add((ReferenceType) t);
+    		else
+    			throw new SemanticException("Unexpected type bound in type variable declaration", tn.position());
+    	}
+    	TypeVariable tv = (TypeVariable) type();
+    	tv.bounds(typeList);
+    	//note: bounds are checked in typeCheck()
+    	//        }
+    	return this;
     }
 
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
@@ -141,7 +143,7 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
             TypeNode ti = (TypeNode) bounds.get(i);
             for (int j = i + 1; j < bounds.size(); j++) {
                 TypeNode tj = (TypeNode) bounds.get(j);
-                if (tc.typeSystem().equals(ti.type(), tj.type())) {
+                if (tc.typeSystem().typeEquals(ti.type(), tj.type(), tc.context())) {
                     throw new SemanticException("Duplicate bound in type variable declaration", tj.position());
                 }
             }

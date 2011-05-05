@@ -67,7 +67,7 @@ public class LubType_c extends IntersectionType_c implements LubType {
         Set<Type> st = new HashSet<Type>();
         Set<Type> est = null;
         for (Type u : lubElems) {
-            List<Type> u_supers = new ArrayList<Type>(ts.allAncestorsOf((ReferenceType) u));
+            List<Type> u_supers = new ArrayList<Type>(ts.allAncestorsOf(u));
             st.addAll(u_supers);
             Set<Type> est_of_u = new HashSet<Type>();
             for (Type super_of_u : u_supers) {

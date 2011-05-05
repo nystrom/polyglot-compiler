@@ -41,7 +41,7 @@ public class SuperConversionConstraint extends Constraint {
             ParameterizedType formal_pt = (ParameterizedType) formal;
             ParameterizedType actual_pt = (ParameterizedType) actual;
             ParameterizedType f = null;
-            if (!actual_pt.baseType().equals(formal_pt.baseType())) {
+            if (!actual_pt.baseType().typeEquals(formal_pt.baseType(), null)) {
                 f = solver.typeSystem().findGenericSupertype(actual_pt.baseType(), formal_pt.baseType());
                 if (f != null) {
                     solver.typeSystem().applySubstitution(f, formal_pt.baseType().typeVariables(), formal_pt.typeArguments());

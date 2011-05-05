@@ -18,7 +18,10 @@ public class JL5ArrayType_c extends ArrayType_c implements JL5ArrayType, Signatu
         super(ts, pos, base);
         this.varArgs = varArgs;
     }
-    
+
+    /**
+     * This is used by reflection ?
+     */
     public boolean isVarargs(){
         return this.varArgs;
     }

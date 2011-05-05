@@ -4,16 +4,25 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
+import polyglot.types.ConstructorDef;
 import polyglot.types.ConstructorInstance;
 import polyglot.types.Context;
+import polyglot.types.FieldDef;
 import polyglot.types.FieldInstance;
+import polyglot.types.MethodDef;
 import polyglot.types.MethodInstance;
 import polyglot.types.Named;
+import polyglot.types.Ref;
 import polyglot.types.ReferenceType;
 import polyglot.types.Resolver;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
+import polyglot.types.TypeSystem;
+import polyglot.types.Types;
+import polyglot.util.Transformation;
+import polyglot.util.TransformingList;
 
 /* A reference to an instantiation of a parameterized type */
 
@@ -212,7 +221,7 @@ public class ParameterizedType_c extends GenericTypeRef_c implements Parameteriz
     public String signature() {
         StringBuffer signature = new StringBuffer();
         // no trailing ; for base type before the type args
-        signature.append("L" + ((Named) baseType).fullName().replaceAll("\\.", "/") + "<");
+        signature.append("L" + ((Named) baseType).fullName().toString().replaceAll("\\.", "/") + "<");
         for (Iterator<Type> it = typeArguments().iterator(); it.hasNext();) {
             SignatureType next = (SignatureType) it.next();
             signature.append(next.signature());
@@ -224,24 +233,6 @@ public class ParameterizedType_c extends GenericTypeRef_c implements Parameteriz
         return signature.toString();
     }
 
-    public boolean descendsFromImpl(Type ancestor) {
-        if (super.descendsFromImpl(ancestor))
-            return true;
-
-        JL5TypeSystem ts = (JL5TypeSystem) typeSystem();
-        // if the ancestor is a raw type and some corresponding
-        // parameterized type is in the set then we allow it
-        if (ancestor instanceof RawType) {
-            if (ts.isSubtype(ts.rawify(this), ancestor)) {
-
-                return true;
-            }
-        }
-        else if ((ancestor instanceof ParameterizedType) && (!equals(ancestor))) {
-            return ts.checkContains(capture(), (ParameterizedType) ancestor);
-        }
-        return false;
-    }
 
     protected ParameterizedType capturedType;
 
@@ -301,109 +292,45 @@ public class ParameterizedType_c extends GenericTypeRef_c implements Parameteriz
         return capturedType;
     }
 
+    @Override
     public ClassType outer() {
-        if (outer == null) {
-            outer = (ClassType) ((JL5TypeSystem) typeSystem()).getSubstitution(this, baseType.outer());
-        }
-        return outer;
+        ClassDef outer = Types.get(def().outer());
+        if (outer == null) return null;
+        return (ClassType) ((JL5TypeSystem) typeSystem()).getSubstitution(this, outer.asType());
     }
 
-    public Type superType() {
-        if (superType == null) {
-            superType = ((JL5TypeSystem) typeSystem()).getSubstitution(this, baseType.superType());
-        }
-        return superType;
+    @Override
+    public Type superClass() {
+    	Type superType = Types.get(def().superType());
+        return ((JL5TypeSystem) typeSystem()).getSubstitution(this, superType);
     }
 
-    public List constructors() {
-        if (constructors == null) {
-            List<ConstructorInstance> t = new ArrayList<ConstructorInstance>();
-            List orig = baseType.constructors();
-            for (Iterator it = orig.iterator(); it.hasNext();) {
-                ConstructorInstance ci = (ConstructorInstance) it.next();
-                ConstructorInstance n = (ConstructorInstance) ci.copy();
-                n = n.container(this);
-                List<Type> formals = new ArrayList<Type>();
-                for (Iterator it2 = ci.formalTypes().iterator(); it2.hasNext();) {
-                    Type formalType = (Type) it2.next();
-                    Type nf = ((JL5TypeSystem) ts).getSubstitution(this, formalType);
-                    formals.add(nf);
-                }
-                n = n.formalTypes(formals);
-                t.add(n);
-            }
-            constructors = t;
-        }
-        return constructors;
+    @Override
+    public List<ConstructorInstance> constructors() {
+        return new TransformingList<ConstructorDef,ConstructorInstance>(
+                                    def().constructors(),
+                                    new ConstructorAsSubstitutionTypeTransform(ts, this));
     }
 
-    public List memberClasses() {
-        if (memberClasses == null) {
-            List<Type> t = new ArrayList<Type>();
-            List orig = baseType.memberClasses();
-            for (Iterator it = orig.iterator(); it.hasNext();) {
-                Type type = (Type) it.next();
-                Type ntype = ((JL5TypeSystem) ts).getSubstitution(this, type);
-                t.add(ntype);
-            }
-            memberClasses = t;
-        }
-        return memberClasses;
+    /** Return an immutable list of member classes */
+    public List<ClassType> memberClasses() {
+        return new TransformingList<Ref<? extends ClassType>,ClassType>(def().memberClasses(),
+                                    new DerefSubstitutionTransform<ClassType>(ts, this));
     }
 
-    public List methods() {
-        if (methods == null) {
-            List<MethodInstance> t = new ArrayList<MethodInstance>();
-            List orig = baseType.methods();
-            for (Iterator it = orig.iterator(); it.hasNext();) {
-                MethodInstance mi = (MethodInstance) it.next();
-                MethodInstance n = (MethodInstance) mi.copy();
-                n = n.returnType(((JL5TypeSystem) ts).getSubstitution(this, mi.returnType()));
-                n = n.container(this);
-                List formals = new ArrayList();
-                for (Iterator it2 = mi.formalTypes().iterator(); it2.hasNext();) {
-                    Type formalType = (Type) it2.next();
-                    Type nf = ((JL5TypeSystem) ts).getSubstitution(this, formalType);
-                    formals.add(nf);
-                }
-                n = n.formalTypes(formals);
-                t.add(n);
-            }
-            methods = t;
-        }
-        return methods;
+    /** Return an immutable list of methods. */
+    @Override
+    public List<MethodInstance> methods() {
+        return new TransformingList<MethodDef,MethodInstance>(
+                                    def().methods(),
+                                    new MethodAsSubstitutionTypeTransform(ts, this));
     }
 
-    public List fields() {
-        if (fields == null) {
-            List<FieldInstance> t = new ArrayList<FieldInstance>();
-            List orig = baseType.fields();
-            for (Iterator it = orig.iterator(); it.hasNext();) {
-                FieldInstance f = (FieldInstance) it.next();
-                Type i = f.type();
-                Type subst = ((JL5TypeSystem) typeSystem()).getSubstitution(this, i);
-                f = f.type(subst);
-                f = f.container(this);
-                t.add(f);
-            }
-            fields = t;
-        }
-        return fields;
-    }
-
-    public List interfaces() {
-        if (interfaces == null) {
-            // System.out.println("interfaces is null!");
-            List<Type> t = new ArrayList<Type>();
-            List orig = baseType.interfaces();
-            for (Iterator it = orig.iterator(); it.hasNext();) {
-                Type i = (Type) it.next();
-                Type subst = ((JL5TypeSystem) typeSystem()).getSubstitution(this, i);
-                t.add(subst);
-            }
-            interfaces = t;
-        }
-        return interfaces;
+    /** Return an immutable list of interfaces */
+    public List<Type> interfaces() {
+        return new TransformingList<Ref<? extends Type>, Type>(
+                                                    def().interfaces(),
+                                                    new DerefSubstitutionTransform(ts, this));
     }
 
     protected List<TypeVariable> substTypeVars = null;
@@ -420,6 +347,76 @@ public class ParameterizedType_c extends GenericTypeRef_c implements Parameteriz
         }
         return substTypeVars;*/
         return baseType().typeVariables();
+    }
+    
+    class DerefSubstitutionTransform<T extends TypeObject> implements
+    Transformation<Ref<? extends T>, T> {
+    	private final JL5TypeSystem ts;
+    	private final GenericTypeRef pt;
+    	public DerefSubstitutionTransform(TypeSystem ts, GenericTypeRef pt) {
+    		this.ts = (JL5TypeSystem) ts;
+    		this.pt = pt;
+    	}
+    	public T transform(Ref<? extends T> ref) {
+    		return (T) ts.getSubstitution(pt, ((Type)Types.get(ref)));
+    	}
+    }
+
+    class ConstructorAsSubstitutionTypeTransform implements
+    Transformation<ConstructorDef, ConstructorInstance> {
+    	private final JL5TypeSystem ts;
+    	private final GenericTypeRef rt;
+    	public ConstructorAsSubstitutionTypeTransform(TypeSystem ts, GenericTypeRef rt) {
+    		this.ts = (JL5TypeSystem) ts;
+    		this.rt = rt;
+    	}
+    	public ConstructorInstance transform(ConstructorDef def) {
+    		ConstructorInstance ci = def.asInstance();
+    		ci = ci.container(rt);
+    		List<Type> substFormalTypes = 
+    			new TransformingList<Ref <? extends Type>,Type>(def.formalTypes(),
+    				new DerefSubstitutionTransform<Type>(ts, rt));
+    		ci = ci.formalTypes(substFormalTypes);
+    		return ci;
+    	}
+    }
+
+    class MethodAsSubstitutionTypeTransform implements
+    Transformation<MethodDef, MethodInstance> {
+    	private final JL5TypeSystem ts;
+    	private final GenericTypeRef rt;
+    	public MethodAsSubstitutionTypeTransform(TypeSystem ts, GenericTypeRef rt) {
+    		this.ts = (JL5TypeSystem) ts;
+    		this.rt = rt;
+    	}
+    	public MethodInstance transform(MethodDef def) {
+    		MethodInstance mi = def.asInstance();
+    		mi = (MethodInstance) mi.container(rt);
+            mi = mi.returnType(ts.getSubstitution(rt, mi.returnType()));
+    		List<Type> substFormalTypes = 
+    			// CHECK is ok to deRef from def rather than use mi.formalTypes() ?
+    			new TransformingList<Ref <? extends Type>,Type>(def.formalTypes(),
+    				new DerefSubstitutionTransform<Type>(ts, rt));
+    		mi = mi.formalTypes(substFormalTypes);
+    		return mi;
+    	}
+    }
+    
+    class FieldAsSubstitutionTypeTransform implements
+    Transformation<FieldDef, FieldInstance>  {
+    	private final JL5TypeSystem ts;
+    	private final GenericTypeRef rt;
+    	public FieldAsSubstitutionTypeTransform(TypeSystem ts, GenericTypeRef rt) {
+    		this.ts = (JL5TypeSystem) ts;
+    		this.rt = rt;
+    	}
+        public FieldInstance transform(FieldDef def) {
+            FieldInstance fi = def.asInstance();
+            Type er = ts.getSubstitution(rt, fi.type());
+            fi = fi.type(er);
+            fi = fi.container(rt);
+    		return fi;
+    	}
     }
 
 }

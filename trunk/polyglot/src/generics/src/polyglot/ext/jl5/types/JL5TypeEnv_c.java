@@ -23,6 +23,16 @@ public class JL5TypeEnv_c extends TypeEnv_c {
     
 	public boolean isImplicitCastValid(Type fromType, Type toType) {
 
+		if (fromType instanceof IntersectionType) {
+			IntersectionType it = (IntersectionType) fromType;
+	        for (Type b : it.bounds()) {
+	            if (isImplicitCastValid(b, toType)) {
+	            	return true;
+	            }
+	        }
+	        return false;
+		}
+		
 		if (toType instanceof TypeVariable) {
 			// what does it mean to implicitly cast to a TypeVariable ?
 			assert(false);
@@ -112,13 +122,23 @@ public class JL5TypeEnv_c extends TypeEnv_c {
     @Override
     public boolean isCastValid(Type fromType, Type toType) {
     	
+		if (fromType instanceof IntersectionType) {
+			IntersectionType it = (IntersectionType) fromType;
+	        for (Type b : it.bounds()) {
+	            if (isCastValid(b, toType)) {
+	            	return true;
+	            }
+	        }
+	        return false;
+		}
+
     	if (fromType instanceof TypeVariable) {
     		return isCastValid(((TypeVariable) fromType).upperBound(), toType);
     	}
     	
     	// boxing / unboxing cast check
     	if (fromType.isPrimitive() && toType.isReference()) {
-    		return jts.equivalent(fromType, toType);
+    		return equivalent(fromType, toType);
     	}
     	
     	if (fromType.isReference() && toType.isPrimitive()) {

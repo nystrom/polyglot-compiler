@@ -26,6 +26,7 @@ import polyglot.ast.Receiver;
 import polyglot.ast.Stmt;
 import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.FlagAnnotations;
+import polyglot.types.Flags;
 import polyglot.types.Package;
 import polyglot.types.QName;
 import polyglot.types.Ref;
@@ -150,6 +151,11 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
     public JL5LocalDecl JL5LocalDecl(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr init){
         JL5LocalDecl n = new JL5LocalDecl_c(pos, flags, type, name, init);
         return n;
+    }
+    
+    public JL5PackageNode JL5PackageNode(Position pos, Ref<? extends Package> p) {
+    	JL5PackageNode n = new JL5PackageNode_c(pos, new FlagAnnotations(FlagsNode(pos,Flags.NONE)), p);
+        return n;    	
     }
     
     public JL5PackageNode JL5PackageNode(Position pos, FlagAnnotations fl, Ref<? extends Package> p) {

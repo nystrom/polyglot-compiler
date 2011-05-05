@@ -60,7 +60,9 @@ public interface JL5NodeFactory extends NodeFactory {
     public JL5Formal JL5Formal(Position pos, FlagAnnotations flags, TypeNode type, Id name);
     
     public JL5LocalDecl JL5LocalDecl(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr init);
-   
+
+    public PackageNode PackageNode(Position pos, Ref<? extends Package> p);
+
     public JL5PackageNode JL5PackageNode(Position pos, FlagAnnotations fl, Ref<? extends Package> p);
 
     public ParamTypeNode ParamTypeNode(Position pos, List bounds, String id);

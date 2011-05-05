@@ -23,8 +23,6 @@ public interface TypeVariable extends ClassType {
     List <ReferenceType>bounds();
     void bounds(List<ReferenceType> l);
 
-    void name(String name);
-
     boolean isEquivalent(TypeObject arg2);
 
     boolean equivalentImpl(TypeObject arg2);
