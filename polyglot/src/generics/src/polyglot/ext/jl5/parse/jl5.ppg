@@ -280,19 +280,19 @@ drop{modifiers_opt}
 
 override simple_name ::=
     IDENTIFIER:a
-        {: RESULT = new JL5Name(parser, parser.pos(a), a.getIdentifier()); :}
+        {: RESULT = new ParsedName(parser.nf, parser.ts, parser.pos(a), a); :}
 ;
 
 override qualified_name ::=
     name:a DOT IDENTIFIER:b
-        {: RESULT = new JL5Name(parser, parser.pos(a, b), a, b.getIdentifier()); :}
+        {: RESULT = new ParsedName(parser.nf, parser.ts, parser.pos(a, b), a, b); :}
 ;
 
 override identifier_opt ::=
     {: RESULT = null; :}
     |
     IDENTIFIER:a
-     {: RESULT = new JL5Name(parser, parser.pos(a), a.getIdentifier()); :}
+     {: RESULT = new ParsedName(parser.nf, parser.ts, parser.pos(a), a); :}
 ;
                          
 type_variable ::=
@@ -797,10 +797,10 @@ override class_instance_creation_expression ::=
 	|	NEW:a type_arguments:b class_or_interface_type:c LPAREN:d argument_list_opt:e RPAREN:f class_body_opt:g
         {: RESULT = parser.nf.JL5New(parser.pos(a), c, e, g, b); :}
 	|	primary:a DOT:b NEW:c type_arguments_opt:d IDENTIFIER:e type_arguments_opt:f LPAREN:g argument_list_opt:h RPAREN:i class_body_opt:j
-        {: TypeNode aa = (new JL5Name(parser, parser.pos(e), e.getIdentifier())).toType();
+        {: TypeNode aa = (new ParsedName(parser.nf, parser.ts, parser.pos(e), e)).toType();
            RESULT = parser.nf.JL5New(parser.pos(a), a, parser.nf.JL5AmbTypeNode(parser.pos(e, f), ((AmbTypeNode)aa).qual(), ((AmbTypeNode)aa).name(), f), h, j, d); :}
 	|	name:a DOT:b NEW:c type_arguments_opt:d IDENTIFIER:e type_arguments_opt:f LPAREN:g argument_list_opt:h RPAREN:i class_body_opt:j
-        {: TypeNode aa = (new JL5Name(parser, parser.pos(e), e.getIdentifier())).toType();
+        {: TypeNode aa = (new ParsedName(parser.nf, parser.ts, parser.pos(e), e)).toType();
            RESULT = parser.nf.JL5New(parser.pos(a), a.toExpr(), parser.nf.JL5AmbTypeNode(parser.pos(e, f), ((AmbTypeNode)aa).qual(), ((AmbTypeNode)aa).name(), f), h, j, d); :}
 ;
 array_creation_init ::=

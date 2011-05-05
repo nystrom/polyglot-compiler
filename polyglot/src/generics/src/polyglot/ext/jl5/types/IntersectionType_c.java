@@ -6,16 +6,21 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import polyglot.types.ClassType_c;
+import polyglot.ext.jl5.ast.BoundedTypeNode.Kind;
+import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
+import polyglot.types.ClassType_c;
 import polyglot.types.Flags;
+import polyglot.types.Name;
 import polyglot.types.Package;
 import polyglot.types.ParsedClassType;
+import polyglot.types.Ref;
 import polyglot.types.ReferenceType;
 import polyglot.types.Resolver;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
+import polyglot.util.Position;
 
 public class IntersectionType_c extends ClassType_c implements IntersectionType {
 
@@ -25,15 +30,15 @@ public class IntersectionType_c extends ClassType_c implements IntersectionType 
     
     protected TypeVariable boundOf_;
 
-    public IntersectionType_c(TypeSystem ts, List<ReferenceType> bounds) {
-        super(ts, null);
-        this.bounds = bounds;
+    public IntersectionType_c(TypeSystem ts, Position pos, Ref<? extends ClassDef> def, List<ReferenceType> bounds) {
+        super(ts, pos, def);
+        this.bounds = bounds;    	
     }
 
     public List<ReferenceType> bounds() {
         if (bounds == null || bounds.size() == 0) {
             bounds = new ArrayList<ReferenceType>();
-            bounds.add(ts.Object());
+            bounds.add((ReferenceType)ts.Object());
         }
         return bounds;
     }
@@ -61,16 +66,9 @@ public class IntersectionType_c extends ClassType_c implements IntersectionType 
         return concreteBounds;
     }
 
-    public Type superType() {
-        return getSyntheticClass().superType();
-    }
-
-    public ReferenceType toReference() {
-        return this;
-    }
-
-    public boolean isReference() {
-        return true;
+    @Override
+    public Type superClass() {
+        return getSyntheticClass().superClass();
     }
 
     @Override
@@ -82,7 +80,7 @@ public class IntersectionType_c extends ClassType_c implements IntersectionType 
 
     protected ClassType getSyntheticClass() {
         if (syntheticClass == null) {
-            syntheticClass = typeSystem().createClassType();
+            syntheticClass = typeSystem().createClassType(pos, def);
             ArrayList<ReferenceType> onlyClasses = new ArrayList<ReferenceType>();
             for (ReferenceType t : getConcreteBounds()) {
                 if (t.isClass() && ((ClassType)t).flags().isInterface())
@@ -139,8 +137,8 @@ public class IntersectionType_c extends ClassType_c implements IntersectionType 
     }
 
     @Override
-    public String name() {
-        return this.toString();
+    public Name name() {
+        return Name.make(this.toString());
     }
 
     @Override
@@ -159,23 +157,6 @@ public class IntersectionType_c extends ClassType_c implements IntersectionType 
         return false;
     }
 
-    @Override
-    public boolean isImplicitCastValidImpl(Type toType) {
-        for (Type b : bounds()) {
-            if (typeSystem().isImplicitCastValid(b, toType)) return true;
-        }
-        //or just isImplicitCastValid(getSyntaticClass(), toType());
-        return false;
-    }
-
-    @Override
-    public boolean isCastValidImpl(Type toType) {
-        for (Type b : bounds()) {
-            if (typeSystem().isCastValid(b, toType)) return true;
-        }
-        return false;
-    }
-
     public void boundOf(TypeVariable tv) {
         boundOf_ = tv;
     }
@@ -184,6 +165,7 @@ public class IntersectionType_c extends ClassType_c implements IntersectionType 
         return boundOf_;
     }
     
+    @Override
     public boolean equalsImpl(TypeObject other) {
         if (!super.equalsImpl(other)) {
             if (other instanceof ReferenceType) {

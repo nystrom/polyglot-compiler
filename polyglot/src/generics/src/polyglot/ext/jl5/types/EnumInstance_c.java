@@ -1,12 +1,17 @@
 package polyglot.ext.jl5.types;
 
+import polyglot.types.FieldDef;
 import polyglot.types.FieldInstance_c;
-import polyglot.types.Flags;
 import polyglot.types.ParsedClassType;
-import polyglot.types.ReferenceType;
+import polyglot.types.Ref;
 import polyglot.types.TypeSystem;
 import polyglot.util.Position;
 
+/**
+ * Instance of an enum
+ * Build from a field instance that had a 'enum' keyword.
+ *
+ */
 public class EnumInstance_c extends FieldInstance_c implements EnumInstance {
 
     /*protected ReferenceType container;
@@ -16,9 +21,10 @@ public class EnumInstance_c extends FieldInstance_c implements EnumInstance {
 
     protected ParsedClassType anonType;
 
-    public EnumInstance_c(TypeSystem ts, Position pos, ReferenceType container,  Flags f, String name, ParsedClassType anonType){
-        super(ts, pos, container, f.set(JL5Flags.STATIC), container, name);
-        this.anonType = anonType;
+    public EnumInstance_c(TypeSystem ts, Position pos, Ref<? extends FieldDef> def){
+        super(ts, pos, def);
+        flags().set(JL5Flags.STATIC);
+        this.anonType = (ParsedClassType) container();
     }
     
     public ParsedClassType anonType(){

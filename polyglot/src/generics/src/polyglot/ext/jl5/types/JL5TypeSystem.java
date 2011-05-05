@@ -1,5 +1,6 @@
 package polyglot.ext.jl5.types;
 
+import java.util.Collection;
 import java.util.List;
 
 import polyglot.ast.Expr;
@@ -9,20 +10,19 @@ import polyglot.ext.jl5.ast.AnnotationElem;
 import polyglot.ext.jl5.types.JL5TypeSystem_c.AnnotationMatcher;
 import polyglot.ext.jl5.types.JL5TypeSystem_c.EnumMatcher;
 import polyglot.ext.jl5.types.JL5TypeSystem_c.JL5ConstructorMatcher;
-import polyglot.ext.jl5.types.JL5TypeSystem_c.JL5MethodMatcher;
 import polyglot.ext.jl5.types.inference.InferenceSolver;
 import polyglot.ext.jl5.types.inference.LubType;
-import polyglot.frontend.Source;
 import polyglot.types.ArrayType;
 import polyglot.types.ClassType;
 import polyglot.types.ConstructorInstance;
 import polyglot.types.Context;
+import polyglot.types.FieldDef;
 import polyglot.types.FieldInstance;
 import polyglot.types.Flags;
 import polyglot.types.MethodDef;
 import polyglot.types.MethodInstance;
 import polyglot.types.Name;
-import polyglot.types.ParsedClassType;
+import polyglot.types.ObjectType;
 import polyglot.types.Ref;
 import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
@@ -36,8 +36,6 @@ import polyglot.types.TypeSystem_c.MethodMatcher;
 import polyglot.util.Position;
 
 public interface JL5TypeSystem extends TypeSystem {
-
-	ParsedClassType createClassType(Source fromSource);
 
 	MethodInstance createMethodInstance(Position position,
 			Ref<? extends MethodDef> def);
@@ -72,7 +70,7 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	ClassType classOf(Type t);
 
-	boolean equivalent(TypeObject t1, TypeObject t2);
+	boolean equivalent(Type t1, Type t2);
 
 	Type erasure(Type t);
 
@@ -86,8 +84,7 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	Context createContext();
 
-	EnumInstance enumInstance(Position pos, ClassType ct, Flags f, Id name,
-			ParsedClassType anonType);
+	EnumInstance enumInstance(Position pos, Ref<? extends FieldDef> def);
 
 	EnumMatcher EnumMatcher(Type container, Name name, Context ctx);
 
@@ -99,9 +96,9 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	boolean isValidAnnotationValueType(Type t);
 
-	boolean numericConversionBaseValid(Type t, Object value);
+	boolean numericConversionBaseValid(Type t, Object value, Context ctx);
 
-	boolean isBaseCastValid(Type from, Type to);
+	boolean isBaseCastValid(Type from, Type to, Context ctx);
 
 	void checkDuplicateAnnotations(List annotations) throws SemanticException;
 
@@ -117,8 +114,6 @@ public interface JL5TypeSystem extends TypeSystem {
 	ParameterizedType parameterizedType(JL5ParsedClassType type);
 
 	RawType rawType(JL5ParsedClassType ct);
-
-	ArrayType arrayType(Position pos, Type base);
 
 	/*
 	 * void handleTypeRestrictions(List typeVariables, List typeArguments)
@@ -137,9 +132,7 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	boolean isEquivalent(TypeObject arg1, TypeObject arg2);
 
-	List<ReferenceType> allAncestorsOf(ReferenceType rt);
-
-	ParameterizedType findGenericSupertype(ReferenceType base, ReferenceType t);
+	ParameterizedType findGenericSupertype(ObjectType base, ObjectType t);
 
 	IntersectionType intersectionType(List<ReferenceType> elems);
 
@@ -177,9 +170,6 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	boolean checkContains(ParameterizedType desc, ParameterizedType ancestor);
 
-	MethodInstance findJL5Method(Type container, JL5MethodMatcher matcher)
-			throws SemanticException;
-
 	ConstructorInstance findJL5Constructor(Type container,
 			JL5ConstructorMatcher context) throws SemanticException;
 
@@ -195,17 +185,13 @@ public interface JL5TypeSystem extends TypeSystem {
 			Context context);
 
 	MethodMatcher JL5MethodMatcher(Type targetType, Name id,
-			List<Type> paramTypes, List<Type> explicitTypeArgs, JL5Context c);
+			List<Type> paramTypes, List<Type> explicitTypeArgs, Context c);
 
 	ConstructorMatcher JL5ConstructorMatcher(Type container,
 			List<Type> argTypes, List<Type> explicitTypeArgs, Context context);
 
 	MethodInstance erasureMethodInstance(MethodInstance mi);
 
-	/**
-	 * Return array type representing a variable argument
-	 */
-	Type arrayOf(Position position, Ref<? extends Type> typeRef, boolean varargs);
 
 	MethodDef methodDef(Position pos, Ref<? extends StructType> container,
 			Flags flags, Ref<? extends Type> returnType, Name name,
@@ -217,5 +203,13 @@ public interface JL5TypeSystem extends TypeSystem {
 			List<Ref<? extends Type>> argTypes,
 			List<Ref<? extends Type>> excTypes,
 			List<Ref<? extends Type>> tvTypes, boolean compilerGenerated);
+
+	Collection<? extends Type> allAncestorsOf(Type u);
+
+
+	/**
+	 * Return array type representing a variable argument
+	 */
+	ArrayType createArrayType(Position position, Ref<? extends Type> base, boolean varArgs);
 
 }

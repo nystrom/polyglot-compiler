@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import polyglot.ext.jl5.types.JL5TypeSystem_c.EnumMatcher;
 import polyglot.main.Report;
 import polyglot.types.Context_c;
 import polyglot.types.MethodInstance;
@@ -33,17 +34,12 @@ public class JL5Context_c extends Context_c implements JL5Context {
     }
 
     public VarInstance findVariableInThisScope(Name name) {
-
-        VarInstance vi = null;
-        // try{
-        vi = super.findVariableInThisScope(name);
-        // }
-        // catch(NoMemberException e){
-
+        VarInstance vi = super.findVariableInThisScope(name);
         if (vi == null && isClass()) {
             try {
-                return ((JL5TypeSystem) typeSystem()).findEnumConstant(this.type, name, this.type);
-            } catch (SemanticException e2) {
+            	JL5TypeSystem jts = (JL5TypeSystem) ts;
+                return jts.findEnumConstant(this.type.container(), jts.EnumMatcher(this.currentClass(), name, this));
+            } catch (SemanticException e) {
                 return null;
             }
         }

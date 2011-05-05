@@ -152,6 +152,9 @@ public class JL5Import_c extends Import_c implements JL5Import{
 //        if (ts.hasMethodNamed(t, id)) return true;
 //
 //        try {
+// CHECK Should be replace by something like 
+// context.findInThisScope(ts.TypeMatcher(name));
+// No idea how we're supposed to get a context around here though...
 //            ClassType ct = ts.findMemberClass(t, id);
 //            if (ct != null && ct.flags().isStatic()) return true;
 //        }

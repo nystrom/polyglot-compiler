@@ -93,7 +93,8 @@ public class InferenceSolver_c implements InferenceSolver {
         Type[] solution = new Type[typeVariables().size()];
         for (EqualConstraint eq : equals) {
             int i = typeVariables().indexOf(eq.formal);
-            if ((solution[i] != null) && (!ts.equals(eq.actual, solution[i]))) {
+        	//CHECK can we get a context here ?
+            if ((solution[i] != null) && (!ts.typeEquals(eq.actual, solution[i], null))) {
                 solution[i] = ts.Object();
             }
             else {
@@ -105,7 +106,8 @@ public class InferenceSolver_c implements InferenceSolver {
                 TypeVariable toSolve = typeVariables().get(i);
                 Set<ClassType> uset = new HashSet<ClassType>();
                 for (Constraint c : subs) {
-                    if (c.formal.equals(toSolve))
+                	//CHECK can we get a context here ?
+                    if (c.formal.typeEquals(toSolve, null))
                         uset.add((ClassType) c.actual);
                 }
                 List<ClassType> u = new ArrayList<ClassType>(uset);

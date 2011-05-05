@@ -1,22 +1,12 @@
 package polyglot.ext.jl5.types;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
-import polyglot.main.Report;
-import polyglot.types.ClassType;
 import polyglot.types.ImportTable;
-import polyglot.types.Matcher;
-import polyglot.types.Named;
 import polyglot.types.QName;
 import polyglot.types.Ref;
-import polyglot.types.SemanticException;
-import polyglot.types.Type;
 import polyglot.types.TypeSystem;
-import polyglot.util.Position;
-import polyglot.util.StringUtil;
+import  polyglot.types.Package;
 
 public class JL5ImportTable extends ImportTable {
 

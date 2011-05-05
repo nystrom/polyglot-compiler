@@ -3,8 +3,9 @@ package polyglot.ext.jl5.types;
 import java.util.Collections;
 import java.util.List;
 
-import polyglot.types.ClassDef.Kind;
+import polyglot.frontend.Job;
 import polyglot.types.ClassDef;
+import polyglot.types.ClassDef.Kind;
 import polyglot.types.ClassType;
 import polyglot.types.ClassType_c;
 import polyglot.types.Flags;
@@ -12,22 +13,24 @@ import polyglot.types.Name;
 import polyglot.types.Ref;
 import polyglot.types.ReferenceType;
 import polyglot.types.Resolver;
+import polyglot.types.StructType;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 import polyglot.util.Position;
 
+/**
+ * 
+ * A TypeVariable as 'T' in the type declaration Collection<T>
+ *
+ */
 public class TypeVariable_c extends ClassType_c implements TypeVariable, SignatureType {
 
-    protected  Name name;
-
+    protected Name name;
     protected Flags flags;
-
     protected Type lowerBound;
     protected IntersectionType upperBound;
-    
     protected TVarDecl declaredIn;
-    
     protected ClassType declaringClass;
     protected JL5ProcedureInstance declaringProcedure;
 
@@ -58,8 +61,7 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
         }
         return declaredIn;
     }
-    
-    
+
     public ClassType declaringClass() {
         if (declaredIn.equals(TVarDecl.CLASSTV)) return declaringClass;
         return null;
@@ -87,11 +89,11 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
         return null;
     }
 
-    public String name() {
+    public Name name() {
         return name;
     }
 
-    public void name(String name) {
+    public void name(Name name) {
         this.name = name;
     }
 
@@ -100,7 +102,7 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
             return declaringClass().package_();
         }
         if (TVarDecl.PROCEDURETV.equals(declaredIn)) {
-            return declaringProcedure().container().toClass().package_();
+            return ((ClassDef)declaringProcedure().def()).asType().package_();
         }
         return null;
     }
@@ -138,12 +140,11 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
     }
 
     public String translate(Resolver c) {
-        StringBuffer sb = new StringBuffer(name);
-        return sb.toString();
+        return name().toString();
     }
 
     public String toString() {
-        return name;// +":"+bounds;
+        return name.toString();// +":"+bounds;
     }
 
     public IntersectionType upperBound() {
@@ -189,7 +190,20 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
             return true;// && allBoundsEqual(arg2)) return true;
         return false;
     }
-/*
+    public boolean isEquivalent(TypeObject arg2) {
+    	if (arg2 instanceof TypeVariable) {
+    		if (this.erasureType() instanceof ParameterizedType
+    				&& ((TypeVariable) arg2).erasureType() instanceof ParameterizedType) {
+    			return typeSystem().equals((TypeObject)((ParameterizedType) this.erasureType()).baseType(), 
+    					(TypeObject) ((ParameterizedType) ((TypeVariable) arg2).erasureType()).baseType());
+    		} else {
+    			return typeSystem().equals((TypeObject) this.erasureType(), 
+    					(TypeObject) ((TypeVariable) arg2).erasureType());
+    		}
+    	}
+    	return false;
+    }
+    /*
     private boolean allBoundsEqual(TypeVariable arg2) {
         if ((bounds == null || bounds.isEmpty())
                 && (arg2.bounds() == null || arg2.bounds().isEmpty()))
@@ -209,19 +223,7 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
         return true;
     }
 */
-    public boolean isEquivalent(TypeObject arg2) {
-    	if (arg2 instanceof TypeVariable) {
-    		if (this.erasureType() instanceof ParameterizedType
-    				&& ((TypeVariable) arg2).erasureType() instanceof ParameterizedType) {
-    			return typeSystem().equals((TypeObject)((ParameterizedType) this.erasureType()).baseType(), 
-    					(TypeObject) ((ParameterizedType) ((TypeVariable) arg2).erasureType()).baseType());
-    		} else {
-    			return typeSystem().equals((TypeObject) this.erasureType(), 
-    					(TypeObject) ((TypeVariable) arg2).erasureType());
-    		}
-    	}
-    	return false;
-    }
+
 
     public Type erasureType() {
         return ((JL5TypeSystem)typeSystem()).erasure(bounds().get(0));
@@ -243,4 +245,35 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
     public void lowerBound(Type lowerBound) {
         this.lowerBound = lowerBound;
     }
+
+	@Override
+	public ClassType flags(Flags flags) {
+        TypeVariable_c t = (TypeVariable_c) copy();
+        t.flags = flags;
+        return t;
+    }
+
+	@Override
+	public ClassType container(StructType container) {
+//		TypeVariable_c t = (TypeVariable_c) copy();
+//        t.container = container;
+//        return t;
+		//CHECK What's the container of a TypeVariable ?
+		assert false;
+		return null;
+	}
+
+	@Override
+	public Job job() {
+		//CHECK There is no job associated with a type variable ?
+		assert false;
+		return null;
+	}
+
+	@Override
+	public Type superClass() {
+		//CHECK What's the super class of a typeVariable ?
+		assert false;
+		return null;
+	}
 }

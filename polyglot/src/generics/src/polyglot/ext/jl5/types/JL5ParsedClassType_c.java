@@ -5,9 +5,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import polyglot.frontend.Globals;
 import polyglot.types.ClassDef;
-import polyglot.types.FieldInstance;
-import polyglot.types.MethodInstance;
+import polyglot.types.ClassType;
 import polyglot.types.Name;
 import polyglot.types.Named;
 import polyglot.types.ParsedClassType_c;
@@ -15,14 +15,19 @@ import polyglot.types.PrimitiveType;
 import polyglot.types.Ref;
 import polyglot.types.Resolver;
 import polyglot.types.SemanticException;
+import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 import polyglot.types.Types;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
 
+/**
+ * A JL5 parsed class. Has supports for:
+ * - Annotations
+ * - Can be used as an enum type: (enumConstants are added later on) 
+ */
 public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5ParsedClassType, SignatureType{
-    
     protected List<EnumInstance> enumConstants;
     // these are annotation elements in the annotation type
     protected List<AnnotationElemInstance> annotationElems;
@@ -70,7 +75,6 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
     public List<AnnotationElemInstance> annotationElems(){
         if (annotationElems == null){
             annotationElems = new TypedList(new LinkedList(), AnnotationElemInstance.class, false);
-            assert(false);
             // CHECK: lazy init has been erased because it wasn't doing anything 
             // ((JL5LazyClassInitializer)init).initAnnotations(this);
             // freeInit();
@@ -78,9 +82,9 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
         return annotationElems;
     }
 
-    protected boolean initialized(){
-        return super.initialized() && this.enumConstants != null && this.annotationElems != null;
-    }
+//    protected boolean initialized(){
+//        return super.initialized() && this.enumConstants != null && this.annotationElems != null;
+//    }
     
     public EnumInstance enumConstantNamed(Name name) {
         for (Iterator<EnumInstance> i = enumConstants().iterator(); i.hasNext(); ) {
@@ -102,34 +106,33 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
         return null;
     }
 
-    public void addMethod(MethodInstance mi){
-        if (JL5Flags.isAnnotationModifier(flags())){
-            //addAnnotationElem(ts.annotationElemInstance(mi.position(), this, mi.flags(), mi.type(), mi,name(), 
-                        
-        }
-        super.addMethod(mi);
-    }
+//    public void addMethod(MethodInstance mi){
+//        if (JL5Flags.isAnnotationModifier(flags())){
+//            //addAnnotationElem(ts.annotationElemInstance(mi.position(), this, mi.flags(), mi.type(), mi,name(), 
+//        }
+//        super.addMethod(mi);
+//    }
+//
+//    /**
+//     * find methods with compatible name and formals as the given one
+//     */
+//    public List<MethodInstance> methods(JL5MethodInstance mi) {
+//        List l = new LinkedList();
+//        List<JL5ProcedureInstance> methods = (List) methodsNamed(mi.name());
+//        for (JL5ProcedureInstance pi : methods) {
+//            if (pi.hasFormals(mi)) {
+//                l.add(pi);
+//            }
+//        }
+//	return l;
+//    }
 
-    /**
-     * find methods with compatible name and formals as the given one
-     */
-    public List<MethodInstance> methods(JL5MethodInstance mi) {
-        List l = new LinkedList();
-        List<JL5ProcedureInstance> methods = (List) methodsNamed(mi.name());
-        for (JL5ProcedureInstance pi : methods) {
-            if (pi.hasFormals(mi)) {
-                l.add(pi);
-            }
-        }
-	return l;
-    }
-
-    public List<TypeVariable> typeVariables(){
+    public List<TypeVariable> typeVariables() {
         return typeVariables;
     }
     
     // this is used when coming from source files
-    public void addTypeVariable(TypeVariable type){
+    public void addTypeVariable(TypeVariable type) {
         if (typeVariables == null){
             typeVariables = new ArrayList<TypeVariable>();
         }
@@ -165,8 +168,7 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
     }
 
     public boolean isGeneric(){
-        if ((typeVariables != null) && !typeVariables.isEmpty()) return true;
-        return false;
+        return ((typeVariables != null) && !typeVariables.isEmpty());
     }
 
     // this is only for debugging or something
@@ -197,40 +199,63 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
         return super.toPrimitive();
     }
     
+    /**
+     * Copy-paste from ClassType_C
+     */
+    @Override
     public String translate(Resolver c) {
+    	// CHECK if we really need to copy-paste this.
         if (isTopLevel()) {
             if (package_() == null) {
-                return name();
+                return name().toString();
             }
-
             // Use the short name if it is unique.
-            if (c != null) {
+            if (c != null && !Globals.Options().fully_qualified_names) {
                 try {
-                    Named x = c.find(name());
-
-                    if (ts.equals(this, x)) {
-                        return name();
+                    Named x = c.find(ts.TypeMatcher(name()));
+                    
+                    if (x instanceof ClassType && def().equals(((ClassType) x).def())) {
+                        return name().toString();
                     }
                 }
                 catch (SemanticException e) {
                 }
             }
-
             return package_().translate(c) + "." + name();
         }
         else if (isMember()) {
             // Use only the short name if the outer class is anonymous.
             if (container().toClass().isAnonymous()) {
-                return name();
+                return name().toString();
+            }
+            // Use the short name if it is unique.
+            if (c != null && !Globals.Options().fully_qualified_names) {
+                try {
+                    Named x = c.find(ts.TypeMatcher(name()));
+                    // Modification wrt to copy-paste code here:
+                    if (x instanceof ClassType && def().equals(((ClassType) x).def())
+                    		&& !(container() instanceof ParameterizedType)) {
+                        return name().toString();
+                    }
+                }
+                catch (SemanticException e) {
+                }
+            }
+            return container().translate(c) + "." + name();
+        }
+        else if (isMember()) {
+            // Use only the short name if the outer class is anonymous.
+            if (container().toClass().isAnonymous()) {
+                return name().toString();
             }
 
             // Use the short name if it is unique.
-            if (c != null) {
+            if (c != null && !Globals.Options().fully_qualified_names) {
                 try {
-                    Named x = c.find(name());
+                    Named x = c.find(ts.TypeMatcher(name()));
 
-                    if (ts.equals(this, x) && !(container() instanceof ParameterizedType)) {
-                        return name();
+                    if (x instanceof ClassType && def().equals(((ClassType) x).def())) {
+                        return name().toString();
                     }
                 }
                 catch (SemanticException e) {
@@ -240,7 +265,7 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
             return container().translate(c) + "." + name();
         }
         else if (isLocal()) {
-            return name();
+            return name().toString();
         }
         else {
             throw new InternalCompilerError("Cannot translate an anonymous class.");
@@ -248,6 +273,11 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
     }
 
     public String signature(){
-        return "L"+fullName().replaceAll("\\.", "/")+";";
+        return "L"+fullName().toString().replaceAll("\\.", "/")+";";
     }
+
+	@Override
+	public boolean equivalentImpl(TypeObject arg2) {
+		return equalsImpl(arg2);
+	}
 }
