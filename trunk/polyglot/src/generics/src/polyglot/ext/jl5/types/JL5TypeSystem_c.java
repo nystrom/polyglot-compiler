@@ -826,9 +826,9 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		return new TypeVariable_c(this, pos, Name.make(name), def, bounds);
 	}
 
-	public IntersectionType intersectionType(List<ReferenceType> bounds) {
+	public IntersectionType intersectionType(Ref<? extends ClassDef> def, List<ClassType> bounds) {
 		// CHECK need to think about how we initialize this stuff
-		return new IntersectionType_c(this, bounds);
+		return new IntersectionType_c(this, def.get().position(), def, bounds);
 	}
 
 	public ParameterizedType parameterizedType(JL5ParsedClassType ct) {
@@ -1634,7 +1634,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			return n;
 		} else if (toBeSubed instanceof IntersectionType) {
 			IntersectionType it = (IntersectionType) toBeSubed;
-			IntersectionType n = intersectionType(applySubstitution(
+			IntersectionType n = intersectionType(Types.ref(((IntersectionType) toBeSubed).def()), applySubstitution(
 					it.bounds(), orig, sub));
 			return n;
 		}
@@ -1882,7 +1882,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	 * @param bounds
 	 * @throws SemanticException
 	 */
-	public boolean checkIntersectionBounds(List<? extends ReferenceType> bounds, boolean quiet)
+	public boolean checkIntersectionBounds(List<ClassType> bounds, boolean quiet)
 			throws SemanticException {
 		Context ctx = emptyContext();
 		/*
@@ -1890,7 +1890,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		 * SemanticException("Intersection type can't be empty"); return false;
 		 * }
 		 */
-		List<ReferenceType> concreteBounds = concreteBounds(bounds);
+		List<ClassType> concreteBounds = concreteBounds(bounds);
 		if (concreteBounds.size() == 0) {
 			if (!quiet)
 				throw new SemanticException(
@@ -1900,8 +1900,8 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		}
 		for (int i = 0; i < concreteBounds.size(); i++)
 			for (int j = i + 1; j < concreteBounds.size(); j++) {
-				ReferenceType t1 = concreteBounds.get(i);
-				ReferenceType t2 = concreteBounds.get(j);
+				ClassType t1 = concreteBounds.get(i);
+				ClassType t2 = concreteBounds.get(j);
 				// for now, no checks if at least one is an array type
 				if (!t1.isClass() || !t2.isClass()) {
 					return true;
@@ -1943,14 +1943,15 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		return true;
 	}
 
-	public List<ReferenceType> concreteBounds(
-			List<? extends ReferenceType> bounds) {
+	@Override
+	public List<ClassType> concreteBounds(
+			List<ClassType> bounds) {
 
-		Set<ReferenceType> included = new HashSet<ReferenceType>();
-		Set<ReferenceType> visited = new HashSet<ReferenceType>();
-		List<ReferenceType> queue = new ArrayList<ReferenceType>(bounds);
+		Set<ClassType> included = new HashSet<ClassType>();
+		Set<ClassType> visited = new HashSet<ClassType>();
+		List<ClassType> queue = new ArrayList<ClassType>(bounds);
 		while (!queue.isEmpty()) {
-			ReferenceType t = queue.remove(0);
+			ClassType t = queue.remove(0);
 			if (visited.contains(t))
 				continue;
 			visited.add(t);
@@ -1964,7 +1965,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 				included.add(t);
 			}
 		}
-		return new ArrayList<ReferenceType>(included);
+		return new ArrayList<ClassType>(included);
 	}
 
 	public void checkTVForwardReference(List<TypeVariable> list)

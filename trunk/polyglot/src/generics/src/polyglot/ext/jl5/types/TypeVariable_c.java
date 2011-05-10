@@ -35,10 +35,10 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
     protected JL5ProcedureInstance declaringProcedure;
 
     public TypeVariable_c(TypeSystem ts, Position pos, Name id,
-    		Ref<? extends ClassDef> def, List<ReferenceType> bounds) {
+    		Ref<? extends ClassDef> def, List<ClassType> bounds) {
     	super(ts, pos, def);
         this.name = id;
-        this.upperBound = ((JL5TypeSystem)ts).intersectionType(bounds);
+        this.upperBound = ((JL5TypeSystem)ts).intersectionType(def, bounds);
         upperBound.boundOf(this);
         flags = Flags.NONE;
     }
@@ -72,12 +72,12 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
         return null;
     }
 
-    public List<ReferenceType> bounds() {
+    public List<ClassType> bounds() {
         return upperBound().bounds();
     }
 
-    public void bounds(List<ReferenceType> b) {
-        upperBound = ((JL5TypeSystem)typeSystem()).intersectionType(b);
+    public void bounds(List<ClassType> b) {
+        upperBound = ((JL5TypeSystem)typeSystem()).intersectionType(def, b);
         upperBound.boundOf(this);
     }
 

@@ -6,10 +6,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import polyglot.ext.jl5.ast.BoundedTypeNode.Kind;
 import polyglot.types.ClassDef;
+import polyglot.types.ClassDef.Kind;
 import polyglot.types.ClassType;
-import polyglot.types.ClassType_c;
 import polyglot.types.Flags;
 import polyglot.types.Name;
 import polyglot.types.Package;
@@ -20,25 +19,29 @@ import polyglot.types.Resolver;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
+import polyglot.types.Types;
 import polyglot.util.Position;
 
-public class IntersectionType_c extends ClassType_c implements IntersectionType {
-
-    protected List<ReferenceType> bounds;
-
-    protected List<ReferenceType> concreteBounds;
-    
+/**
+ * JLS 4.9 Intersection Types
+ * An intersection type takes the form T1 & ... & Tn, n>0, where Ti, 1<=i<=n, are type expressions.
+ * Intersection types arise in the processes of capture conversion (¤5.1.10) and type inference (¤15.12.2.7)
+ */
+public class IntersectionType_c extends SyntheticClassType_c implements IntersectionType {
+    protected List<ClassType> bounds;
+    protected List<ClassType> concreteBounds;
     protected TypeVariable boundOf_;
 
-    public IntersectionType_c(TypeSystem ts, Position pos, Ref<? extends ClassDef> def, List<ReferenceType> bounds) {
-        super(ts, pos, def);
+    public IntersectionType_c(TypeSystem ts, Position pos, Ref<? extends ClassDef> def, List<ClassType> bounds) {
+    	// we copy the def 
+        super(ts, pos, Types.ref((ClassDef)def.get().copy()));
         this.bounds = bounds;    	
     }
 
-    public List<ReferenceType> bounds() {
+    public List<ClassType> bounds() {
         if (bounds == null || bounds.size() == 0) {
-            bounds = new ArrayList<ReferenceType>();
-            bounds.add((ReferenceType)ts.Object());
+            bounds = new ArrayList<ClassType>();
+            bounds.add((ClassType)ts.Object());
         }
         return bounds;
     }
@@ -49,7 +52,7 @@ public class IntersectionType_c extends ClassType_c implements IntersectionType 
 
     public String toString() {
         StringBuffer sb = new StringBuffer();//("intersection[ ");
-        for (Iterator<ReferenceType> iter = bounds.iterator(); iter.hasNext();) {
+        for (Iterator<ClassType> iter = bounds.iterator(); iter.hasNext();) {
             ReferenceType b = iter.next();
             sb.append(b);
             if (iter.hasNext())
@@ -59,7 +62,7 @@ public class IntersectionType_c extends ClassType_c implements IntersectionType 
         return sb.toString();
     }
 
-    protected List<ReferenceType> getConcreteBounds() {
+    protected List<ClassType> getConcreteBounds() {
         if (concreteBounds == null) {
             concreteBounds = ((JL5TypeSystem) typeSystem()).concreteBounds(this.bounds());
         }
@@ -78,31 +81,40 @@ public class IntersectionType_c extends ClassType_c implements IntersectionType 
 
     protected ParsedClassType syntheticClass = null;
 
+    /**
+     * Updates the def according to the concrete bounds 
+     * and return a type instance of the def. 
+     * @return
+     */
     protected ClassType getSyntheticClass() {
         if (syntheticClass == null) {
-            syntheticClass = typeSystem().createClassType(pos, def);
-            ArrayList<ReferenceType> onlyClasses = new ArrayList<ReferenceType>();
-            for (ReferenceType t : getConcreteBounds()) {
-                if (t.isClass() && ((ClassType)t).flags().isInterface())
-                    syntheticClass.addInterface(t);
-                else
+        	ClassDef syntheticDef = def.get();
+            List<ClassType> onlyClasses = new ArrayList<ClassType>();
+            for (ClassType t : getConcreteBounds()) {
+                if (t.isClass() && t.flags().isInterface()) {
+                	syntheticDef.addInterface(Types.ref(t));
+                } else {
                     onlyClasses.add(t);
+                }
             }
             if (onlyClasses.size() > 0) {
-                Collections.sort(onlyClasses, new Comparator<ReferenceType>() {
-                    public int compare(ReferenceType o1, ReferenceType o2) {
+                Collections.sort(onlyClasses, new Comparator<ClassType>() {
+                    public int compare(ClassType o1, ClassType o2) {
                         JL5TypeSystem ts = (JL5TypeSystem) typeSystem();
-                        if (ts.equals(o1, o2))
+                        if (ts.typeEquals(o1, o2, null))
                             return 0;
-                        if (ts.isSubtype(o1, o2))
+                        if (ts.isSubtype(o1, o2, null))
                             return -1;
                         return 1;
                     }
                 });
-                syntheticClass.superType(onlyClasses.get(0));
+                syntheticDef.superType(Types.ref(onlyClasses.get(0)));
             }
-            syntheticClass.package_(this.package_());
+            syntheticDef.setPackage(Types.ref(this.package_()));
         }
+    	// Getting the type from the copied definition
+        syntheticClass = (ParsedClassType) def.get().asType();
+
         return syntheticClass;
     }
 
@@ -142,17 +154,13 @@ public class IntersectionType_c extends ClassType_c implements IntersectionType 
     }
 
     @Override
-    public ClassType outer() {
-        return null;
-    }
-
-    @Override
     public Package package_() {
         if (boundOf() != null) 
             return boundOf().package_();
         return null;
     }
 
+    @Override
     public boolean inStaticContext() {
         return false;
     }
@@ -164,17 +172,13 @@ public class IntersectionType_c extends ClassType_c implements IntersectionType 
     public TypeVariable boundOf() {
         return boundOf_;
     }
-    
-    @Override
+
     public boolean equalsImpl(TypeObject other) {
         if (!super.equalsImpl(other)) {
             if (other instanceof ReferenceType) {
-                return ts.isSubtype(this, (Type) other, null) && typeSystem().isSubtype((Type) other, this, null);
+                return ts.isSubtype(this, (Type) other, null) && ts.isSubtype((Type) other, this, null);
             }
         }
         return true;
     }
-    
- 
-
 }
