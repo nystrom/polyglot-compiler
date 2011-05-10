@@ -13,6 +13,7 @@ import polyglot.ext.jl5.types.JL5TypeSystem_c.JL5ConstructorMatcher;
 import polyglot.ext.jl5.types.inference.InferenceSolver;
 import polyglot.ext.jl5.types.inference.LubType;
 import polyglot.types.ArrayType;
+import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
 import polyglot.types.ConstructorInstance;
 import polyglot.types.Context;
@@ -134,7 +135,7 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	ParameterizedType findGenericSupertype(ObjectType base, ObjectType t);
 
-	IntersectionType intersectionType(List<ReferenceType> elems);
+	IntersectionType intersectionType(Ref<? extends ClassDef> def, List<ClassType> bounds);
 
 	LubType lubType(List<ClassType> lst);
 
@@ -149,10 +150,10 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	// Set<ReferenceType> superTypesOf(ReferenceType t);
 
-	boolean checkIntersectionBounds(List<? extends ReferenceType> bounds,
+	boolean checkIntersectionBounds(List<ClassType> bounds,
 			boolean quiet) throws SemanticException;
 
-	List<ReferenceType> concreteBounds(List<? extends ReferenceType> bounds);
+	List<ClassType> concreteBounds(List<ClassType> bounds);
 
 	Type applySubstitution(Type toBeSubed, List<TypeVariable> orig,
 			List<Type> sub);

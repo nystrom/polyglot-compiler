@@ -16,6 +16,7 @@ import polyglot.ext.jl5.types.JL5TypeSystem_c;
 import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.ext.jl5.types.RawType;
 import polyglot.ext.jl5.types.Wildcard;
+import polyglot.types.ClassDef.Kind;
 import polyglot.types.ClassType;
 import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
