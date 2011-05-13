@@ -331,6 +331,19 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
         return super.buildTypes(tb);
     }
+
+	@Override
+	public boolean isCompilerGenerated() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public JL5MethodDecl setCompilerGenerated(boolean val) {
+		JL5MethodDecl_c n = (JL5MethodDecl_c)copy();
+        n.compilerGenerated = val;
+        return n;
+	}
     
     
     

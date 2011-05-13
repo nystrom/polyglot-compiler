@@ -10,18 +10,19 @@ import polyglot.ast.Binary;
 import polyglot.ast.Block;
 import polyglot.ast.ClassBody;
 import polyglot.ast.ConstructorCall;
-import polyglot.ast.ConstructorDecl;
 import polyglot.ast.Expr;
 import polyglot.ast.Field;
 import polyglot.ast.Formal;
 import polyglot.ast.Id;
 import polyglot.ast.Import;
 import polyglot.ast.NodeFactory;
+import polyglot.ast.PackageNode;
 import polyglot.ast.QualifierNode;
 import polyglot.ast.Receiver;
 import polyglot.ast.Stmt;
 import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.FlagAnnotations;
+import polyglot.types.ClassDef.Kind;
 import polyglot.types.Package;
 import polyglot.types.QName;
 import polyglot.types.Ref;
@@ -67,7 +68,7 @@ public interface JL5NodeFactory extends NodeFactory {
 
     public ParamTypeNode ParamTypeNode(Position pos, List bounds, String id);
     
-    public BoundedTypeNode BoundedTypeNode(Position pos, BoundedTypeNode.Kind kind, TypeNode bound);
+    public BoundedTypeNode BoundedTypeNode(Position pos, Kind kind, TypeNode bound);
 
     public AmbQualifierNode JL5AmbQualifierNode(Position pos, QualifierNode qual, Id name, List args);
     

@@ -11,7 +11,6 @@ import polyglot.ast.Binary;
 import polyglot.ast.Block;
 import polyglot.ast.ClassBody;
 import polyglot.ast.ConstructorCall;
-import polyglot.ast.ConstructorCall.Kind;
 import polyglot.ast.ConstructorDecl;
 import polyglot.ast.Disamb;
 import polyglot.ast.Expr;
@@ -26,6 +25,7 @@ import polyglot.ast.Receiver;
 import polyglot.ast.Stmt;
 import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.FlagAnnotations;
+import polyglot.types.ClassDef.Kind;
 import polyglot.types.Flags;
 import polyglot.types.Package;
 import polyglot.types.QName;
@@ -45,13 +45,25 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return n;
     }
     public EnumConstantDecl EnumConstantDecl(Position pos, FlagAnnotations flags, Id name, List args, ClassBody body){
-        EnumConstantDecl n = new EnumConstantDecl_c(pos, flags, name, args, body);
-        return n;
+    	//CHECK enum constant to be implemented
+    	//        EnumConstantDecl n = new EnumConstantDecl_c(pos, flags, name, args, body);
+    	//        return n;
+    	assert false;
+    	return null;
     }
     public EnumConstantDecl EnumConstantDecl(Position pos, FlagAnnotations flags, Id name, List args){
-        EnumConstantDecl n = new EnumConstantDecl_c(pos, flags, name, args, null);
+    	//CHECK enum constant to be implemented
+    	//      EnumConstantDecl n = new EnumConstantDecl_c(pos, flags, name, args, null);
+    	//        return n;
+    	assert false;
+    	return null;
+    }
+    
+    public EnumDecl EnumDecl(Position pos, FlagAnnotations flags, Id name, TypeNode superType,  List interfaces, ClassBody body){
+    	EnumDecl n = new EnumDecl_c(pos, flags, name, superType, interfaces, body);
         return n;
     }
+
     public JL5ClassDecl JL5ClassDecl(Position pos, FlagAnnotations flags, Id name, TypeNode superType,  List interfaces, ClassBody body, List paramTypes ){
         JL5ClassDecl n;
         if (paramTypes == null){
@@ -177,7 +189,7 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return n;
     }
     
-    public BoundedTypeNode BoundedTypeNode(Position pos, BoundedTypeNode.Kind kind, TypeNode bound){
+    public BoundedTypeNode BoundedTypeNode(Position pos, Kind kind, TypeNode bound){
         BoundedTypeNode n = new BoundedTypeNode_c(pos, kind, bound);
         return n;
     }
@@ -303,7 +315,7 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
     }
     
     @Override
-    public JL5ConstructorCall ConstructorCall(Position pos, Kind kind, Expr outer, List args) {
+    public JL5ConstructorCall ConstructorCall(Position pos, ConstructorCall.Kind kind, Expr outer, List args) {
         return new JL5ConstructorCall_c(pos, kind, outer, args, null);
     }
     @Override

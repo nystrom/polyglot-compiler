@@ -59,7 +59,7 @@ public class JL5ExtensionInfo extends JLExtensionInfo {
 
     static class JL5Scheduler extends JLScheduler {
 
-    	JL5Scheduler(ExtensionInfo extInfo) {
+    	JL5Scheduler(JLExtensionInfo extInfo) {
             super(extInfo);
         }
 

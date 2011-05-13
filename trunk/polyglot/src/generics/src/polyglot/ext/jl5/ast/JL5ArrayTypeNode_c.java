@@ -32,8 +32,7 @@ public class JL5ArrayTypeNode_c extends ArrayTypeNode_c {
 	@Override
 	public Node buildTypes(TypeBuilder tb) throws SemanticException {
 		JL5TypeSystem ts = (JL5TypeSystem) tb.typeSystem();
-		return typeRef(Types.<Type> ref(ts.arrayOf(position(), base.typeRef(),
-				varargs)));
+		return typeRef(Types.<Type> ref(ts.arrayOf(position(), base.typeRef(), varargs)));
 	}
 
 	@Override

@@ -11,7 +11,6 @@ import polyglot.types.ClassType_c;
 import polyglot.types.Flags;
 import polyglot.types.Name;
 import polyglot.types.Ref;
-import polyglot.types.ReferenceType;
 import polyglot.types.Resolver;
 import polyglot.types.StructType;
 import polyglot.types.Type;

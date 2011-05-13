@@ -59,8 +59,8 @@ public class NormalAnnotationElem_c extends AnnotationElem_c implements NormalAn
         JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem(); 
         Context c = tc.context();
         // check that elements refer to annotation element instances
-        for (Iterator it = elements().iterator(); it.hasNext(); ){
-            ElementValuePair next = (ElementValuePair)it.next();
+        for (Iterator<ElementValuePair> it = elements().iterator(); it.hasNext(); ){
+            ElementValuePair next = it.next();
             
             AnnotationElemInstance ai = ts.findAnnotation(typeName().type(), 
             		ts.AnnotationMatcher(typeName().type(), next.name().id(), c));
@@ -68,8 +68,8 @@ public class NormalAnnotationElem_c extends AnnotationElem_c implements NormalAn
             if (! ts.isImplicitCastValid(next.value().type(), ai.type(), c) &&
                 ! ts.typeEquals(next.value().type(), ai.type(), c) &&
                 ! ts.numericConversionValid(ai.type(), next.value().constantValue(), c) && 
-                ! ts.isBaseCastValid(next.value().type(), ai.type()) &&
-                ! ts.numericConversionBaseValid(ai.type(), next.value().constantValue())){
+                ! ts.isBaseCastValid(next.value().type(), ai.type(), c) &&
+                ! ts.numericConversionBaseValid(ai.type(), next.value().constantValue(), c)){
                 throw new SemanticException("The type of the value: "+next.value().type()+" for element: "+next.name()+" does not match the declared annotation type: "+ai.type(), next.value().position());
             }
         }

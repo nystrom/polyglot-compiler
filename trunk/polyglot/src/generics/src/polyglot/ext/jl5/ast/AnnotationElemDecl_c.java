@@ -202,12 +202,11 @@ public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
                 ((ArrayInit)defaultVal).typeCheckElements(tc, type.type());
             }
             else {
-                boolean intConversion = false;
                 if (! ts.isImplicitCastValid(defaultVal.type(), type.type(), ctx) &&
                     ! ts.typeEquals(defaultVal.type(), type.type(), ctx) &&
                     ! ts.numericConversionValid(type.type(), defaultVal.constantValue(), ctx) &&
-                    ! ts.isBaseCastValid(defaultVal.type(), type.type()) &&
-                    ! ts.numericConversionBaseValid(type.type(), defaultVal.constantValue())){
+                    ! ts.isBaseCastValid(defaultVal.type(), type.type(), ctx) &&
+                    ! ts.numericConversionBaseValid(type.type(), defaultVal.constantValue(), ctx)){
                     throw new SemanticException("The type of the default value: "+defaultVal+" does not match the annotation element type: "+type.type()+" .", defaultVal.position());
                 }
             }

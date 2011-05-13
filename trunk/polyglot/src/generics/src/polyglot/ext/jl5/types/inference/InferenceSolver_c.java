@@ -14,19 +14,15 @@ import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.types.ClassType;
 import polyglot.types.Type;
 
+/**
+ * Resolve class to call when a method invocation involving generics is done 
+ */
 public class InferenceSolver_c implements InferenceSolver {
-
-    private JL5TypeSystem ts;
-
-    private JL5ProcedureInstance pi = null;
-
-    private List<Type> actuals;
-
-    private List<Type> formals;
-
-    private List<TypeVariable> typeVariables;
-
-    private Type expRetType = null;
+    private final JL5TypeSystem ts;
+    private final JL5ProcedureInstance pi;
+    private final List<Type> actuals;
+    private final List<Type> formals;
+    private final List<TypeVariable> typeVariables;
 
     public InferenceSolver_c(JL5ProcedureInstance pi, List<Type> actuals, JL5TypeSystem ts) {
         this.pi = pi;
@@ -34,14 +30,6 @@ public class InferenceSolver_c implements InferenceSolver {
         this.actuals = actuals;
         this.formals = pi.formalTypes();
         this.ts = ts;
-    }
-
-    public InferenceSolver_c(List<TypeVariable> typeVars, List<Type> formals, List<Type> actuals,
-            JL5TypeSystem ts) {
-        this.ts = ts;
-        this.actuals = actuals;
-        this.formals = formals;
-        this.typeVariables = typeVars;
     }
 
     public boolean isTargetTypeVariable(Type t) {
@@ -56,6 +44,9 @@ public class InferenceSolver_c implements InferenceSolver {
         return typeVariables;
     }
 
+    /**
+     * Infer generic types
+     */
     public List<Type> solve() {
         List<Constraint> constraints = getInitialConstraints();
         List<EqualConstraint> equals = new ArrayList<EqualConstraint>();
@@ -113,15 +104,14 @@ public class InferenceSolver_c implements InferenceSolver {
                 List<ClassType> u = new ArrayList<ClassType>(uset);
                 if (u.size() == 1) {
                     solution[i] = u.get(0);
-                }
-                else if (u.size() > 1) {
+                } else if (u.size() > 1) {
+                	//CHECK Why don't we resolve bounds here ?
                     solution[i] = ts.lubType(u);
+                } else {
+                    solution[i] = ts.Object();                	
                 }
             }
         }
-        for (int i = 0; i < solution.length; i++)
-            if (solution[i] == null)
-                solution[i] = ts.Object();
         List<Type> r = new ArrayList<Type>();
         Collections.addAll(r, solution);
         return r;
@@ -144,18 +134,4 @@ public class InferenceSolver_c implements InferenceSolver {
         }
         return constraints;
     }
-
-    public List<Type> solve(Type expectedReturnType) {
-        this.expRetType = expectedReturnType;
-        return solve();
-    }
-
-    public JL5TypeSystem typeSystem() {
-        return ts;
-    }
-
-    public JL5ProcedureInstance procedureInstance() {
-        return pi;
-    }
-
 }

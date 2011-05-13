@@ -4,7 +4,8 @@ import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
 import polyglot.ast.TypeNode_c;
 import polyglot.ext.jl5.types.JL5TypeSystem;
-import polyglot.types.ReferenceType;
+import polyglot.types.ClassDef.Kind;
+import polyglot.types.ClassType;
 import polyglot.types.Types;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
@@ -18,10 +19,10 @@ import polyglot.visit.PrettyPrinter;
  */
 public class BoundedTypeNode_c extends TypeNode_c implements BoundedTypeNode {
 
-	protected BoundedTypeNode.Kind kind;
+	protected Kind kind;
 	protected TypeNode bound;
 
-	public BoundedTypeNode_c(Position pos, BoundedTypeNode.Kind kind,
+	public BoundedTypeNode_c(Position pos, Kind kind,
 			TypeNode bound) {
 		super(pos);
 		this.kind = kind;
@@ -71,9 +72,9 @@ public class BoundedTypeNode_c extends TypeNode_c implements BoundedTypeNode {
 			if (bound == null) {
 				return typeRef(Types.lazyRef(ts.anyType()));
 			} else if (kind == BoundedTypeNode.SUPER) {
-				return typeRef(Types.lazyRef(ts.anySuperType((ReferenceType) bound.type())));
+				return typeRef(Types.lazyRef(ts.anySuperType((ClassType) bound.type())));
 			} else if (kind == BoundedTypeNode.EXTENDS) {
-				return typeRef(Types.lazyRef(ts.anySubType((ReferenceType) bound.type())));
+				return typeRef(Types.lazyRef(ts.anySubType((ClassType) bound.type())));
 			}
 		}
 		return this;

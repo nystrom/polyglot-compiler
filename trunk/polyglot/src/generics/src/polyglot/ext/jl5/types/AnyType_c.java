@@ -1,6 +1,6 @@
 package polyglot.ext.jl5.types;
 
-import polyglot.types.ReferenceType;
+import polyglot.types.ClassType;
 import polyglot.types.Resolver;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
@@ -20,7 +20,7 @@ public class AnyType_c extends Wildcard_c implements AnyType, SignatureType{
         return "?";
     }
 
-    public ReferenceType upperBound(){
+    public ClassType upperBound(){
         return null;
     }
     
@@ -29,7 +29,7 @@ public class AnyType_c extends Wildcard_c implements AnyType, SignatureType{
         return "*";
     }
 
-    public ReferenceType lowerBound() {
+    public ClassType lowerBound() {
         return null;
     }
 

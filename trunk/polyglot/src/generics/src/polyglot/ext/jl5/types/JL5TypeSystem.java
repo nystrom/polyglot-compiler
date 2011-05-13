@@ -1,5 +1,6 @@
 package polyglot.ext.jl5.types;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -127,9 +128,9 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	AnyType anyType();
 
-	AnySuperType anySuperType(ReferenceType t);
+	AnySuperType anySuperType(ClassType t);
 
-	AnySubType anySubType(ReferenceType t);
+	AnySubType anySubType(ClassType t);
 
 	boolean isEquivalent(TypeObject arg1, TypeObject arg2);
 
@@ -138,6 +139,8 @@ public interface JL5TypeSystem extends TypeSystem {
 	IntersectionType intersectionType(Ref<? extends ClassDef> def, List<ClassType> bounds);
 
 	LubType lubType(List<ClassType> lst);
+	
+	LubType lubType(Type... a);
 
 	Type getSubstitution(GenericTypeRef orig, Type curr);
 
@@ -179,9 +182,6 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	InferenceSolver inferenceSolver(JL5ProcedureInstance pi, List<Type> actuals);
 
-	InferenceSolver inferenceSolver(List<TypeVariable> typeVars,
-			List<Type> formals, List<Type> actuals);
-
 	boolean typeVariableEquals(TypeVariable type1, TypeVariable type2,
 			Context context);
 
@@ -212,5 +212,7 @@ public interface JL5TypeSystem extends TypeSystem {
 	 * Return array type representing a variable argument
 	 */
 	ArrayType createArrayType(Position position, Ref<? extends Type> base, boolean varArgs);
+
+	Type arrayOf(Position position, Ref<? extends Type> typeRef, boolean varargs);
 
 }

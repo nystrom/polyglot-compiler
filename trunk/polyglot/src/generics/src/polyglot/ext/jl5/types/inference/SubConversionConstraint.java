@@ -6,23 +6,24 @@ import java.util.List;
 import polyglot.ext.jl5.types.AnySubType;
 import polyglot.ext.jl5.types.AnySuperType;
 import polyglot.ext.jl5.types.JL5PrimitiveType;
+import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.ext.jl5.types.Wildcard;
 import polyglot.types.Type;
 
 public class SubConversionConstraint extends Constraint {
-
     public SubConversionConstraint(Type actual, Type formal, InferenceSolver solver) {
         super(actual, formal, solver);
     }
 
     @Override
     public List<Constraint> simplify() {
+    	JL5TypeSystem jts = ((JL5TypeSystem)actual.typeSystem());
         List<Constraint> r = new ArrayList<Constraint>();
         if (actual instanceof JL5PrimitiveType) {
             JL5PrimitiveType prim_actual = (JL5PrimitiveType) actual;
-            r.add(new SubConversionConstraint(solver().typeSystem().classOf(prim_actual), formal, solver));
+            r.add(new SubConversionConstraint(jts.classOf(prim_actual), formal, solver));
         }
         else if (solver().isTargetTypeVariable(formal)) {
             r.add(new SubTypeConstraint(actual, formal, solver));
@@ -43,7 +44,7 @@ public class SubConversionConstraint extends Constraint {
         else if (formal instanceof ParameterizedType && actual instanceof ParameterizedType) {
             ParameterizedType formal_pt = (ParameterizedType) formal;
             ParameterizedType actual_pt = (ParameterizedType) actual;
-            ParameterizedType s = solver.typeSystem().findGenericSupertype(formal_pt.baseType(), actual_pt);
+            ParameterizedType s = jts.findGenericSupertype(formal_pt.baseType(), actual_pt);
             if (s != null) {
                 int n = formal_pt.typeArguments().size();
                 for (int i = 0; i < n; i++) {

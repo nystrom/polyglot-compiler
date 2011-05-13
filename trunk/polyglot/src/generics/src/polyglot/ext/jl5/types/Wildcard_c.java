@@ -1,14 +1,14 @@
 package polyglot.ext.jl5.types;
 
-import polyglot.types.Type_c;
+import polyglot.types.ClassType;
 import polyglot.types.ReferenceType;
-import polyglot.types.Type;
 import polyglot.types.TypeSystem;
+import polyglot.types.Type_c;
 import polyglot.util.Position;
 
 public abstract class Wildcard_c extends Type_c implements Wildcard {
 
-    protected ReferenceType bound;
+    protected ClassType bound;
     
     public Wildcard_c() {
         super();
@@ -23,11 +23,11 @@ public abstract class Wildcard_c extends Type_c implements Wildcard {
     }
     
 
-    public ReferenceType bound() {
+    public ClassType bound() {
         return bound;
     }
 
-    public void bound(ReferenceType bound) {
+    public void bound(ClassType bound) {
         this.bound = bound;
     }
     
