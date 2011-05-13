@@ -529,7 +529,7 @@ override class_member_declaration ::=
 // JSR-201) Enum Declaration
 enum_declaration ::=
 		modifiers_or_annotations_opt:a ENUM:b IDENTIFIER:c interfaces_opt:d enum_body:e
-        {: RESULT = parser.nf.JL5ClassDecl(parser.pos(b, e), a.classicFlags(JL5Flags.setEnumModifier(a.classicFlags())), c.getIdentifier(), parser.nf.CanonicalTypeNode(parser.pos(b, e), parser.ts.Enum()), d, e, new TypedList(new LinkedList(), TypeNode.class, false)); :}
+        {: RESULT = parser.nf.EnumDecl(parser.pos(b, e), a.classicFlags(JL5Flags.setEnumModifier(a.classicFlags())), c.getIdentifier(), parser.nf.CanonicalTypeNode(parser.pos(b, e), parser.ts.Enum()), d, e, new TypedList(new LinkedList(), TypeNode.class, false)); :}
 	;
 enum_body ::=
 		LBRACE:n enum_constants_opt:a enum_body_declarations_opt:b RBRACE:c

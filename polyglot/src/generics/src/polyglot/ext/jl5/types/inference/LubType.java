@@ -16,7 +16,7 @@ public interface LubType extends ClassType {
     public static final Kind LUB = new Kind("lub");
     IntersectionType calculateLub();
     List<ClassType> lubElements();
-    List<ReferenceType> bounds();
+    List<ClassType> bounds();
     
 
 }

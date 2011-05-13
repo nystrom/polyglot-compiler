@@ -120,12 +120,12 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
 
     	//CHECK AmbiguityRemove.ALL
     	//        if (ar.kind() == AmbiguityRemover.ALL) {
-    	ArrayList<ReferenceType> typeList = new ArrayList<ReferenceType>();
-    	for (Iterator it = bounds.iterator(); it.hasNext();) {
-    		TypeNode tn = (TypeNode) it.next();
+    	ArrayList<ClassType> typeList = new ArrayList<ClassType>();
+    	for (Iterator<TypeNode> it = bounds.iterator(); it.hasNext();) {
+    		TypeNode tn = it.next();
     		Type t = tn.type();
     		if (t instanceof ClassType)
-    			typeList.add((ReferenceType) t);
+    			typeList.add((ClassType) t);
     		else
     			throw new SemanticException("Unexpected type bound in type variable declaration", tn.position());
     	}

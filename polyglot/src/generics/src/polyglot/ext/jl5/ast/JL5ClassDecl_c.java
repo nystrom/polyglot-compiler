@@ -64,13 +64,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
     public JL5ClassDecl_c(Position pos, FlagAnnotations flags, Id name, TypeNode superClass,
             List interfaces, ClassBody body) {
         super(pos, flags.classicFlags(), name, superClass, interfaces, body);
-        List<AnnotationElem> l;
-        if (flags.annotations() != null) {
-            l = flags.annotations();
-        } else {
-        	l = Collections.EMPTY_LIST;
-        }
-        this.annotations = TypedList.copyAndCheck(flags.annotations(), AnnotationElem.class, false);
+        this.annotations = (flags.annotations() != null) ? flags.annotations() : Collections.EMPTY_LIST;
     }
 
     /**
@@ -188,35 +182,12 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
     	JL5ParsedClassType type = (JL5ParsedClassType) this.type.asType();
     	ClassType superType = (ClassType) type.superClass();
     	Flags flags = flags().flags();
-    	
-    	/* Enum-related checks */
 
-    	if (JL5Flags.isEnumModifier(flags) && flags.isAbstract()) {
-            throw new SemanticException("Enum types cannot have abstract modifier", this.position());
-        }
-        if (JL5Flags.isEnumModifier(flags) && flags.isPrivate() && !type.isInnerClass()) {
-            throw new SemanticException("Enum types cannot have explicit private modifier", this.position());
-        }
-        if (JL5Flags.isEnumModifier(flags) && flags.isFinal()) {
-            throw new SemanticException("Enum types cannot have explicit final modifier", this.position());
-        }
-        if (JL5Flags.isAnnotationModifier(flags) && flags.isPrivate()) {
+    	if (JL5Flags.isAnnotationModifier(flags) && flags.isPrivate()) {
             throw new SemanticException("Annotation types cannot have explicit private modifier", this.position());
-        }
-        if (superType != null && JL5Flags.isEnumModifier(superType.flags())) {
-            throw new SemanticException("Cannot extend enum type", position());
         }
         if (ts.typeEquals(ts.Object(), type, ctx) && !paramTypes.isEmpty()) {
             throw new SemanticException("Type: " + type + " cannot declare type variables.", position());
-        }
-
-        if (JL5Flags.isEnumModifier(flags().flags())) {
-            for (ConstructorInstance ci : type.constructors()) {
-                if (!ci.flags().clear(Flags.PRIVATE).equals(Flags.NONE)) {
-                    throw new SemanticException("Modifier " + ci.flags().clear(Flags.PRIVATE)
-                            + " not allowed here", ci.position());
-                }
-            }
         }
 
         // Parameter types checks 

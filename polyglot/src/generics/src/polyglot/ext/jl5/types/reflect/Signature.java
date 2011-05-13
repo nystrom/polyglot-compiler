@@ -317,8 +317,7 @@ public class Signature extends Attribute {
 		}
 		if (createTypeVars) {
 			return new Result(Types.ref(ts.typeVariable(position, id, bounds)), pos);
-		}
-		else {
+		} else {
 			TypeVariable tv = findTypeVar(id);
 			tv.bounds(bounds);
 			return new Result(tv, pos);
@@ -472,11 +471,11 @@ public class Signature extends Attribute {
 		char token = value.charAt(pos);
 		switch(token){
 		case PLUS: { Result fres = fieldTypeSig(value, ++pos);
-		res = new Result(Types.ref(ts.anySubType((ReferenceType)fres.result())), fres.pos());
+		res = new Result(Types.ref(ts.anySubType((ClassType)fres.result())), fres.pos());
 		break;
 		}
 		case MINUS: { Result fres = fieldTypeSig(value, ++pos);
-		res = new Result(Types.ref(ts.anySuperType((ReferenceType)fres.result())), fres.pos());
+		res = new Result(Types.ref(ts.anySuperType((ClassType)fres.result())), fres.pos());
 		break;
 		}
 		case STAR: { pos++;

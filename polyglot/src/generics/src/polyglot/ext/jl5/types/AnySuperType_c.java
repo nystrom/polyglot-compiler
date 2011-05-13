@@ -1,19 +1,19 @@
 package polyglot.ext.jl5.types;
 
-import polyglot.types.ReferenceType;
+import polyglot.types.ClassType;
 import polyglot.types.Resolver;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 
 public class AnySuperType_c extends Wildcard_c implements AnySuperType, SignatureType{
 
-    public AnySuperType_c(TypeSystem ts, ReferenceType bound){
+    public AnySuperType_c(TypeSystem ts, ClassType bound){
         super(ts);
         bound(bound);
     }
 
     
-    public ReferenceType upperBound(){
+    public ClassType upperBound(){
         return null;
     }
 
@@ -31,7 +31,7 @@ public class AnySuperType_c extends Wildcard_c implements AnySuperType, Signatur
     }
 
 
-    public ReferenceType lowerBound() {
+    public ClassType lowerBound() {
         return bound();
     }
 

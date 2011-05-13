@@ -1,14 +1,13 @@
 package polyglot.ext.jl5.types;
 
-import polyglot.ast.TypeNode;
-import polyglot.types.ReferenceType;
+import polyglot.types.ClassType;
 import polyglot.types.Resolver;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 
 public class AnySubType_c extends Wildcard_c implements AnySubType, SignatureType{
 
-    public AnySubType_c(TypeSystem ts, ReferenceType bound){
+    public AnySubType_c(TypeSystem ts, ClassType bound){
         super(ts);
         bound(bound);
     }
@@ -25,11 +24,11 @@ public class AnySubType_c extends Wildcard_c implements AnySubType, SignatureTyp
         return "+"+((SignatureType)bound).signature();
     }
 
-    public ReferenceType lowerBound() {
+    public ClassType lowerBound() {
         return null;
     }
 
-    public ReferenceType upperBound() {
+    public ClassType upperBound() {
         return bound();
     }
 

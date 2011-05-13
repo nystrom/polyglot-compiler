@@ -814,11 +814,14 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	}
 
 	/**
-	 * Called by Signature when doing in reflect when reading class from bytecode
+	 * Called by Signature when reading class from bytecode
 	 */
 	@Override
     public TypeVariable typeVariable(Position pos, String name, List bounds) {
-        return new TypeVariable_c(this, pos, name, bounds);
+		// CHECK how do we instantiate a type variable ?
+		assert false;
+		return null;
+//        return new TypeVariable_c(this, pos, name, bounds);
     }
 
 	public TypeVariable typeVariable(Position pos, String name,
@@ -1052,18 +1055,18 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 
 	public boolean equivalent(Type fromType, Type toType) {
 		Context context = emptyContext();
-		return env(context).equivalent(fromType, toType);
+		return ((JL5TypeEnv_c)env(context)).equivalent(fromType, toType);
 	}
 
 	public AnyType anyType() {
 		return new AnyType_c(this);
 	}
 
-	public AnySuperType anySuperType(ReferenceType t) {
+	public AnySuperType anySuperType(ClassType t) {
 		return new AnySuperType_c(this, t);
 	}
 
-	public AnySubType anySubType(ReferenceType t) {
+	public AnySubType anySubType(ClassType t) {
 		return new AnySubType_c(this, t);
 	}
 
@@ -1170,6 +1173,10 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	
 	Map<Ref<? extends Type>, Type> varargsArrayTypeCache = new HashMap<Ref<? extends Type>, Type>();
 
+	public Type arrayOf(Position position, Ref<? extends Type> typeRef, boolean varargs) {
+		return createArrayType(position, typeRef, varargs);
+	}
+	
 	/**
 	 * Factory method for ArrayTypes with varargs support. We maintain a
 	 * separate cache for varargs array type.
@@ -1383,10 +1390,8 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 					Type tvBound;
 					if (((MemberInstance) actualCalledProc).container() instanceof GenericTypeRef) {
 						tvBound = getSubstitution(
-								(GenericTypeRef) ((MemberInstance) actualCalledProc)
-										.container(),
-								((TypeVariable) actualCalledProc
-										.typeVariables().get(i)).upperBound());
+								(GenericTypeRef) ((MemberInstance) actualCalledProc).container(),
+								((TypeVariable) actualCalledProc.typeVariables().get(i)).upperBound());
 					} else {
 						tvBound = ((TypeVariable) actualCalledProc
 								.typeVariables().get(i)).upperBound();
@@ -1625,7 +1630,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			ReferenceType b = wc.bound();
 			if (b != null) {
 				Wildcard newwc = (Wildcard) wc.copy();
-				newwc.bound((ReferenceType) applySubstitution(b, orig, sub));
+				newwc.bound((ClassType) applySubstitution(b, orig, sub));
 				return newwc;
 			}
 		} else if (toBeSubed instanceof LubType) {
@@ -1984,19 +1989,22 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		}
 	}
 
-	public InferenceSolver inferenceSolver(JL5ProcedureInstance pi,
-			List<Type> actuals) {
+	public InferenceSolver inferenceSolver(JL5ProcedureInstance pi, List<Type> actuals) {
 		return new InferenceSolver_c(pi, actuals, this);
-	}
-
-	public InferenceSolver inferenceSolver(List<TypeVariable> typeVars,
-			List<Type> formals, List<Type> actuals) {
-		return new InferenceSolver_c(typeVars, formals, actuals, this);
 	}
 
 	public LubType lubType(List<ClassType> lst) {
 		return new LubType_c(this, lst);
 	}
+	
+	public LubType lubType(Type ... a) {
+		List<ClassType> l = new ArrayList<ClassType>();
+		for (Type t : a) {
+			l.add((ClassType) t);
+		}
+		return this.lubType(l);
+	}
+
 
 	public TypeEnv env(Context context) {
 		return new JL5TypeEnv_c(context);

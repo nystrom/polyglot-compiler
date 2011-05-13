@@ -47,7 +47,7 @@ public class JL5ClassFileLazyClassInitializer extends
 /**
  * This comes from JL5ClassFile, I think it is now lazily done
  * super return a new ClassDef. Not sure how this relates to 
- * the whoel rawification phase
+ * the whole rawification phase
  * @param ts
  * @return
  * @throws SemanticException
@@ -92,7 +92,7 @@ public class JL5ClassFileLazyClassInitializer extends
      * @see polyglot.types.LazyClassInitializer#initInterfaces(polyglot.types.ParsedClassType)
      */
     public void initInterfaces() {
-    	JL5ParsedClassType pct = ct.asType();
+    	JL5ParsedClassType pct = (JL5ParsedClassType) ct.asType();
         if ((pct instanceof JL5ParsedClassType) && (signature != null)) {
             //JL5ParsedClassType j5ct = (JL5ParsedClassType) ct;
             for (Iterator it = signature.classSignature.interfaces.iterator(); it.hasNext();) {

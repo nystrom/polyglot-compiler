@@ -3,50 +3,62 @@ package polyglot.ext.jl5.ast;
 import java.util.List;
 
 import polyglot.ast.ClassBody;
-import polyglot.ast.ClassMember;
+import polyglot.ast.ClassDecl;
 import polyglot.ast.FlagsNode;
 import polyglot.ast.Id;
-import polyglot.ext.jl5.types.EnumInstance;
-import polyglot.types.ConstructorInstance;
+import polyglot.types.ClassDef;
 import polyglot.types.ParsedClassType;
 
 /**
- * An immutable representation of a Java language extended <code>for</code>
- * statement.  Contains a statement to be executed and an expression
- * to be tested indicating whether to reexecute the statement.
+ * Enum constant declaration
  */
-public interface EnumConstantDecl extends ClassMember
+public interface EnumConstantDecl extends ClassDecl
 {    
-    /** get args */
+    /**
+     * The type of the class declaration.
+     */
+    ClassDef classDef();
+
+    /**
+     * Set the type of the class declaration.
+     */
+    EnumConstantDecl classDef(ClassDef type);
+
+    /**
+     * The class declaration's flags.
+     */
+    FlagsNode flags();
+
+    /**
+     * Set the class declaration's flags.
+     */
+    EnumConstantDecl flags(FlagsNode flags);
+
+    /**
+     * The class declaration's name.
+     */
+    Id name();
+    
+    /**
+     * Set the class declaration's name.
+     */
+    EnumConstantDecl name(Id name);
+
+    /**
+     * The class's body.
+     */
+    ClassBody body();
+
+    /**
+     * Set the class's body.
+     */
+    EnumConstantDecl body(ClassBody body);
+
+	/** get args */
     List args();
 
     /** set args */
     EnumConstantDecl args(List args);
 
-    /** set name */
-    EnumConstantDecl name(Id name);
-
-    /** get name */
-    Id name();
-    
-    /** set body */
-    EnumConstantDecl body(ClassBody body);
-
-    /** get body */
-    ClassBody body();
-
-    ParsedClassType anonType();
-    EnumConstantDecl anonType(ParsedClassType pct);
-
-    ConstructorInstance constructorInstance();
-    EnumConstantDecl constructorInstance(ConstructorInstance ci);
-    
-    EnumInstance enumInstance();
-
-    EnumConstantDecl enumInstance(EnumInstance ei);
-
     List annotations();
-
-    FlagsNode flags();
-
 }

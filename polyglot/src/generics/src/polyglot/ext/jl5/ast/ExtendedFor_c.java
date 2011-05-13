@@ -16,8 +16,8 @@ import polyglot.ast.Term;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.types.ArrayType;
+import polyglot.types.ClassType;
 import polyglot.types.Context;
-import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.util.CodeWriter;
@@ -96,7 +96,7 @@ public class ExtendedFor_c extends Loop_c implements ExtendedFor {
         }
         //Milan: not sure if it is better to return raw type from Iterable() or to rawify it on the fly
         else if (ts.isSubtype(t, ts.rawify(ts.Iterable()), tc.context())){
-            t = ts.findGenericSupertype(ts.Iterable(), (ReferenceType) t);
+            t = ts.findGenericSupertype(ts.Iterable(), (ClassType) t);
             if (t == null) {
                 t = ts.Object();
             }

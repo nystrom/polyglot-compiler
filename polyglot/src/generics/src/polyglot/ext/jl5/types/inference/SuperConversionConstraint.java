@@ -5,6 +5,7 @@ import java.util.List;
 
 import polyglot.ext.jl5.types.AnySubType;
 import polyglot.ext.jl5.types.AnySuperType;
+import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.ext.jl5.types.Wildcard;
@@ -42,9 +43,9 @@ public class SuperConversionConstraint extends Constraint {
             ParameterizedType actual_pt = (ParameterizedType) actual;
             ParameterizedType f = null;
             if (!actual_pt.baseType().typeEquals(formal_pt.baseType(), null)) {
-                f = solver.typeSystem().findGenericSupertype(actual_pt.baseType(), formal_pt.baseType());
+                f = ((JL5TypeSystem)formal_pt.typeSystem()).findGenericSupertype(actual_pt.baseType(), formal_pt.baseType());
                 if (f != null) {
-                    solver.typeSystem().applySubstitution(f, formal_pt.baseType().typeVariables(), formal_pt.typeArguments());
+                	((JL5TypeSystem)formal_pt.typeSystem()).applySubstitution(f, formal_pt.baseType().typeVariables(), formal_pt.typeArguments());
 
                 }
             }

@@ -1,6 +1,7 @@
 package polyglot.ext.jl5.types;
 
 import polyglot.ast.TypeNode;
+import polyglot.ext.jl5.types.inference.LubType;
 import polyglot.main.Report;
 import polyglot.types.Context;
 import polyglot.types.MethodInstance;
@@ -9,7 +10,6 @@ import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeEnv_c;
-import polyglot.types.TypeObject;
 
 public class JL5TypeEnv_c extends TypeEnv_c {
 
@@ -31,6 +31,13 @@ public class JL5TypeEnv_c extends TypeEnv_c {
 	            }
 	        }
 	        return false;
+		}
+		
+		if (fromType instanceof LubType) {
+			for (Type elem : ((LubType) fromType).lubElements()) {
+				if (!isImplicitCastValid(elem, toType)) return false;
+			}
+			return true;
 		}
 		
 		if (toType instanceof TypeVariable) {
@@ -132,6 +139,13 @@ public class JL5TypeEnv_c extends TypeEnv_c {
 	        return false;
 		}
 
+		if(fromType instanceof LubType) {
+			for (Type elem : ((LubType)fromType).lubElements()) {
+				if (!isCastValid(elem, toType)) return false;
+			}
+			return true;
+		}
+		
     	if (fromType instanceof TypeVariable) {
     		return isCastValid(((TypeVariable) fromType).upperBound(), toType);
     	}

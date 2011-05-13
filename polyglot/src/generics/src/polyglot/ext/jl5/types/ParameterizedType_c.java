@@ -269,7 +269,7 @@ public class ParameterizedType_c extends GenericTypeRef_c implements Parameteriz
                     }
                     else if (arg instanceof AnySubType) {
                         AnySubType argcast = (AnySubType) arg;
-                        List<ReferenceType> newBounds = new ArrayList<ReferenceType>();
+                        List<ClassType> newBounds = new ArrayList<ClassType>();
                         newBounds.add(argcast.bound());
                         newBounds.addAll(ts.applySubstitution(baseTypeVars.get(i).bounds(), baseTypeVars, capturedArgs));
                         capArg.bounds(newBounds);
