@@ -28,7 +28,7 @@ public class JL5AmbTypeNode_c extends AmbTypeNode_c implements JL5AmbTypeNode {
 
     protected List typeArguments;
 
-    public JL5AmbTypeNode_c(Position pos, QualifierNode qual, Id name, List typeArguments) {
+    public JL5AmbTypeNode_c(Position pos, Prefix qual, Id name, List typeArguments) {
         super(pos, qual, name);
         this.typeArguments = typeArguments;
     }
