@@ -8,6 +8,7 @@ import polyglot.ast.AmbQualifierNode_c;
 import polyglot.ast.CanonicalTypeNode;
 import polyglot.ast.Id;
 import polyglot.ast.Node;
+import polyglot.ast.Prefix;
 import polyglot.ast.QualifierNode;
 import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.JL5ParsedClassType;
@@ -22,7 +23,7 @@ public class JL5AmbQualifierNode_c extends AmbQualifierNode_c implements JL5AmbQ
 
     protected List typeArguments;
     
-    public JL5AmbQualifierNode_c(Position pos, QualifierNode qual, Id name, List typeArguments){
+    public JL5AmbQualifierNode_c(Position pos, Prefix qual, Id name, List typeArguments){
         super(pos, qual, name);
         this.typeArguments = typeArguments;
     }
