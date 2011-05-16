@@ -4,7 +4,7 @@ import polyglot.types.FieldInstance;
 import polyglot.types.MemberInstance;
 import polyglot.types.ParsedClassType;
 
-public interface EnumInstance extends FieldInstance, MemberInstance {
+public interface EnumInstance extends FieldInstance {
 /*
     EnumInstance flags(Flags flags);
 
