@@ -14,6 +14,7 @@ import polyglot.ext.jl5.types.JL5MethodDef;
 import polyglot.ext.jl5.types.JL5MethodInstance;
 import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.JL5TypeSystem;
+import polyglot.main.Report;
 import polyglot.types.ArrayType;
 import polyglot.types.ClassDef;
 import polyglot.types.ConstructorDef;
@@ -52,88 +53,123 @@ public class JL5ClassFileLazyClassInitializer extends
  * @return
  * @throws SemanticException
  */
-    public ParsedClassType type(TypeSystem ts) throws SemanticException {
-    	JL5ParsedClassType t = (JL5ParsedClassType)super.type(ts);
-    	if (signature != null) {
-    		try {
-    			signature.parseClassSignature(ts, t.position());
-    		} catch(IOException e){
-    		}
-    		t.typeVariables(signature.classSignature.typeVars());
-    		t.superType(signature.classSignature.superType());
-    	}
-    	t.superType(((JL5TypeSystem)ts).rawifyBareGenericType(t.superType()));
-    	return t;
+//    public ParsedClassType type(TypeSystem ts) throws SemanticException {
+//    	JL5ParsedClassType t = (JL5ParsedClassType)super.type(ts);
+//    	if (signature != null) {
+//    		try {
+//    			signature.parseClassSignature(ts, t.position());
+//    		} catch(IOException e){
+//    		}
+//    		t.typeVariables(signature.classSignature.typeVars());
+//    		t.superType(signature.classSignature.superType());
+//    	}
+//    	t.superType(((JL5TypeSystem)ts).rawifyBareGenericType(t.superType()));
+//    	return t;
+//    }
+    
+    protected ClassDef createType() throws SemanticException {
+    	// The call to super goes over the type creation process
+    	// while specializing some of the calls to this class 
+    	super.createType();
+    	// Here ct has been updated with generics info
+    	// Still have to handle enum and annotations
+    	initEnumConstants();
+    	initAnnotations();
+    	
+    	return ct;
     }
     
-    public void initEnumConstants(JL5ParsedClassType ct){
-        JL5TypeSystem ts = (JL5TypeSystem)ct.typeSystem();
+    public void initEnumConstants(){
+        // JL5TypeSystem ts = (JL5TypeSystem)ct.typeSystem();
+        // If current class represents an enum, then we need 
+        // to create an enum constants declaration in the class type.
+         
+        // CHECK so here we've already initialized fields, but now we would like 
+        // to say that was an enum constant declaration.
+        // check if we'd rather do that by overridding fieldInstance.
+        // => In this case, do we want to introduce an EnumConstantDef that extends FieldDef ?
         
-        for (int i = 0; i < fields.length; i++){
-            if ((fields[i].modifiers() & JL5Flags.ENUM_MOD) != 0) {
-                FieldInstance fi = fields[i].fieldInstance(ts, ct);
-                ct.addEnumConstant(ts.enumInstance(ct.position(), fi.def()));
-            }
-        }
-    }
-
-    public void initAnnotations(JL5ParsedClassType ct){
-        JL5TypeSystem ts = (JL5TypeSystem)ct.typeSystem();
-
-        for (int i = 0; i < methods.length; i++){
-            MethodInstance mi = methods[i].methodInstance(ts, ct);
-            AnnotationElemInstance ai = ts.annotationElemInstance(ct.position(), ct, mi.flags(), mi.returnType(), mi.name(), ((JL5Method)methods[i]).hasDefaultVal());
-            ct.addAnnotationElem(ai);
-        }
+        // OLD CODE from the 
+//        for (int i = 0; i < fields.length; i++){
+//            if ((fields[i].modifiers() & JL5Flags.ENUM_MOD) != 0) {
+//                FieldInstance fi = fields[i].fieldInstance(ts, ct);
+//                ct.addEnumConstant(ts.enumInstance(ct.position(), fi.def()));
+//            }
+//        }
     }
     
-      
+    public void initAnnotations(){
+    	//CHECK do not handle annotations for now
+//    	if (hasSignature()) {
+//    		Signature sig = getSignature();
+//    		JL5TypeSystem ts = (JL5TypeSystem)ct.typeSystem();
+//    		for (int i = 0; i < methods.length; i++){
+//    			MethodInstance mi = methods[i].methodInstance(ts, ct);
+//    			AnnotationElemInstance ai = ts.annotationElemInstance(ct.position(), ct, mi.flags(), mi.returnType(), mi.name(), ((JL5Method)methods[i]).hasDefaultVal());
+//    			ct.addAnnotationElem(ai);
+//    		}
+//    	}
+    }
+
+    protected boolean hasSignature() {
+    	return this.getSignature() != null;
+    }
+    
+    protected Signature getSignature() {
+    	JL5ClassFile jl5Clazz = (JL5ClassFile) clazz;
+    	return jl5Clazz.getSignature();
+    }
+    
     /* (non-Javadoc)
      * @see polyglot.types.LazyClassInitializer#initInterfaces(polyglot.types.ParsedClassType)
      */
     public void initInterfaces() {
-    	JL5ParsedClassType pct = (JL5ParsedClassType) ct.asType();
-        if ((pct instanceof JL5ParsedClassType) && (signature != null)) {
-            //JL5ParsedClassType j5ct = (JL5ParsedClassType) ct;
-            for (Iterator it = signature.classSignature.interfaces.iterator(); it.hasNext();) {
-                Type iface = (Type) it.next();
+    	JL5ClassFile jl5Clazz = (JL5ClassFile) clazz;
+        if (this.hasSignature()) {
+        	Signature sig = getSignature();
+        	// Need to get a type out of the signature so that it
+        	// can be added to the interface list of current class type.
+        	// CHECK assume that even if the class doesn't have generics, it contains 
+        	// type information that allow us to build interfaces type.
+        	for (Iterator<Ref<? extends Type>> it = sig.getSuperInterfacesType().iterator(); it.hasNext();) {
+            	Ref<? extends Type> iface = it.next();
                 ct.addInterface(iface);
             }
+        } else {
+        	// Cannot find interface info from the signature (for ex, loading a java 1.4 class)
+            super.initInterfaces();
         }
-        else 
-            super.initInterfaces(ct);
     }
 
-	// turn bare occurrences of generic types into raw types
-	private static JL5MethodInstance rawifyBareGenerics(JL5MethodDef mi, JL5TypeSystem ts) {
-		mi = (JL5MethodInstance) mi.returnType(ts.rawifyBareGenericType(mi.returnType()));
-		mi = mi.formalTypes(ts.rawifyBareGenericTypeList(mi.formalTypes()));
-		mi = mi.throwTypes(ts.rawifyBareGenericTypeList(mi.throwTypes()));
-		//CHECK FIXME:  Should do this as well, but it's causing null pointer exceptions.
-		//	mi = (JL5MethodInstance) mi.typeArguments(ts.rawifyBareGenericTypeList(mi.typeArguments()));
-		return mi;
-	}
-
-	private static JL5ConstructorInstance rawifyBareGenerics(JL5ConstructorInstance ci, JL5TypeSystem ts) {
-		ci = ci.formalTypes(ts.rawifyBareGenericTypeList(ci.formalTypes()));
-		ci = ci.throwTypes(ts.rawifyBareGenericTypeList(ci.throwTypes()));
-		return ci;
-	}
-
-    
+	// CHECK why rawifyBareGenerics ? this code is from the old implementation of JL5Method
+    //	// turn bare occurrences of generic types into raw types
+//	private static JL5MethodInstance rawifyBareGenerics(JL5MethodDef mi, JL5TypeSystem ts) {
+//		mi = (JL5MethodInstance) mi.returnType(ts.rawifyBareGenericType(mi.returnType()));
+//		mi = mi.formalTypes(ts.rawifyBareGenericTypeList(mi.formalTypes()));
+//		mi = mi.throwTypes(ts.rawifyBareGenericTypeList(mi.throwTypes()));
+//		//CHECK FIXME:  Should do this as well, but it's causing null pointer exceptions.
+//		//	mi = (JL5MethodInstance) mi.typeArguments(ts.rawifyBareGenericTypeList(mi.typeArguments()));
+//		return mi;
+//	}
+//
+//	private static JL5ConstructorInstance rawifyBareGenerics(JL5ConstructorInstance ci, JL5TypeSystem ts) {
+//		ci = ci.formalTypes(ts.rawifyBareGenericTypeList(ci.formalTypes()));
+//		ci = ci.throwTypes(ts.rawifyBareGenericTypeList(ci.throwTypes()));
+//		return ci;
+//	}
     
     @Override
     public FieldDef fieldInstance(Field field, ClassDef ct) {
 		JL5TypeSystem jts = (JL5TypeSystem) ts;
 		FieldDef fd = super.fieldInstance(field, ct);
-		// CHECK why do we need to rawify systematically here ?
-		FieldInstance fi = fd.asInstance();
-		Ref<? extends Type> refType = Types.ref(fi.type());
-		Type rawType = jts.rawifyBareGenericType(refType.get());
-		if (JL5Flags.isEnumModifier(fi.flags())) {
-			fi =  jts.enumInstance(ct.position(), fd);
-		}
-		return fi;
+		// CHECK why rawifyBareGenerics ?
+//		FieldInstance fi = fd.asInstance();
+//		Ref<? extends Type> refType = Types.ref(fi.type());
+//		Type rawType = jts.rawifyBareGenericType(refType.get());
+//		if (JL5Flags.isEnumModifier(fi.flags())) {
+//			fi =  jts.enumInstance(ct.position(), fd);
+//		}
+		return fd;
 	}
 
     protected MethodDef methodInstance(Method method, ClassDef ct) {
@@ -151,18 +187,21 @@ public class JL5ClassFileLazyClassInitializer extends
 			jl5Md.setTypeVariableTypes(signature.methodSignature.typeVars());
 			md.setReturnType(signature.methodSignature.returnType());
 			md.setFormalTypes(signature.methodSignature.formalTypes());
-			// CHECK It seems that the signature doesn't contain the thrown exceptions, so we should
-			// rely on the super call above to handle that.
+			// CHECK It seems that the signature doesn't contain thrown exceptions,
+			// so we should rely on the super call above to handle that.
 			md.setThrowTypes(signature.methodSignature.throwTypes());
 		}
+		//CHECK why do we need to do that if method is transient ?
+		// If a method is transient we look for the last argument and we replace its
+		// type by an arraytype and set the varargs on the array
 		if (md.flags().isTransient()){
+			assert false;
 			List<Ref<? extends Type>> newFormals = new ArrayList<Ref<? extends Type>>();
 			for (Iterator<Ref<? extends Type>> it = md.formalTypes().iterator(); it.hasNext(); ){
 				Ref<? extends Type> refType = it.next();
 				Type t = refType.get();
 				if (!it.hasNext()){
-					ArrayType at = (ArrayType) ts.arrayOf(t.position(), ((ArrayType)t).base());
-					((JL5ArrayType)at).setVarargs();
+					ArrayType at = (ArrayType) ((JL5TypeSystem) ts).createArrayType(t.position(), Types.ref(((ArrayType)t).base()), true);
 					newFormals.add(Types.ref(at));
 				} 
 				else{
@@ -171,7 +210,9 @@ public class JL5ClassFileLazyClassInitializer extends
 			}
 			md.setFormalTypes(newFormals);
 		}
-		return rawifyBareGenerics(md, (JL5TypeSystem) ts);
+		return md;
+		// CHECK why rawifyBareGenerics ?
+//		return rawifyBareGenerics(md, (JL5TypeSystem) ts);
 	}
 
     protected ConstructorDef constructorInstance(Method method, ClassDef ct, Field[] fields) {
@@ -184,8 +225,6 @@ public class JL5ClassFileLazyClassInitializer extends
 			}
 			catch(IOException e){
 			}
-			catch(SemanticException e){
-			}
 			JL5ConstructorDef jl5cd = (JL5ConstructorDef) cd;
 			jl5cd.setTypeVariableTypes(signature.methodSignature.typeVars());
 			cd.setFormalTypes(signature.methodSignature.formalTypes());
@@ -194,21 +233,26 @@ public class JL5ClassFileLazyClassInitializer extends
 			// ci = (JL5ConstructorInstance)ci.throwTypes(signature.methodSignature.throwTypes());
 
 		}
+		//CHECK why do we need to do that if method is transient ?
+		// If a method is transient we look for the last argument and we replace its
+		// type by an arraytype and set the varargs on the array
 		if (cd.flags().isTransient()){
+			assert false;
 			List<Ref<? extends Type>> newFormals = new ArrayList<Ref<? extends Type>>();
 			for (Iterator<Ref<? extends Type>> it = cd.formalTypes().iterator(); it.hasNext(); ){
 				Ref<? extends Type> t = it.next();
 				if (!it.hasNext()){
-					ArrayType at = ((JL5TypeSystem)ts).createArrayType(t.get().position(), ((ArrayType)t).base(), true);
+					ArrayType at = ((JL5TypeSystem)ts).createArrayType(t.get().position(), Types.ref(((ArrayType)t).base()), true);
 					newFormals.add(Types.ref(at));
-				} 
-				else{
+				} else {
 					newFormals.add(t);
 				}
 			}
 			cd.setFormalTypes(newFormals);
 		}
-		return rawifyBareGenerics(cd, (JL5TypeSystem) ts);
+		// CHECK why rawifyBareGenerics ?
+//		return rawifyBareGenerics(cd, (JL5TypeSystem) ts);
+		return cd;
 	}
 //	@Override
 //	protected boolean initialized() {

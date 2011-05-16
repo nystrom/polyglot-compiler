@@ -239,6 +239,12 @@ public class Signature extends Attribute {
 		}
 	}
 
+	/**
+	 * Parses a ClassSignature attribute containing type formals, super type and super interface types.
+	 * @param value
+	 * @param pos
+	 * @return
+	 */
 	public Result classSig(String value, int pos){
 		List<Ref<? extends Type>> typeFormals = Collections.EMPTY_LIST;
 		char token = value.charAt(pos);
@@ -745,5 +751,12 @@ public class Signature extends Attribute {
 
     public String toString(){
     	return (String)cls.getConstants()[index].value();
+    }
+    
+    public List<Ref<? extends Type>> getSuperInterfacesType(){
+    	if ((classSignature != null) && (classSignature.interfaces != null)) {
+    		return classSignature.interfaces;
+    	}
+    	return Collections.EMPTY_LIST;
     }
 }
