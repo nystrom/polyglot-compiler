@@ -20,7 +20,7 @@ import polyglot.ast.Id;
 import polyglot.ast.Import;
 import polyglot.ast.New;
 import polyglot.ast.NodeFactory_c;
-import polyglot.ast.QualifierNode;
+import polyglot.ast.Prefix;
 import polyglot.ast.Receiver;
 import polyglot.ast.Stmt;
 import polyglot.ast.TypeNode;
@@ -194,16 +194,16 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return n;
     }
 
-    public AmbQualifierNode JL5AmbQualifierNode(Position pos, QualifierNode qual, Id name, List args){
+    public AmbQualifierNode JL5AmbQualifierNode(Position pos, Prefix qual, Id name, List args){
         AmbQualifierNode n = new JL5AmbQualifierNode_c(pos, qual, name, args);
         return n;
     }
     
-    public AmbTypeNode AmbTypeNode(Position pos, QualifierNode qualifier, Id name) {
+    public AmbTypeNode AmbTypeNode(Position pos, Prefix qualifier, Id name) {
 	return JL5AmbTypeNode(pos, qualifier, name, new LinkedList());
     }
 
-    public AmbTypeNode JL5AmbTypeNode(Position pos, QualifierNode qual, Id name, List args){
+    public AmbTypeNode JL5AmbTypeNode(Position pos, Prefix qual, Id name, List args){
         AmbTypeNode n = new JL5AmbTypeNode_c(pos, qual, name, args);
         return n;
     }
