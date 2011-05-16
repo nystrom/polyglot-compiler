@@ -4,7 +4,14 @@ import polyglot.types.Flags;
 
 public class JL5Flags extends Flags {
 
+
     public static final int ANNOTATION_MOD = 8192;
+
+	/** 
+	 * ACC_ENUM 0x4000 Declared as an enum type.
+	 * i.e. a class representing an enum or a field 
+	 * representing an enum constant
+	 */
     public static final int ENUM_MOD = 16384;
 
     public static final Flags ENUM = createFlag("enum", null);

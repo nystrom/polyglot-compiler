@@ -1678,13 +1678,13 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 
 	// turn bare occurences of a generic type into a raw type
 	public Type rawifyBareGenericType(Type t) {
-		if (!(t instanceof JL5ParsedClassType))
-			return t;
-		JL5ParsedClassType pt = (JL5ParsedClassType) t;
-		if (pt.isGeneric() && (!(pt instanceof ParameterizedType)))
-			return rawType(pt);
-		else
-			return pt;
+		if (t.isClass()) {
+			JL5ParsedClassType pt = (JL5ParsedClassType) t;
+			if (pt.isGeneric() && (!(pt instanceof ParameterizedType))) {
+				return rawType(pt);
+			}
+		}
+		return t;
 	}
 
 	public List rawifyBareGenericTypeList(List l) {
