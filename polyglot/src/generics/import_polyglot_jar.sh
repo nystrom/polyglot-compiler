@@ -1,5 +1,5 @@
 #!/bin/bash
 
 cd ../..
-ant jar
-cp ./lib/polyglot.jar src/generics/lib
+ant jar jar-ppg
+cp ./lib/polyglot.jar ./lib/ppg.jar src/generics/lib
