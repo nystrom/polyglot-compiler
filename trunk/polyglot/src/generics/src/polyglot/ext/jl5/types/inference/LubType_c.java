@@ -1,6 +1,7 @@
 package polyglot.ext.jl5.types.inference;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -10,7 +11,6 @@ import polyglot.ext.jl5.types.AnySuperType;
 import polyglot.ext.jl5.types.AnyType;
 import polyglot.ext.jl5.types.GenericTypeRef;
 import polyglot.ext.jl5.types.IntersectionType;
-import polyglot.ext.jl5.types.IntersectionType_c;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.JL5TypeSystem_c;
 import polyglot.ext.jl5.types.ParameterizedType;
@@ -18,23 +18,24 @@ import polyglot.ext.jl5.types.RawType;
 import polyglot.ext.jl5.types.Wildcard;
 import polyglot.types.ClassDef.Kind;
 import polyglot.types.ClassType;
-import polyglot.types.Context;
-import polyglot.types.ReferenceType;
+import polyglot.types.Resolver;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
+import polyglot.types.Type_c;
+import polyglot.util.Position;
 
 /**
  * The least upper bound type
  *
  */
-public class LubType_c extends IntersectionType_c implements LubType {
+public class LubType_c extends Type_c implements LubType {
 	protected JL5TypeSystem ts;
 	protected List<ClassType> lubElems;
 	protected IntersectionType lubCalculated = null;
 	
 	public LubType_c(TypeSystem ts, List<ClassType> lubElems) {
-		super(ts, null);
+		super(ts);
 		this.lubElems = lubElems;
 		this.ts = (JL5TypeSystem) ts;
 	}
@@ -53,11 +54,6 @@ public class LubType_c extends IntersectionType_c implements LubType {
 	@Override
 	public List<ClassType> bounds() {
 		return calculateLub().bounds();
-	}
-
-	@Override
-	public Kind kind() {
-		return LUB;
 	}
 
 	private IntersectionType lub_force() {
@@ -120,14 +116,15 @@ public class LubType_c extends IntersectionType_c implements LubType {
 		}
 		try {
 			if (ts.checkIntersectionBounds(cand, true)) {
-				return ts.intersectionType(def, cand);
+				return ts.intersectionType(cand);
 			}
 		} catch (SemanticException e) {
 			//CHECK is this ok ?
 		}
 
 		// Make the bound implicitly to Object
-		return ts.intersectionType(def, null);
+		List l = Collections.singletonList(ts.Object());
+		return ts.intersectionType(l);
 	}
 
 	/**
@@ -201,5 +198,11 @@ public class LubType_c extends IntersectionType_c implements LubType {
 		sb.append(JL5TypeSystem_c.listToString(lubElems));
 		sb.append(")");
 		return sb.toString();
+	}
+
+	@Override
+	public String translate(Resolver c) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

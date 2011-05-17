@@ -829,9 +829,9 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		return new TypeVariable_c(this, pos, Name.make(name), def, bounds);
 	}
 
-	public IntersectionType intersectionType(Ref<? extends ClassDef> def, List<ClassType> bounds) {
+	public IntersectionType intersectionType(List<ClassType> bounds) {
 		// CHECK need to think about how we initialize this stuff
-		return new IntersectionType_c(this, def.get().position(), def, bounds);
+		return new IntersectionType_c(this, bounds);
 	}
 
 	public ParameterizedType parameterizedType(JL5ParsedClassType ct) {
@@ -1639,8 +1639,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			return n;
 		} else if (toBeSubed instanceof IntersectionType) {
 			IntersectionType it = (IntersectionType) toBeSubed;
-			IntersectionType n = intersectionType(Types.ref(((IntersectionType) toBeSubed).def()), applySubstitution(
-					it.bounds(), orig, sub));
+			IntersectionType n = intersectionType(applySubstitution(it.bounds(), orig, sub));
 			return n;
 		}
 
