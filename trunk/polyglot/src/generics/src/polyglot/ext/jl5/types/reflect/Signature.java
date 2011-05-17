@@ -418,6 +418,7 @@ public class Signature extends Attribute {
 			ct = Types.ref(pt);
 		}
 
+		// CHECK calling get creates an infinite loop because ts tries to resolve more type		
 		ClassType current = (ClassType) ct.get();
 		ClassType outer = current.outer();
 		//CHECK is this to handles nested classes, i.e. if a signature contains refs to parameterized nested classes
@@ -429,7 +430,7 @@ public class Signature extends Attribute {
 			}
 			if (current == current.outer()) break;
 			current = current.outer();
-			outer = current.outer();	
+			outer = current.outer();
 		}
 		pos++;
 		return new Result(ct, pos);
