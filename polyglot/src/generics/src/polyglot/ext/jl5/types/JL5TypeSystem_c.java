@@ -39,6 +39,7 @@ import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
 import polyglot.types.ConstructorDef;
 import polyglot.types.ConstructorInstance;
+import polyglot.types.ConstructorInstance_c;
 import polyglot.types.Context;
 import polyglot.types.FieldDef;
 import polyglot.types.FieldInstance;
@@ -358,9 +359,16 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		return new JL5ParsedClassType_c(this, pos, def);
 	}
 
+	@Override
 	public MethodInstance createMethodInstance(Position position,
 			Ref<? extends MethodDef> def) {
 		return new JL5MethodInstance_c(this, position, def);
+	}
+	
+	@Override
+	public ConstructorInstance createConstructorInstance(Position pos,
+			Ref<? extends ConstructorDef> def) {
+		return new JL5ConstructorInstance_c(this, pos, def);
 	}
 	
 	@Override
