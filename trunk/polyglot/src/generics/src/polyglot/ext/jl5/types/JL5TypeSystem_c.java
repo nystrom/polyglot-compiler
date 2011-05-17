@@ -1278,6 +1278,10 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		}
 	}
 
+	public MethodMatcher MethodMatcher(Type container, Name name, List<Type> argTypes, Context context) {
+		return new JL5MethodMatcher(container, name, argTypes, null, context);
+	}
+
 	private boolean checkBoxingNeeded(JL5ProcedureInstance pi,
 			List<Type> paramTypes) {
 		int numFormals = pi.formalTypes().size();
