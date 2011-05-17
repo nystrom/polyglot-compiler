@@ -136,10 +136,9 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	ParameterizedType findGenericSupertype(ObjectType base, ObjectType t);
 
-	IntersectionType intersectionType(Ref<? extends ClassDef> def, List<ClassType> bounds);
+	IntersectionType intersectionType(List<ClassType> bounds);
 
 	LubType lubType(List<ClassType> lst);
-	
 	LubType lubType(Type... a);
 
 	Type getSubstitution(GenericTypeRef orig, Type curr);

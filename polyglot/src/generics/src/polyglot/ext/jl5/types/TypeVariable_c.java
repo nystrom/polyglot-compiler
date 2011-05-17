@@ -37,7 +37,7 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
     		Ref<? extends ClassDef> def, List<ClassType> bounds) {
     	super(ts, pos, def);
         this.name = id;
-        this.upperBound = ((JL5TypeSystem)ts).intersectionType(def, bounds);
+        this.upperBound = ((JL5TypeSystem)ts).intersectionType(bounds);
         upperBound.boundOf(this);
         flags = Flags.NONE;
     }
@@ -76,7 +76,7 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
     }
 
     public void bounds(List<ClassType> b) {
-        upperBound = ((JL5TypeSystem)typeSystem()).intersectionType(def, b);
+        upperBound = ((JL5TypeSystem)typeSystem()).intersectionType(b);
         upperBound.boundOf(this);
     }
 
