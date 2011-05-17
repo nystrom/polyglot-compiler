@@ -417,17 +417,19 @@ public class Signature extends Attribute {
 			//Need to update the type with the parameter args
 			ct = Types.ref(pt);
 		}
+
 		ClassType current = (ClassType) ct.get();
-		//ClassType outer = ct.outer();
+		ClassType outer = current.outer();
 		//CHECK is this to handles nested classes, i.e. if a signature contains refs to parameterized nested classes
-		while (current.outer() != null) {
-			if (classArgsMap.containsKey(current.outer().name())){
-				ParameterizedType pt = ts.parameterizedType((JL5ParsedClassType)ct);
-				pt.typeArguments(classArgsMap.get(current.outer().name()));
+		while (outer != null) {
+			if (classArgsMap.containsKey(outer.name())) {
+				ParameterizedType pt = ts.parameterizedType((JL5ParsedClassType)outer);
+				pt.typeArguments((List)classArgsMap.get(outer.name()));
 				((JL5ParsedClassType)current).def().outer(Types.ref(pt.def()));
 			}
 			if (current == current.outer()) break;
 			current = current.outer();
+			outer = current.outer();	
 		}
 		pos++;
 		return new Result(ct, pos);
