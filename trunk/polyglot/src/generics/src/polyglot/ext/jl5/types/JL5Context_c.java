@@ -38,7 +38,7 @@ public class JL5Context_c extends Context_c implements JL5Context {
         if (vi == null && isClass()) {
             try {
             	JL5TypeSystem jts = (JL5TypeSystem) ts;
-                return jts.findEnumConstant(this.type.container(), jts.EnumMatcher(this.currentClass(), name, this));
+                return jts.findEnumConstant(this.currentClass(), jts.EnumMatcher(this.currentClass(), name, this));
             } catch (SemanticException e) {
                 return null;
             }
