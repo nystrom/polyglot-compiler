@@ -176,7 +176,9 @@ public class JL5ClassFileLazyClassInitializer extends
     	MethodDef md = super.methodInstance(method, ct);
     	JL5Method jl5m = (JL5Method) method;
     	Signature signature = jl5m.getSignature();
-		if (signature != null){
+    	// CHECK we disable signature loading for now
+    	signature = null;
+		if (signature != null) {
 			try {
 				signature.parseMethodSignature(this, ts, md.position(), ct);
 			}
@@ -219,6 +221,8 @@ public class JL5ClassFileLazyClassInitializer extends
     	ConstructorDef cd = super.constructorInstance(method, ct, fields);
     	JL5Method jl5m = (JL5Method) method;
     	Signature signature = jl5m.getSignature();
+    	// CHECK we disable signature loading for now
+    	signature = null;
 		if (signature != null){
 			try {
 				signature.parseMethodSignature(this, ts, cd.position(), ct);
