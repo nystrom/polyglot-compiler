@@ -362,6 +362,11 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			Ref<? extends MethodDef> def) {
 		return new JL5MethodInstance_c(this, position, def);
 	}
+	
+	@Override
+	public Context emptyContext() {
+		return new JL5Context_c(this);
+	}
 
 	/**
 	 * Creates an "erased" version of a method definition
