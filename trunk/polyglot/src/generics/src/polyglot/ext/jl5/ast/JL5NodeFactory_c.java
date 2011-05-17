@@ -63,7 +63,12 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
     	EnumDecl n = new EnumDecl_c(pos, flags, name, superType, interfaces, body);
         return n;
     }
-
+    
+    public EnumDecl EnumDecl(Position pos, FlagAnnotations flags, Id name, TypeNode superType,  List interfaces, ClassBody body, List paramTypes) {
+    	EnumDecl n = new EnumDecl_c(pos, flags, name, superType, interfaces, body, paramTypes);
+    	return n;
+    }
+    
     public JL5ClassDecl JL5ClassDecl(Position pos, FlagAnnotations flags, Id name, TypeNode superType,  List interfaces, ClassBody body, List paramTypes ){
         JL5ClassDecl n;
         if (paramTypes == null){

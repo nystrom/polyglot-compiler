@@ -2,24 +2,26 @@ package polyglot.ext.jl5.parse;
 
 import java.util.List;
 
+import polyglot.ast.Id;
 import polyglot.util.Position;
 
 /**
  * Encapsulates some of the data in a method declaration.  Used only by the parser.
  */
+//CHECK why do we have these in the grammar ?
 public class MethodDeclarator {
 	public Position pos;
-	public String name;
+	public Id name;
 	public List formals;
     public Integer dims = new Integer(0);    
 
-	public MethodDeclarator(Position pos, String name, List formals) {
+	public MethodDeclarator(Position pos, Id name, List formals) {
 		this.pos = pos;
 		this.name = name;
 		this.formals = formals;
 	}
 	
-	public MethodDeclarator(Position pos, String name, List formals, Integer dims) {
+	public MethodDeclarator(Position pos, Id name, List formals, Integer dims) {
         this(pos, name, formals);
         this.dims = dims;
 	}
@@ -28,7 +30,7 @@ public class MethodDeclarator {
 		return pos;
 	}
 
-    public String name(){
+    public Id name(){
         return name;
     }
 

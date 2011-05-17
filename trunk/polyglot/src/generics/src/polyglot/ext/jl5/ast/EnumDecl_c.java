@@ -51,6 +51,10 @@ public class EnumDecl_c extends JL5ClassDecl_c implements EnumDecl {
         super(pos, flags, name, superClass, interfaces, body);
     }
 
+    public EnumDecl_c(Position pos, FlagAnnotations flags, Id name, TypeNode superClass, List interfaces, ClassBody body, List paramTypes) {
+        super(pos, flags, name, superClass, interfaces, body, paramTypes);
+    }
+    
     @Override
     public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
     	JL5ParsedClassType type = (JL5ParsedClassType) this.type.asType();
