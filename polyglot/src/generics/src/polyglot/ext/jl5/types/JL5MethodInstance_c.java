@@ -108,12 +108,6 @@ public class JL5MethodInstance_c extends JL5FunctionInstance_c<MethodDef> implem
     public final List<MethodInstance> implemented(Context context) {
         return ts.implemented(this, context);
     }
-    
-    public int hashCode() {
-        // return container.hashCode() + flags.hashCode() +
-        // returnType.hashCode() + name.hashCode();
-        return flags.hashCode() + name.hashCode();
-    }
 
     public JL5MethodInstance erasure() {
         JL5MethodInstance e = (JL5MethodInstance) super.erasure();
