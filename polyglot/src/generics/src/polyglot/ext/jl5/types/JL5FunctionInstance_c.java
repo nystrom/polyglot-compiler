@@ -34,8 +34,9 @@ public class JL5FunctionInstance_c<T extends FunctionDef> extends
 		Type retType = null; 
 		if (returnType == null) {
 			retType = def().returnType().get();
+		} else {
+			retType = Types.get(returnType);
 		}
-		retType = Types.get(returnType);
 		
 	    if (!isGeneric() || typeArguments == null) {
 	    	return retType;
