@@ -2,11 +2,9 @@ package polyglot.ext.jl5;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import polyglot.ast.NodeFactory;
-import polyglot.ext.jl5.JL5ExtensionInfo.JL5Scheduler;
 import polyglot.ext.jl5.ast.JL5NodeFactory_c;
 import polyglot.ext.jl5.types.JL5TypeSystem_c;
 import polyglot.ext.jl5.types.reflect.JL5ClassFile;
@@ -20,12 +18,11 @@ import polyglot.frontend.Scheduler;
 import polyglot.frontend.VisitorGoal;
 import polyglot.types.TypeSystem;
 import polyglot.types.reflect.ClassFile;
-import polyglot.visit.ExceptionChecker;
 
 /**
  * Extension information for jl5 extension.
  */
-public class JL5ExtensionInfo extends JLExtensionInfo {
+public class ExtensionInfo extends JLExtensionInfo {
 
     @Override
     public String defaultFileExtension() {

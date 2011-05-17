@@ -2,6 +2,7 @@ package polyglot.ext.jl5.parse;
 
 import java.util.List;
 
+import polyglot.ast.Id;
 import polyglot.util.Position;
 
 /**
@@ -9,10 +10,11 @@ import polyglot.util.Position;
  */
 public class ConstructorDeclarator {
 	public Position pos;
-	public String name;
+	public Id name;
 	public List formals;
 
-	public ConstructorDeclarator(Position pos, String name, List formals) {
+	//CHECK why do we have these in the grammar ?
+	public ConstructorDeclarator(Position pos, Id name, List formals) {
 		this.pos = pos;
 		this.name = name;
 		this.formals = formals;
@@ -22,7 +24,7 @@ public class ConstructorDeclarator {
 		return pos;
 	}
 
-    public String name(){
+    public Id name(){
         return name;
     }
 

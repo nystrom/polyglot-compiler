@@ -17,7 +17,7 @@ import polyglot.ast.Id;
 import polyglot.ast.Import;
 import polyglot.ast.NodeFactory;
 import polyglot.ast.PackageNode;
-import polyglot.ast.QualifierNode;
+import polyglot.ast.Prefix;
 import polyglot.ast.Receiver;
 import polyglot.ast.Stmt;
 import polyglot.ast.TypeNode;
@@ -56,6 +56,8 @@ public interface JL5NodeFactory extends NodeFactory {
 
     public ElementValuePair ElementValuePair(Position pos, Id name, Expr value);
 
+    public polyglot.ast.ArrayTypeNode ArrayTypeNode(Position pos, TypeNode base, boolean varargs);
+    
     public JL5FieldDecl JL5FieldDecl(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr init);
     
     public JL5Formal JL5Formal(Position pos, FlagAnnotations flags, TypeNode type, Id name);
@@ -70,9 +72,9 @@ public interface JL5NodeFactory extends NodeFactory {
     
     public BoundedTypeNode BoundedTypeNode(Position pos, Kind kind, TypeNode bound);
 
-    public AmbQualifierNode JL5AmbQualifierNode(Position pos, QualifierNode qual, Id name, List args);
+    public AmbQualifierNode JL5AmbQualifierNode(Position pos, Prefix qual, Id name, List args);
     
-    public AmbTypeNode JL5AmbTypeNode(Position pos, QualifierNode qual, Id name, List args);
+    public AmbTypeNode JL5AmbTypeNode(Position pos, Prefix qual, Id name, List args);
 
     public ConstructorCall JL5ThisCall(Position pos, List args, List typeArgs);
 
@@ -108,5 +110,8 @@ public interface JL5NodeFactory extends NodeFactory {
     public JL5Return JL5Return(Position pos, Expr expr);
     
     public Binary.Operator getBinOpFromAssignOp(Assign.Operator op);
+    public EnumDecl EnumDecl(Position pos, FlagAnnotations flags, Id name, TypeNode superType,  List interfaces, ClassBody body);
+    public EnumDecl EnumDecl(Position pos, FlagAnnotations flags, Id name, TypeNode superType,  List interfaces, ClassBody body, List paramTypes);
+    
 }
 
