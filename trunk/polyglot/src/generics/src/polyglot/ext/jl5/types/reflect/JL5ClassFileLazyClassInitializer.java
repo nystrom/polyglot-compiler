@@ -217,7 +217,7 @@ public class JL5ClassFileLazyClassInitializer extends
 
     protected ConstructorDef constructorInstance(Method method, ClassDef ct, Field[] fields) {
     	ConstructorDef cd = super.constructorInstance(method, ct, fields);
-    	JL5Method jl5m = (JL5Method) cd;
+    	JL5Method jl5m = (JL5Method) method;
     	Signature signature = jl5m.getSignature();
 		if (signature != null){
 			try {
