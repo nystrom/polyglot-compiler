@@ -55,7 +55,7 @@ public class JL5TypeEnv_c extends TypeEnv_c {
 		// boxing
 		if ((toType instanceof ReferenceType) && 
 				(fromType instanceof PrimitiveType)) {
-			return isImplicitCastValid(fromType, jts.classOf(toType));
+			return isImplicitCastValid(jts.classOf(fromType),toType);
 		}
 
 		// unboxing
