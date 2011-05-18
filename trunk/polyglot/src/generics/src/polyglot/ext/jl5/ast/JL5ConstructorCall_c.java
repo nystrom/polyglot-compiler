@@ -146,7 +146,10 @@ public class JL5ConstructorCall_c extends ConstructorCall_c implements JL5Constr
             paramTypes.add(e.type());
         }
 
-
+        // We are trying to resolve a call to super so we must search the superClass for a ci
+    	if (kind == SUPER) {
+    	    ct = ct.superClass().toClass();
+    	}
         JL5TypeSystem jl5ts = (JL5TypeSystem) ts;
     	ConstructorInstance ci = jl5ts.findJL5Constructor(ct, (JL5ConstructorMatcher) jl5ts.JL5ConstructorMatcher(ct, paramTypes, explicitTypeArgs, (JL5Context) c));
 
