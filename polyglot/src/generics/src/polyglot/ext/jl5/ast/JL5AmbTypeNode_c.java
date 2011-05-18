@@ -54,9 +54,9 @@ public class JL5AmbTypeNode_c extends AmbTypeNode_c implements JL5AmbTypeNode {
     }
 
     public Node visitChildren(NodeVisitor v) {
-    	AmbTypeNode superVisit = (AmbTypeNode) super.visitChildren(v);
+    	JL5AmbTypeNode_c superVisit = (JL5AmbTypeNode_c) super.visitChildren(v);
         List args = superVisit.visitList(this.typeArguments, v);
-        return reconstruct(superVisit.prefix(), superVisit.name(), args);
+        return superVisit.reconstruct(superVisit.prefix(), superVisit.name(), args);
     }
 
     public Node disambiguate(ContextVisitor ar) throws SemanticException {

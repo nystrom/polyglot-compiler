@@ -114,7 +114,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
     			|| !CollectionUtil.allEqual(paramTypes, this.paramTypes)) {
     		JL5ClassDecl_c n = (JL5ClassDecl_c) superCopy.copy();
     		n.annotations = TypedList.copyAndCheck(annotations, AnnotationElem.class, false);
-    		n.paramTypes = paramTypes;
+    		n.paramTypes = TypedList.copyAndCheck(paramTypes, ParamTypeNode.class, false);
     		return n;
     	}
     	return superCopy;
