@@ -173,7 +173,7 @@ public class ClassFileLazyClassInitializer {
      * @param dims The number of dimensions of the array.
      * @return An array type.
      */
-    protected Ref<? extends Type> arrayOf(Type t, int dims) {
+    public Ref<? extends Type> arrayOf(Type t, int dims) {
         return arrayOf(Types.<Type>ref(t), dims);
     }
     
@@ -183,7 +183,7 @@ public class ClassFileLazyClassInitializer {
      * @param dims The number of dimensions of the array.
      * @return An array type.
      */
-    protected Ref<? extends Type> arrayOf(Ref<? extends Type> t, int dims) {
+    public Ref<? extends Type> arrayOf(Ref<? extends Type> t, int dims) {
         if (dims == 0) {
             return t;
         }
@@ -197,7 +197,7 @@ public class ClassFileLazyClassInitializer {
      * @param str The type descriptor.
      * @return The corresponding list of types.
      */
-    protected List<Ref<? extends Type>> typeListForString(String str) {
+    public List<Ref<? extends Type>> typeListForString(String str) {
         List<Ref<? extends Type>> types = new ArrayList<Ref<? extends Type>>();
 
         for (int i = 0; i < str.length(); i++) {
@@ -263,7 +263,7 @@ public class ClassFileLazyClassInitializer {
      * @param str The type descriptor.
      * @return The corresponding type.
      */
-    protected Ref<? extends Type> typeForString(String str) {
+    public Ref<? extends Type> typeForString(String str) {
         List<Ref<? extends Type>> l = typeListForString(str);
 
         if (l.size() == 1) {
@@ -279,11 +279,11 @@ public class ClassFileLazyClassInitializer {
      * @return A ClassType with the given name.
      * @throws InternalCompilerError if the class does not exist.
      */
-    protected Ref<ClassDef> defForName(String name) {
+    public Ref<ClassDef> defForName(String name) {
         return defForName(name, null);
     }
     
-    protected Ref<ClassDef> defForName(String name, Flags flags) {
+    public Ref<ClassDef> defForName(String name, Flags flags) {
         if (Report.should_report(verbose, 2))
             Report.report(2, "resolving " + name);
         
@@ -303,11 +303,11 @@ public class ClassFileLazyClassInitializer {
      * @param name Name of the class to find.
      * @return A Ref to a Type with the given name.
      */
-    protected Ref<? extends Type> typeForName(String name) {
+    public Ref<? extends Type> typeForName(String name) {
         return typeForName(name, null);
     }
 
-    protected Ref<? extends Type> typeForName(String name, Flags flags) {
+    public Ref<? extends Type> typeForName(String name, Flags flags) {
         return Types.<Type>ref(ts.createClassType(position(), defForName(name, flags)));
     }
 
