@@ -118,6 +118,14 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
         return new JL5Disamb_c();
     }
     
+    /**
+     * All Formal must be JL5Formal
+     */
+    public Formal Formal(Position pos, FlagsNode flags, TypeNode type, Id name) {
+        Formal n = new JL5Formal_c(pos, new FlagAnnotations(flags), type, name);
+        return n;
+    }
+
     public JL5MethodDecl JL5MethodDecl(Position pos, FlagAnnotations flags, TypeNode returnType, Id name, List formals, List throwTypes, Block body, List typeParams){
         JL5MethodDecl n;
         if (typeParams == null){
