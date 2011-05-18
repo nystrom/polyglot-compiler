@@ -196,6 +196,7 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
         if (ts.isLong(this)) return (PrimitiveType) ts.Long();
         if (ts.isFloat(this)) return (PrimitiveType) ts.Float();
         if (ts.isDouble(this)) return (PrimitiveType) ts.Double();
+        if (ts.isVoid(this)) return (PrimitiveType) ts.Void();
         return super.toPrimitive();
     }
     
