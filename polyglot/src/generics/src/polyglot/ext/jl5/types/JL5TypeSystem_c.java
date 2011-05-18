@@ -91,9 +91,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	public ClassType Class(Type t) {
 		JL5ParsedClassType raw = (JL5ParsedClassType) Class();
 		ParameterizedType pt = parameterizedType(raw);
-		List args = new LinkedList();
-		args.add(t);
-		pt.typeArguments(args);
+		pt.typeArguments(Collections.singletonList((Type)classOf(t)));
 		return pt;
 	}
 
@@ -144,6 +142,8 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	protected ClassType DOUBLE_WRAPPER;
 
 	protected ClassType FLOAT_WRAPPER;
+
+	protected ClassType VOID_WRAPPER;
 
 	public ClassType IntegerWrapper() {
 		if (INTEGER_WRAPPER != null) {
@@ -209,6 +209,18 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		}
 	}
 
+	public ClassType VoidWrapper() {
+		if (VOID_WRAPPER != null) {
+			return VOID_WRAPPER;
+		} else {
+			return VOID_WRAPPER = load("java.lang.Void");
+		}
+	}
+
+	/**
+	 * Returns the boxed type for a primitive type
+	 * or self it the type is already reference
+	 */
 	public ClassType classOf(Type t) {
 		Context context = emptyContext();
 		if (t.isClass())
@@ -229,6 +241,8 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			return CharacterWrapper();
 		if (typeEquals(t, Boolean(), context))
 			return BooleanWrapper();
+		if (typeEquals(t, Void(), context))
+			return VoidWrapper();
 		return null;
 	}
 
