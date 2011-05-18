@@ -16,7 +16,7 @@ public abstract class GenericTypeRef_c extends JL5ParsedClassType_c implements G
     protected JL5ParsedClassType baseType;
 
     public GenericTypeRef_c(JL5ParsedClassType t) {
-        super(t.typeSystem(), t.position(), (Ref<? extends ClassDef>) t.def());
+        super(t.def());
         this.baseType = t;
     }
 
