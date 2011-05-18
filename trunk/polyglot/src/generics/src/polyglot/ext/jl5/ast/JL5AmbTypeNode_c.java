@@ -45,12 +45,12 @@ public class JL5AmbTypeNode_c extends AmbTypeNode_c implements JL5AmbTypeNode {
 
     protected JL5AmbTypeNode_c reconstruct(Prefix qual, Id name, List args) {
     	JL5AmbTypeNode_c superCopy = (JL5AmbTypeNode_c) super.reconstruct(qual, name);
-        if (!CollectionUtil.allEqual(args, this.typeArguments)) {
+        if (!CollectionUtil.allEqual(args, superCopy.typeArguments)) {
             JL5AmbTypeNode_c n = (JL5AmbTypeNode_c) superCopy.copy();
             n.typeArguments = args;
             return n;
         }
-        return this;
+        return superCopy;
     }
 
     public Node visitChildren(NodeVisitor v) {
@@ -62,7 +62,7 @@ public class JL5AmbTypeNode_c extends AmbTypeNode_c implements JL5AmbTypeNode {
     public Node disambiguate(ContextVisitor ar) throws SemanticException {
         SemanticException ex;
         try {
-            Node n = ar.nodeFactory().disamb().disambiguate(this, ar, position(), prefix, name);
+        	Node n = super.disambiguate(ar);
             //CHECK Can't we create the right type representation at parsing time ?
             if (n instanceof CanonicalTypeNode
                     && ((CanonicalTypeNode) n).type() instanceof JL5ParsedClassType) {
