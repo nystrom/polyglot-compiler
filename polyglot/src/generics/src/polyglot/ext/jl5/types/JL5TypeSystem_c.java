@@ -2093,10 +2093,8 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		@Override
 		public MethodInstance instantiate(MethodInstance mi)
 				throws SemanticException {
-			if (!mi.name().equals(name)) {
-				return null;
-			}
-			return mi;
+			//CHECK here we need to check against explicitTypeArgs
+			return super.instantiate(mi);
 		}
 
 		@Override
@@ -2137,9 +2135,8 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 
 		public ConstructorInstance instantiate(ConstructorInstance ci)
 				throws SemanticException {
-			TypeSystem ts = ci.typeSystem();
-
-			return ci;
+			//CHECK here we need to check against explicitTypeArgs
+			return super.instantiate(ci);
 		}
 
 		public List<Type> getArgTypes() {
