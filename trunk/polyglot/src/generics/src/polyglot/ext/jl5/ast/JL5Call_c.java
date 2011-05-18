@@ -58,9 +58,9 @@ public class JL5Call_c extends Call_c implements JL5Call {
     }
 
     public Node visitChildren(NodeVisitor v) {
-    	Call visited = (Call) super.visitChildren(v);
+    	JL5Call_c visited = (JL5Call_c) super.visitChildren(v);
         List<TypeNode> newTypeArguments = visitList(this.typeArguments, v);
-        return reconstruct(visited.target(), visited.name(), visited.arguments(), newTypeArguments);
+        return visited.reconstruct(visited.target(), visited.name(), visited.arguments(), newTypeArguments);
     }
 
     public Node typeCheck(ContextVisitor tc) throws SemanticException {

@@ -128,9 +128,9 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
     @Override
     public Node visitSignature(NodeVisitor v) {
     	JL5ConstructorDecl_c n = (JL5ConstructorDecl_c) super.visitSignature(v);
-    	List<AnnotationElem> annotations = visitList(this.annotations, v);
-    	List<ParamTypeNode> paramTypes = visitList(this.paramTypes, v);
-    	return reconstruct(annotations, paramTypes);
+    	List<AnnotationElem> annotations = n.visitList(this.annotations, v);
+    	List<ParamTypeNode> paramTypes = n.visitList(this.paramTypes, v);
+    	return n.reconstruct(annotations, paramTypes);
     }
     
     @Override
