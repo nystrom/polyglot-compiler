@@ -101,40 +101,40 @@ public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends Pro
     }
 
     public boolean callValid(Type thisType, List<Type> argTypes, Context context) {
-        JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
-        List<Type> l1 = this.formalTypes();
-        List<Type> l2 = argTypes;
-        if ((l1.size() == 0) && (l2.size() != 0)) return false;
-        
-        Iterator<Type> it1 = l1.iterator();
-        Iterator<Type> it2 = l2.iterator();
-        
-        //FIXME variable arity methods!!!!!
-        while (it1.hasNext() && it2.hasNext()) {
-            Type t1 = it1.next();
-            Type t2 = it2.next();
-            
-            if (it1.hasNext()) {//not last formal parameter
-//                if (! ts.isImplicitCastValid(t2, t1, context)) return false;
-            } else if (t1.isArray() && ((JL5ArrayType)t1).isVarargs()) {
-                JL5ArrayType vartype = (JL5ArrayType)t1;
-                if (!it2.hasNext()) {
-                    return ts.isImplicitCastValid(t2, vartype, context) || ts.isImplicitCastValid(t2, vartype.base(), context);
-                }
-                else while (ts.isImplicitCastValid(t2, vartype.base(), context)) { //eat up actual args
-                    if (it2.hasNext()) {
-                        t2 = it2.next();
-                    } else break;
-                }
-            }
-            else {
-                if (! ts.isImplicitCastValid(t2, t1, context)) {
-		    return false;
-		}
-            }
-        }
-        if (it1.hasNext() && isVariableArrity()) it1.next();
-        return ! (it1.hasNext() || it2.hasNext());
+    	JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
+    	List<Type> l1 = this.formalTypes();
+    	List<Type> l2 = argTypes;
+    	if ((l1.size() == 0) && (l2.size() != 0)) return false;
+
+    	Iterator<Type> it1 = l1.iterator();
+    	Iterator<Type> it2 = l2.iterator();
+
+    	//FIXME variable arity methods!!!!!
+    	while (it1.hasNext() && it2.hasNext()) {
+    		Type t1 = it1.next();
+    		Type t2 = it2.next();
+
+    		if (it1.hasNext()) {//not last formal parameter
+    			//                if (! ts.isImplicitCastValid(t2, t1, context)) return false;
+    		} else if (t1.isArray() && ((JL5ArrayType)t1).isVarargs()) {
+    			JL5ArrayType vartype = (JL5ArrayType)t1;
+    			if (!it2.hasNext()) {
+    				return ts.isImplicitCastValid(t2, vartype, context) || ts.isImplicitCastValid(t2, vartype.base(), context);
+    			} else {
+    				while (ts.isImplicitCastValid(t2, vartype.base(), context)) { //eat up actual args
+    					if (it2.hasNext()) {
+    						t2 = it2.next();
+    					} else break;
+    				}
+    			}
+    		} else {
+    			if (! ts.isImplicitCastValid(t2, t1, context)) {
+    				return false;
+    			}
+    		}
+    	}
+    	if (it1.hasNext() && isVariableArrity()) it1.next();
+    	return ! (it1.hasNext() || it2.hasNext());
     }
 
     

@@ -90,7 +90,7 @@ public class JL5MethodInstance_c extends JL5FunctionInstance_c<MethodDef> implem
     
     @Override
     public String signature() {
-	return name + super.signature();
+	return name() + super.signature();
     }
 
     /**

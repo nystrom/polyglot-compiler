@@ -1259,11 +1259,27 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 
 		List<JL5MethodInstance> acceptable = new ArrayList<JL5MethodInstance>(
 				findMethodsNamed(container, matcher));
-		acceptable = filterPotentiallyApplicable(acceptable, (JL5ProcedureMatcher) matcher);
+		
+		List<JL5MethodInstance> unacceptables = new LinkedList();
+		acceptable = filterPotentiallyApplicable(acceptable, unacceptables, (JL5ProcedureMatcher) matcher);
 
 		// JLS 15.12.2-4
 		acceptable = identifyApplicableProcedures(acceptable, (JL5ProcedureMatcher) matcher);
 
+		
+		// remove any method in acceptable that are overridden by an
+		// unacceptable method.
+		for (Iterator<JL5MethodInstance> i = unacceptables.iterator(); i.hasNext();) {
+			MethodInstance mi = i.next();
+			acceptable.removeAll(mi.overrides(matcher.context()));
+    		if (acceptable.size() == 0) {
+    			throw new NoMemberException(NoMemberException.METHOD,
+    					"Method " + mi.signature() +
+    					" in " + container +
+    			" is inaccessible."); 			
+    		}
+		}
+		
 		if (acceptable.size() > 0) {
 			Collection<MethodInstance> maximal = findMostSpecificProcedures(
 					(List) acceptable, (Matcher<MethodInstance>) matcher,
@@ -1290,10 +1306,12 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 						+ " is ambiguous, multiple methods match: "
 						+ sb.toString());
 			}
+
 			JL5MethodInstance mi = (JL5MethodInstance) maximal.iterator()
 					.next();
 			return mi;
 		} else {
+			
 			throw new SemanticException("No valid method call found for "
 					+ name + "(" + listToString(((JL5MethodMatcher)matcher).getArgTypes())
 					+ ") in " + container + ".");
@@ -1339,7 +1357,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	 * @return
 	 */
 	protected <T extends JL5ProcedureInstance> List<T> filterPotentiallyApplicable(
-			List<T> allProcedures, JL5ProcedureMatcher matcher) {
+			List<T> allProcedures, List<T> unacceptables, JL5ProcedureMatcher matcher) {
 		List<T> potApplicable = new ArrayList<T>();
 
 		int numActuals = matcher.getArgTypes().size();
@@ -1363,6 +1381,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			}
 			if (!isAccessible((MemberInstance<? extends MemberDef>) pi,
 					matcher.context())) {
+				unacceptables.add(pi);
 				continue;
 			}
 			potApplicable.add(pi);
@@ -1897,7 +1916,8 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		// List<JL5ConstructorInstance> cs = ct.constructors();
 		List<JL5ConstructorInstance> acceptable = (List) findAcceptableConstructors(
 				container, matcher);
-		acceptable = filterPotentiallyApplicable(acceptable, matcher);
+		List<JL5ConstructorInstance> unacceptables = new LinkedList();
+		acceptable = filterPotentiallyApplicable(acceptable, unacceptables, matcher);
 		acceptable = identifyApplicableProcedures(acceptable, matcher);
 		Collection<ConstructorInstance> maximal = findMostSpecificProcedures(
 				(List) acceptable, matcher, matcher.context());
