@@ -101,9 +101,8 @@ parser Grm extends polyglot.parse.Grm  {:
     nf = (JL5NodeFactory) n;
   }
 
-    public boolean isClassicFlag(Object o){
-        if (o instanceof Flags) return true;
-        return false;
+    public boolean isFlagsNode(Object o){
+        return (o instanceof FlagsNode);
     }
 
     public ClassDecl handleClassDecl(FlagAnnotations fl, ClassDecl c){
@@ -1304,10 +1303,9 @@ modifiers_or_annotations_opt ::=
 modifiers_or_annotations ::=
     modifier_or_annotation:a
         {: FlagAnnotations fl = new FlagAnnotations();
-           if (parser.isClassicFlag(a)){
-               if (fl.classicFlags().flags().intersects((Flags)a)) parser.die(parser.position());
+           if (parser.isFlagsNode(a)){
                fl.annotations(new TypedList(new LinkedList(), AnnotationElem.class, false));
-               RESULT = fl.classicFlags(parser.nf.FlagsNode(fl.classicFlags().position(), fl.classicFlags().flags().set((Flags)a)));
+               RESULT = fl.classicFlags((FlagsNode)a);
            }
            else {
                RESULT = fl.addAnnotation(a);
@@ -1315,7 +1313,7 @@ modifiers_or_annotations ::=
         :}
     |
     modifiers_or_annotations:a modifier_or_annotation:b
-        {: if (parser.isClassicFlag(b)){
+        {: if (parser.isFlagsNode(b)){
                if (a.classicFlags().flags().intersects((Flags)b)) parser.die(parser.position());
 			   RESULT = a.classicFlags(parser.nf.FlagsNode(parser.pos(a,b), a.classicFlags().flags().set((Flags) b)));
            }
