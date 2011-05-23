@@ -41,8 +41,6 @@ public class JL5TypeEnv_c extends TypeEnv_c {
 		}
 		
 		if (toType instanceof TypeVariable) {
-			// what does it mean to implicitly cast to a TypeVariable ?
-			assert(false);
 			TypeVariable tv = (TypeVariable) toType;
 			return super.isImplicitCastValid(fromType, tv.lowerBound())
 			|| super.isImplicitCastValid(fromType, toType);
@@ -64,6 +62,10 @@ public class JL5TypeEnv_c extends TypeEnv_c {
 			return isImplicitCastValid(fromType, jts.classOf(toType));
 		} 
 
+		if ((fromType instanceof ParameterizedType) && 
+				(toType instanceof JL5ParsedClassType)) {
+			return super.isImplicitCastValid(jts.erasure(fromType), toType);
+		}
 		// from Ref to Ref or only Primitive and Arrays involved
 		return super.isImplicitCastValid(fromType, toType);
 	}

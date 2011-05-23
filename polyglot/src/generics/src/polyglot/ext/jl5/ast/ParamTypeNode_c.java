@@ -10,15 +10,14 @@ import polyglot.ast.TypeNode_c;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.TypeVariable;
-import polyglot.ext.jl5.visit.JL5AmbiguityRemover;
 import polyglot.frontend.SetResolverGoal;
 import polyglot.types.ArrayType;
 import polyglot.types.ClassType;
 import polyglot.types.Context;
-import polyglot.types.ReferenceType;
+import polyglot.types.Name;
+import polyglot.types.Ref;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
-import polyglot.types.TypeSystem;
 import polyglot.types.Types;
 import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
@@ -83,21 +82,23 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
     }
 
     public void addDecls(Context c) {
-        ((JL5Context) c).addTypeVariable((TypeVariable) type());
+        ((JL5Context) c).addTypeVariable(Name.make(id()), Types.ref((TypeVariable) type()));
     }
 
-    // nothing needed for buildTypesEnter - not a code block like methods
+    /**
+     * Build the type representation of a ParamTypeNode
+     * This is called when visiting a ClassDecl(aration) for example
+     */
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
     	if (type == null) {
-    		// makes a new TypeVariable with a list of bounds which
-    		// are unknown types
+    		// makes a new TypeVariable with a list of bounds which are unknown types
     		JL5TypeSystem ts = (JL5TypeSystem) tb.typeSystem();
-    		ArrayList typeList = new ArrayList(bounds.size());
+    		List<Ref<? extends Type>> typeList = new ArrayList(bounds.size());
     		for (int i = 0; i < bounds.size(); i++) {
-    			typeList.add(typeRef(Types.lazyRef(ts.unknownType(position()), new SetResolverGoal(tb.job()))));
+    			typeList.add((Ref<? extends Type>) typeRef(Types.lazyRef(ts.unknownType(position()), new SetResolverGoal(tb.job()))));
     		}
     		TypeVariable iType = ts.typeVariable(position(), id, typeList);
-    		return typeRef(Types.lazyRef(iType));
+    		return typeRef(Types.ref(iType));
     	} else {
     		return this;
     	}

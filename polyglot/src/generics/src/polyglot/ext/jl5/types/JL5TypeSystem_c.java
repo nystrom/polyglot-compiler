@@ -846,9 +846,9 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	@Override
     public TypeVariable typeVariable(Position pos, String name, List bounds) {
 		// CHECK how do we instantiate a type variable ?
-		assert false;
-		return null;
-//        return new TypeVariable_c(this, pos, name, bounds);
+//		assert false;
+//		return null;
+        return new TypeVariable_c(this, pos, Name.make(name), null, bounds);
     }
 
 	public TypeVariable typeVariable(Position pos, String name,

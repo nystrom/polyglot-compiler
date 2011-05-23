@@ -130,7 +130,7 @@ parser Grm extends polyglot.parse.Grm  {:
     
     public List variableDeclarators(TypeNode a, VarDeclarator b, FlagAnnotations flags) throws Exception {
         if (flags == null){
-            flags = new FlagAnnotations(new TypedList(new LinkedList(), AnnotationElem.class, false));
+            flags = new FlagAnnotations(nf.FlagsNode(Position.COMPILER_GENERATED, Flags.NONE), new TypedList(new LinkedList(), AnnotationElem.class, false));
         }
         List l = new TypedList(new LinkedList(), LocalDecl.class, false);
         l.add(nf.JL5LocalDecl(pos(b), flags, array(a, b.dims), b.name, b.init));
@@ -630,7 +630,7 @@ override local_variable_declaration ::=
             {: RESULT = parser.variableDeclarators(b, c, a); :}
     |
     type:a variable_declarators:b
-            {: FlagAnnotations fl = new FlagAnnotations(new TypedList(new LinkedList(), AnnotationElem.class, false)); 
+            {: FlagAnnotations fl = new FlagAnnotations(parser.nf.FlagsNode(parser.pos(b), Flags.NONE), new TypedList(new LinkedList(), AnnotationElem.class, false)); 
                RESULT = parser.variableDeclarators(a, b, fl); :}
 ;
 
@@ -1294,7 +1294,7 @@ element_value ::=
 
 modifiers_or_annotations_opt ::=
     /* empty */ 
-       {: FlagAnnotations fl = new FlagAnnotations(new TypedList(new LinkedList(), AnnotationElem.class, false));
+       {: FlagAnnotations fl = new FlagAnnotations(parser.nf.FlagsNode(Position.COMPILER_GENERATED, Flags.NONE), new TypedList(new LinkedList(), AnnotationElem.class, false));
            RESULT = fl; :}
     |
     modifiers_or_annotations:a

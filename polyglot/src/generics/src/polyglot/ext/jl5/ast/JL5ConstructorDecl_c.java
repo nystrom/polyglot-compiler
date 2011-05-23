@@ -23,9 +23,11 @@ import polyglot.ext.jl5.visit.ApplicationCheck;
 import polyglot.ext.jl5.visit.ApplicationChecker;
 import polyglot.types.ConstructorDef;
 import polyglot.types.Context;
+import polyglot.types.Name;
 import polyglot.types.Ref;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
+import polyglot.types.Types;
 import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
@@ -168,7 +170,7 @@ public class JL5ConstructorDecl_c extends ConstructorDecl_c implements JL5Constr
     public Context enterScope(Context c) {
         c = super.enterScope(c);
         for (ParamTypeNode pn : paramTypes) {
-            c = ((JL5Context)c).addTypeVariable((TypeVariable)pn.type());
+            c = ((JL5Context)c).addTypeVariable(Name.make(pn.id()),Types.ref((TypeVariable)pn.type()));
         }
         return c;
     }

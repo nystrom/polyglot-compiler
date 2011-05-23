@@ -1,25 +1,19 @@
 package polyglot.ext.jl5.types;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
-import polyglot.ext.jl5.types.JL5TypeSystem_c.EnumMatcher;
-import polyglot.main.Report;
 import polyglot.types.Context_c;
-import polyglot.types.MethodInstance;
 import polyglot.types.Name;
-import polyglot.types.Named;
+import polyglot.types.Ref;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
 import polyglot.types.VarInstance;
-import polyglot.util.StringUtil;
 
 public class JL5Context_c extends Context_c implements JL5Context {
 
-    protected Map<Name, TypeVariable> typeVars;
+    protected Map<Name, Ref<? extends Type>> typeVars;
 
     protected TypeVariable typeVariable;
 
@@ -160,7 +154,7 @@ public class JL5Context_c extends Context_c implements JL5Context {
         if (typeVariable != null && typeVariable.name().equals(name))
             return typeVariable;
         if (typeVars != null && typeVars.containsKey(name)) {
-            return (TypeVariable) typeVars.get(name);
+            return (TypeVariable) typeVars.get(name).get();
         }
         if (outer != null) {
         	//CHECK the method name suggests we shouldn't recurse on outer
@@ -180,10 +174,12 @@ public class JL5Context_c extends Context_c implements JL5Context {
         return super.toString() + "type var: " + typeVariable;
     }
 
-    public JL5Context addTypeVariable(TypeVariable type) {
-        if (typeVars == null)
-            typeVars = new HashMap<Name, TypeVariable>();
-        typeVars.put(type.name(), type);
+    public JL5Context addTypeVariable(Name name, Ref<? extends Type> type) {
+    	assert(type != null);
+        if (typeVars == null) {
+            typeVars = new HashMap<Name, Ref<? extends Type>>();
+        }
+        typeVars.put(name, type);
         return this;
     }
 

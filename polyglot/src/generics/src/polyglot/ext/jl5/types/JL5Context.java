@@ -2,6 +2,7 @@ package polyglot.ext.jl5.types;
 
 import polyglot.types.Context;
 import polyglot.types.Name;
+import polyglot.types.Ref;
 import polyglot.types.Type;
 import polyglot.types.VarInstance;
 public interface JL5Context extends Context {
@@ -18,8 +19,7 @@ public interface JL5Context extends Context {
      */
     public boolean inTypeVariable();
 
-
-    public JL5Context addTypeVariable(TypeVariable type);
+    public JL5Context addTypeVariable(Name name, Ref<? extends Type> type);
 
     public JL5TypeSystem typeSystem();
 }
