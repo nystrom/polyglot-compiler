@@ -18,17 +18,16 @@ import polyglot.ast.NodeFactory;
 import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.AnnotationElemInstance;
 import polyglot.ext.jl5.types.FlagAnnotations;
+import polyglot.ext.jl5.types.JL5ClassDef;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5Flags;
 import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.ParameterizedType;
-import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.ext.jl5.visit.ApplicationCheck;
 import polyglot.ext.jl5.visit.ApplicationChecker;
 import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
-import polyglot.types.ConstructorInstance;
 import polyglot.types.Context;
 import polyglot.types.Flags;
 import polyglot.types.LocalDef;
@@ -141,10 +140,9 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
     public Context enterChildScope(Node child, Context c) {
         //CHECK Need to push type variable so that they are resolved in members and body
     	for (ParamTypeNode tn : paramTypes) {
-            c = ((JL5Context) c).addTypeVariable((TypeVariable) tn.type());
+            c = ((JL5Context) c).addTypeVariable(Name.make(tn.id()), tn.typeRef());
         }
         return super.enterChildScope(child, c);
-    	
     }
 
 //    protected void disambiguateSuperType(AmbiguityRemover ar) throws SemanticException {
@@ -302,7 +300,9 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
     public ClassDecl_c preBuildTypes(TypeBuilder tb) throws SemanticException {
     	JL5ClassDecl_c cd = (JL5ClassDecl_c) super.preBuildTypes(tb);
     	cd.addTypeParameters();
-    	return cd;
+        List<TypeNode> annotations = cd.visitList(cd.annotations, tb);
+        List<TypeNode> paramTypes = cd.visitList(cd.paramTypes, tb);
+    	return (ClassDecl_c) cd.reconstruct(cd.flags, cd.name, cd.superClass, cd.interfaces, cd.body, annotations, paramTypes);
     }
 
     /**
@@ -312,18 +312,20 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
      */
     @Override
     public ClassDecl_c postBuildTypes(TypeBuilder tb) throws SemanticException {
+    	JL5ClassDecl_c cd = (JL5ClassDecl_c) super.postBuildTypes(tb);
+    	
     	//CHECK not sure if it's ok to put the annotation super type here
     	//preBuildTypes sets the super type to the type it gets from the superClass ast node
+    	// If class represents an annotation, set the super type to Annotation
         if (JL5Flags.isAnnotationModifier(flags().flags())) {
             this.type.superType(Types.ref(((JL5TypeSystem) tb.typeSystem()).Annotation()));
         }
-
-    	JL5ClassDecl_c cd = (JL5ClassDecl_c) super.postBuildTypes(tb);
+        
         if (JL5Flags.isEnumModifier(type.flags())) {
         	cd = (JL5ClassDecl_c) cd.addGenEnumMethods(tb);
         }
-        
-        return cd.postBuildTypes(tb);
+
+        return cd;
     }
     
     /**
@@ -331,8 +333,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
      */
     protected void addTypeParameters() {
         for (Iterator<ParamTypeNode> it = paramTypes.iterator(); it.hasNext();) {
-            TypeVariable tv = (TypeVariable)it.next().type();
-            ((JL5ParsedClassType) this.type).addTypeVariable(tv);
+            ((JL5ClassDef)this.type).addTypeVariable(Types.ref(it.next().type()));
         }
     }
 

@@ -62,7 +62,8 @@ public class JL5AmbTypeNode_c extends AmbTypeNode_c implements JL5AmbTypeNode {
     public Node disambiguate(ContextVisitor ar) throws SemanticException {
         SemanticException ex;
         try {
-        	Node n = super.disambiguate(ar);
+            Node n = ar.nodeFactory().disamb().disambiguate(this, ar, position(), prefix, name);
+
             //CHECK Can't we create the right type representation at parsing time ?
             if (n instanceof CanonicalTypeNode
                     && ((CanonicalTypeNode) n).type() instanceof JL5ParsedClassType) {
@@ -77,8 +78,7 @@ public class JL5AmbTypeNode_c extends AmbTypeNode_c implements JL5AmbTypeNode {
                     else
                         // it's a nongeneric type, so leave it alone
                         return n;
-                }
-                else {
+                } else {
                     t = ts.parameterizedType((JL5ParsedClassType) (ct));
                     ParameterizedType pt = (ParameterizedType) t;
                     ArrayList<Type> typeArgs = new ArrayList<Type>();

@@ -8,6 +8,7 @@ import java.util.List;
 import polyglot.frontend.Globals;
 import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
+import polyglot.types.DerefTransform;
 import polyglot.types.Name;
 import polyglot.types.Named;
 import polyglot.types.ParsedClassType_c;
@@ -15,11 +16,13 @@ import polyglot.types.PrimitiveType;
 import polyglot.types.Ref;
 import polyglot.types.Resolver;
 import polyglot.types.SemanticException;
+import polyglot.types.Type;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 import polyglot.types.Types;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
+import polyglot.util.TransformingList;
 import polyglot.util.TypedList;
 
 /**
@@ -64,10 +67,7 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
     public List<EnumInstance> enumConstants(){
         if (enumConstants == null){
             enumConstants = new TypedList(new LinkedList(), EnumInstance.class, false);
-            assert(false);
             // CHECK: lazy init has been erased because it wasn't doing anything 
-            // ((JL5LazyClassInitializer)init).initEnumConstants(this);
-            // freeInit();
         }
         return enumConstants;
     }
@@ -128,7 +128,9 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
 //    }
 
     public List<TypeVariable> typeVariables() {
-        return typeVariables;
+        List l = new TransformingList<Ref<? extends Type>,Type>(((JL5ClassDef)def()).typeVariables(),
+                new DerefTransform<Type>());
+        return l;
     }
     
     // this is used when coming from source files
