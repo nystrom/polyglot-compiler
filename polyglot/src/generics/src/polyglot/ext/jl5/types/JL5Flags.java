@@ -14,6 +14,7 @@ public class JL5Flags extends Flags {
 	 */
     public static final int ENUM_MOD = 16384;
 
+    public static final Flags VARARGS = createFlag("varargs", null);
     public static final Flags ENUM = createFlag("enum", null);
     public static final Flags ANNOTATION = createFlag("annotation", null);
     public JL5Flags(){
@@ -43,4 +44,13 @@ public class JL5Flags extends Flags {
     public static boolean isAnnotationModifier(Flags f){
         return f.contains(ANNOTATION);
     }
+    
+    /**
+     * Return true if <code>this</code> has the <code>varargs</code> flag set.
+     * Note that VARARGS and TRANSIENT have the same bit value.
+     */
+    public static boolean isVarargs(Flags f) {
+    	return f.contains(VARARGS);
+    }
+
 }

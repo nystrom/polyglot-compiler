@@ -193,16 +193,15 @@ public class JL5ClassFileLazyClassInitializer extends
 			// so we should rely on the super call above to handle that.
 			md.setThrowTypes(signature.methodSignature.throwTypes());
 		}
-		//CHECK why do we need to do that if method is transient ?
-		// If a method is transient we look for the last argument and we replace its
-		// type by an arraytype and set the varargs on the array
-		if (md.flags().isTransient()){
-			assert false;
+
+		if (JL5Flags.isVarargs(md.flags())) {
 			List<Ref<? extends Type>> newFormals = new ArrayList<Ref<? extends Type>>();
 			for (Iterator<Ref<? extends Type>> it = md.formalTypes().iterator(); it.hasNext(); ){
 				Ref<? extends Type> refType = it.next();
 				Type t = refType.get();
 				if (!it.hasNext()){
+					// Here we override the creation of the last argument
+					// so as to be able to create a varargs array type
 					ArrayType at = (ArrayType) ((JL5TypeSystem) ts).createArrayType(t.position(), Types.ref(((ArrayType)t).base()), true);
 					newFormals.add(Types.ref(at));
 				} 
@@ -235,7 +234,6 @@ public class JL5ClassFileLazyClassInitializer extends
 			// It seems that the signature doesn't contain the thrown exceptions, so we should
 			// rely on the super call above to handle that.	    
 			// ci = (JL5ConstructorInstance)ci.throwTypes(signature.methodSignature.throwTypes());
-
 		}
 		//CHECK why do we need to do that if method is transient ?
 		// If a method is transient we look for the last argument and we replace its
