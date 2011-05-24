@@ -27,6 +27,7 @@ import polyglot.types.ClassType;
 import polyglot.types.Context;
 import polyglot.types.Flags;
 import polyglot.types.MethodDef;
+import polyglot.types.Name;
 import polyglot.types.Ref;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
@@ -127,7 +128,7 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
 
     @Override
     public Node visitSignature(NodeVisitor v) {
-    	JL5ConstructorDecl_c n = (JL5ConstructorDecl_c) super.visitSignature(v);
+    	JL5MethodDecl_c n = (JL5MethodDecl_c) super.visitSignature(v);
     	List<AnnotationElem> annotations = n.visitList(this.annotations, v);
     	List<ParamTypeNode> paramTypes = n.visitList(this.paramTypes, v);
     	return n.reconstruct(annotations, paramTypes);
@@ -322,7 +323,7 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
     public Context enterScope(Context c) {
         c = super.enterScope(c);
         for (ParamTypeNode pn : paramTypes) {
-            c = ((JL5Context)c).addTypeVariable((TypeVariable)pn.type());
+            c = ((JL5Context)c).addTypeVariable(Name.make(pn.nameString()), pn.typeRef());
         }
         return c;
     }
