@@ -113,6 +113,9 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	TypeVariable typeVariable(Position pos, String name, List bounds);
 
+	TypeVariable typeVariable(Position pos, Name name,
+			Ref<? extends ClassDef> def, List bounds);
+
 	ParameterizedType parameterizedType(JL5ParsedClassType type);
 
 	RawType rawType(JL5ParsedClassType ct);

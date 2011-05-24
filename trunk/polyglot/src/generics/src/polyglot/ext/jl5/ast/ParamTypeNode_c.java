@@ -7,11 +7,13 @@ import java.util.List;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
 import polyglot.ast.TypeNode_c;
+import polyglot.ext.jl5.types.JL5ClassDef_c;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.frontend.SetResolverGoal;
 import polyglot.types.ArrayType;
+import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
 import polyglot.types.Context;
 import polyglot.types.Name;
@@ -27,6 +29,25 @@ import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
 import polyglot.visit.TypeBuilder;
 
+/**
+ * Represents a parameterized TypeNode declaration.
+ * 
+ * For example '<T>' in: 
+ * 
+ * 		class Test<T> { }
+ * 
+ * or '<T>' in:
+ * 
+ * 		<T> void mth() { }
+ * 
+ * Note that this is different from a 'use' of a parameterized type
+ * such as in:
+ * 
+ * 		Collection<String> l;
+ * 
+ * Those are first represented as ambiguous type node and later disambiguated 
+ * to canonical type nodes having a ParameterizedType.
+ */
 public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
 
 	/**
@@ -91,13 +112,17 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
      */
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
     	if (type == null) {
+    		ClassDef ctx = tb.currentClass();
     		// makes a new TypeVariable with a list of bounds which are unknown types
     		JL5TypeSystem ts = (JL5TypeSystem) tb.typeSystem();
     		List<Ref<? extends Type>> typeList = new ArrayList(bounds.size());
     		for (int i = 0; i < bounds.size(); i++) {
     			typeList.add((Ref<? extends Type>) typeRef(Types.lazyRef(ts.unknownType(position()), new SetResolverGoal(tb.job()))));
     		}
-    		TypeVariable iType = ts.typeVariable(position(), id, typeList);
+
+    		// Create a ClassDef for this TV
+    		Ref<? extends ClassDef> tvDef = Types.ref(new JL5ClassDef_c(ts));
+    		TypeVariable iType = ts.typeVariable(position(), Name.make(id), tvDef, typeList);
     		return typeRef(Types.ref(iType));
     	} else {
     		return this;
