@@ -21,13 +21,10 @@ public interface JL5ParsedClassType extends ParsedClassType {
     List annotations();
 
     List<TypeVariable> typeVariables();
-
-    void addTypeVariable(TypeVariable type);
-
-    void typeVariables(List<TypeVariable> vars);
-    
+//    void addTypeVariable(TypeVariable type);
+//    void typeVariables(List<TypeVariable> vars);
     boolean hasTypeVariable(Name name);
-    TypeVariable getTypeVariable(Name name);
+//    TypeVariable getTypeVariable(Name name);
 
     boolean isGeneric();
 

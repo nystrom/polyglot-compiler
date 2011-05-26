@@ -1,6 +1,5 @@
 package polyglot.ext.jl5.types;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,7 +36,6 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
   
     // these are annotations that have been declared on (applied to) the type
     protected List annotations;
-    protected List<TypeVariable> typeVariables;
 
     public JL5ParsedClassType_c(ClassDef def) {
         this(def.typeSystem(), def.position(), Types.ref(def));
@@ -132,53 +130,60 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
                 new DerefTransform<Type>());
         return l;
     }
-    
-    // this is used when coming from source files
-    public void addTypeVariable(TypeVariable type) {
-        if (typeVariables == null){
-            typeVariables = new ArrayList<TypeVariable>();
-        }
-        if (!typeVariables.contains(type)){
-            typeVariables.add(type);
-            type.declaringClass(this);
-        }
-    }
-
-    // this is used when coming from class files
-    public void typeVariables(List<TypeVariable> vars){
-        typeVariables = vars;
-        for (TypeVariable variable : vars) {
-            variable.declaringClass(this);
-        }
-    }
-    
+//    
+//    // this is used when coming from source files
+//    public void addTypeVariable(TypeVariable type) {
+//        if (typeVariables == null){
+//            typeVariables = new ArrayList<TypeVariable>();
+//        }
+//        if (!typeVariables.contains(type)){
+//            typeVariables.add(type);
+//            type.declaringClass(this);
+//        }
+//    }
+//
+//    // this is used when coming from class files
+//    public void typeVariables(List<TypeVariable> vars){
+//        typeVariables = vars;
+//        for (TypeVariable variable : vars) {
+//            variable.declaringClass(this);
+//        }
+//    }
+//    
     public boolean hasTypeVariable(Name name){
-        if (typeVariables == null || typeVariables.isEmpty()) return false;
-        for (Iterator<TypeVariable> it = typeVariables.iterator(); it.hasNext(); ){
-            TypeVariable iType = it.next();
-            if (iType.name().equals(name)) return true;
+        if (!typeVariables().isEmpty()) { 
+            for (TypeVariable tv : typeVariables()){
+                if (tv.name().equals(name)) { 
+                	return true;
+                }
+            }
         }
         return false;
     }
+    
+//
+//    public TypeVariable getTypeVariable(Name name){
+//        for (Iterator<TypeVariable> it = typeVariables.iterator(); it.hasNext(); ){
+//            TypeVariable iType = it.next();
+//            if (iType.name().equals(name)) return iType;
+//        }
+//        return null;
+//    }
+//
+//    public boolean isGeneric(){
+//        return ((typeVariables != null) && !typeVariables.isEmpty());
+//    }
 
-    public TypeVariable getTypeVariable(Name name){
-        for (Iterator<TypeVariable> it = typeVariables.iterator(); it.hasNext(); ){
-            TypeVariable iType = it.next();
-            if (iType.name().equals(name)) return iType;
-        }
-        return null;
-    }
-
-    public boolean isGeneric(){
-        return ((typeVariables != null) && !typeVariables.isEmpty());
-    }
+  public boolean isGeneric(){
+	  return !((JL5ClassDef) def()).typeVariables().isEmpty();
+  }
 
     // this is only for debugging or something
-    public String toString(){
+    public String toString() {
         StringBuffer sb = new StringBuffer(super.toString());
-        if ((typeVariables != null) && !typeVariables.isEmpty()){
+        if (isGeneric()) {
             sb.append("<");
-            sb.append(typeVariables);
+            sb.append(typeVariables());
             sb.append(">");
         }
         return sb.toString();

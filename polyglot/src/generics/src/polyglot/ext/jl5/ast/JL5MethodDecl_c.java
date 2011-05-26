@@ -8,25 +8,21 @@ import java.util.List;
 import polyglot.ast.Block;
 import polyglot.ast.Formal;
 import polyglot.ast.Id;
-import polyglot.ast.MethodDecl;
 import polyglot.ast.MethodDecl_c;
 import polyglot.ast.Node;
 import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.FlagAnnotations;
-import polyglot.ext.jl5.types.JL5ConstructorDef;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5Flags;
 import polyglot.ext.jl5.types.JL5MethodDef;
 import polyglot.ext.jl5.types.JL5MethodInstance;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.ParameterizedType;
-import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.ext.jl5.visit.ApplicationCheck;
 import polyglot.ext.jl5.visit.ApplicationChecker;
 import polyglot.types.ClassType;
 import polyglot.types.Context;
 import polyglot.types.Flags;
-import polyglot.types.MethodDef;
 import polyglot.types.Name;
 import polyglot.types.Ref;
 import polyglot.types.SemanticException;
@@ -113,15 +109,14 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
 
     @Override
     public Node buildTypesOverride(TypeBuilder tb) throws SemanticException {
-    	MethodDecl n = (MethodDecl) super.buildTypesOverride(tb);
-    	MethodDef def = n.methodDef();
+    	JL5MethodDecl n = (JL5MethodDecl) super.buildTypesOverride(tb);
+    	JL5MethodDef def = (JL5MethodDef) n.methodDef();
     	
     	// Create a list of type refs for type variables
         List<Ref<? extends Type>> pTypes = new ArrayList<Ref<? extends Type>>(paramTypes().size());
-        for (ParamTypeNode p : paramTypes()) {
+        for (ParamTypeNode p : n.paramTypes()) {
         	pTypes.add(p.typeRef());
         }
-                    
         ((JL5MethodDef)def).setTypeVariableTypes(pTypes);
         return n;
     }
@@ -129,8 +124,8 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
     @Override
     public Node visitSignature(NodeVisitor v) {
     	JL5MethodDecl_c n = (JL5MethodDecl_c) super.visitSignature(v);
-    	List<AnnotationElem> annotations = n.visitList(this.annotations, v);
-    	List<ParamTypeNode> paramTypes = n.visitList(this.paramTypes, v);
+    	List<AnnotationElem> annotations = n.visitList(n.annotations, v);
+    	List<ParamTypeNode> paramTypes = n.visitList(n.paramTypes, v);
     	return n.reconstruct(annotations, paramTypes);
     }
     
@@ -237,8 +232,8 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
     	if (!CollectionUtil.allEqual(annotations, this.annotations) || 
     			!CollectionUtil.allEqual(paramTypes, this.paramTypes)) {
     		JL5MethodDecl_c n = (JL5MethodDecl_c) this.copy();
-    		n.annotations = TypedList.copyAndCheck(this.annotations, AnnotationElem.class, true);
-    		n.paramTypes = TypedList.copyAndCheck(this.paramTypes, ParamTypeNode.class, true);
+    		n.annotations = TypedList.copyAndCheck(annotations, AnnotationElem.class, true);
+    		n.paramTypes = TypedList.copyAndCheck(paramTypes, ParamTypeNode.class, true);
     		return n;
     	}
     	return this;

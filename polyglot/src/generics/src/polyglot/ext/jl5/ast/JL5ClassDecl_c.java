@@ -169,7 +169,6 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
 
     public Node disambiguate(ContextVisitor ar) throws SemanticException {
         Node n = super.disambiguate(ar);
-        addTypeParameters();
         return n;
     }
     
@@ -299,10 +298,11 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
     @Override
     public ClassDecl_c preBuildTypes(TypeBuilder tb) throws SemanticException {
     	JL5ClassDecl_c cd = (JL5ClassDecl_c) super.preBuildTypes(tb);
-    	cd.addTypeParameters();
-        List<TypeNode> annotations = cd.visitList(cd.annotations, tb);
         List<TypeNode> paramTypes = cd.visitList(cd.paramTypes, tb);
-    	return (ClassDecl_c) cd.reconstruct(cd.flags, cd.name, cd.superClass, cd.interfaces, cd.body, annotations, paramTypes);
+    	List<TypeNode> annotations = cd.visitList(cd.annotations, tb);
+    	cd = (JL5ClassDecl_c) cd.reconstruct(cd.flags, cd.name, cd.superClass, cd.interfaces, cd.body, annotations, paramTypes);
+    	cd.addTypeParameters(tb);
+    	return cd; 
     }
 
     /**
@@ -329,12 +329,16 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
     }
     
     /**
-     * Add param types to the class type
+     * Add param types to the class type.
+     * This is done after having built the def of the class.
      */
-    protected void addTypeParameters() {
-        for (Iterator<ParamTypeNode> it = paramTypes.iterator(); it.hasNext();) {
-            ((JL5ClassDef)this.type).addTypeVariable(Types.ref(it.next().type()));
-        }
+    protected void addTypeParameters(TypeBuilder tb) {
+    	if (!paramTypes.isEmpty()) {
+    		for (ParamTypeNode ptn : paramTypes) {
+    			assert ptn.typeRef() != null;
+    			((JL5ClassDef)this.type).addTypeVariable(ptn.typeRef());
+    		}
+    	}
     }
 
     /**

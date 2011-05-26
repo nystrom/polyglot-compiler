@@ -76,13 +76,10 @@ public class JL5FieldDecl_c extends FieldDecl_c implements JL5FieldDecl, Applica
         // captures the scenario of a generic static inner class<T> declaring a static field of type T
         if ((type instanceof TypeVariable) && 
         		(currentClass.flags().isStatic() || flags().flags().isStatic())){
-            if (currentClass.flags().isStatic() && 
+            if (!currentClass.flags().isStatic() && 
             		currentClass.hasTypeVariable(((TypeVariable)type).name())){
-            }
-            else {
                 throw new SemanticException("Cannot access non-static type "+((TypeVariable)type().type()).name()+" in a static context.", position());
             }
-            
         }
         return super.typeCheck(tc);
     }
