@@ -24,7 +24,7 @@ public class JL5ClassDef_c extends ClassDef_c implements ClassDef, JL5ClassDef {
 
 	public JL5ClassDef_c(JL5TypeSystem ts, Source fromSource) {
 		super(ts, fromSource);
-		this.typeVariables = new ArrayList<Ref<? extends Type>>();
+		this.typeVariables = Collections.emptyList();
 	}
 
 	/* (non-Javadoc)
@@ -32,6 +32,9 @@ public class JL5ClassDef_c extends ClassDef_c implements ClassDef, JL5ClassDef {
 	 */
 	@Override
 	public void addTypeVariable(Ref<? extends Type> t) {
+		if (typeVariables.isEmpty()) {
+			typeVariables = new ArrayList<Ref<? extends Type>>(1);
+		}
 		typeVariables.add(t);
 	}
 

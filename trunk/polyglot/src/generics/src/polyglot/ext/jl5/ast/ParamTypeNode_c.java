@@ -98,7 +98,7 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
     }
 
     public Context enterScope(Context c) {
-        c = ((JL5Context) c).pushTypeVariable((TypeVariable) type());
+        c = ((JL5Context) c).pushTypeVariable((TypeVariable) type.get());
         return super.enterScope(c);
     }
 
@@ -112,7 +112,6 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
      */
     public Node buildTypes(TypeBuilder tb) throws SemanticException {
     	if (type == null) {
-    		ClassDef ctx = tb.currentClass();
     		// makes a new TypeVariable with a list of bounds which are unknown types
     		JL5TypeSystem ts = (JL5TypeSystem) tb.typeSystem();
     		List<Ref<? extends Type>> typeList = new ArrayList(bounds.size());

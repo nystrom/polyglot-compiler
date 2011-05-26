@@ -75,8 +75,8 @@ public class JL5ConstructorDecl_c extends ConstructorDecl_c implements JL5Constr
     	if (!CollectionUtil.allEqual(annotations, this.annotations) || 
     			!CollectionUtil.allEqual(paramTypes, this.paramTypes)) {
     		JL5ConstructorDecl_c n = (JL5ConstructorDecl_c) this.copy();
-    		n.annotations = TypedList.copyAndCheck(this.annotations, AnnotationElem.class, true);
-    		n.paramTypes = TypedList.copyAndCheck(this.paramTypes, ParamTypeNode.class, true);
+    		n.annotations = TypedList.copyAndCheck(annotations, AnnotationElem.class, true);
+    		n.paramTypes = TypedList.copyAndCheck(paramTypes, ParamTypeNode.class, true);
     		return n;
     	}
     	return this;
