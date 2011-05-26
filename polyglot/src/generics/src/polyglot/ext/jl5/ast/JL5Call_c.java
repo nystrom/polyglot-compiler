@@ -93,7 +93,7 @@ public class JL5Call_c extends Call_c implements JL5Call {
         }
         
         Type targetType = target.type();
-        JL5MethodInstance mi = (JL5MethodInstance) c.findMethod(ts.JL5MethodMatcher(targetType, name().id(), paramTypes, explicitTypeArgs, c));
+        JL5MethodInstance mi = (JL5MethodInstance) ts.findMethod(targetType, ts.JL5MethodMatcher(targetType, name().id(), paramTypes, explicitTypeArgs, c));
 
         /* This call is in a static context if and only if
          * the target (possibly implicit) is a type node.
