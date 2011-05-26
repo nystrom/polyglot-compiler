@@ -1303,7 +1303,6 @@ modifiers_or_annotations_opt ::=
 modifiers_or_annotations ::=
     modifier_or_annotation:a
         {: FlagAnnotations fl = new FlagAnnotations();
-           System.out.println("isFlagNode " + parser.isFlagsNode(a));
            if (parser.isFlagsNode(a)){
                fl.annotations(new TypedList(new LinkedList(), AnnotationElem.class, false));
                //RESULT = fl.classicFlags(parser.nf.FlagsNode(parser.pos(a), (FlagsNode)a));
@@ -1316,7 +1315,6 @@ modifiers_or_annotations ::=
     |
     modifiers_or_annotations:a modifier_or_annotation:b
         {: 
-                   System.out.println("isFlagNode " + parser.isFlagsNode(b));
         if (parser.isFlagsNode(b)){
                if (a.classicFlags().flags().intersects(((FlagsNode)b).flags())) parser.die(parser.position());
 			   RESULT = a.classicFlags(parser.nf.FlagsNode(parser.pos(a,b), a.classicFlags().flags().set(((FlagsNode) b).flags())));
