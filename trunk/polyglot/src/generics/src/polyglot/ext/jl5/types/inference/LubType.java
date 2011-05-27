@@ -13,8 +13,8 @@ import polyglot.types.Type;
  */
 public interface LubType extends Type {
     IntersectionType calculateLub();
-    List<ClassType> lubElements();
-    List<ClassType> bounds();
+    List<Type> lubElements();
+    List<Type> bounds();
     
 
 }

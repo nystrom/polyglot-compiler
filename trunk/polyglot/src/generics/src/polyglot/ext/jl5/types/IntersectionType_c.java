@@ -1,18 +1,10 @@
 package polyglot.ext.jl5.types;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import polyglot.types.ClassDef;
-import polyglot.types.ClassDef.Kind;
-import polyglot.types.ClassType;
-import polyglot.types.Flags;
-import polyglot.types.Name;
-import polyglot.types.Package;
-import polyglot.types.ParsedClassType;
+import polyglot.types.Ref;
 import polyglot.types.ReferenceType;
 import polyglot.types.Resolver;
 import polyglot.types.Type;
@@ -20,6 +12,7 @@ import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 import polyglot.types.Type_c;
 import polyglot.types.Types;
+import polyglot.util.TransformingList;
 
 /**
  * JLS 4.9 Intersection Types
@@ -27,19 +20,18 @@ import polyglot.types.Types;
  * Intersection types arise in the processes of capture conversion (¤5.1.10) and type inference (¤15.12.2.7)
  */
 public class IntersectionType_c extends Type_c implements IntersectionType {
-    protected List<ClassType> bounds;
-    protected List<ClassType> concreteBounds;
+    protected List<Ref<? extends Type>> bounds;
+    protected List<Type> concreteBounds;
     protected TypeVariable boundOf_;
 
-    public IntersectionType_c(TypeSystem ts, List<ClassType> bounds) { 
+    public IntersectionType_c(TypeSystem ts, List<Ref<? extends Type>> bounds) { 
         super(ts);
         this.bounds = bounds;    	
     }
 
-    public List<ClassType> bounds() {
-        if (bounds == null || bounds.size() == 0) {
-            bounds = new ArrayList<ClassType>();
-            bounds.add((ClassType)ts.Object());
+    public List<Ref<? extends Type>> bounds() {
+        if (bounds.isEmpty()) {
+            bounds =  (List) Collections.singletonList(Types.ref(ts.Object()));
         }
         return bounds;
     }
@@ -50,9 +42,9 @@ public class IntersectionType_c extends Type_c implements IntersectionType {
 
     public String toString() {
         StringBuffer sb = new StringBuffer();//("intersection[ ");
-        for (Iterator<ClassType> iter = bounds.iterator(); iter.hasNext();) {
-            ReferenceType b = iter.next();
-            sb.append(b);
+        for (Iterator<Ref<? extends Type>> iter = bounds.iterator(); iter.hasNext();) {
+        	Ref<? extends Type> b = iter.next();
+            sb.append(b.get());
             if (iter.hasNext())
                 sb.append(" & ");
         }
@@ -60,9 +52,9 @@ public class IntersectionType_c extends Type_c implements IntersectionType {
         return sb.toString();
     }
 
-    protected List<ClassType> getConcreteBounds() {
+    protected List<Type> getConcreteBounds() {
         if (concreteBounds == null) {
-            concreteBounds = ((JL5TypeSystem) typeSystem()).concreteBounds(this.bounds());
+            concreteBounds = ((JL5TypeSystem) typeSystem()).concreteBounds(this.boundsTypes());
         }
         return concreteBounds;
     }
@@ -125,4 +117,9 @@ public class IntersectionType_c extends Type_c implements IntersectionType {
         }
         return true;
     }
+
+	@Override
+	public List<Type> boundsTypes() {
+		return new TransformingList<Ref<? extends Type>, Type>(this.bounds(), new polyglot.types.DerefTransform<Type>());
+	}
 }

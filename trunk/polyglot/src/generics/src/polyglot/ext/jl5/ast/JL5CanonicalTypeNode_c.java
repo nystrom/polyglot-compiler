@@ -39,9 +39,6 @@ public class JL5CanonicalTypeNode_c extends CanonicalTypeNode_c implements JL5Ca
                 throw new SemanticException("Must give exactly " + pt.typeVariables().size() + " type argument(s).", position());
             }
 
-            // System.out.println("Starts here for :" +
-            // tc.typeSystem().getClass());// for debuging
-
             JL5TypeSystem ts = (JL5TypeSystem) tc.typeSystem();
             //first we must perform capture conversion. see beginning of JLS 4.5
             pt = (ParameterizedType)pt.capture();
@@ -63,6 +60,8 @@ public class JL5CanonicalTypeNode_c extends CanonicalTypeNode_c implements JL5Ca
                             " is not a subtype of its declared bound " + b, position());
                 }
             }
+            // updating the type
+            ((Ref<Type>)this.type).update(pt);
         }
         return super.typeCheck(tc);
     }

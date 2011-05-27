@@ -33,14 +33,24 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
     protected ClassType declaringClass;
     protected JL5ProcedureInstance declaringProcedure;
 
+    
     public TypeVariable_c(TypeSystem ts, Position pos, Name id,
-    		Ref<? extends ClassDef> def, List<ClassType> bounds) {
+    		Ref<? extends ClassDef> def, List<Ref<? extends Type>> bounds) {
     	super(ts, pos, def);
         this.name = id;
         this.upperBound = ((JL5TypeSystem)ts).intersectionType(bounds);
         upperBound.boundOf(this);
         flags = Flags.NONE;
     }
+
+//    public TypeVariable_c(TypeSystem ts, Position pos, Name id,
+//    		Ref<? extends ClassDef> def, List<ClassType> bounds) {
+//    	super(ts, pos, def);
+//        this.name = id;
+//        this.upperBound = ((JL5TypeSystem)ts).intersectionType(bounds);
+//        upperBound.boundOf(this);
+//        flags = Flags.NONE;
+//    }
     
     public void declaringProcedure(JL5ProcedureInstance pi) {
         declaredIn = TVarDecl.PROCEDURETV;
@@ -71,12 +81,13 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
         return null;
     }
 
-    public List<ClassType> bounds() {
-        return upperBound().bounds();
+    public List<Type> bounds() {
+        return upperBound().boundsTypes();
     }
 
-    public void bounds(List<ClassType> b) {
-        upperBound = ((JL5TypeSystem)typeSystem()).intersectionType(b);
+    public void bounds(List<Type> b) {
+    	JL5TypeSystem ts = ((JL5TypeSystem)typeSystem()); 
+        upperBound = ts.intersectionType(ts.toRefTypes(b));
         upperBound.boundOf(this);
     }
 
@@ -167,11 +178,13 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
             if (declaredIn().equals(TVarDecl.SYNTHETICTV)) {
                 return arg2.declaredIn().equals(TVarDecl.SYNTHETICTV);
             }
+            // CHECK for these we should be able to use the TV defs to do the comparison
             else if (declaredIn().equals(TVarDecl.PROCEDURETV)) {
                 return (arg2.declaredIn().equals(TVarDecl.PROCEDURETV)) && 
                     declaringProcedure() == arg2.declaringProcedure();
                 //(ts.equals(declaringMethod(), arg2.declaringMethod())); 
             }
+            // CHECK for these we should be able to use the TV defs to do the comparison
             else if (declaredIn().equals(TVarDecl.CLASSTV)) {
             	return (arg2.declaredIn().equals(TVarDecl.CLASSTV)) &&
             		ts.equals((TypeObject)declaringClass(), (TypeObject)arg2.declaringClass());

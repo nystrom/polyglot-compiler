@@ -73,6 +73,8 @@ import polyglot.util.Copy;
 import polyglot.util.InternalCompilerError;
 import polyglot.util.Position;
 import polyglot.util.Predicate2;
+import polyglot.util.Transformation;
+import polyglot.util.TransformingList;
 
 public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	// TODO: implement new methods in JL5TypeSystem.
@@ -853,7 +855,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		return new TypeVariable_c(this, pos, name, def, bounds);
 	}
 
-	public IntersectionType intersectionType(List<ClassType> bounds) {
+	public IntersectionType intersectionType(List<Ref<? extends Type>> bounds) {
 		// CHECK need to think about how we initialize this stuff
 		return new IntersectionType_c(this, bounds);
 	}
@@ -1686,11 +1688,20 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			return n;
 		} else if (toBeSubed instanceof IntersectionType) {
 			IntersectionType it = (IntersectionType) toBeSubed;
-			IntersectionType n = intersectionType(applySubstitution(it.bounds(), orig, sub));
+			IntersectionType n = intersectionType(this.toRefTypes(applySubstitution(it.boundsTypes(), orig, sub)));
 			return n;
 		}
 
 		return toBeSubed;
+	}
+
+	public List<Ref<? extends Type>> toRefTypes(List<Type> types) {
+		Transformation trans = new Transformation<Type,Ref<? extends Type>> () {
+			public Ref<? extends Type> transform(Type t) {
+				return Types.ref(t);
+			}
+		};
+		return new TransformingList<Type, Ref<? extends Type>>(types, trans);
 	}
 
 	// return the "raw type" version of a given type.
@@ -1752,7 +1763,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			return erasure(tv.upperBound());
 		} else if (t instanceof IntersectionType) {
 			IntersectionType it = (IntersectionType) t;
-			return erasure(it.bounds().get(0));
+			return erasure(it.boundsTypes().get(0));
 		} else if (t instanceof ArrayType) {
 			ArrayType at = (ArrayType) t;
 			return arrayOf(null, erasure(at.base()));
@@ -1874,7 +1885,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		if (t1 instanceof IntersectionType) {
 			IntersectionType it = (IntersectionType) t1;
 			Type ancestor = t2;
-			for (Type b : it.bounds()) {
+			for (Type b : it.boundsTypes()) {
 				if (isSubtype(b, ancestor, ctx))
 					return true;
 			}
@@ -1895,7 +1906,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			return isSubtype(t1, lt.calculateLub(), ctx);
 		} else if (t2 instanceof IntersectionType) {
 			IntersectionType it = (IntersectionType) t2;
-			for (Type b : it.bounds()) {
+			for (Type b : it.boundsTypes()) {
 				if (!isSubtype(t1, b, ctx))
 					return false;
 			}
@@ -1934,7 +1945,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	 * @param bounds
 	 * @throws SemanticException
 	 */
-	public boolean checkIntersectionBounds(List<ClassType> bounds, boolean quiet)
+	public boolean checkIntersectionBounds(List<Type> bounds, boolean quiet)
 			throws SemanticException {
 		Context ctx = emptyContext();
 		/*
@@ -1942,7 +1953,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		 * SemanticException("Intersection type can't be empty"); return false;
 		 * }
 		 */
-		List<ClassType> concreteBounds = concreteBounds(bounds);
+		List<Type> concreteBounds = concreteBounds(bounds);
 		if (concreteBounds.size() == 0) {
 			if (!quiet)
 				throw new SemanticException(
@@ -1952,8 +1963,8 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		}
 		for (int i = 0; i < concreteBounds.size(); i++)
 			for (int j = i + 1; j < concreteBounds.size(); j++) {
-				ClassType t1 = concreteBounds.get(i);
-				ClassType t2 = concreteBounds.get(j);
+				Type t1 = concreteBounds.get(i);
+				Type t2 = concreteBounds.get(j);
 				// for now, no checks if at least one is an array type
 				if (!t1.isClass() || !t2.isClass()) {
 					return true;
@@ -1996,28 +2007,28 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	}
 
 	@Override
-	public List<ClassType> concreteBounds(
-			List<ClassType> bounds) {
+	public List<Type> concreteBounds(
+			List<Type> bounds) {
 
-		Set<ClassType> included = new HashSet<ClassType>();
-		Set<ClassType> visited = new HashSet<ClassType>();
-		List<ClassType> queue = new ArrayList<ClassType>(bounds);
+		Set<Type> included = new HashSet<Type>();
+		Set<Type> visited = new HashSet<Type>();
+		List<Type> queue = new ArrayList<Type>(bounds);
 		while (!queue.isEmpty()) {
-			ClassType t = queue.remove(0);
+			Type t = queue.remove(0);
 			if (visited.contains(t))
 				continue;
 			visited.add(t);
 			if (t instanceof TypeVariable) {
 				TypeVariable tv = (TypeVariable) t;
-				queue.addAll(tv.upperBound().bounds());
+				queue.addAll(tv.upperBound().boundsTypes());
 			} else if (t instanceof IntersectionType) {
 				IntersectionType it = (IntersectionType) t;
-				queue.addAll(it.bounds());
+				queue.addAll(it.boundsTypes());
 			} else {
 				included.add(t);
 			}
 		}
-		return new ArrayList<ClassType>(included);
+		return new ArrayList<Type>(included);
 	}
 
 	public void checkTVForwardReference(List<TypeVariable> list)
@@ -2040,14 +2051,14 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		return new InferenceSolver_c(pi, actuals, this);
 	}
 
-	public LubType lubType(List<ClassType> lst) {
+	public LubType lubType(List<Type> lst) {
 		return new LubType_c(this, lst);
 	}
 	
 	public LubType lubType(Type ... a) {
-		List<ClassType> l = new ArrayList<ClassType>();
+		List<Type> l = new ArrayList<Type>();
 		for (Type t : a) {
-			l.add((ClassType) t);
+			l.add(t);
 		}
 		return this.lubType(l);
 	}

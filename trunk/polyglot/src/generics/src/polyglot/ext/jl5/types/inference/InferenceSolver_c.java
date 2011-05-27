@@ -101,7 +101,7 @@ public class InferenceSolver_c implements InferenceSolver {
                     if (c.formal.typeEquals(toSolve, null))
                         uset.add((ClassType) c.actual);
                 }
-                List<ClassType> u = new ArrayList<ClassType>(uset);
+                List<Type> u = new ArrayList<Type>(uset);
                 if (u.size() == 1) {
                     solution[i] = u.get(0);
                 } else if (u.size() > 1) {

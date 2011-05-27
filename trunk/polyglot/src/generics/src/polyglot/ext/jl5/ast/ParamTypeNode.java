@@ -9,6 +9,6 @@ public interface ParamTypeNode extends TypeNode {
     ParamTypeNode id(String id);
     String id();
 
-    List bounds();
-    ParamTypeNode bounds(List l);
+    List<TypeNode> bounds();
+    ParamTypeNode bounds(List<TypeNode> l);
 }
