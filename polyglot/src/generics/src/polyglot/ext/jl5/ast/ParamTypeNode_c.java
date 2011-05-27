@@ -1,6 +1,7 @@
 package polyglot.ext.jl5.ast;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -11,7 +12,6 @@ import polyglot.ext.jl5.types.JL5ClassDef_c;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.ext.jl5.types.TypeVariable;
-import polyglot.frontend.SetResolverGoal;
 import polyglot.types.ArrayType;
 import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
@@ -55,9 +55,9 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
 	 */
     protected String id;
 
-    protected List bounds;
+    protected List<TypeNode> bounds;
 
-    public ParamTypeNode_c(Position pos, List bounds, String id) {
+    public ParamTypeNode_c(Position pos, List<TypeNode> bounds, String id) {
         super(pos);
         this.id = id;
         this.bounds = bounds;
@@ -73,13 +73,13 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
         return this.id;
     }
 
-    public ParamTypeNode bounds(List l) {
+    public ParamTypeNode bounds(List<TypeNode> l) {
         ParamTypeNode_c n = (ParamTypeNode_c) copy();
         n.bounds = l;
         return n;
     }
 
-    public List bounds() {
+    public List<TypeNode> bounds() {
         return bounds;
     }
 
@@ -114,18 +114,30 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
     	if (type == null) {
     		// makes a new TypeVariable with a list of bounds which are unknown types
     		JL5TypeSystem ts = (JL5TypeSystem) tb.typeSystem();
-    		List<Ref<? extends Type>> typeList = new ArrayList(bounds.size());
-    		for (int i = 0; i < bounds.size(); i++) {
-    			typeList.add((Ref<? extends Type>) typeRef(Types.lazyRef(ts.unknownType(position()), new SetResolverGoal(tb.job()))));
+    		// Create a ClassDef for this TV
+    		// CHECK not sure creating a class def for a paramtypenode is the right design decision 
+    		Ref<? extends ClassDef> tvDef = Types.ref(new JL5ClassDef_c(ts));
+    		List<Ref<? extends Type>> boundsTypeRef;
+    		if (hasBounds()) {
+    			// Getting bounds' type refs
+    			boundsTypeRef = new ArrayList(this.bounds().size());
+    			for (TypeNode tn : this.bounds()) {
+    				boundsTypeRef.add(tn.typeRef());
+    			}
+    		} else {
+    			boundsTypeRef = Collections.emptyList();
     		}
 
-    		// Create a ClassDef for this TV
-    		Ref<? extends ClassDef> tvDef = Types.ref(new JL5ClassDef_c(ts));
-    		TypeVariable iType = ts.typeVariable(position(), Name.make(id), tvDef, typeList);
-    		return typeRef(Types.ref(iType));
+    		// Creating a type to represent this typenode
+    		TypeVariable iType = ts.typeVariable(position(), Name.make(id), tvDef, boundsTypeRef);
+    		return this.typeRef(Types.ref(iType));
     	} else {
     		return this;
     	}
+    }
+    
+    public boolean hasBounds() {
+    	return !bounds.isEmpty();
     }
 
     //CHECK bypass bounds
@@ -145,12 +157,12 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
 
     	//CHECK AmbiguityRemove.ALL
     	//        if (ar.kind() == AmbiguityRemover.ALL) {
-    	ArrayList<ClassType> typeList = new ArrayList<ClassType>();
+    	ArrayList<Type> typeList = new ArrayList<Type>();
     	for (Iterator<TypeNode> it = bounds.iterator(); it.hasNext();) {
     		TypeNode tn = it.next();
     		Type t = tn.type();
     		if (t instanceof ClassType)
-    			typeList.add((ClassType) t);
+    			typeList.add(t);
     		else
     			throw new SemanticException("Unexpected type bound in type variable declaration", tn.position());
     	}
@@ -192,6 +204,7 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
 
         ts.checkIntersectionBounds(tv.bounds(), false);
 
+        // CHECK should we update the definition of the TypeVariable now ?
         return super.typeCheck(tc);
     }
 

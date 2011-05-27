@@ -19,8 +19,8 @@ public interface TypeVariable extends ClassType {
     ClassType declaringClass();
     JL5ProcedureInstance declaringProcedure();
     
-    List <ClassType>bounds();
-    void bounds(List<ClassType> l);
+    List <Type>bounds();
+    void bounds(List<Type> l);
 
     boolean isEquivalent(TypeObject arg2);
 

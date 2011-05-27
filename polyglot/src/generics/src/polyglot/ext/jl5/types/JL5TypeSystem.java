@@ -139,9 +139,9 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	ParameterizedType findGenericSupertype(ObjectType base, ObjectType t);
 
-	IntersectionType intersectionType(List<ClassType> bounds);
+	IntersectionType intersectionType(List<Ref<? extends Type>> bounds);
 
-	LubType lubType(List<ClassType> lst);
+	LubType lubType(List<Type> lst);
 	LubType lubType(Type... a);
 
 	Type getSubstitution(GenericTypeRef orig, Type curr);
@@ -155,10 +155,10 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	// Set<ReferenceType> superTypesOf(ReferenceType t);
 
-	boolean checkIntersectionBounds(List<ClassType> bounds,
+	boolean checkIntersectionBounds(List<Type> bounds,
 			boolean quiet) throws SemanticException;
 
-	List<ClassType> concreteBounds(List<ClassType> bounds);
+	List<Type> concreteBounds(List<Type> bounds);
 
 	Type applySubstitution(Type toBeSubed, List<TypeVariable> orig,
 			List<Type> sub);
@@ -216,5 +216,7 @@ public interface JL5TypeSystem extends TypeSystem {
 	ArrayType createArrayType(Position position, Ref<? extends Type> base, boolean varArgs);
 
 	Type arrayOf(Position position, Ref<? extends Type> typeRef, boolean varargs);
+
+	List<Ref<? extends Type>> toRefTypes(List<Type> typeList);
 
 }

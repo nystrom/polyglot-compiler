@@ -31,16 +31,16 @@ import polyglot.util.Position;
  */
 public class LubType_c extends Type_c implements LubType {
 	protected JL5TypeSystem ts;
-	protected List<ClassType> lubElems;
+	protected List<Type> lubElems;
 	protected IntersectionType lubCalculated = null;
 	
-	public LubType_c(TypeSystem ts, List<ClassType> lubElems) {
+	public LubType_c(TypeSystem ts, List<Type> lubElems) {
 		super(ts);
 		this.lubElems = lubElems;
 		this.ts = (JL5TypeSystem) ts;
 	}
 
-	public List<ClassType> lubElements() {
+	public List<Type> lubElements() {
 		return lubElems;
 	}
 	
@@ -52,8 +52,8 @@ public class LubType_c extends Type_c implements LubType {
 	}
 
 	@Override
-	public List<ClassType> bounds() {
-		return calculateLub().bounds();
+	public List<Type> bounds() {
+		return calculateLub().boundsTypes();
 	}
 
 	private IntersectionType lub_force() {
@@ -98,7 +98,7 @@ public class LubType_c extends Type_c implements LubType {
 				}
 			}
 		}
-		List<ClassType> cand = new ArrayList<ClassType>();
+		List<Type> cand = new ArrayList<Type>();
 		// For any element G of MEC that is a generic type declaration, 
 		// define the relevant invocations of G, Inv(G)
 		for (Type m : mec) {
@@ -116,7 +116,7 @@ public class LubType_c extends Type_c implements LubType {
 		}
 		try {
 			if (ts.checkIntersectionBounds(cand, true)) {
-				return ts.intersectionType(cand);
+				return ts.intersectionType(ts.toRefTypes(cand));
 			}
 		} catch (SemanticException e) {
 			//CHECK is this ok ?
@@ -178,15 +178,15 @@ public class LubType_c extends Type_c implements LubType {
 	}
 
 	private Type glb(Type t1, Type t2) {
-		List<ClassType> l = new ArrayList<ClassType>();
-		l.add((ClassType) t1);
-		l.add((ClassType) t2);
+		List<Type> l = new ArrayList<Type>();
+		l.add(t1);
+		l.add(t2);
 		try {
 			if (!ts.checkIntersectionBounds(l, true)) {
 				return ts.Object();
 			}
 			else {
-				return ts.intersectionType(l);
+				return ts.intersectionType(ts.toRefTypes(l));
 			}
 		} catch (SemanticException e) {
 			return ts.Object();

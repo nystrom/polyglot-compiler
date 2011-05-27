@@ -59,7 +59,7 @@ public class JL5Call_c extends Call_c implements JL5Call {
 
     public Node visitChildren(NodeVisitor v) {
     	JL5Call_c visited = (JL5Call_c) super.visitChildren(v);
-        List<TypeNode> newTypeArguments = visitList(this.typeArguments, v);
+        List<TypeNode> newTypeArguments = visited.visitList(visited.typeArguments, v);
         return visited.reconstruct(visited.target(), visited.name(), visited.arguments(), newTypeArguments);
     }
 
@@ -70,7 +70,7 @@ public class JL5Call_c extends Call_c implements JL5Call {
         
         // explicitTypeArgs is the list of Type generated from the typeArguments list<TypeNode>
         List<Type> explicitTypeArgs = null;
-        List<Type> paramTypes = new ArrayList<Type>();
+        List<Type> argsTypes = new ArrayList<Type>();
 
         if (typeArguments != null && !typeArguments.isEmpty()) {
             explicitTypeArgs = new ArrayList<Type>();
@@ -84,16 +84,16 @@ public class JL5Call_c extends Call_c implements JL5Call {
         }
 
         for (Iterator<Expr> i = this.arguments().iterator(); i.hasNext();) {
-            paramTypes.add(i.next().type());
+            argsTypes.add(i.next().type());
         }
 
         // JLS 15.12.1
         if (target == null) {
-            return typeCheckNullTarget(tc, paramTypes, explicitTypeArgs);
+            return typeCheckNullTarget(tc, argsTypes, explicitTypeArgs);
         }
         
         Type targetType = target.type();
-        JL5MethodInstance mi = (JL5MethodInstance) ts.findMethod(targetType, ts.JL5MethodMatcher(targetType, name().id(), paramTypes, explicitTypeArgs, c));
+        JL5MethodInstance mi = (JL5MethodInstance) ts.findMethod(targetType, ts.JL5MethodMatcher(targetType, name().id(), argsTypes, explicitTypeArgs, c));
 
         /* This call is in a static context if and only if
          * the target (possibly implicit) is a type node.

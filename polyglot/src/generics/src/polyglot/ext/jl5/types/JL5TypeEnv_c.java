@@ -25,7 +25,7 @@ public class JL5TypeEnv_c extends TypeEnv_c {
 
 		if (fromType instanceof IntersectionType) {
 			IntersectionType it = (IntersectionType) fromType;
-	        for (Type b : it.bounds()) {
+	        for (Type b : it.boundsTypes()) {
 	            if (isImplicitCastValid(b, toType)) {
 	            	return true;
 	            }
@@ -133,7 +133,7 @@ public class JL5TypeEnv_c extends TypeEnv_c {
     	
 		if (fromType instanceof IntersectionType) {
 			IntersectionType it = (IntersectionType) fromType;
-	        for (Type b : it.bounds()) {
+	        for (Type b : it.boundsTypes()) {
 	            if (isCastValid(b, toType)) {
 	            	return true;
 	            }

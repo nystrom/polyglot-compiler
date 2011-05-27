@@ -3,13 +3,11 @@ package polyglot.ext.jl5.ast;
 import java.util.ArrayList;
 import java.util.List;
 
-import polyglot.ast.AmbTypeNode;
 import polyglot.ast.AmbTypeNode_c;
 import polyglot.ast.CanonicalTypeNode;
 import polyglot.ast.Id;
 import polyglot.ast.Node;
 import polyglot.ast.Prefix;
-import polyglot.ast.QualifierNode;
 import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.JL5TypeSystem;
@@ -17,6 +15,7 @@ import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.frontend.Globals;
 import polyglot.frontend.Goal;
 import polyglot.types.LazyRef;
+import polyglot.types.Ref;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.util.CollectionUtil;
@@ -88,8 +87,10 @@ public class JL5AmbTypeNode_c extends AmbTypeNode_c implements JL5AmbTypeNode {
                     }
                     pt.typeArguments(typeArgs);
                 }
-                CanonicalTypeNode an = ((JL5NodeFactory) ar.nodeFactory()).CanonicalTypeNode(n.position(), t);
-                return an;
+                // Crucial to update (and not destructively set) the typeRef of the disambiguated type node. 
+                ((Ref<Type>)tn.typeRef()).update(t);
+                return n;
+                // CHECK not sure we should call the following code as we are using a parameterized version of the class def now
             }
             
             if (n instanceof TypeNode) {
