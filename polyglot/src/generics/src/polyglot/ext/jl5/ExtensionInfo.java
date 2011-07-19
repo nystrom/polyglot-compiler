@@ -2,8 +2,6 @@ package polyglot.ext.jl5;
 
 import java.io.File;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
 
 import polyglot.ast.NodeFactory;
 import polyglot.ext.jl5.ast.JL5NodeFactory_c;
@@ -11,17 +9,11 @@ import polyglot.ext.jl5.parse.Grm;
 import polyglot.ext.jl5.parse.Lexer_c;
 import polyglot.ext.jl5.types.JL5TypeSystem_c;
 import polyglot.ext.jl5.types.reflect.JL5ClassFile;
-import polyglot.ext.jl5.visit.ApplicationChecker;
-import polyglot.ext.jl5.visit.JL5AmbiguityRemover;
 import polyglot.frontend.CupParser;
 import polyglot.frontend.FileSource;
-import polyglot.frontend.Goal;
 import polyglot.frontend.JLExtensionInfo;
-import polyglot.frontend.JLScheduler;
-import polyglot.frontend.Job;
 import polyglot.frontend.Parser;
 import polyglot.frontend.Scheduler;
-import polyglot.frontend.VisitorGoal;
 import polyglot.types.TypeSystem;
 import polyglot.types.reflect.ClassFile;
 import polyglot.util.ErrorQueue;
@@ -57,7 +49,7 @@ public class ExtensionInfo extends JLExtensionInfo {
 	}
 
 	@Override
-	public Scheduler createScheduler() {
+	protected Scheduler createScheduler() {
 		return new JL5Scheduler(this);
 	}
 
