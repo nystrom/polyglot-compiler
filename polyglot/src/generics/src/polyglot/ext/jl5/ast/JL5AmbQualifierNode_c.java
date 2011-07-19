@@ -41,18 +41,26 @@ public class JL5AmbQualifierNode_c extends AmbQualifierNode_c implements JL5AmbQ
     public Node disambiguate(ContextVisitor sc) throws SemanticException {
         Node n = sc.nodeFactory().disamb().disambiguate(this, sc, position(), qual, name);
         // Create a parameterized type out of the JL5ParsedClassType
-        //CHECK JL5AmbQualifierNode_c transforms JL5ParsedClassType to ParameterizedType whereas JL5AmbTypeNode distinguish between Raw and ParameterizedType
-        if (n instanceof CanonicalTypeNode && ((CanonicalTypeNode)n).type() instanceof JL5ParsedClassType){
-            ParameterizedType pt = ((JL5TypeSystem)sc.typeSystem()).parameterizedType((JL5ParsedClassType)((CanonicalTypeNode)n).type());
-            ArrayList typeArgs = new ArrayList(typeArguments.size());
-            for (Iterator it = typeArguments.iterator(); it.hasNext(); ){
-                TypeNode tn = (TypeNode)it.next();
-                Type t = tn.type();
-                typeArgs.add(t);
+        if (n instanceof CanonicalTypeNode && ((CanonicalTypeNode)n).type() instanceof JL5ParsedClassType) {
+        	JL5TypeSystem ts = (JL5TypeSystem) sc.typeSystem();
+        	JL5ParsedClassType ct = (JL5ParsedClassType) ((CanonicalTypeNode)n).type();
+            if (typeArguments.isEmpty()) {
+                if (ct.isGeneric()) { // it's a raw type
+                    ct = ts.rawType(ct);
+                }
+               	// it's a non-generic type, just return it.  
+            } else {
+                ParameterizedType pt = ((JL5TypeSystem)sc.typeSystem()).parameterizedType(ct);
+                ArrayList typeArgs = new ArrayList(typeArguments.size());
+                for (Iterator it = typeArguments.iterator(); it.hasNext(); ){
+                    TypeNode tn = (TypeNode)it.next();
+                    Type t = tn.type();
+                    typeArgs.add(t);
+                }
+                pt.typeArguments(typeArgs);
+                ct = pt;
             }
-            pt.typeArguments(typeArgs);
-
-            CanonicalTypeNode an = sc.nodeFactory().CanonicalTypeNode(n.position(), pt);
+            CanonicalTypeNode an = sc.nodeFactory().CanonicalTypeNode(n.position(), ct);
             return an;
         }
         else if (n instanceof QualifierNode){
