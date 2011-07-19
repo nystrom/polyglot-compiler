@@ -104,7 +104,7 @@ public class NormalAnnotationElem_c extends AnnotationElem_c implements NormalAn
 
     protected boolean elementForNoDefault(AnnotationElemInstance ai){
         for (Iterator it = elements.iterator(); it.hasNext(); ){
-            if (((ElementValuePair)it.next()).name().equals(ai.name())) return true;
+            if (((ElementValuePair)it.next()).name().id().equals(ai.name())) return true;
         }
         return false;
     }

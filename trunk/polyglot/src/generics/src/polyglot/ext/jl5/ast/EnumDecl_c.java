@@ -8,6 +8,7 @@ import polyglot.ast.ClassBody;
 import polyglot.ast.ClassDecl_c;
 import polyglot.ast.ConstructorDecl;
 import polyglot.ast.FlagsNode;
+import polyglot.ast.Formal;
 import polyglot.ast.Id;
 import polyglot.ast.MethodDecl;
 import polyglot.ast.Node;
@@ -144,7 +145,7 @@ public class EnumDecl_c extends JL5ClassDecl_c implements EnumDecl {
 		vmFlags.classicFlags(vmFlagsNode);
 		TypeNode returnType = nf.CanonicalTypeNode(pos, ts.arrayOf(this.type.asType()));
 		Id name = nf.Id(pos, "values");
-		JL5MethodDecl valuesMeth = ((JL5NodeFactory) nf).JL5MethodDecl(
+		MethodDecl valuesMeth = ((JL5NodeFactory) nf).MethodDecl(
 				pos, vmFlags, returnType,
 				name, Collections.EMPTY_LIST, Collections.EMPTY_LIST,
 				valuesBlock, null);
@@ -173,9 +174,9 @@ public class EnumDecl_c extends JL5ClassDecl_c implements EnumDecl {
 		FlagAnnotations fl = new FlagAnnotations(flags);
 		
 		LocalDef ld = ts.localDef(pos, flags.flags(), Types.ref(ts.String()), Name.make("arg1"));
-		JL5Formal formal = nf.JL5Formal(pos, fl, nf.CanonicalTypeNode(pos, ts.String()), nf.Id(pos, "arg1"));
-        formal = (JL5Formal) formal.localDef(ld);
-		List<JL5Formal> formals = Collections.singletonList(formal);
+		Formal formal = nf.Formal(pos, fl, nf.CanonicalTypeNode(pos, ts.String()), nf.Id(pos, "arg1"));
+        formal = formal.localDef(ld);
+		List<Formal> formals = Collections.singletonList(formal);
 
 		// Create the body of the method
 		//CHECK it's wrong to always return null from valueOf
@@ -189,7 +190,7 @@ public class EnumDecl_c extends JL5ClassDecl_c implements EnumDecl {
 		voFlags.classicFlags(nf.FlagsNode(pos, Flags.PUBLIC.Static()));
 		
 		TypeNode returnType = nf.CanonicalTypeNode(pos, this.type.asType());
-		JL5MethodDecl valueOfMeth = ((JL5NodeFactory) nf).JL5MethodDecl(
+		MethodDecl valueOfMeth = ((JL5NodeFactory) nf).MethodDecl(
 				pos, voFlags, returnType, nf.Id(pos,"valueOf"),
 				formals, Collections.EMPTY_LIST, valueOfBody, null);
 
