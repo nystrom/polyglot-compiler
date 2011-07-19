@@ -113,7 +113,7 @@ parser Grm extends polyglot.parse.Grm  {:
     public List handleLocalDecl(FlagAnnotations fl, List list){
         List l = new TypedList(new LinkedList(), LocalDecl.class, false);
         JL5LocalDecl dc = (JL5LocalDecl)list.get(0);
-        l.add(nf.JL5LocalDecl(dc.position(), fl, dc.type(), dc.name(), dc.init()));
+        l.add(nf.LocalDecl(dc.position(), fl, dc.type(), dc.name(), dc.init()));
         return l;
     }
 
@@ -121,7 +121,7 @@ parser Grm extends polyglot.parse.Grm  {:
         List l = new TypedList(new LinkedList(), LocalDecl.class, false);
         for (Iterator i = b.iterator(); i.hasNext(); ){
             VarDeclarator d = (VarDeclarator) i.next();
-            l.add(nf.JL5LocalDecl(pos(d), flags, array(a, d.dims), d.name, d.init));
+            l.add(nf.LocalDecl(pos(d), flags, array(a, d.dims), d.name, d.init));
 
         }
         return l;
@@ -132,7 +132,7 @@ parser Grm extends polyglot.parse.Grm  {:
             flags = new FlagAnnotations(nf.FlagsNode(Position.COMPILER_GENERATED, Flags.NONE), new TypedList(new LinkedList(), AnnotationElem.class, false));
         }
         List l = new TypedList(new LinkedList(), LocalDecl.class, false);
-        l.add(nf.JL5LocalDecl(pos(b), flags, array(a, b.dims), b.name, b.init));
+        l.add(nf.LocalDecl(pos(b), flags, array(a, b.dims), b.name, b.init));
 
         return l;
     }
@@ -305,14 +305,14 @@ class_or_interface ::=
         {: RESULT = a.toType(); :}
 	|	class_or_interface:a LT:b type_argument_list_1:c DOT:d name:e
         {: 
-           RESULT = parser.nf.AmbTypeNode(parser.pos(a, e), parser.nf.JL5AmbQualifierNode(parser.pos(a, c), ((AmbTypeNode)a).prefix(), ((AmbTypeNode)a).name(), c).prefix(), ((AmbTypeNode)e).name());
+           RESULT = parser.nf.AmbTypeNode(parser.pos(a, e), parser.nf.AmbQualifierNode(parser.pos(a, c), ((AmbTypeNode)a).prefix(), ((AmbTypeNode)a).name(), c).prefix(), ((AmbTypeNode)e).name());
         :}
 	;
 override class_or_interface_type ::=
 		class_or_interface:a
         {: RESULT = a; :}
 	|	class_or_interface:a LT:b type_argument_list_1:c
-        {: RESULT = parser.nf.JL5AmbTypeNode(parser.pos(a, c), ((AmbTypeNode)a).prefix(), ((AmbTypeNode)a).name(), c); :}
+        {: RESULT = parser.nf.AmbTypeNode(parser.pos(a, c), ((AmbTypeNode)a).prefix(), ((AmbTypeNode)a).name(), c); :}
 	;
 
 
@@ -326,9 +326,9 @@ override array_type ::=	primitive_type:a dims:b
 	|	class_or_interface:a LT type_argument_list_1:b DOT name:c dims:d
         {: 
            AmbTypeNode aa = (AmbTypeNode) a;
-           RESULT = parser.array(parser.nf.AmbTypeNode(parser.pos(a, c), parser.nf.JL5AmbQualifierNode(parser.pos(a, b), aa.prefix(), aa.name(), b).prefix(), ((AmbTypeNode)c).name()), d.intValue()); :}
+           RESULT = parser.array(parser.nf.AmbTypeNode(parser.pos(a, c), parser.nf.AmbQualifierNode(parser.pos(a, b), aa.prefix(), aa.name(), b).prefix(), ((AmbTypeNode)c).name()), d.intValue()); :}
 	|	class_or_interface:a LT type_argument_list_1:b dims:c
-        {: RESULT = parser.array(parser.nf.JL5AmbTypeNode(parser.pos(a, b), a, ((AmbTypeNode)a).name(), b), c.intValue()); :}
+        {: RESULT = parser.array(parser.nf.AmbTypeNode(parser.pos(a, b), a, ((AmbTypeNode)a).name(), b), c.intValue()); :}
 	;
 
 type_arguments_opt ::= 
@@ -386,13 +386,13 @@ reference_type_1 ::=
 		reference_type:a GT
         {: RESULT = a; :}
 	|	class_or_interface:a LT:b type_argument_list_2:c
-        {: RESULT = parser.nf.JL5AmbTypeNode(parser.pos(a, c), a, ((AmbTypeNode)a).name(), c); :}
+        {: RESULT = parser.nf.AmbTypeNode(parser.pos(a, c), a, ((AmbTypeNode)a).name(), c); :}
 	;
 reference_type_2 ::=
 		reference_type:a RSHIFT
         {: RESULT = a; :}
 	|	class_or_interface:a LT:b type_argument_list_3:c
-        {: RESULT = parser.nf.JL5AmbTypeNode(parser.pos(a, c), a, ((AmbTypeNode)a).name(), c); :}
+        {: RESULT = parser.nf.AmbTypeNode(parser.pos(a, c), a, ((AmbTypeNode)a).name(), c); :}
 	;
 reference_type_3 ::=
 		reference_type:a URSHIFT
@@ -484,7 +484,7 @@ extend type_declaration ::=
 override class_declaration ::=
    modifiers_or_annotations_opt:a CLASS:b identifier:c type_parameters_opt:d
    super_opt:e interfaces_opt:f class_body:g
-   {: RESULT = parser.nf.JL5ClassDecl(parser.pos(b, g), a, c, e, f, g, d); :}
+   {: RESULT = parser.nf.ClassDecl(parser.pos(b, g), a, c, e, f, g, d); :}
 ;  
              
 class_body_opt ::=
@@ -496,12 +496,12 @@ class_body_opt ::=
 
 override class_body ::=
     LBRACE:n class_body_declarations_opt:a RBRACE:b
-    {: RESULT = parser.nf.JL5ClassBody(parser.pos(n, b), a); :}
+    {: RESULT = parser.nf.ClassBody(parser.pos(n, b), a); :}
 ;
 
 override interface_body ::=
     LBRACE:n interface_member_declarations_opt:a RBRACE:d
-        {: RESULT = parser.nf.JL5ClassBody(parser.pos(n, d), a); :}
+        {: RESULT = parser.nf.ClassBody(parser.pos(n, d), a); :}
 ;
 
 override class_member_declaration ::=
@@ -517,7 +517,7 @@ override class_member_declaration ::=
     modifiers_or_annotations_opt:a CLASS:b identifier:c
         type_parameters_opt:d super_opt:e interfaces_opt:f class_body:g
         {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
-           l.add(parser.nf.JL5ClassDecl(parser.pos(b, g), a, c, e, f, g, d));
+           l.add(parser.nf.ClassDecl(parser.pos(b, g), a, c, e, f, g, d));
            RESULT = l; :}
     |   
     interface_declaration:a
@@ -541,7 +541,7 @@ enum_declaration ::=
 enum_body ::=
 		LBRACE:n enum_constants_opt:a enum_body_declarations_opt:b RBRACE:c
             {: a.addAll(b);
-               RESULT = parser.nf.JL5ClassBody(parser.pos(n, c), a); :}
+               RESULT = parser.nf.ClassBody(parser.pos(n, c), a); :}
 	;
 enum_constants_opt ::=
         {: RESULT = new TypedList(new LinkedList(), ClassMember.class, false); :}
@@ -580,7 +580,7 @@ override field_declaration ::=
     {: List l = new TypedList(new LinkedList(), ClassMember.class, false);
        for (Iterator i = c.iterator(); i.hasNext(); ) {
          VarDeclarator d = (VarDeclarator) i.next();
-         l.add(parser.nf.JL5FieldDecl(parser.pos(b, e),
+         l.add(parser.nf.FieldDecl(parser.pos(b, e),
                a, parser.array(b, d.dims),
                d.name, d.init));
         }
@@ -594,16 +594,16 @@ override method_header ::=
 	// be reduced when we see the 'type' if this was a method declaration,
 	// but it might still turn out to be a field declaration).
 	modifiers_or_annotations_opt:a type:b method_declarator:c throws_opt:d
-        {: RESULT = parser.nf.JL5MethodDecl(c.position(), a, parser.array(b, c.dims().intValue()), c.name(), c.formals(), d, null, new TypedList(new LinkedList(), TypeNode.class, false)); :}
+        {: RESULT = parser.nf.MethodDecl(c.position(), a, parser.array(b, c.dims().intValue()), c.name(), c.formals(), d, null, new TypedList(new LinkedList(), TypeNode.class, false)); :}
 	|	
     modifiers_or_annotations_opt:a LT:b type_parameter_list_1:c type:d method_declarator:e throws_opt:f
-        {: RESULT = parser.nf.JL5MethodDecl(e.position(), a, parser.array(d, e.dims().intValue()), e.name(), e.formals(), f, null, c); :}
+        {: RESULT = parser.nf.MethodDecl(e.position(), a, parser.array(d, e.dims().intValue()), e.name(), e.formals(), f, null, c); :}
 	|	
     modifiers_or_annotations_opt:a VOID:b method_declarator:c throws_opt:e
-        {: RESULT = parser.nf.JL5MethodDecl(c.position(), a, parser.nf.CanonicalTypeNode(parser.pos(b), parser.ts.Void()), c.name(), c.formals(), e, null, new TypedList(new LinkedList(), TypeNode.class, false)); :}
+        {: RESULT = parser.nf.MethodDecl(c.position(), a, parser.nf.CanonicalTypeNode(parser.pos(b), parser.ts.Void()), c.name(), c.formals(), e, null, new TypedList(new LinkedList(), TypeNode.class, false)); :}
 	|	
     modifiers_or_annotations_opt:a LT:b type_parameter_list_1:c VOID:d method_declarator:e throws_opt:f
-        {: RESULT = parser.nf.JL5MethodDecl(e.position(), a, parser.nf.CanonicalTypeNode(parser.pos(d), parser.ts.Void()), e.name(), e.formals(), f, null, c); :}
+        {: RESULT = parser.nf.MethodDecl(e.position(), a, parser.nf.CanonicalTypeNode(parser.pos(d), parser.ts.Void()), e.name(), e.formals(), f, null, c); :}
 	;
 method_declarator ::=
 		identifier:a LPAREN:b formal_parameter_list_opt:c RPAREN:d
@@ -615,11 +615,11 @@ method_declarator ::=
 override formal_parameter ::=
                     // Formal
     modifiers_or_annotations_opt:a type:b variable_declarator_id:c
-         {: RESULT = parser.nf.JL5Formal(parser.pos(b, c, c), a,
+         {: RESULT = parser.nf.Formal(parser.pos(b, c, c), a,
                      parser.array(b, c.dims), c.name); :}
     |
     modifiers_or_annotations_opt:a type:b ELLIPSIS:c identifier:d
-        {: RESULT = parser.nf.JL5Formal(parser.pos(b, d, d), a, parser.nf.ArrayTypeNode(parser.pos(b), b, true), d);
+        {: RESULT = parser.nf.Formal(parser.pos(b, d, d), a, parser.nf.ArrayTypeNode(parser.pos(b), b, true), d);
         :}
     ;
 
@@ -636,10 +636,10 @@ override local_variable_declaration ::=
 // 19.8.5) Constructor Declarations
 override constructor_declaration ::=
 	modifiers_or_annotations_opt:a constructor_declarator:b	throws_opt:c constructor_body:d
-        {: RESULT = parser.nf.JL5ConstructorDecl(b.position(), a, b.name(), b.formals(), c, d, new TypedList(new LinkedList(), TypeNode.class, false)); :} 
+        {: RESULT = parser.nf.ConstructorDecl(b.position(), a, b.name(), b.formals(), c, d, new TypedList(new LinkedList(), TypeNode.class, false)); :} 
 	|	
     modifiers_or_annotations_opt:a LT:b type_parameter_list_1:c constructor_declarator:d throws_opt:e constructor_body:f
-        {: RESULT = parser.nf.JL5ConstructorDecl(d.position(), a, d.name(), d.formals(), e, f, c); :} 
+        {: RESULT = parser.nf.ConstructorDecl(d.position(), a, d.name(), d.formals(), e, f, c); :} 
 	;
 constructor_declarator ::=
 		simple_name:a LPAREN:b formal_parameter_list_opt:c RPAREN:d
@@ -667,48 +667,48 @@ override explicit_constructor_invocation ::=
 		THIS:a LPAREN:b argument_list_opt:c RPAREN:d SEMICOLON:e
         {: RESULT = parser.nf.ThisCall(parser.pos(a, e), c); :}
 	|	type_arguments:a THIS:b LPAREN:c argument_list_opt:d RPAREN:e SEMICOLON:f
-        {: RESULT = parser.nf.JL5ThisCall(parser.pos(a, f), d, a); :}
+        {: RESULT = parser.nf.ThisCall(parser.pos(a, f), d, a); :}
 	|	SUPER:a LPAREN:b argument_list_opt:c RPAREN:d SEMICOLON:e
         {: RESULT = parser.nf.SuperCall(parser.pos(a, e), c); :}
 	|	type_arguments:a SUPER:b LPAREN:c argument_list_opt:d RPAREN:e SEMICOLON:f
-        {: RESULT = parser.nf.JL5SuperCall(parser.pos(a, f), d, a); :}
+        {: RESULT = parser.nf.SuperCall(parser.pos(a, f), d, a); :}
 	|	primary:a DOT:b SUPER:c LPAREN:d argument_list_opt:e RPAREN:f SEMICOLON:g
         {: RESULT = parser.nf.SuperCall(parser.pos(a, g, c), a, e); :}
 	|	primary:a DOT:b type_arguments:c SUPER:d
 			LPAREN:e argument_list_opt:f RPAREN:g SEMICOLON:h
-        {: RESULT = parser.nf.JL5SuperCall(parser.pos(a, h, d), a, f, c); :}
+        {: RESULT = parser.nf.SuperCall(parser.pos(a, h, d), a, f, c); :}
 	|	name:a DOT:b SUPER:c LPAREN:d argument_list_opt:e RPAREN:f SEMICOLON:g
         {: RESULT = parser.nf.SuperCall(parser.pos(a, g, d), a.toExpr(), e); :}
 	|	name:a DOT:b type_arguments:c SUPER:d LPAREN:e argument_list_opt:f RPAREN:g SEMICOLON:h
-        {: RESULT = parser.nf.JL5SuperCall(parser.pos(a, h, d), a.toExpr(), f, c); :}
+        {: RESULT = parser.nf.SuperCall(parser.pos(a, h, d), a.toExpr(), f, c); :}
 	|	primary:a DOT:b THIS:c LPAREN:d argument_list_opt:e RPAREN:f SEMICOLON:g
         {: RESULT = parser.nf.ThisCall(parser.pos(a, g, c), a, e); :}
 	|	primary:a DOT:b type_arguments:c THIS:d
 			LPAREN:e argument_list_opt:f RPAREN:g SEMICOLON:h
-        {: RESULT = parser.nf.JL5ThisCall(parser.pos(a, h, d), a, f, c); :}
+        {: RESULT = parser.nf.ThisCall(parser.pos(a, h, d), a, f, c); :}
 	|	name:a DOT:b THIS:c LPAREN:d argument_list_opt:e RPAREN:f SEMICOLON:g
         {: RESULT = parser.nf.ThisCall(parser.pos(a, g, d), a.toExpr(), e); :}
 	|	name:a DOT:b type_arguments:c THIS:d LPAREN:e argument_list_opt:f RPAREN:g SEMICOLON:h
-        {: RESULT = parser.nf.JL5ThisCall(parser.pos(a, h, d), a.toExpr(), f, c); :}
+        {: RESULT = parser.nf.ThisCall(parser.pos(a, h, d), a.toExpr(), f, c); :}
 	;
 
 // 19.9.1) Interface Declarations
 override interface_declaration ::=
 		modifiers_or_annotations_opt:a INTERFACE:b identifier:c type_parameters_opt:d extends_interfaces_opt:e interface_body:f
         {: a.classicFlags(a.classicFlags().flags(a.classicFlags().flags().Interface()));
-           RESULT = parser.nf.JL5ClassDecl(parser.pos(b, f), a, c, null, e, f, d); :}
+           RESULT = parser.nf.ClassDecl(parser.pos(b, f), a, c, null, e, f, d); :}
     | AT:a INTERFACE:b identifier:c annotation_body:d
         {: List l = new TypedList(new LinkedList(), TypeNode.class, false);
            l.add(parser.nf.CanonicalTypeNode(parser.pos(a, d), parser.ts.Annotation()));
            FlagAnnotations fl = new FlagAnnotations();
            fl.classicFlags(parser.nf.FlagsNode(Position.COMPILER_GENERATED, Flags.INTERFACE.set(JL5Flags.ANNOTATION)));
            fl.annotations(new TypedList(new LinkedList(), AnnotationElem.class, false));
-           RESULT = parser.nf.JL5ClassDecl(parser.pos(a, d), fl, c, null, l, d, new TypedList(new LinkedList(), TypeNode.class, false)); :}
+           RESULT = parser.nf.ClassDecl(parser.pos(a, d), fl, c, null, l, d, new TypedList(new LinkedList(), TypeNode.class, false)); :}
     | modifiers_or_annotations:a AT:b INTERFACE:c identifier:d annotation_body:e
         {: List l = new TypedList(new LinkedList(), TypeNode.class, false);
            l.add(parser.nf.CanonicalTypeNode(parser.pos(b, e), parser.ts.Annotation()));
            a.classicFlags(parser.nf.FlagsNode(Position.COMPILER_GENERATED, Flags.INTERFACE.set(JL5Flags.ANNOTATION)));
-           RESULT = parser.nf.JL5ClassDecl(parser.pos(b, e), a, d ,null, l, e, new TypedList(new LinkedList(), TypeNode.class, false)); :}
+           RESULT = parser.nf.ClassDecl(parser.pos(b, e), a, d ,null, l, e, new TypedList(new LinkedList(), TypeNode.class, false)); :}
 	;
 extend interface_member_declaration ::=
 	enum_declaration:a
@@ -798,36 +798,36 @@ override primary_no_new_array ::=
 //  [ Neal Gafter, <3F2577E0.3090008@sun.com> ]
 override class_instance_creation_expression ::=
 		NEW:a class_or_interface_type:b LPAREN:c argument_list_opt:d RPAREN:e class_body_opt:f
-        {: RESULT = parser.nf.JL5New(parser.pos(a), b, d, f, new TypedList(new LinkedList(), TypeNode.class, false)); :}
+        {: RESULT = parser.nf.New(parser.pos(a), b, d, f, new TypedList(new LinkedList(), TypeNode.class, false)); :}
 	|	NEW:a type_arguments:b class_or_interface_type:c LPAREN:d argument_list_opt:e RPAREN:f class_body_opt:g
-        {: RESULT = parser.nf.JL5New(parser.pos(a), c, e, g, b); :}
+        {: RESULT = parser.nf.New(parser.pos(a), c, e, g, b); :}
 	|	primary:a DOT:b NEW:c type_arguments_opt:d identifier:e type_arguments_opt:f LPAREN:g argument_list_opt:h RPAREN:i class_body_opt:j
         {: TypeNode aa = (new ParsedName(parser.nf, parser.ts, parser.pos(e), e)).toType();
-           RESULT = parser.nf.JL5New(parser.pos(a), a, parser.nf.JL5AmbTypeNode(parser.pos(e, f), aa, ((AmbTypeNode)aa).name(), f), h, j, d); :}
+           RESULT = parser.nf.New(parser.pos(a), a, parser.nf.AmbTypeNode(parser.pos(e, f), aa, ((AmbTypeNode)aa).name(), f), h, j, d); :}
 	|	name:a DOT:b NEW:c type_arguments_opt:d identifier:e type_arguments_opt:f LPAREN:g argument_list_opt:h RPAREN:i class_body_opt:j
         {: TypeNode aa = (new ParsedName(parser.nf, parser.ts, parser.pos(e), e)).toType();
-           RESULT = parser.nf.JL5New(parser.pos(a), a.toExpr(), parser.nf.JL5AmbTypeNode(parser.pos(e, f), aa, ((AmbTypeNode)aa).name(), f), h, j, d); :}
+           RESULT = parser.nf.New(parser.pos(a), a.toExpr(), parser.nf.AmbTypeNode(parser.pos(e, f), aa, ((AmbTypeNode)aa).name(), f), h, j, d); :}
 ;
 array_creation_init ::=
 		NEW:a primitive_type:b dims:c array_initializer:d
-        {: RESULT = parser.nf.JL5NewArray(parser.pos(a, d), b, Collections.EMPTY_LIST, c.intValue(), d); :}
+        {: RESULT = parser.nf.NewArray(parser.pos(a, d), b, Collections.EMPTY_LIST, c.intValue(), d); :}
 	|	NEW:a class_or_interface_type:b dims:c array_initializer:d
-        {: RESULT = parser.nf.JL5NewArray(parser.pos(a, d), b,
+        {: RESULT = parser.nf.NewArray(parser.pos(a, d), b,
                 Collections.EMPTY_LIST, c.intValue(), d); :}
 	;
 
 override array_creation_expression ::=
                     // NewArray
         NEW:n primitive_type:a dim_exprs:b dims_opt:c
-            {: RESULT = parser.nf.JL5NewArray(parser.pos(n, b), a, b,
+            {: RESULT = parser.nf.NewArray(parser.pos(n, b), a, b,
                 c.intValue(), null); :}
     |   NEW:n class_or_interface_type:a dim_exprs:b dims_opt:c
-            {: RESULT = parser.nf.JL5NewArray(parser.pos(n, b), a, b,
+            {: RESULT = parser.nf.NewArray(parser.pos(n, b), a, b,
                 c.intValue(), null); :}
     |   NEW:n primitive_type:a dims:b array_initializer:c
-            {: RESULT = parser.nf.JL5NewArray(parser.pos(n, c), a, Collections.EMPTY_LIST, b.intValue(), c); :}
+            {: RESULT = parser.nf.NewArray(parser.pos(n, c), a, Collections.EMPTY_LIST, b.intValue(), c); :}
     |   NEW:n class_or_interface_type:a dims:b array_initializer:c
-            {: RESULT = parser.nf.JL5NewArray(parser.pos(n, c), a, Collections.EMPTY_LIST,  b.intValue(), c); :}
+            {: RESULT = parser.nf.NewArray(parser.pos(n, c), a, Collections.EMPTY_LIST,  b.intValue(), c); :}
     ;
  
     
@@ -854,33 +854,33 @@ override method_invocation ::=
 // from the grammar. <3F256C06.7000600@sun.com>
 //	|	type_arguments name LPAREN argument_list_opt RPAREN
      name:a LPAREN argument_list_opt:b RPAREN:d
-            {: RESULT = parser.nf.JL5Call(parser.pos(a,d),
+            {: RESULT = parser.nf.Call(parser.pos(a,d),
                 a.prefix == null ? null : a.prefix.toReceiver(),
                 a.name, b, new TypedList(new LinkedList(), TypeNode.class, false)); :}
     |   primary:a DOT identifier:b LPAREN argument_list_opt:c RPAREN:d
-            {: RESULT = parser.nf.JL5Call(parser.pos(b,d), a,
+            {: RESULT = parser.nf.Call(parser.pos(b,d), a,
                 b, c, new TypedList(new LinkedList(), TypeNode.class, false)); :}
     |   SUPER:a DOT identifier:b LPAREN argument_list_opt:c RPAREN:d
-            {: RESULT = parser.nf.JL5Call(parser.pos(a,d, b),
+            {: RESULT = parser.nf.Call(parser.pos(a,d, b),
                 parser.nf.Super(parser.pos(a)),
                 b, c, new TypedList(new LinkedList(), TypeNode.class, false)); :}
     |   name:a DOT SUPER:n DOT identifier:b LPAREN argument_list_opt:c RPAREN:d
-            {: RESULT = parser.nf.JL5Call(parser.pos(b,d),
+            {: RESULT = parser.nf.Call(parser.pos(b,d),
                 parser.nf.Super(parser.pos(n), a.toType()),
                 b, c, new TypedList(new LinkedList(), TypeNode.class, false)); :}
     |
 
     primary:a DOT:b type_arguments:c identifier:d LPAREN:e argument_list_opt:f RPAREN:g
-        {: RESULT = parser.nf.JL5Call(parser.pos(a, g), a, d, f, c); :}
+        {: RESULT = parser.nf.Call(parser.pos(a, g), a, d, f, c); :}
 	|	
     name:a DOT:b type_arguments:c identifier:d LPAREN:e argument_list_opt:f RPAREN:g
-        {: RESULT = parser.nf.JL5Call(parser.pos(a, g), a.toReceiver(), d, f, c); :}
+        {: RESULT = parser.nf.Call(parser.pos(a, g), a.toReceiver(), d, f, c); :}
 	|
     SUPER:a DOT:b type_arguments:c identifier:d LPAREN:e argument_list_opt:f RPAREN:g
-        {: RESULT = parser.nf.JL5Call(parser.pos(a, g, d), parser.nf.Super(parser.pos(a)), d, f, c); :}
+        {: RESULT = parser.nf.Call(parser.pos(a, g, d), parser.nf.Super(parser.pos(a)), d, f, c); :}
     |
     name:a DOT:b SUPER:c DOT:d type_arguments:e identifier:f LPAREN:g argument_list_opt:h RPAREN:i
-        {: RESULT = parser.nf.JL5Call(parser.pos(f, i), parser.nf.Super(parser.pos(c), a.toType()), f, h, e); :}
+        {: RESULT = parser.nf.Call(parser.pos(f, i), parser.nf.Super(parser.pos(c), a.toType()), f, h, e); :}
 	;
 override array_access ::=
               // ArrayAccess
@@ -903,21 +903,21 @@ override array_access ::=
 //     cast_expression ::= LPAREN type RPAREN unary_expression_not_plus_minus
 override cast_expression ::=
 		LPAREN:a primitive_type:b dims_opt:c RPAREN:d unary_expression:e
-        {: RESULT = parser.nf.JL5Cast(parser.pos(a, e, b), parser.array(b, c.intValue()), e); :}
+        {: RESULT = parser.nf.Cast(parser.pos(a, e, b), parser.array(b, c.intValue()), e); :}
 	|	LPAREN:a name:b RPAREN:c unary_expression_not_plus_minus:d
-        {: RESULT = parser.nf.JL5Cast(parser.pos(a, d, b), parser.exprToType(b.toExpr()), d); :}
+        {: RESULT = parser.nf.Cast(parser.pos(a, d, b), parser.exprToType(b.toExpr()), d); :}
 	|	LPAREN:a name:b dims:c RPAREN:d unary_expression_not_plus_minus:e
-        {: RESULT = parser.nf.JL5Cast(parser.pos(a, e, b), parser.array(b.toType(), c.intValue()), e); :}
+        {: RESULT = parser.nf.Cast(parser.pos(a, e, b), parser.array(b.toType(), c.intValue()), e); :}
 	|	LPAREN:a name:b LT:c type_argument_list_1:d dims_opt:e RPAREN:f
 			unary_expression_not_plus_minus:g
         {: AmbTypeNode aa = (AmbTypeNode)b.toType();
-           RESULT = parser.nf.JL5Cast(parser.pos(a, g, b), parser.array(parser.nf.JL5AmbTypeNode(parser.pos(b, d), aa.prefix(), aa.name(), d), e.intValue()), g); :}
+           RESULT = parser.nf.Cast(parser.pos(a, g, b), parser.array(parser.nf.AmbTypeNode(parser.pos(b, d), aa.prefix(), aa.name(), d), e.intValue()), g); :}
 	|	LPAREN:a name:b LT:c type_argument_list_1:d DOT:e
 			class_or_interface_type:f dims_opt:g RPAREN:h
 			unary_expression_not_plus_minus:i
         {: AmbTypeNode aa = (AmbTypeNode)b.toType();
            AmbTypeNode bb = (AmbTypeNode)f;
-           RESULT = parser.nf.JL5Cast(parser.pos(a, i, b), parser.array(parser.nf.AmbTypeNode(parser.pos(b, f), parser.nf.JL5AmbQualifierNode(parser.pos(b, d), aa.prefix(), aa.name(), d).prefix(), bb.name()), g.intValue()), i); :}
+           RESULT = parser.nf.Cast(parser.pos(a, i, b), parser.array(parser.nf.AmbTypeNode(parser.pos(b, f), parser.nf.AmbQualifierNode(parser.pos(b, d), aa.prefix(), aa.name(), d).prefix(), bb.name()), g.intValue()), i); :}
 	;
 override relational_expression ::=
 		shift_expression:a
@@ -940,7 +940,7 @@ instanceof_expression ::=
 		relational_expression:a
         {: RESULT = a; :}
 	|	instanceof_expression:a INSTANCEOF:b reference_type:c
-        {: RESULT = parser.nf.JL5Instanceof(parser.pos(a, c), a, c); :}
+        {: RESULT = parser.nf.Instanceof(parser.pos(a, c), a, c); :}
 	;
 override equality_expression ::=
 		instanceof_expression:a
@@ -1164,9 +1164,9 @@ instanceof_expression_nn ::=
 		relational_expression_nn:a
         {: RESULT = a; :}
 	|	name:a INSTANCEOF:b reference_type:c
-        {: RESULT = parser.nf.JL5Instanceof(parser.pos(a, c), a.toExpr(), c); :}
+        {: RESULT = parser.nf.Instanceof(parser.pos(a, c), a.toExpr(), c); :}
 	|	instanceof_expression_nn:a INSTANCEOF:b reference_type:c
-        {: RESULT = parser.nf.JL5Instanceof(parser.pos(a, c), a, c); :}
+        {: RESULT = parser.nf.Instanceof(parser.pos(a, c), a, c); :}
 	;
 equality_expression_nn ::=
 		instanceof_expression_nn:a
@@ -1225,10 +1225,10 @@ conditional_expression_nn ::=
 		conditional_or_expression_nn:a
         {: RESULT = a; :}
 	|	name:a QUESTION:b expression:c COLON:d conditional_expression:e
-        {: RESULT = parser.nf.JL5Conditional(parser.pos(a, e), a.toExpr(), c, e); :}
+        {: RESULT = parser.nf.Conditional(parser.pos(a, e), a.toExpr(), c, e); :}
 	|	conditional_or_expression_nn:a QUESTION:b expression:c 
 			COLON:d conditional_expression:e
-        {: RESULT = parser.nf.JL5Conditional(parser.pos(a, e), a, c, e); :}
+        {: RESULT = parser.nf.Conditional(parser.pos(a, e), a, c, e); :}
             
 	;
 override conditional_expression ::=
@@ -1237,7 +1237,7 @@ override conditional_expression ::=
     {: RESULT = a; :}
     |   conditional_or_expression:a QUESTION expression:b
         COLON conditional_expression:c
-    {: RESULT = parser.nf.JL5Conditional(parser.pos(a, c), a, b, c); :}
+    {: RESULT = parser.nf.Conditional(parser.pos(a, c), a, b, c); :}
 ;
 
 assignment_expression_nn ::=
@@ -1384,7 +1384,7 @@ element_value_pair ::=
 
 annotation_body ::=
     LBRACE:n annotation_type_element_declarations_opt:a RBRACE:d
-        {: RESULT = parser.nf.JL5ClassBody(parser.pos(n,d), a); :}
+        {: RESULT = parser.nf.ClassBody(parser.pos(n,d), a); :}
 ;
 
 annotation_type_element_declarations_opt ::=
@@ -1438,17 +1438,17 @@ default_value_opt ::=
 
 override catch_clause ::=
     CATCH:n LPAREN formal_parameter:a RPAREN block:b
-        {: RESULT = parser.nf.JL5Catch(parser.pos(n, b), a, b); :}
+        {: RESULT = parser.nf.Catch(parser.pos(n, b), a, b); :}
 ;
 
 override switch_statement ::=
     SWITCH:n LPAREN expression:a RPAREN switch_block:b
-        {: RESULT = parser.nf.JL5Switch(parser.pos(n, b), a, b); :}
+        {: RESULT = parser.nf.Switch(parser.pos(n, b), a, b); :}
 ;
 
 override switch_label ::=
     CASE:n constant_expression:a COLON:d
-        {: RESULT = parser.nf.JL5Case(parser.pos(n, d), a); :}
+        {: RESULT = parser.nf.Case(parser.pos(n, d), a); :}
     |
     DEFAULT:n COLON:d
         {: RESULT = parser.nf.Default(parser.pos(n, d)); :}
@@ -1456,26 +1456,26 @@ override switch_label ::=
 override if_then_statement ::=
                     // If
         IF:n LPAREN expression:a RPAREN statement:b
-            {: RESULT = parser.nf.JL5If(parser.pos(n, b), a, b, null); :}
+            {: RESULT = parser.nf.If(parser.pos(n, b), a, b, null); :}
     ;
 override if_then_else_statement ::=
                     // If
         IF:n LPAREN expression:a RPAREN statement_no_short_if:b 
             ELSE statement:c
-            {: RESULT = parser.nf.JL5If(parser.pos(n, c), a, b, c); :}
+            {: RESULT = parser.nf.If(parser.pos(n, c), a, b, c); :}
     ;
 override if_then_else_statement_no_short_if ::=
                     // If
         IF:n LPAREN expression:a RPAREN statement_no_short_if:b
             ELSE statement_no_short_if:c
-            {: RESULT = parser.nf.JL5If(parser.pos(n, c), a, b, c); :}
+            {: RESULT = parser.nf.If(parser.pos(n, c), a, b, c); :}
     ;
 override assert_statement ::=
                     // Assert
         ASSERT:x expression:a SEMICOLON:d
-                {: RESULT = parser.nf.JL5Assert(parser.pos(x, d), a, null); :}
+                {: RESULT = parser.nf.Assert(parser.pos(x, d), a, null); :}
     |   ASSERT:x expression:a COLON expression:b SEMICOLON:d
-                {: RESULT = parser.nf.JL5Assert(parser.pos(x, d), a, b); :}
+                {: RESULT = parser.nf.Assert(parser.pos(x, d), a, b); :}
     ;
 
 override multiplicative_expression ::=
@@ -1607,5 +1607,5 @@ override unary_expression_not_plus_minus ::=
 
 override return_statement ::=
     RETURN:n expression_opt:a SEMICOLON:d
-        {: RESULT = parser.nf.JL5Return(parser.pos(n, d), a); :}
+        {: RESULT = parser.nf.Return(parser.pos(n, d), a); :}
 ;        

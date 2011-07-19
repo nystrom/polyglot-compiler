@@ -11,6 +11,7 @@ import polyglot.ast.ClassDecl;
 import polyglot.ast.ClassDecl_c;
 import polyglot.ast.ConstructorDecl;
 import polyglot.ast.FlagsNode;
+import polyglot.ast.Formal;
 import polyglot.ast.Id;
 import polyglot.ast.MethodDecl;
 import polyglot.ast.Node;
@@ -63,6 +64,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
     public JL5ClassDecl_c(Position pos, FlagAnnotations flags, Id name, TypeNode superClass,
             List interfaces, ClassBody body) {
         super(pos, flags.classicFlags(), name, superClass, interfaces, body);
+        this.paramTypes = Collections.EMPTY_LIST;
         this.annotations = (flags.annotations() != null) ? flags.annotations() : Collections.EMPTY_LIST;
     }
 
@@ -79,6 +81,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
     public JL5ClassDecl_c(Position pos, FlagAnnotations fl, Id name, TypeNode superType,
             List interfaces, ClassBody body, List<ParamTypeNode> paramTypes) {
     	this(pos, fl, name, superType, interfaces, body);
+    	assert (paramTypes != null);
         this.paramTypes = paramTypes;
     }
 
@@ -389,7 +392,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
 		vmFlags.classicFlags(vmFlagsNode);
 		TypeNode returnType = nf.CanonicalTypeNode(pos, ts.arrayOf(this.type.asType()));
 		Id name = nf.Id(pos, "values");
-		JL5MethodDecl valuesMeth = ((JL5NodeFactory) nf).JL5MethodDecl(
+		MethodDecl valuesMeth = ((JL5NodeFactory) nf).MethodDecl(
 				pos, vmFlags, returnType,
 				name, Collections.EMPTY_LIST, Collections.EMPTY_LIST,
 				valuesBlock, null);
@@ -418,9 +421,9 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
 		FlagAnnotations fl = new FlagAnnotations(flags);
 		
 		LocalDef ld = ts.localDef(pos, flags.flags(), Types.ref(ts.String()), Name.make("arg1"));
-		JL5Formal formal = nf.JL5Formal(pos, fl, nf.CanonicalTypeNode(pos, ts.String()), nf.Id(pos, "arg1"));
+		Formal formal = nf.Formal(pos, fl, nf.CanonicalTypeNode(pos, ts.String()), nf.Id(pos, "arg1"));
         formal = (JL5Formal) formal.localDef(ld);
-		List<JL5Formal> formals = Collections.singletonList(formal);
+		List<Formal> formals = Collections.singletonList(formal);
 
 		// Create the body of the method
 		//CHECK it's wrong to always return null from valueOf
@@ -434,7 +437,7 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
 		voFlags.classicFlags(nf.FlagsNode(pos, Flags.PUBLIC.Static()));
 		
 		TypeNode returnType = nf.CanonicalTypeNode(pos, this.type.asType());
-		JL5MethodDecl valueOfMeth = ((JL5NodeFactory) nf).JL5MethodDecl(
+		MethodDecl valueOfMeth = ((JL5NodeFactory) nf).MethodDecl(
 				pos, voFlags, returnType, nf.Id(pos,"valueOf"),
 				formals, Collections.EMPTY_LIST, valueOfBody, null);
 
