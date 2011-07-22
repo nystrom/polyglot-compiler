@@ -106,35 +106,59 @@ public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends Pro
     	List<Type> l2 = argTypes;
     	if ((l1.size() == 0) && (l2.size() != 0)) return false;
 
-    	Iterator<Type> it1 = l1.iterator();
-    	Iterator<Type> it2 = l2.iterator();
+    	Iterator<Type> itCallee = l1.iterator();
+    	Iterator<Type> itCaller = l2.iterator();
 
-    	//FIXME variable arity methods!!!!!
-    	while (it1.hasNext() && it2.hasNext()) {
-    		Type t1 = it1.next();
-    		Type t2 = it2.next();
+    	// caller can either:
+    	// - have one argument less than callee (last argument of 
+    	//   callee is a varargs and caller do not provide a value)
+    	// - have same number of args. The last arg being either
+    	//		- same type as the last arg of callee
+    	//		- or same type as the last arg of callee which is a varargs array
+    	//		- or an array of same type as the last arg of callee (which could be a varargs array)
+    	// - have more args, then:
+    	//		- last args of callee must be a varargs array
+    	//		- all extra args provided by the caller must match
+    	//        the varargs array type of the callee.
+    	
+    	while (itCallee.hasNext() && itCaller.hasNext()) {
+    		Type t1 = itCallee.next();
+    		Type t2 = itCaller.next();
 
-    		if (it1.hasNext()) {//not last formal parameter
-    			//                if (! ts.isImplicitCastValid(t2, t1, context)) return false;
-    		} else if (t1.isArray() && ((JL5ArrayType)t1).isVarargs()) {
+    		// Varargs can be used only in the final argument position
+    		// When we reach the final argument, we check if it is varargs array.
+    		if (!itCallee.hasNext() && t1.isArray() && ((JL5ArrayType)t1).isVarargs()) {
     			JL5ArrayType vartype = (JL5ArrayType)t1;
-    			if (!it2.hasNext()) {
+    			// Every arguments remaining in the second iterator must match the type
+    			// of the varargs array
+    			
+    			if (!itCaller.hasNext()) {
+    				// if we also reached the last element of the caller, 
+    				// check if the type matches or if it is an array
     				return ts.isImplicitCastValid(t2, vartype, context) || ts.isImplicitCastValid(t2, vartype.base(), context);
     			} else {
-    				while (ts.isImplicitCastValid(t2, vartype.base(), context)) { //eat up actual args
-    					if (it2.hasNext()) {
-    						t2 = it2.next();
-    					} else break;
+    				// There are several arguments left, they should all match the callee's varargs array type.
+    				while (itCaller.hasNext()) { //eat up actual args
+    					if (!ts.isImplicitCastValid(t2, vartype.base(), context)) {
+    						return false;
+    					}
+    					t2 = itCaller.next();
     				}
     			}
     		} else {
-    			if (! ts.isImplicitCastValid(t2, t1, context)) {
-    				return false;
-    			}
+				if (!ts.isImplicitCastValid(t2, t1, context)) {
+					return false;
+				}
     		}
     	}
-    	if (it1.hasNext() && isVariableArrity()) it1.next();
-    	return ! (it1.hasNext() || it2.hasNext());
+    	// Caller provided less args than the callee has, which is legal
+    	// if callee is a variable arity method
+    	if (itCallee.hasNext() && isVariableArrity()) { 
+    		itCallee.next();
+    	}
+
+    	// and we've reached callee's last arg.
+    	return ! (itCallee.hasNext() || itCaller.hasNext());
     }
 
     
