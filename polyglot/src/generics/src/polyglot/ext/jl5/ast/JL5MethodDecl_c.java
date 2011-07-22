@@ -65,9 +65,11 @@ public class JL5MethodDecl_c extends MethodDecl_c implements JL5MethodDecl, Appl
         } else {
             this.annotations = new TypedList(new LinkedList(), AnnotationElem.class, true);
         }
+        assert(paramTypes != null);
         this.paramTypes = paramTypes;
         this.compilerGenerated = compilerGenerated;
     }
+    
     public boolean isGeneric(){
     	return !paramTypes.isEmpty(); 
     }
