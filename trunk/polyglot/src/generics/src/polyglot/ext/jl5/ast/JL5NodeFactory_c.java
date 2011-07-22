@@ -139,10 +139,7 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
 	}
 
 	public Call Call(Position pos, Receiver target, Id name, List<Expr> args) {
-		Call n = new JL5Call_c(pos, target, name, CollectionUtil.nonNullList(args), Collections.EMPTY_LIST);
-		n = (Call)n.ext(extFactory().extLocalAssign());
-		n = (Call)n.del(delFactory().delLocalAssign());
-		return n;
+		return Call(pos, target, name, CollectionUtil.nonNullList(args), Collections.EMPTY_LIST);
 	}
 
 	@Override
@@ -305,7 +302,6 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
 		return n;
 	}
 
-	// TODO:  Implement factory methods for new AST nodes.
 	public ExtendedFor ExtendedFor(Position pos, List varDecls, Expr expr, Stmt stmt){
 		ExtendedFor n = new ExtendedFor_c(pos, varDecls, expr, stmt);
 		n = (ExtendedFor)n.ext(extFactory().extLocalAssign());
@@ -314,7 +310,7 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
 	}
 
 	@Override
-	public Field Field(Position pos, Receiver target, Id name){
+	public Field Field(Position pos, Receiver target, Id name) {
 		Field n = new JL5Field_c(pos, target, name);
 		n = (Field)n.ext(extFactory().extLocalAssign());
 		n = (Field)n.del(delFactory().delLocalAssign());
@@ -345,7 +341,7 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
 	 */
 	@Override
 	public Formal Formal(Position pos, FlagsNode flags, TypeNode type, Id name) {
-		Formal n = new JL5Formal_c(pos, new FlagAnnotations(flags), type, name);
+		Formal n = Formal(pos, new FlagAnnotations(flags), type, name);
 		return n;
 	}
 
@@ -429,18 +425,15 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
 	
 	@Override
     public MethodDecl MethodDecl(Position pos, FlagsNode flags, TypeNode returnType, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body) {
-		MethodDecl n = MethodDecl(pos, new FlagAnnotations(flags, null), returnType, name, formals, throwTypes, body, null);
+		MethodDecl n = MethodDecl(pos, new FlagAnnotations(flags, null), returnType, name, formals, throwTypes, body, Collections.EMPTY_LIST);
 		n = (MethodDecl)n.ext(extFactory().extLocalAssign());
 		n = (MethodDecl)n.del(delFactory().delLocalAssign());
 		return n;
 	}
 
 	@Override
-	public New New(Position pos, Expr outer, TypeNode objectType, List args, ClassBody body) {
-		New n = new JL5New_c(pos, outer, objectType, args, body, null);
-		n = (New)n.ext(extFactory().extLocalAssign());
-		n = (New)n.del(delFactory().delLocalAssign());
-		return n;
+	public New New(Position pos, Expr qualifier, TypeNode tn, List arguments, ClassBody body) {
+		return New(pos, qualifier, tn, arguments, body, Collections.EMPTY_LIST);
 	}
 
 	public New New(Position pos, Expr qualifier, TypeNode tn, List arguments, ClassBody body, List<TypeNode> typeArgs){

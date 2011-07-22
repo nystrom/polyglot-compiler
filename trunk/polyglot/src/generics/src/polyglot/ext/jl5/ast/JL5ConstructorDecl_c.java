@@ -50,12 +50,12 @@ public class JL5ConstructorDecl_c extends ConstructorDecl_c implements JL5Constr
         this(pos, flags, name, formals, throwTypes, body, new ArrayList<ParamTypeNode>());
     }
 
-    public JL5ConstructorDecl_c(Position pos, FlagAnnotations flags, Id name, List<Formal> formals, List<TypeNode> throwTypes, Block body, List<ParamTypeNode> paramTypes){
+    public JL5ConstructorDecl_c(Position pos, FlagAnnotations flags, Id name, 
+    		List<Formal> formals, List<TypeNode> throwTypes, Block body, List<ParamTypeNode> paramTypes){
         super(pos, flags.classicFlags(), name, formals, throwTypes, body);
         if (flags.annotations() != null){
             this.annotations = flags.annotations();
-        }
-        else {
+        } else {
             this.annotations = new TypedList(new LinkedList(), AnnotationElem.class, false);
         }
         this.paramTypes = paramTypes;
