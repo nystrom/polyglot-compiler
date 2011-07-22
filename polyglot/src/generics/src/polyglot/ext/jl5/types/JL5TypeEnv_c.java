@@ -52,13 +52,13 @@ public class JL5TypeEnv_c extends TypeEnv_c {
 
 		// boxing
 		if ((toType instanceof ReferenceType) && 
-				(fromType instanceof PrimitiveType)) {
+				isPrimitiveNonVoid(toType)) {
 			return isImplicitCastValid(jts.classOf(fromType),toType);
 		}
 
 		// unboxing
 		if ((fromType instanceof ReferenceType) && 
-				(toType instanceof PrimitiveType)) {
+				isPrimitiveNonVoid(toType)) {
 			return isImplicitCastValid(fromType, jts.classOf(toType));
 		} 
 
@@ -68,6 +68,10 @@ public class JL5TypeEnv_c extends TypeEnv_c {
 		}
 		// from Ref to Ref or only Primitive and Arrays involved
 		return super.isImplicitCastValid(fromType, toType);
+	}
+	
+	private boolean isPrimitiveNonVoid(Type t) {
+		return t.isPrimitive() && !t.isVoid();
 	}
     
 	/**
