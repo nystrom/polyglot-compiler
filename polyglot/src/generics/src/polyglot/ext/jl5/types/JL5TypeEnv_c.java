@@ -52,7 +52,7 @@ public class JL5TypeEnv_c extends TypeEnv_c {
 
 		// boxing
 		if ((toType instanceof ReferenceType) && 
-				isPrimitiveNonVoid(toType)) {
+				isPrimitiveNonVoid(fromType)) {
 			return isImplicitCastValid(jts.classOf(fromType),toType);
 		}
 
