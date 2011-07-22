@@ -1,6 +1,5 @@
 package polyglot.ext.jl5.types;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -25,8 +24,8 @@ import polyglot.types.MethodDef;
 import polyglot.types.MethodInstance;
 import polyglot.types.Name;
 import polyglot.types.ObjectType;
+import polyglot.types.PrimitiveType;
 import polyglot.types.Ref;
-import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.StructType;
 import polyglot.types.Type;
@@ -69,9 +68,15 @@ public interface JL5TypeSystem extends TypeSystem {
 	ClassType DoubleWrapper();
 
 	ClassType FloatWrapper();
+	
+	ClassType NumberWrapper();
 
 	ClassType classOf(Type t);
+	
+	MethodInstance wrapperGetter(PrimitiveType t);
 
+	ConstructorInstance wrapperConstructor(PrimitiveType t);
+	
 	boolean equivalent(Type t1, Type t2);
 
 	Type erasure(Type t);

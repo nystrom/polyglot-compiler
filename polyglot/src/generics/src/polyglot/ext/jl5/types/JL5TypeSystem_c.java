@@ -39,7 +39,6 @@ import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
 import polyglot.types.ConstructorDef;
 import polyglot.types.ConstructorInstance;
-import polyglot.types.ConstructorInstance_c;
 import polyglot.types.Context;
 import polyglot.types.FieldDef;
 import polyglot.types.FieldInstance;
@@ -147,6 +146,8 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 
 	protected ClassType VOID_WRAPPER;
 
+	protected ClassType NUMBER_WRAPPER;
+	
 	public ClassType IntegerWrapper() {
 		if (INTEGER_WRAPPER != null) {
 			return INTEGER_WRAPPER;
@@ -202,7 +203,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			return DOUBLE_WRAPPER = load("java.lang.Double");
 		}
 	}
-
+	
 	public ClassType FloatWrapper() {
 		if (FLOAT_WRAPPER != null) {
 			return FLOAT_WRAPPER;
@@ -211,11 +212,63 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		}
 	}
 
+	public ClassType NumberWrapper() {
+		if (NUMBER_WRAPPER != null) {
+			return NUMBER_WRAPPER;
+		} else {
+			return NUMBER_WRAPPER = load("java.lang.Number");
+		}
+	}
+
 	public ClassType VoidWrapper() {
 		if (VOID_WRAPPER != null) {
 			return VOID_WRAPPER;
 		} else {
 			return VOID_WRAPPER = load("java.lang.Void");
+		}
+	}
+
+	/**
+	 * Returns the method instance of the xxxValue method 
+	 * of a primitive type wrapper.
+	 */
+	public MethodInstance wrapperGetter(PrimitiveType t) {
+		ClassType wrapperType = classOf(t);
+		Name mthName = Name.make(t.toString() + "Value");
+		MethodInstance mi;
+		try {
+			mi = findMethod(wrapperType, MethodMatcher(wrapperType, mthName, Collections.EMPTY_LIST, null));
+		} catch (SemanticException e) {
+			throw new InternalCompilerError(e);
+		}
+		return mi;
+	}
+
+	/**
+	 * Returns the method instance of the xxxValue method 
+	 * of a primitive type wrapper.
+	 */
+	public MethodInstance wrapperGetter(ClassType t) {
+		// find the primitive name
+		wrapperTypeString(t);
+		ClassType wrapperType = classOf(t);
+		Name mthName = Name.make(t.toString() + "Value");
+		MethodInstance mi;
+		try {
+			mi = findMethod(wrapperType, MethodMatcher(wrapperType, mthName, Collections.EMPTY_LIST, null));
+		} catch (SemanticException e) {
+			throw new InternalCompilerError(e);
+		}
+		return mi;
+	}
+	
+	public ConstructorInstance wrapperConstructor(PrimitiveType t) {
+		ClassType ct = classOf(t);
+		try {
+			return findConstructor(ct, ConstructorMatcher(ct, Collections.singletonList((Type)t), null));
+		}
+		catch (SemanticException e) {
+			throw new InternalCompilerError(e.getMessage());
 		}
 	}
 
@@ -245,7 +298,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			return BooleanWrapper();
 		if (typeEquals(t, Void(), context))
 			return VoidWrapper();
-		return null;
+		throw new InternalCompilerError("Unrecognized primitive type " + t);
 	}
 
 	@Override
@@ -1495,7 +1548,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		while (!typeQueue.isEmpty()) {
 			Type t = (Type) typeQueue.removeFirst();
 			// get methods matching the name
-			if (t instanceof StructType) {
+			if (t instanceof StructType){
 				StructType type = (StructType) t;
 				if (visitedTypes.contains(type)) {
 					continue;
@@ -1570,7 +1623,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 								.elements().iterator(); elems.hasNext();) {
 							ElementValuePair elem = (ElementValuePair) elems
 									.next();
-							if (elem.name().equals("value")) {
+							if (elem.name().id().equals(Name.make("value"))) {
 								if (elem.value() instanceof JL5Field) {
 									Name val = ((JL5Field) elem.value()).name()
 											.id();
