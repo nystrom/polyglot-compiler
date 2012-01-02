@@ -129,7 +129,7 @@ public class LoadedClassResolver implements TopLevelResolver
     if (allowRawClasses) {
       if (Report.should_report(report_topics, 4))
 	Report.report(4, "Using raw class file for " + name);
-      result = ts.classFileLazyClassInitializer(clazz).type().asType();
+      result = ts.rawify(ts.classFileLazyClassInitializer(clazz).type());
     }
     
     // Verify that the type we loaded has the right name.  This prevents,
