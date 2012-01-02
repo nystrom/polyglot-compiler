@@ -239,7 +239,7 @@ public class JLScheduler extends Scheduler {
         protected QName className;
         protected Flags flags;
 
-        private LookupGlobalTypeDefAndSetFlags(Ref<ClassDef> v, QName className, Flags flags) {
+        protected LookupGlobalTypeDefAndSetFlags(Ref<ClassDef> v, QName className, Flags flags) {
             super(v);
             this.className = className;
             this.flags = flags;
@@ -260,11 +260,7 @@ public class JLScheduler extends Scheduler {
         		if (n instanceof ClassType) {
         			ClassType ct = (ClassType) n;
         			ClassDef def = ct.def();
-        			if (flags != null) {
-        				// The flags should be overwritten only for a member class.
-        				assert def.isMember();
-        				def.setFlags(flags);
-        			}
+        			defResolved(def);
         			ref.update(def);
         			return true;
         		}
@@ -273,6 +269,14 @@ public class JLScheduler extends Scheduler {
         		Globals.Compiler().errorQueue().enqueue(ErrorInfo.SEMANTIC_ERROR, e.getMessage(), e.position());
         	}
         	return false;
+        }
+        /** Extra work to do when def has been resolved */
+        protected void defResolved(ClassDef def) {
+			if (flags != null) {
+				// The flags should be overwritten only for a member class.
+				assert def.isMember();
+				def.setFlags(flags);
+			}
         }
     }
 }

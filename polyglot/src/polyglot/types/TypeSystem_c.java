@@ -2274,4 +2274,12 @@ public class TypeSystem_c implements TypeSystem
 	return StringUtil.getShortNameComponent(getClass().getName());
     }
 
+    /**
+     * This is a convenience method for extensions
+     */
+	@Override
+	public ClassType rawify(ClassDef type) {
+		return type.asType();
+	}
+
 }

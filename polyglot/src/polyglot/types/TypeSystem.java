@@ -883,4 +883,6 @@ public interface TypeSystem {
     public List<ConstructorInstance> findAcceptableConstructors(Type container, ConstructorMatcher matcher) throws SemanticException;
 
     List<Type> abstractSuperInterfaces(Type t);
+
+	ClassType rawify(ClassDef type);
 }

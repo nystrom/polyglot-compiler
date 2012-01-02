@@ -44,7 +44,7 @@ public class Field {
      * @exception IOException
      *        If an error occurs while reading.
      */
-    Field(DataInputStream in, ClassFile clazz)
+    public Field(DataInputStream in, ClassFile clazz)
         throws IOException
     {
         this.clazz = clazz;
