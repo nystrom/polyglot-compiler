@@ -23,7 +23,7 @@ import polyglot.visit.ContextVisitor;
 
 public class JL5ConstructorCall_c extends ConstructorCall_c implements JL5ConstructorCall {
 
-    protected List typeArguments;
+    protected List<TypeNode> typeArguments;
 
     public JL5ConstructorCall_c(Position pos, Kind kind, Expr qualifier, List arguments,
             List typeArguments) {
@@ -42,7 +42,7 @@ public class JL5ConstructorCall_c extends ConstructorCall_c implements JL5Constr
     }
 
     public Node typeCheck(ContextVisitor tc) throws SemanticException {
-    	ConstructorCall_c n = this;
+    	JL5ConstructorCall_c n = this;
     	
     	TypeSystem ts = tc.typeSystem();
     	Context c = tc.context();
@@ -126,24 +126,21 @@ public class JL5ConstructorCall_c extends ConstructorCall_c implements JL5Constr
                             " must be specified in the super constructor call.", position());
                     }
                 }
-
                 if (qualifier != q)
-                    n = (ConstructorCall_c) n.qualifier(q);
+                    n = (JL5ConstructorCall_c) n.qualifier(q);
     	}
 
         List<Type> explicitTypeArgs = null;
         List<Type> paramTypes = new ArrayList<Type>();
 
-        if (typeArguments != null && !typeArguments.isEmpty()) {
+        if (n.typeArguments != null && !n.typeArguments.isEmpty()) {
             explicitTypeArgs = new ArrayList<Type>();
-            for (Iterator it = typeArguments().iterator(); it.hasNext();) {
-                explicitTypeArgs.add(((TypeNode) it.next()).type());
+            for (TypeNode tn : n.typeArguments) {
+                explicitTypeArgs.add(tn.type());                
             }
         }
-
-        for (Iterator i = this.arguments().iterator(); i.hasNext();) {
-            Expr e = (Expr) i.next();
-            paramTypes.add(e.type());
+        for(Expr expr : (List<Expr>) n.arguments) {
+            paramTypes.add(expr.type());            
         }
 
         // We are trying to resolve a call to super so we must search the superClass for a ci
@@ -153,7 +150,7 @@ public class JL5ConstructorCall_c extends ConstructorCall_c implements JL5Constr
         JL5TypeSystem jl5ts = (JL5TypeSystem) ts;
     	ConstructorInstance ci = jl5ts.findJL5Constructor(ct, (JL5ConstructorMatcher) jl5ts.JL5ConstructorMatcher(ct, paramTypes, explicitTypeArgs, (JL5Context) c));
 
-        return constructorInstance(ci);
+        return n.constructorInstance(ci);
     }
 /*
     private Node checkTypeArguments(TypeChecker tc, JL5ConstructorCall_c n)

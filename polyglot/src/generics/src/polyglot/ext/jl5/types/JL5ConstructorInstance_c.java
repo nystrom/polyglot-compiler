@@ -21,7 +21,6 @@ public class JL5ConstructorInstance_c extends JL5ProcedureInstance_c<Constructor
     public JL5ConstructorInstance_c(TypeSystem ts, Position pos, Ref<? extends ConstructorDef> def) {
         super(ts, pos, def);
     }
-
     
     public JL5ConstructorInstance container(StructType container) {
     	JL5ConstructorInstance_c p = (JL5ConstructorInstance_c) copy();
@@ -60,6 +59,14 @@ public class JL5ConstructorInstance_c extends JL5ProcedureInstance_c<Constructor
     public JL5ConstructorInstance instantiate(ClassType objectType,
     		List<Type> argumentTypes) throws SemanticException {
     	return this;
+    }
+
+    public JL5ConstructorInstance erasure() {
+        JL5ConstructorInstance_c e = (JL5ConstructorInstance_c) super.erasure();
+        if (container instanceof ParameterizedType) {
+            e = (JL5ConstructorInstance_c) e.container(((ParameterizedType)e.container).baseType());
+        }
+        return e;
     }
 
 }

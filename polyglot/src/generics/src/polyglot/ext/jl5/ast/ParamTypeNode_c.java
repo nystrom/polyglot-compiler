@@ -48,7 +48,8 @@ import polyglot.visit.TypeBuilder;
  * Those are first represented as ambiguous type node and later disambiguated 
  * to canonical type nodes having a ParameterizedType.
  */
-public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
+public class ParamTypeNode_c extends TypeNode_c 
+implements ParamTypeNode {
 
 	/**
 	 * The type variable name used
@@ -114,6 +115,7 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
     	if (type == null) {
     		// makes a new TypeVariable with a list of bounds which are unknown types
     		JL5TypeSystem ts = (JL5TypeSystem) tb.typeSystem();
+
     		// Create a ClassDef for this TV
     		// CHECK not sure creating a class def for a paramtypenode is the right design decision 
     		Ref<? extends ClassDef> tvDef = Types.ref(new JL5ClassDef_c(ts));
@@ -140,41 +142,26 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
     	return !bounds.isEmpty();
     }
 
-    //CHECK bypass bounds
-//    public NodeVisitor disambiguateEnter(AmbiguityRemover ar) throws SemanticException {
-//        if (ar.kind() == JL5AmbiguityRemover.TYPE_VARS) {
-//            return ar.bypass(bounds);
-//        }
-//        else {
-//            return super.disambiguateEnter(ar);
-//        }
-//    }
-
     public Node disambiguate(ContextVisitor ar) throws SemanticException {
-    	// all of the children (bounds list) will have already been 
-    	// disambiguated and should there for be actual types
-    	JL5TypeSystem ts = (JL5TypeSystem) ar.typeSystem();
-
-    	//CHECK AmbiguityRemove.ALL
-    	//        if (ar.kind() == AmbiguityRemover.ALL) {
-    	ArrayList<Type> typeList = new ArrayList<Type>();
-    	for (Iterator<TypeNode> it = bounds.iterator(); it.hasNext();) {
-    		TypeNode tn = it.next();
-    		Type t = tn.type();
-    		if (t instanceof ClassType)
-    			typeList.add(t);
-    		else
-    			throw new SemanticException("Unexpected type bound in type variable declaration", tn.position());
-    	}
-    	TypeVariable tv = (TypeVariable) type();
-    	tv.bounds(typeList);
-    	//note: bounds are checked in typeCheck()
-    	//        }
+    	// don't need to build the type variable with resolved bounds since
+    	// in polyglot 3 we can build references to types at 'build type' time.
+//    	ArrayList<Type> typeList = new ArrayList<Type>();
+//    	for (Iterator<TypeNode> it = bounds.iterator(); it.hasNext();) {
+//    		TypeNode tn = it.next();
+//    		Type t = tn.type();
+//    		if (t instanceof ClassType)
+//    			typeList.add(t);
+//    		else
+//    			throw new SemanticException("Unexpected type bound in type variable declaration", tn.position());
+//    	}
+//    	TypeVariable tv = (TypeVariable) type();
+//    	tv.bounds(typeList);
     	return this;
     }
 
-    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-        TypeVariable tv = (TypeVariable) type();
+    public Node conformanceCheck(ContextVisitor tc) throws SemanticException {
+
+    	TypeVariable tv = (TypeVariable) type();
         JL5TypeSystem ts = (JL5TypeSystem) tc.typeSystem();
         for (int i = 0; i < bounds.size(); i++) {
             TypeNode ti = (TypeNode) bounds.get(i);
@@ -193,7 +180,6 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
 
             }
         }
-
         // only first bound can be a class otherwise must be interfaces
         for (int i = 0; i < bounds.size(); i++) {
             TypeNode tn = (TypeNode) bounds.get(i);
@@ -201,11 +187,8 @@ public class ParamTypeNode_c extends TypeNode_c implements ParamTypeNode {
                 throw new SemanticException("Interface expected here.", tn.position());
             }
         }
-
         ts.checkIntersectionBounds(tv.bounds(), false);
-
-        // CHECK should we update the definition of the TypeVariable now ?
-        return super.typeCheck(tc);
+        return super.conformanceCheck(tc);
     }
 
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) {

@@ -9,6 +9,7 @@ import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.types.Ref;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
+import polyglot.types.Types;
 import polyglot.util.ErrorInfo;
 import polyglot.util.ErrorQueue;
 import polyglot.util.Position;
@@ -18,6 +19,10 @@ public class JL5CanonicalTypeNode_c extends CanonicalTypeNode_c implements JL5Ca
 
     public JL5CanonicalTypeNode_c(Position pos, Ref<? extends Type> type) {
         super(pos, type);
+    }
+
+    public Type type() {
+        return Types.get(this.type);
     }
 
     public Node typeCheck(ContextVisitor tc) throws SemanticException {

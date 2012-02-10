@@ -328,7 +328,7 @@ override array_type ::=	primitive_type:a dims:b
            AmbTypeNode aa = (AmbTypeNode) a;
            RESULT = parser.array(parser.nf.AmbTypeNode(parser.pos(a, c), parser.nf.AmbQualifierNode(parser.pos(a, b), aa.prefix(), aa.name(), b).prefix(), ((AmbTypeNode)c).name()), d.intValue()); :}
 	|	class_or_interface:a LT type_argument_list_1:b dims:c
-        {: RESULT = parser.array(parser.nf.AmbTypeNode(parser.pos(a, b), a, ((AmbTypeNode)a).name(), b), c.intValue()); :}
+        {: RESULT = parser.array(parser.nf.AmbTypeNode(parser.pos(a, b), ((AmbTypeNode)a).prefix(), ((AmbTypeNode)a).name(), b), c.intValue()); :}
 	;
 
 type_arguments_opt ::= 
@@ -386,13 +386,13 @@ reference_type_1 ::=
 		reference_type:a GT
         {: RESULT = a; :}
 	|	class_or_interface:a LT:b type_argument_list_2:c
-        {: RESULT = parser.nf.AmbTypeNode(parser.pos(a, c), a, ((AmbTypeNode)a).name(), c); :}
+        {: RESULT = parser.nf.AmbTypeNode(parser.pos(a, c), ((AmbTypeNode)a).prefix(), ((AmbTypeNode)a).name(), c); :}
 	;
 reference_type_2 ::=
 		reference_type:a RSHIFT
         {: RESULT = a; :}
 	|	class_or_interface:a LT:b type_argument_list_3:c
-        {: RESULT = parser.nf.AmbTypeNode(parser.pos(a, c), a, ((AmbTypeNode)a).name(), c); :}
+        {: RESULT = parser.nf.AmbTypeNode(parser.pos(a, c), ((AmbTypeNode)a).prefix(), ((AmbTypeNode)a).name(), c); :}
 	;
 reference_type_3 ::=
 		reference_type:a URSHIFT
@@ -803,10 +803,10 @@ override class_instance_creation_expression ::=
         {: RESULT = parser.nf.New(parser.pos(a), c, e, g, b); :}
 	|	primary:a DOT:b NEW:c type_arguments_opt:d identifier:e type_arguments_opt:f LPAREN:g argument_list_opt:h RPAREN:i class_body_opt:j
         {: TypeNode aa = (new ParsedName(parser.nf, parser.ts, parser.pos(e), e)).toType();
-           RESULT = parser.nf.New(parser.pos(a), a, parser.nf.AmbTypeNode(parser.pos(e, f), aa, ((AmbTypeNode)aa).name(), f), h, j, d); :}
+           RESULT = parser.nf.New(parser.pos(a), a, parser.nf.AmbTypeNode(parser.pos(e, f), ((AmbTypeNode)aa).prefix(), ((AmbTypeNode)aa).name(), f), h, j, d); :}
 	|	name:a DOT:b NEW:c type_arguments_opt:d identifier:e type_arguments_opt:f LPAREN:g argument_list_opt:h RPAREN:i class_body_opt:j
         {: TypeNode aa = (new ParsedName(parser.nf, parser.ts, parser.pos(e), e)).toType();
-           RESULT = parser.nf.New(parser.pos(a), a.toExpr(), parser.nf.AmbTypeNode(parser.pos(e, f), aa, ((AmbTypeNode)aa).name(), f), h, j, d); :}
+           RESULT = parser.nf.New(parser.pos(a), a.toExpr(), parser.nf.AmbTypeNode(parser.pos(e, f), ((AmbTypeNode)aa).prefix(), ((AmbTypeNode)aa).name(), f), h, j, d); :}
 ;
 array_creation_init ::=
 		NEW:a primitive_type:b dims:c array_initializer:d

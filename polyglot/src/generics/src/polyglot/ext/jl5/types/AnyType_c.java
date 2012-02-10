@@ -1,13 +1,12 @@
 package polyglot.ext.jl5.types;
 
 import polyglot.types.ClassType;
+import polyglot.types.Ref;
 import polyglot.types.Resolver;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 
 public class AnyType_c extends Wildcard_c implements AnyType, SignatureType{
-
-    
     public AnyType_c(TypeSystem ts){
         super(ts);
     }
@@ -20,23 +19,20 @@ public class AnyType_c extends Wildcard_c implements AnyType, SignatureType{
         return "?";
     }
 
-    public ClassType upperBound(){
+    public Ref<ClassType> upperBound(){
         return null;
     }
-    
 
     public String signature(){
         return "*";
     }
 
-    public ClassType lowerBound() {
+    public Ref<ClassType> lowerBound() {
         return null;
     }
 
     @Override
     public boolean equalsImpl(TypeObject t) {
         return (t instanceof AnyType);
-    }
-    
-    
+    }    
 }

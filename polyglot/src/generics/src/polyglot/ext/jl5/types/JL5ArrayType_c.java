@@ -29,4 +29,8 @@ public class JL5ArrayType_c extends ArrayType_c implements JL5ArrayType, Signatu
     public String signature(){
         return "["+((SignatureType)base).signature()+";";
     }
+    
+    public boolean isTypeVariable() {
+        return false;
+    }
 }

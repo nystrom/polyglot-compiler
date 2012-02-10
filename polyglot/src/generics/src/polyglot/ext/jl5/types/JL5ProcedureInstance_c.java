@@ -6,6 +6,7 @@ import java.util.List;
 
 import polyglot.ext.jl5.types.JL5TypeSystem_c.TypeVariableEquals;
 import polyglot.types.Context;
+import polyglot.types.DerefTransform;
 import polyglot.types.Name;
 import polyglot.types.ProcedureDef;
 import polyglot.types.ProcedureInstance_c;
@@ -16,6 +17,7 @@ import polyglot.types.TypeSystem_c.TypeEquals;
 import polyglot.types.UnknownType;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
+import polyglot.util.TransformingList;
 
 public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends ProcedureInstance_c<T> implements JL5ProcedureInstance<T> {
 
@@ -25,9 +27,8 @@ public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends Pro
 
 	public JL5ProcedureInstance_c(TypeSystem ts, Position pos, Ref<? extends T> def) {
         super(ts, pos, def);
-        typeVariables = new ArrayList<TypeVariable>();
+        // Note: we cannot resolve type variables now because type checking hasn't occurred yet
     }
-
 	
 	public JL5ProcedureInstance<T> formalTypes(List<Type> formalTypes) {
 		return (JL5ProcedureInstance<T>) super.formalTypes(formalTypes);
@@ -37,33 +38,54 @@ public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends Pro
 		return (JL5ProcedureInstance<T>) super.throwTypes(throwTypes);
 	}
 	
+    public List<TypeVariable> typeVariablesDefs() {
+    	// Lazily resolve type variables from the definition
+    	// This need to be done after type checking
+        if (this.typeVariables == null) {
+        	List<Ref<? extends Type>> tv = ((JL5ProcedureDef)def.get()).typeVariableTypes();
+        	this.typeVariables = (List) new TransformingList<Ref<? extends Type>, Type>(tv,
+        			new DerefTransform<Type>());
+        }
+        return this.typeVariables;
+    }
+
     public List<TypeVariable> typeVariables(){
-        if (typeArguments == null || typeArguments.size() == 0)
-            return typeVariables;
-        if (substTypeVariables != null) 
+    	// If no type arguments have been provided, return type variables
+        if (typeArguments == null || typeArguments.size() == 0) {
+            //return this.typeVariablesDefs();
+        	return this.typeVariablesDefs();
+        }
+        // If we already did the substitution, return that.
+        if (substTypeVariables != null) { 
             return substTypeVariables;
+        }
+        // The first time, do the type argument substitution
         List<TypeVariable> r =  new ArrayList<TypeVariable>();
         JL5TypeSystem ts = (JL5TypeSystem) typeSystem();
-        for (TypeVariable tv : typeVariables) {
+        for (TypeVariable tv : this.typeVariablesDefs()) {
             TypeVariable n = (TypeVariable) tv.copy();
-            n.bounds(ts.applySubstitution(tv.bounds(), typeVariables, typeArguments));
+            n.bounds(ts.toRefTypes(ts.applySubstitution(tv.bounds(), this.typeVariablesDefs(), typeArguments)));
             r.add(n);
         }
         return (substTypeVariables = r);
     }
 
+    @Deprecated 
     public void addTypeVariable(TypeVariable type){
+    	// This should be handled by defs
         if (typeVariables == null){
             typeVariables = new ArrayList<TypeVariable>();
         }
         typeVariables.add(type);
         type.declaringProcedure(this);
     }
-
+    
+    @Deprecated
     public boolean hasTypeVariable(Name name){
     	return getTypeVariable(name) != null;
     }
 
+    @Deprecated
     public TypeVariable getTypeVariable(Name name){
         for (Iterator it = typeVariables.iterator(); it.hasNext(); ){
             TypeVariable iType = (TypeVariable)it.next();
@@ -72,22 +94,25 @@ public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends Pro
         return null;
     }
 
+    @Deprecated
     public void typeVariables(List<TypeVariable> vars){
+    	// This should be handled by defs
         typeVariables = vars;
         for (TypeVariable tv : typeVariables) {
             tv.declaringProcedure(this);
         }
     }
-    
+
     public boolean isGeneric(){
-        return ((typeVariables != null) && !typeVariables.isEmpty());
+//    	this.typeVariablesDefs();
+//        return ((typeVariables != null) && !typeVariables.isEmpty());
+    	return !this.typeVariablesDefs().isEmpty();
     }
 
     public boolean isGeneric(List<TypeVariable> l){
         return ((l != null) && !l.isEmpty());
     }
 
-    
     public boolean isVariableArrity() {
         int numFormals;
         if ((numFormals = formalTypes().size()) > 0) {
@@ -161,13 +186,13 @@ public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends Pro
     	return ! (itCallee.hasNext() || itCaller.hasNext());
     }
 
-    
     public List<Type> typeArguments() {
         return typeArguments;
     }
 
-    //return a copy of this, since we don't want to polute the method and constructor declarations in classes.
-    //typeArguments are used only when dealing with actual calls.
+    // Returns a copy of this, since we don't want to pollute the method and 
+    // constructor declarations in classes.
+    // typeArguments are used only when dealing with actual calls.
     public JL5ProcedureInstance typeArguments(List<? extends Type> typeArgs) {
         JL5ProcedureInstance_c n = (JL5ProcedureInstance_c) this.copy();
         n.typeArguments = new ArrayList<Type>();
@@ -200,7 +225,7 @@ public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends Pro
         JL5TypeSystem ts = (JL5TypeSystem)typeSystem();
         List<Type> r = new ArrayList<Type>();
         for (Type t : declaredFormals) {
-           r.add(ts.applySubstitution(t, typeVariables, knownTypeArguments()));
+           r.add(ts.applySubstitution(t, this.typeVariablesDefs(), knownTypeArguments()));
         }
         return (substFormals = r);
     }
@@ -209,7 +234,10 @@ public abstract class JL5ProcedureInstance_c<T extends ProcedureDef> extends Pro
         JL5TypeSystem ts = (JL5TypeSystem) typeSystem();
         JL5ProcedureInstance_c n = (JL5ProcedureInstance_c) this.copy();
         List<Type> erasedFormals = new ArrayList<Type>();
-        for (Type formal : formalTypes()) {
+        // Need to get the types from the definition, since we 
+        // want erasure to resolve the bounds of TypeVariable
+        List<Type> declaredFormals = new TransformingList<Ref<? extends Type>, Type>(def().formalTypes(), new DerefTransform<Type>());
+        for (Type formal : declaredFormals) {
             erasedFormals.add(ts.erasure(formal));
         }
         n.formalTypes = erasedFormals;

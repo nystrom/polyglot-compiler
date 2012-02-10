@@ -71,6 +71,8 @@ public interface JL5TypeSystem extends TypeSystem {
 	
 	ClassType NumberWrapper();
 
+	ClassType VoidWrapper();
+	
 	ClassType classOf(Type t);
 	
 	MethodInstance wrapperGetter(PrimitiveType t);
@@ -123,6 +125,11 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	ParameterizedType parameterizedType(JL5ParsedClassType type);
 
+    ParameterizedType parameterizedType(JL5ParsedClassType type, Ref<ClassDef> defRef, 
+            List<Ref<?extends Type>> typeArguments);
+
+    RawType rawType(JL5ParsedClassType ct, Ref<ClassDef> defRef);
+    
 	RawType rawType(JL5ParsedClassType ct);
 
 	/*
@@ -136,9 +143,9 @@ public interface JL5TypeSystem extends TypeSystem {
 
 	AnyType anyType();
 
-	AnySuperType anySuperType(ClassType t);
+	AnySuperType anySuperType(Ref<ClassType> t);
 
-	AnySubType anySubType(ClassType t);
+	AnySubType anySubType(Ref<ClassType> t);
 
 	boolean isEquivalent(TypeObject arg1, TypeObject arg2);
 
@@ -223,5 +230,7 @@ public interface JL5TypeSystem extends TypeSystem {
 	Type arrayOf(Position position, Ref<? extends Type> typeRef, boolean varargs);
 
 	List<Ref<? extends Type>> toRefTypes(List<Type> typeList);
+
+    boolean isPrimitiveWrapper(Type fromType);
 
 }

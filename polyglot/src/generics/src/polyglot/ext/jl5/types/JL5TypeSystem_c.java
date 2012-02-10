@@ -36,6 +36,7 @@ import polyglot.ext.jl5.types.reflect.JL5ClassFileLazyClassInitializer;
 import polyglot.frontend.Source;
 import polyglot.types.ArrayType;
 import polyglot.types.ClassDef;
+import polyglot.types.ClassDef_c;
 import polyglot.types.ClassType;
 import polyglot.types.ConstructorDef;
 import polyglot.types.ConstructorInstance;
@@ -228,6 +229,18 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		}
 	}
 
+    public boolean isPrimitiveWrapper(Type type) {
+        Context ctx = emptyContext();
+        return  typeEquals(type, this.BooleanWrapper(), ctx) ||
+                typeEquals(type, this.CharacterWrapper(), ctx) ||
+                typeEquals(type, this.ByteWrapper(), ctx) ||
+                typeEquals(type, this.ShortWrapper(), ctx) ||
+                typeEquals(type, this.IntegerWrapper(), ctx) ||
+                typeEquals(type, this.LongWrapper(), ctx) ||
+                typeEquals(type, this.FloatWrapper(), ctx) ||
+                typeEquals(type, this.DoubleWrapper(), ctx);
+    }
+
 	/**
 	 * Returns the method instance of the xxxValue method 
 	 * of a primitive type wrapper.
@@ -280,6 +293,8 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		Context context = emptyContext();
 		if (t.isClass())
 			return (ClassType) t;
+		if (t.isArray()) 
+			return load("java.lang.reflect.Array");
 		if (typeEquals(t, Float(), context))
 			return FloatWrapper();
 		if (typeEquals(t, Double(), context))
@@ -298,6 +313,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			return BooleanWrapper();
 		if (typeEquals(t, Void(), context))
 			return VoidWrapper();
+
 		throw new InternalCompilerError("Unrecognized primitive type " + t);
 	}
 
@@ -425,9 +441,17 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	 */
 	public ParsedClassType createClassType(Position pos,
 			Ref<? extends ClassDef> def) {
-		return new JL5ParsedClassType_c(this, pos, def);
+		// Note: Can't dereference def now
+		JL5ParsedClassType ct = new JL5ParsedClassType_c(this, pos, def);
+		return ct;
 	}
 
+	@Override
+	public FieldInstance createFieldInstance(Position pos,
+	        Ref<? extends FieldDef> def) {
+	    return new JL5FieldInstance_c(this, pos, def);
+	}
+	
 	@Override
 	public MethodInstance createMethodInstance(Position position,
 			Ref<? extends MethodDef> def) {
@@ -474,6 +498,15 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	public ClassDef createClassDef(Source fromSource) {
 		return new JL5ClassDef_c(this, fromSource);
 	}
+
+    public ClassDef unknownClassDef() {
+        if (unknownClassDef == null) {
+            unknownClassDef = new JL5ClassDef_c(this, null);
+            unknownClassDef.name(Name.make("<unknown class>"));
+            unknownClassDef.kind(ClassDef.TOP_LEVEL);
+        }
+        return unknownClassDef;
+    }
 
 	protected final Flags TOP_LEVEL_CLASS_FLAGS = JL5Flags
 			.setAnnotationModifier(JL5Flags
@@ -900,7 +933,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	 */
 
     public TypeVariable typeVariable(Position pos, String name, List bounds) {
-        return this.typeVariable(pos, Name.make(name), Types.ref((ClassDef)null), bounds);
+        return this.typeVariable(pos, Name.make(name), Types.ref(new JL5ClassDef_c(this)), bounds);
     }
 
 	public TypeVariable typeVariable(Position pos, Name name,
@@ -914,10 +947,37 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	}
 
 	public ParameterizedType parameterizedType(JL5ParsedClassType ct) {
-		return new ParameterizedType_c(ct);
+	    return parameterizedType(ct);
+	}
+	
+    public ParameterizedType parameterizedType(JL5ParsedClassType type, Ref<ClassDef> defRef, 
+            List<Ref<?extends Type>> typeArguments) {
+        return new ParameterizedType_c(type, defRef, typeArguments);
+    }
+
+	@Override
+	public ClassType rawify(ClassDef def) {
+		JL5ParsedClassType pt = (JL5ParsedClassType) def.asType();
+		// Try to rawify a parameterized type, maybe this is an error ?
+		assert !(pt instanceof ParameterizedType);
+
+		if (pt.isGeneric()) {
+			return rawType(pt);
+		}
+		return pt;
 	}
 
+    public RawType rawType(JL5ParsedClassType ct, Ref<ClassDef> defRef) {
+        if (ct instanceof RawType) {
+            return (RawType) ct;
+        }
+        return new RawType_c(ct, defRef);
+    }
+    
 	public RawType rawType(JL5ParsedClassType ct) {
+		if (ct instanceof RawType) {
+			return (RawType) ct;
+		}
 		return new RawType_c(ct);
 	}
 
@@ -1141,11 +1201,11 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		return new AnyType_c(this);
 	}
 
-	public AnySuperType anySuperType(ClassType t) {
+	public AnySuperType anySuperType(Ref<ClassType> t) {
 		return new AnySuperType_c(this, t);
 	}
 
-	public AnySubType anySubType(ClassType t) {
+	public AnySubType anySubType(Ref<ClassType> t) {
 		return new AnySubType_c(this, t);
 	}
 
@@ -1317,7 +1377,6 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 
 		// JLS 15.12.2-4
 		acceptable = identifyApplicableProcedures(acceptable, (JL5ProcedureMatcher) matcher);
-
 		
 		// remove any method in acceptable that are overridden by an
 		// unacceptable method.
@@ -1363,7 +1422,6 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 					.next();
 			return mi;
 		} else {
-			
 			throw new SemanticException("No valid method call found for "
 					+ name + "(" + listToString(((JL5MethodMatcher)matcher).getArgTypes())
 					+ ") in " + container + ".");
@@ -1548,19 +1606,18 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		while (!typeQueue.isEmpty()) {
 			Type t = (Type) typeQueue.removeFirst();
 			// get methods matching the name
+			
+			if (t instanceof IntersectionType) {
+				// We need to get the synthetic class
+				t = ((IntersectionType) t).getSyntheticClassType();
+			}
 			if (t instanceof StructType){
 				StructType type = (StructType) t;
 				if (visitedTypes.contains(type)) {
 					continue;
 				}
 				visitedTypes.add(type);
-				for (Iterator<MethodInstance> i = type.methodsNamed(mthName)
-						.iterator(); i.hasNext();) {
-					JL5MethodInstance mi = (JL5MethodInstance) i.next();
-					if (mi.name().equals(mthName)) {
-						result.add(mi);
-					}
-				}
+				result.addAll((List) type.methodsNamed(mthName));
 			}
 			// build closure
 			if (t instanceof ObjectType) {
@@ -1709,6 +1766,24 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	// substitution for parameters
 	public Type applySubstitution(Type toBeSubed, List<TypeVariable> orig,
 			List<Type> sub) {
+
+		// We lazily substitute class hierarchies, so when we ask to substitute
+		// a class type, it means we are in the context of a parameterized
+		// type trying to get substitution applied to let say an interface it implements
+		// or its super class. Thus at this point we convert the class type to a parameterized type.
+		if ((toBeSubed instanceof JL5ParsedClassType) &&
+			 ((JL5ParsedClassType) toBeSubed).isGeneric() &&
+			 (!(toBeSubed instanceof ParameterizedType))) {
+			ParameterizedType paramType = this.parameterizedType((JL5ParsedClassType) toBeSubed);
+			List<Ref<? extends Type>> typeRefArgs = ((JL5ClassDef)paramType.def()).typeVariables();
+			List<Type> typeArgs = new ArrayList<Type>(typeRefArgs.size());
+			for (Ref<? extends Type> refType : typeRefArgs) {
+				typeArgs.add(refType.get());
+			}
+			paramType.typeArguments(typeArgs);
+			toBeSubed = paramType;
+		}
+
 		if (toBeSubed instanceof TypeVariable) {
 			for (int i = 0; i < orig.size(); i++) {
 				if(typeEquals(orig.get(i), toBeSubed, emptyContext()))
@@ -1732,7 +1807,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			ReferenceType b = wc.bound();
 			if (b != null) {
 				Wildcard newwc = (Wildcard) wc.copy();
-				newwc.bound((ClassType) applySubstitution(b, orig, sub));
+				newwc.bound(Types.ref((ClassType) applySubstitution(b, orig, sub)));
 				return newwc;
 			}
 		} else if (toBeSubed instanceof LubType) {
@@ -1760,43 +1835,57 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	// return the "raw type" version of a given type.
 	// if the type is not generic, it is unchanged.
 	public ClassType rawify(Type t) {
-		// Already raw
-		if (t == null || t instanceof RawType) {
-			return (RawType) t;
-		}
-		// Not generic
-		if (!((JL5ParsedClassType) t).isGeneric()) {
-			return (JL5ParsedClassType) t;
-		}
-		// Parameterized
-		JL5ParsedClassType bt;
-		if (t instanceof ParameterizedType) {
-			bt = (JL5ParsedClassType) ((ParameterizedType) t).baseType();			
-		} else {
-			bt = (JL5ParsedClassType) t;
-		}
-		
-		// and nested
-		if (bt.isNested()) {
-			ClassDef outerRawDef = rawify(bt.outer()).def();
-			ClassDef currentDefCopy = (ClassDef) bt.def().copy();
-			currentDefCopy.outer(Types.ref(outerRawDef));
-			bt = (JL5ParsedClassType) currentDefCopy.asType();
-		}
-		return rawType(bt);
+	    assert (t.isClass());
+
+	    // Already raw
+	    if (t == null || t instanceof RawType) {
+	        return (RawType) t;
+	    }
+
+	    // Parameterized
+	    JL5ParsedClassType bt = (JL5ParsedClassType) t;
+	    if (t instanceof ParameterizedType) {
+	        bt = (JL5ParsedClassType) ((ParameterizedType) t).baseType();			
+	    }
+
+	    // and nested, recursively rawify the class hierarchy
+	    if (bt.isNested()) {
+	        ClassDef outerRawDef = rawify(bt.outer()).def();
+	        ClassDef currentDefCopy = (ClassDef) bt.def().copy();
+	        currentDefCopy.outer(Types.ref(outerRawDef));
+	        bt = (JL5ParsedClassType) currentDefCopy.asType();
+	    }
+
+	    if (bt.isGeneric()) {
+	        return rawType(bt);
+	    }
+
+	    // Not Generic (but hierarchy could have been)
+	    return bt;
 	}
 
-	// turn bare occurences of a generic type into a raw type
+	/**
+	 * Turn bare occurences of a generic type into a raw type
+	 * 
+	 * For now, this is supposed to be called only when 
+	 * loading types from .class which need to be erased.
+	 */
+	@Deprecated
 	public Type rawifyBareGenericType(Type t) {
+		assert t.isClass();
+		JL5ParsedClassType pt = (JL5ParsedClassType) t;
+		// Try to rawify a parameterized type, maybe this is an error ?
+		assert !(pt instanceof ParameterizedType);
 		if (t.isClass()) {
-			JL5ParsedClassType pt = (JL5ParsedClassType) t;
-			if (pt.isGeneric() && (!(pt instanceof ParameterizedType))) {
+			//if (pt.isGeneric() && (!(pt instanceof ParameterizedType))) {
+			if (pt.isGeneric()) {
 				return rawType(pt);
 			}
 		}
 		return t;
 	}
 
+	@Deprecated
 	public List rawifyBareGenericTypeList(List l) {
 		List newL = new ArrayList();
 		for (Object o : l) {
@@ -1806,23 +1895,26 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	}
 
 	public Type erasure(Type t) {
-		if (t == null)
-			return null;
-		if (t instanceof JL5ParsedClassType) {
-			JL5ParsedClassType pct = (JL5ParsedClassType) t;
-			return rawify(pct);
-		} else if (t instanceof TypeVariable) {
-			TypeVariable tv = (TypeVariable) t;
-			return erasure(tv.upperBound());
-		} else if (t instanceof IntersectionType) {
-			IntersectionType it = (IntersectionType) t;
-			return erasure(it.boundsTypes().get(0));
-		} else if (t instanceof ArrayType) {
-			ArrayType at = (ArrayType) t;
-			return arrayOf(null, erasure(at.base()));
-		} else {
-			return t;
-		}
+	    if (t == null) {
+	        return null;
+	    }
+	    //		if (t instanceof JL5ParsedClassType) {
+	    //			JL5ParsedClassType pct = (JL5ParsedClassType) t;
+	    //			return rawify(pct);
+	    else if (t instanceof ParameterizedType) {
+	        return rawify(t);
+	    } else if (t instanceof TypeVariable) {
+	        TypeVariable tv = (TypeVariable) t;
+	        return erasure(tv.upperBound());
+	    } else if (t instanceof IntersectionType) {
+	        IntersectionType it = (IntersectionType) t;
+	        return erasure(it.boundsTypes().get(0));
+	    } else if (t instanceof ArrayType) {
+	        ArrayType at = (ArrayType) t;
+	        return arrayOf(null, erasure(at.base()));
+	    } else {
+	        return t;
+	    }
 	}
 
 	public Type capture(Type t) {
@@ -1863,10 +1955,14 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 					if (!isSubtype(((AnySuperType) argAnc).bound(),
 							((AnySuperType) argChild).bound(), ctx))
 						return false;
-				} else if (!isSubtype(((AnySuperType) argAnc).bound(), argChild, ctx))
+				} else if (!isSubtype(((AnySuperType) argAnc).bound(), argChild, ctx)) {
 					return false;
-			} else if (!typeEquals(argChild, argAnc, ctx))
-				return false;
+				}
+//			} else if (!typeEquals(argChild, argAnc, ctx)) {
+//				return false;
+            } else if (!isSubtype(argChild, argAnc, ctx)) {
+                return false;
+            }
 		}
 		return true;
 	}
@@ -1915,6 +2011,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 		}
 	}
 
+	/*
 	@Override
 	public boolean isSubtype(Type t1, Type t2, Context ctx) {
 		// CHECK: Need to double check correctness of this method
@@ -1945,11 +2042,43 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			return false;
 		}
 
+		if (t1 instanceof ParameterizedType) {
+			//VC8 Does this, means we ignore the eventual parameter arguments ?
+			if (super.isSubtype(t1, t2, ctx)) {
+				return true;
+			}
+			// if the ancestor is a raw type and some corresponding
+			// parameterized type is in the set then we allow it
+			if (t2 instanceof RawType) {
+				if (isSubtype(rawify(t1), t2, ctx)) {
+					return true;
+				}
+			}
+			else if ((t2 instanceof ParameterizedType) && (!typeEquals(t1, t2, ctx))) {
+				return checkContains((ParameterizedType) ((ParameterizedType)t1).capture(), 
+						(ParameterizedType) t2);
+			}
+			return false;
+		}
+		
+		if (t1 instanceof RawType) {
+	        if (super.isSubtype(t1, t2, ctx))
+	            return true;
+	        // if the ancestor's associated raw type is in the set
+	        // then we allow it
+	        if (t2 instanceof ParameterizedType
+		    || (t2 instanceof JL5ParsedClassType && !(t2 instanceof RawType) &&
+			((JL5ParsedClassType)t2).isGeneric())) {
+	            return this.isSubtype(t1, this.rawify(t2), ctx);
+	        }
+	        return false;
+		}
+        
 		// these come from the old implementation of JL5TypeSystem
 		if (t2 instanceof TypeVariable) {
 			TypeVariable tv = (TypeVariable) t2;
 			return super.isSubtype(t1, t2, ctx)
-					|| super.isSubtype(t1, tv.lowerBound(), ctx);
+			|| super.isSubtype(t1, tv.lowerBound(), ctx);
 		} else if (t2 instanceof LubType) {
 			LubType lt = (LubType) t2;
 			for (Type e : lt.lubElements()) {
@@ -1968,7 +2097,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			return super.isSubtype(t1, t2, ctx);
 		}
 	}
-
+*/
 	public ConstructorInstance findJL5Constructor(Type container,
 			JL5ConstructorMatcher matcher) throws SemanticException {
 		assert_(container);
@@ -2328,5 +2457,13 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
         }
 		return false;
 	}
+
+//    public List<Ref<? extends Type>> toRefType(List<Type> input) {
+//        List<Ref<? extends Type>> l = new LinkedList<Ref<? extends Type>>();
+//        for (Type type : input) {
+//            l.add(Types.ref(type));
+//        }
+//        return l;
+//    }
 
 }

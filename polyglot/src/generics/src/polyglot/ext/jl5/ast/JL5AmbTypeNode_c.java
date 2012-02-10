@@ -1,6 +1,7 @@
 package polyglot.ext.jl5.ast;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import polyglot.ast.AmbTypeNode_c;
@@ -26,6 +27,10 @@ import polyglot.visit.NodeVisitor;
 public class JL5AmbTypeNode_c extends AmbTypeNode_c implements JL5AmbTypeNode {
 
     protected List typeArguments;
+
+    public JL5AmbTypeNode_c(Position pos, Prefix qual, Id name) {
+        this(pos, qual, name,Collections.EMPTY_LIST);
+    }
 
     public JL5AmbTypeNode_c(Position pos, Prefix qual, Id name, List typeArguments) {
         super(pos, qual, name);
@@ -62,35 +67,30 @@ public class JL5AmbTypeNode_c extends AmbTypeNode_c implements JL5AmbTypeNode {
         SemanticException ex;
         try {
             Node n = ar.nodeFactory().disamb().disambiguate(this, ar, position(), prefix, name);
-
-            //CHECK Can't we create the right type representation at parsing time ?
             if (n instanceof CanonicalTypeNode
                     && ((CanonicalTypeNode) n).type() instanceof JL5ParsedClassType) {
                 CanonicalTypeNode tn = (CanonicalTypeNode) n;
                 JL5ParsedClassType ct = (JL5ParsedClassType) tn.type();
-                Type t;
                 JL5TypeSystem ts = (JL5TypeSystem) ar.typeSystem();
-                if (typeArguments.isEmpty()) {
-                    if (ct.isGeneric())
+                if (ct.isGeneric()) {
+                    Type t;
+                	if (typeArguments.isEmpty()) {
                         // it's a raw type
                         t = ts.rawType((JL5ParsedClassType) (ct));
-                    else
-                        // it's a nongeneric type, so leave it alone
-                        return n;
-                } else {
-                    t = ts.parameterizedType((JL5ParsedClassType) (ct));
-                    ParameterizedType pt = (ParameterizedType) t;
-                    ArrayList<Type> typeArgs = new ArrayList<Type>();
-                    for (int i = 0; i < typeArguments.size(); i++) {
-                        Type targ = ((TypeNode) typeArguments.get(i)).type();
-                        typeArgs.add(targ);
+                    } else {
+                        t = ts.parameterizedType((JL5ParsedClassType) (ct));
+                        ParameterizedType pt = (ParameterizedType) t;
+                        ArrayList<Type> typeArgs = new ArrayList<Type>();
+                        for (int i = 0; i < typeArguments.size(); i++) {
+                            Type targ = ((TypeNode) typeArguments.get(i)).type();
+                            typeArgs.add(targ);
+                        }
+                        pt.typeArguments(typeArgs);
                     }
-                    pt.typeArguments(typeArgs);
+                    // Crucial to update (and not destructively set) the typeRef of the disambiguated type node. 
+                    ((Ref<Type>)tn.typeRef()).update(t);
                 }
-                // Crucial to update (and not destructively set) the typeRef of the disambiguated type node. 
-                ((Ref<Type>)tn.typeRef()).update(t);
                 return n;
-                // CHECK not sure we should call the following code as we are using a parameterized version of the class def now
             }
             
             if (n instanceof TypeNode) {
@@ -118,5 +118,18 @@ public class JL5AmbTypeNode_c extends AmbTypeNode_c implements JL5AmbTypeNode {
         sym.update(ar.typeSystem().unknownType(position()));
 
         throw ex;
+    }
+    
+    public String toString() {
+    	String res = super.toString(); 
+    	if (!typeArguments.isEmpty()) {
+    		String args = "<" + typeArguments.get(0).toString();
+    		for (int i = 1; i < typeArguments.size(); i++) {
+				args += ", " + typeArguments.get(i).toString(); 
+			}
+    		args += ">";
+    		res += args;
+    	}
+    	return res;
     }
 }

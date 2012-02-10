@@ -4,10 +4,11 @@ import java.util.List;
 
 import polyglot.types.ClassDef.Kind;
 import polyglot.types.ClassType;
+import polyglot.types.Ref;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
 
-public interface TypeVariable extends ClassType {
+public interface TypeVariable extends ClassType, JL5Type {
 
     public static final Kind TYPEVARIABLE = new Kind("type_variable");
     
@@ -20,7 +21,7 @@ public interface TypeVariable extends ClassType {
     JL5ProcedureInstance declaringProcedure();
     
     List <Type>bounds();
-    void bounds(List<Type> l);
+    void bounds(List<Ref<? extends Type>> b);
 
     boolean isEquivalent(TypeObject arg2);
 
