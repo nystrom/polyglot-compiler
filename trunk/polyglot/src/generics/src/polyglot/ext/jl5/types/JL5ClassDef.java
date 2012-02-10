@@ -14,4 +14,5 @@ public interface JL5ClassDef {
 	/** Return an immutable list of interfaces */
 	public List<Ref<? extends Type>> typeVariables();
 
+	public boolean hasTypeVariable();
 }

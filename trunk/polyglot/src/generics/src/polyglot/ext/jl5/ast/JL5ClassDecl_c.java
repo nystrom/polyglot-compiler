@@ -47,6 +47,7 @@ import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
 import polyglot.visit.TypeBuilder;
+import polyglot.visit.TypeChecker;
 
 /**
  * A <code>ClassDecl</code> is the definition of a class, abstract class, or
@@ -122,6 +123,18 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
     	return superCopy;
     }
 
+    public Node typeCheckSupers(ContextVisitor tc, TypeChecker childtc) throws SemanticException {
+    	JL5ClassDecl_c n = (JL5ClassDecl_c) super.typeCheckSupers(tc, childtc);
+    	List paramTypes = visitList(n.paramTypes, childtc);
+    	return n.reconstruct(n.flags, n.name, n.superClass, n.interfaces, n.body, n.annotations, paramTypes);
+    }
+    
+//    public Node visitSignature(NodeVisitor v) {
+//    	JL5ClassDecl_c n = (JL5ClassDecl_c) super.visitSignature(v);
+//    	List annots = visitList(n.annotations, v);
+//    	return n.reconstruct(n.flags, n.name, n.superClass, paramTypes, n.body, null, paramTypes);
+//    }
+    
     public Node visitChildren(NodeVisitor v) {
     	List annots = visitList(this.annotations, v);
     	List paramTypes = visitList(this.paramTypes, v);
@@ -170,10 +183,6 @@ public class JL5ClassDecl_c extends ClassDecl_c implements JL5ClassDecl, Applica
 //        }
 //    }
 
-    public Node disambiguate(ContextVisitor ar) throws SemanticException {
-        Node n = super.disambiguate(ar);
-        return n;
-    }
     
     @Override
     public Node conformanceCheck(ContextVisitor tc) throws SemanticException {

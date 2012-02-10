@@ -1,24 +1,24 @@
 package polyglot.ext.jl5.types;
 
 import polyglot.types.ClassType;
+import polyglot.types.Ref;
 import polyglot.types.Resolver;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 
 public class AnySuperType_c extends Wildcard_c implements AnySuperType, SignatureType{
 
-    public AnySuperType_c(TypeSystem ts, ClassType bound){
+    public AnySuperType_c(TypeSystem ts, Ref<ClassType> bound){
         super(ts);
         bound(bound);
     }
 
-    
-    public ClassType upperBound(){
+    public Ref<ClassType> upperBound(){
         return null;
     }
 
     public String translate(Resolver c){
-        return "? super "+bound.translate(c);
+        return "? super "+bound.get().translate(c);
     }
 
     public String toString(){
@@ -31,10 +31,9 @@ public class AnySuperType_c extends Wildcard_c implements AnySuperType, Signatur
     }
 
 
-    public ClassType lowerBound() {
-        return bound();
+    public Ref<ClassType> lowerBound() {
+        return boundRef();
     }
-
 
     @Override
     public boolean equalsImpl(TypeObject t) {
@@ -44,6 +43,4 @@ public class AnySuperType_c extends Wildcard_c implements AnySuperType, Signatur
         }
         return false;
     }
-    
-    
 }

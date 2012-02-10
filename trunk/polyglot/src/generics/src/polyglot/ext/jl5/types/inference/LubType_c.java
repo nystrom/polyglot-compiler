@@ -16,14 +16,13 @@ import polyglot.ext.jl5.types.JL5TypeSystem_c;
 import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.ext.jl5.types.RawType;
 import polyglot.ext.jl5.types.Wildcard;
-import polyglot.types.ClassDef.Kind;
 import polyglot.types.ClassType;
 import polyglot.types.Resolver;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
 import polyglot.types.Type_c;
-import polyglot.util.Position;
+import polyglot.types.Types;
 
 /**
  * The least upper bound type
@@ -156,21 +155,21 @@ public class LubType_c extends Type_c implements LubType {
 		if (!(a1 instanceof Wildcard)) {
 			if (!(a2 instanceof Wildcard)) {
 				if (ts.typeEquals(a1, a2, null)) return a1;
-				else return ts.anySubType((ClassType) ts.lubType(a1,a2));
+				else return ts.anySubType(Types.ref((ClassType) ts.lubType(a1,a2)));
 			}
 			else if (a2 instanceof Wildcard) {
 				Wildcard a2wc = (Wildcard) a2;
 				if (a2wc instanceof AnyType) return a2wc;
-				if (a2wc instanceof AnySubType) return ts.anySubType((ClassType) ts.lubType(a1,a2wc.bound()));
-				if (a2wc instanceof AnySuperType) return ts.anySuperType((ClassType) glb(a1,a2wc.bound()));
+				if (a2wc instanceof AnySubType) return ts.anySubType(Types.ref((ClassType) ts.lubType(a1,a2wc.bound())));
+				if (a2wc instanceof AnySuperType) return ts.anySuperType(Types.ref((ClassType) glb(a1,a2wc.bound())));
 			}
 		} else {
 			Wildcard a1wc = (Wildcard) a1;
 			if (!(a2 instanceof Wildcard)) return ts.lubType(a1wc.bound(), a2);
 			Wildcard a2wc = (Wildcard) a2;
 			if ((a1wc instanceof AnyType) || (a2wc instanceof AnyType)) return ts.anyType();
-			if ((a1wc instanceof AnySubType) && (a2wc instanceof AnySubType)) return ts.anySubType((ClassType) ts.lubType(a1wc.bound(), a2wc.bound()));
-			if ((a1wc instanceof AnySuperType) && (a2wc instanceof AnySuperType)) return ts.anySuperType((ClassType) glb(a1wc.bound(), a2wc.bound()));
+			if ((a1wc instanceof AnySubType) && (a2wc instanceof AnySubType)) return ts.anySubType(Types.ref((ClassType) ts.lubType(a1wc.bound(), a2wc.bound())));
+			if ((a1wc instanceof AnySuperType) && (a2wc instanceof AnySuperType)) return ts.anySuperType(Types.ref((ClassType) glb(a1wc.bound(), a2wc.bound())));
 			if (ts.typeEquals(a1wc.bound(),a2wc.bound(), null)) return a1wc.bound();
 			return ts.anyType();
 		}

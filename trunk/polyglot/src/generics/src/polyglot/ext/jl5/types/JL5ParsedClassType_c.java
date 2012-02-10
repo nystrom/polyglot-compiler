@@ -7,6 +7,7 @@ import java.util.List;
 import polyglot.frontend.Globals;
 import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
+import polyglot.types.ClassType_c;
 import polyglot.types.DerefTransform;
 import polyglot.types.Name;
 import polyglot.types.Named;
@@ -37,10 +38,6 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
     // these are annotations that have been declared on (applied to) the type
     protected List annotations;
 
-    public JL5ParsedClassType_c(ClassDef def) {
-        this(def.typeSystem(), def.position(), Types.ref(def));
-    }
-
     public JL5ParsedClassType_c(TypeSystem ts, Position pos, Ref<? extends ClassDef> def) {
         super(ts, pos, def);
     }
@@ -52,7 +49,6 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
     public List annotations(){
         return annotations;
     }
-        
     
     public void addEnumConstant(EnumInstance ei){
         enumConstants().add(ei);
@@ -175,17 +171,17 @@ public class JL5ParsedClassType_c extends ParsedClassType_c implements JL5Parsed
 //    }
 
   public boolean isGeneric(){
-	  return !((JL5ClassDef) def()).typeVariables().isEmpty();
+	  return ((JL5ClassDef) def()).hasTypeVariable();
   }
 
     // this is only for debugging or something
     public String toString() {
         StringBuffer sb = new StringBuffer(super.toString());
-        if (isGeneric()) {
-            sb.append("<");
-            sb.append(typeVariables());
-            sb.append(">");
-        }
+//        if (isGeneric()) {
+//            sb.append("<");
+//            sb.append(typeVariables());
+//            sb.append(">");
+//        }
         return sb.toString();
     }
 

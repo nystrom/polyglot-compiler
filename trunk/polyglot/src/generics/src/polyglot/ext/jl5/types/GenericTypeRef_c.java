@@ -8,6 +8,9 @@ import polyglot.types.ClassDef.Kind;
 import polyglot.types.Flags;
 import polyglot.types.Name;
 import polyglot.types.Ref;
+import polyglot.types.TypeSystem;
+import polyglot.types.Types;
+import polyglot.util.Position;
 
 /* A reference to a generic type */
 
@@ -15,9 +18,14 @@ public abstract class GenericTypeRef_c extends JL5ParsedClassType_c implements G
 
     protected JL5ParsedClassType baseType;
 
-    public GenericTypeRef_c(JL5ParsedClassType t) {
-        super(t.def());
-        this.baseType = t;
+    public GenericTypeRef_c(JL5ParsedClassType type) {
+        this(type.typeSystem(), type.position(), type, Types.ref(type.def()));
+    }
+
+    public GenericTypeRef_c(TypeSystem ts, Position pos, JL5ParsedClassType type,
+            Ref<? extends ClassDef> defRef) {
+        super(ts, pos, defRef);
+        this.baseType = type;
     }
 
     public Source fromSource() {
@@ -54,6 +62,10 @@ public abstract class GenericTypeRef_c extends JL5ParsedClassType_c implements G
 
     public List<TypeVariable> typeVariables() {
         return baseType.typeVariables();
+    }
+    
+    public boolean isTypeVariable() {
+        return false;
     }
 
 }

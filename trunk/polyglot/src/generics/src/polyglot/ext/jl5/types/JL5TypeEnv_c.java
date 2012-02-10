@@ -42,7 +42,8 @@ public class JL5TypeEnv_c extends TypeEnv_c {
 		
 		if (toType instanceof TypeVariable) {
 			TypeVariable tv = (TypeVariable) toType;
-			return super.isImplicitCastValid(fromType, tv.lowerBound())
+			//CHECK was lowerBound, how do we do if we need to capture current bound ?
+			return super.isImplicitCastValid(fromType, tv.upperBound())
 			|| super.isImplicitCastValid(fromType, toType);
 		}
 		//from ClassType to TypeVariable
@@ -51,21 +52,27 @@ public class JL5TypeEnv_c extends TypeEnv_c {
 //		}
 
 		// boxing
-		if ((toType instanceof ReferenceType) && 
-				isPrimitiveNonVoid(fromType)) {
-			return isImplicitCastValid(jts.classOf(fromType),toType);
+		if (isPrimitiveNonVoid(fromType) && toType.isReference()) {
+		    // Always legal to box a non-void primitive to Object
+		    if (typeEquals(ts.Object(), toType)) {
+		        return true;
+		    }
+		    if(jts.isPrimitiveWrapper(toType)) {
+	            return isImplicitCastValid(jts.classOf(fromType),toType);
+		    }
 		}
 
 		// unboxing
-		if ((fromType instanceof ReferenceType) && 
-				isPrimitiveNonVoid(toType)) {
-			return isImplicitCastValid(fromType, jts.classOf(toType));
+		if (jts.isPrimitiveWrapper(fromType) && isPrimitiveNonVoid(toType)) {
+		    // when fromType expr is unbox, check if the implicit cast
+		    // between the two primitive would be valid
+			return isImplicitCastValid(fromType.toPrimitive(), toType);
 		} 
 
-		if ((fromType instanceof ParameterizedType) && 
-				(toType instanceof JL5ParsedClassType)) {
-			return super.isImplicitCastValid(jts.erasure(fromType), toType);
-		}
+//		if ((fromType instanceof ParameterizedType) && 
+//				(toType instanceof JL5ParsedClassType)) {
+//			return super.isImplicitCastValid(jts.erasure(fromType), toType);
+//		}
 		// from Ref to Ref or only Primitive and Arrays involved
 		return super.isImplicitCastValid(fromType, toType);
 	}
@@ -124,9 +131,96 @@ public class JL5TypeEnv_c extends TypeEnv_c {
     
     @Override
     public boolean isSubtype(Type t1, Type t2) {
-    	// does t1 is a subtype of t2 ?
-    	// If t1 is a 
-    	return super.isSubtype(t1, t2);
+    	// CHECK: Need to double check correctness of this method
+
+		// these rules come from each implementation
+		// of Wildcard, LubType and IntersectionType
+		if (t1 instanceof Wildcard) {
+			return false;
+		}
+
+		if (t1 instanceof LubType) {
+			LubType lubType = (LubType) t1;
+			Type ancestor = t2;
+			for (Type elem : lubType.lubElements()) {
+				if (!isSubtype(elem, ancestor))
+					return false;
+			}
+			return true;
+		}
+
+		if (t1 instanceof IntersectionType) {
+			IntersectionType it = (IntersectionType) t1;
+			Type ancestor = t2;
+			for (Type b : it.boundsTypes()) {
+				if (isSubtype(b, ancestor))
+					return true;
+			}
+			return false;
+		}
+
+		if (t1 instanceof ParameterizedType) {
+			//VC8 Does this, means we ignore the eventual parameter arguments ?
+			if (super.isSubtype(t1, t2)) {
+				return true;
+			}
+			// if the ancestor is a raw type and some corresponding
+			// parameterized type is in the set then we allow it
+			if (t2 instanceof RawType) {
+				if (isSubtype(jts.rawify(t1), t2)) {
+					return true;
+				}
+			} else if ((t2 instanceof ParameterizedType) && (!typeEquals(t1, t2))) {
+				return jts.checkContains((ParameterizedType) ((ParameterizedType)t1).capture(), 
+						(ParameterizedType) t2);
+			} 
+			else if (t2 instanceof JL5ParsedClassType) {
+			    // Required because the type system sucks
+			    // May have a ParameterizedType being compared to 
+			    // the raw type, except that it is represented by ParsedClassType
+			    // instead of RawType...
+                if (isSubtype(((ParameterizedType)t1).baseType(), t2)) {
+                    return true;
+                }			    
+			}
+			return false;
+		}
+		
+		if (t1 instanceof RawType) {
+	        if (super.isSubtype(t1, t2))
+	            return true;
+	        // if the ancestor's associated raw type is in the set
+	        // then we allow it
+	        if (t2 instanceof ParameterizedType
+		    || (t2 instanceof JL5ParsedClassType && !(t2 instanceof RawType) &&
+			((JL5ParsedClassType)t2).isGeneric())) {
+	            return this.isSubtype(t1, jts.rawify(t2));
+	        }
+	        return false;
+		}
+        
+		// these come from the old implementation of JL5TypeSystem
+		if (t2 instanceof TypeVariable) {
+			TypeVariable tv = (TypeVariable) t2;
+			return super.isSubtype(t1, t2)
+			|| super.isSubtype(t1, tv.lowerBound());
+		} else if (t2 instanceof LubType) {
+			LubType lt = (LubType) t2;
+			for (Type e : lt.lubElements()) {
+				if (isSubtype(t1, e))
+					return true;
+			}
+			return isSubtype(t1, lt.calculateLub());
+		} else if (t2 instanceof IntersectionType) {
+			IntersectionType it = (IntersectionType) t2;
+			for (Type b : it.boundsTypes()) {
+				if (!isSubtype(t1, b))
+					return false;
+			}
+			return true;
+		} else {
+			return super.isSubtype(t1, t2);
+		}
     }
     
     /**

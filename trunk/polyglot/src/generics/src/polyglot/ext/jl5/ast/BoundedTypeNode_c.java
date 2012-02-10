@@ -72,9 +72,9 @@ public class BoundedTypeNode_c extends TypeNode_c implements BoundedTypeNode {
 			if (bound == null) {
 				return typeRef(Types.lazyRef(ts.anyType()));
 			} else if (kind == BoundedTypeNode.SUPER) {
-				return typeRef(Types.lazyRef(ts.anySuperType((ClassType) bound.type())));
+				return typeRef(Types.lazyRef(ts.anySuperType(Types.ref((ClassType) bound.type()))));
 			} else if (kind == BoundedTypeNode.EXTENDS) {
-				return typeRef(Types.lazyRef(ts.anySubType((ClassType) bound.type())));
+				return typeRef(Types.lazyRef(ts.anySubType(Types.ref((ClassType) bound.type()))));
 			}
 		}
 		return this;

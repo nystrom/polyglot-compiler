@@ -33,6 +33,10 @@ public class RawType_c extends GenericTypeRef_c implements RawType {
         super(t);
     }
 
+    public RawType_c(JL5ParsedClassType type, Ref<ClassDef> defRef) {
+        super(type.typeSystem(), type.position(), type, defRef);
+    }
+
     // GenericTypeRef_c applies type substitution everywhere.
     // For a raw type, we should keep things raw when we talk
     // about types, for example its supertype, rather than

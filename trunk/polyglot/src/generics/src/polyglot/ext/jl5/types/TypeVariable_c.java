@@ -16,6 +16,7 @@ import polyglot.types.StructType;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
+import polyglot.types.Types;
 import polyglot.util.Position;
 
 /**
@@ -42,7 +43,8 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
         upperBound.boundOf(this);
         flags = Flags.NONE;
     }
-
+//    		return (ClassDef) Types.ref((ClassDef)null);
+    
 //    public TypeVariable_c(TypeSystem ts, Position pos, Name id,
 //    		Ref<? extends ClassDef> def, List<ClassType> bounds) {
 //    	super(ts, pos, def);
@@ -85,9 +87,9 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
         return upperBound().boundsTypes();
     }
 
-    public void bounds(List<Type> b) {
+    public void bounds(List<Ref<? extends Type>> b) {
     	JL5TypeSystem ts = ((JL5TypeSystem)typeSystem()); 
-        upperBound = ts.intersectionType(ts.toRefTypes(b));
+        upperBound = ts.intersectionType(b);
         upperBound.boundOf(this);
     }
 
@@ -139,10 +141,6 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
 
     public List interfaces() {
         return Collections.emptyList();
-    }
-
-    public Type superType() {
-        return upperBound();
     }
 
     public boolean inStaticContext() {
@@ -284,8 +282,12 @@ public class TypeVariable_c extends ClassType_c implements TypeVariable, Signatu
 
 	@Override
 	public Type superClass() {
-		//CHECK What's the super class of a typeVariable ?
-		assert false;
-		return null;
+		// Super class of a type variable is the upper bound
+		return this.upperBound();
 	}
+	
+    public boolean isTypeVariable() {
+        return true;
+    }
+
 }

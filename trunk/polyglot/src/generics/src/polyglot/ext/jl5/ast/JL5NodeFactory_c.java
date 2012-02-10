@@ -91,8 +91,15 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
 		return n;
 	}
 
-	public AmbTypeNode AmbTypeNode(Position pos, Prefix qual, Id name, List args){
-		AmbTypeNode n = new JL5AmbTypeNode_c(pos, qual, name, args);
+    public AmbTypeNode AmbTypeNode(Position pos, Prefix qualifier, Id name) {
+		AmbTypeNode n = new JL5AmbTypeNode_c(pos, qualifier, name);
+		n = (AmbTypeNode)n.ext(extFactory().extLocalAssign());
+		n = (AmbTypeNode)n.del(delFactory().delLocalAssign());
+		return n;
+    }
+    
+	public AmbTypeNode AmbTypeNode(Position pos, Prefix qualifier, Id name, List args){
+		AmbTypeNode n = new JL5AmbTypeNode_c(pos, qualifier, name, args);
 		n = (AmbTypeNode)n.ext(extFactory().extLocalAssign());
 		n = (AmbTypeNode)n.del(delFactory().delLocalAssign());
 		return n;

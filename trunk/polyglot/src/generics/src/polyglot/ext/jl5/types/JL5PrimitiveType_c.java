@@ -29,4 +29,8 @@ public class JL5PrimitiveType_c extends PrimitiveType_c implements JL5PrimitiveT
 	public boolean equivalentImpl(TypeObject arg2) {
 		return equalsImpl(arg2);
 	}
+	
+    public boolean isTypeVariable() {
+        return false;
+    }
 }

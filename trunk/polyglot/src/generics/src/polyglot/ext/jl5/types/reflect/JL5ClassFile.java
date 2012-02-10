@@ -8,6 +8,7 @@ import java.io.IOException;
 import polyglot.frontend.ExtensionInfo;
 import polyglot.types.reflect.Attribute;
 import polyglot.types.reflect.ClassFile;
+import polyglot.types.reflect.Field;
 import polyglot.types.reflect.InnerClasses;
 import polyglot.types.reflect.Method;
 
@@ -54,6 +55,12 @@ public class JL5ClassFile extends ClassFile {
     	return signature;
     }
     
+    public Field createField(DataInputStream in) throws IOException {
+        Field f = new JL5Field(in, this);
+        f.initialize();
+        return f;
+      }
+
     @Override
     public Method createMethod(DataInputStream in) throws IOException {
         Method m = new JL5Method(in, this);

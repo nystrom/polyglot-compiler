@@ -4,12 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import polyglot.ast.NodeFactory;
+import polyglot.ext.jl5.types.JL5ClassDef;
+import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.ext.jl5.visit.ApplicationChecker;
-import polyglot.ext.jl5.visit.JL5AmbiguityRemover;
 import polyglot.frontend.Goal;
 import polyglot.frontend.JLScheduler;
 import polyglot.frontend.Job;
 import polyglot.frontend.VisitorGoal;
+import polyglot.types.ClassDef;
+import polyglot.types.LazyRef;
+import polyglot.types.QName;
+import polyglot.types.Ref;
 import polyglot.types.TypeSystem;
 
 public class JL5Scheduler extends JLScheduler {
@@ -28,7 +33,7 @@ public class JL5Scheduler extends JLScheduler {
 		goals.add(PreTypeCheck(job));
 		goals.add(TypesInitializedForCommandLineBarrier());
 		goals.add(TypeChecked(job));
-		goals.add(GenericTypeHandled(job));
+//		goals.add(GenericTypeHandled(job));
 		goals.add(ReassembleAST(job));
 
 		goals.add(ConformanceChecked(job));
@@ -55,15 +60,43 @@ public class JL5Scheduler extends JLScheduler {
 		return goals;
 	}
 
-	public Goal GenericTypeHandled(Job job) {
-		TypeSystem ts = job.extensionInfo().typeSystem();
-		NodeFactory nf = job.extensionInfo().nodeFactory();
-		return new VisitorGoal("GenericTypeHandled", job, new JL5AmbiguityRemover(job, ts, nf)).intern(this);
-	}
+//	public Goal GenericTypeHandled(Job job) {
+//		TypeSystem ts = job.extensionInfo().typeSystem();
+//		NodeFactory nf = job.extensionInfo().nodeFactory();
+//		return new VisitorGoal("GenericTypeHandled", job, new JL5AmbiguityRemover(job, ts, nf)).intern(this);
+//	}
 
 	public Goal ApplicationChecked(Job job) {
 		TypeSystem ts = job.extensionInfo().typeSystem();
 		NodeFactory nf = job.extensionInfo().nodeFactory();
 		return new VisitorGoal("ApplicationChecked", job, new ApplicationChecker(job, ts, nf)).intern(this);
+	}
+
+	/**
+	 * Look up for a type and sets its TypeVariable when resolved
+	 */
+	public Runnable LookupGlobalTypeDef(LazyRef<ClassDef> sym, QName className,
+			List<Ref<TypeVariable>> tvList) {
+		return new LookupGlobalTypeDefAndSetTypeVariable(sym, className, tvList).intern(this);
+	}
+
+	protected static class LookupGlobalTypeDefAndSetTypeVariable extends LookupGlobalTypeDefAndSetFlags {
+		List<Ref<TypeVariable>> tvList = null;
+		private LookupGlobalTypeDefAndSetTypeVariable(Ref<ClassDef> v, QName className, List<Ref<TypeVariable>> tvList) {
+			super(v, className, null);
+			assert ((tvList != null) && (!tvList.isEmpty()));
+			this.tvList = tvList;
+		}
+
+		public String toString() {
+			return super.toString() + "<tv>"; 
+		}
+		
+		protected ClassDef defResolved(ClassDef def) {
+		    //System.out.pri  ntln("defResolved " + Integer.toHexString(def.hashCode())+ " " + def.toString() + " tvList: " + tvList.toString());
+		    JL5ClassDef defParam = (JL5ClassDef) def.copy();
+			defParam.setTypeVariables((List) tvList);
+			return (ClassDef) defParam;
+		}
 	}
 }

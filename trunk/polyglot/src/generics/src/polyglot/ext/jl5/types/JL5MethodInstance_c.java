@@ -110,7 +110,12 @@ public class JL5MethodInstance_c extends JL5FunctionInstance_c<MethodDef> implem
     }
 
     public JL5MethodInstance erasure() {
-        JL5MethodInstance e = (JL5MethodInstance) super.erasure();
-        return (JL5MethodInstance) e.returnType(((JL5TypeSystem)typeSystem()).erasure(returnType()));
+        JL5MethodInstance_c e = (JL5MethodInstance_c) super.erasure();
+        Type declaredReturnType = e.def.get().returnType().get();
+        e = (JL5MethodInstance_c) e.returnType(((JL5TypeSystem)typeSystem()).erasure(declaredReturnType));
+        if (container instanceof ParameterizedType) {
+            e = (JL5MethodInstance_c) e.container(((ParameterizedType)e.container).baseType());
+        }
+        return e;
     }
 }

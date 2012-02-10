@@ -42,8 +42,7 @@ public class JL5FunctionInstance_c<T extends FunctionDef> extends
 	    	return retType;
 	    }
         JL5TypeSystem ts = (JL5TypeSystem) typeSystem();
-        return ts.applySubstitution(retType, typeVariables(), knownTypeArguments());
-        
+        return ts.applySubstitution(retType, typeVariables(), knownTypeArguments());        
 	}
 
 	public Ref<? extends Type> returnTypeRef() {

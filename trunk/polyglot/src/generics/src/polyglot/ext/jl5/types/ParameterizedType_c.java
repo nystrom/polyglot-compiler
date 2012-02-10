@@ -2,6 +2,7 @@ package polyglot.ext.jl5.types;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import polyglot.types.ClassDef;
@@ -15,12 +16,12 @@ import polyglot.types.MethodDef;
 import polyglot.types.MethodInstance;
 import polyglot.types.Named;
 import polyglot.types.Ref;
-import polyglot.types.ReferenceType;
 import polyglot.types.Resolver;
 import polyglot.types.Type;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 import polyglot.types.Types;
+import polyglot.util.Position;
 import polyglot.util.Transformation;
 import polyglot.util.TransformingList;
 
@@ -30,16 +31,32 @@ public class ParameterizedType_c extends GenericTypeRef_c implements Parameteriz
         SignatureType {
 
     protected List<Type> typeArguments;
-
+    protected List<Ref<?extends Type>> typeArgumentsRefs;
+ 
     public ParameterizedType_c(JL5ParsedClassType t) {
         super(t);
     }
 
+    public ParameterizedType_c(JL5ParsedClassType type, Ref<ClassDef> defRef, List<Ref<?extends Type>> typeArgumentsRefs) {
+        super(type.typeSystem(), type.position(), type, defRef);
+        this.typeArgumentsRefs = typeArgumentsRefs;
+    }
+
     public List<Type> typeArguments() {
+        // deref typeArguments 
+        if (typeArgumentsRefs != null) {
+            List<Type> newTypeArguments = new LinkedList<Type>();
+            for (Ref<?extends Type> ref : typeArgumentsRefs) {
+                newTypeArguments.add((Type) Types.get(ref));
+            }
+            this.typeArguments = newTypeArguments;
+            this.typeArgumentsRefs = null;
+        }
         return typeArguments;
     }
 
     public void typeArguments(List<Type> args) {
+        assert this.typeArgumentsRefs == null;
         this.typeArguments = args;
     }
 
@@ -265,19 +282,24 @@ public class ParameterizedType_c extends GenericTypeRef_c implements Parameteriz
                 if (arg instanceof Wildcard) {
                     TypeVariable capArg = (TypeVariable) capturedArgs.get(i);
                     if (arg instanceof AnyType) {
-                        capArg.bounds(ts.applySubstitution(baseTypeVars.get(i).bounds(), baseTypeVars, capturedArgs));
+                        capArg.bounds(
+                                ts.toRefTypes(ts.applySubstitution(baseTypeVars.get(i).bounds(), baseTypeVars, capturedArgs)));
                     }
                     else if (arg instanceof AnySubType) {
                         AnySubType argcast = (AnySubType) arg;
                         List<Type> newBounds = new ArrayList<Type>();
                         newBounds.add(argcast.bound());
                         newBounds.addAll(ts.applySubstitution(baseTypeVars.get(i).bounds(), baseTypeVars, capturedArgs));
-                        capArg.bounds(newBounds);
+                        capArg.bounds(ts.toRefTypes(newBounds));
                     }
                     else if (arg instanceof AnySuperType) {
                         AnySuperType argcast = (AnySuperType) arg;
                         capArg.lowerBound(argcast.bound());
-                        capArg.bounds(ts.applySubstitution(baseTypeVars.get(i).bounds(), baseTypeVars, capturedArgs));
+                        TypeVariable tv = baseTypeVars.get(i);
+                        List<Type> toBeSubed = tv.bounds();
+                        List<TypeVariable> orig = baseTypeVars; 
+                        List<Type> sub = capturedArgs;
+                        capArg.bounds(ts.toRefTypes(ts.applySubstitution(toBeSubed, orig, sub)));
                         anyWildCard = true;
                     }
                 }
@@ -331,6 +353,13 @@ public class ParameterizedType_c extends GenericTypeRef_c implements Parameteriz
         return new TransformingList<Ref<? extends Type>, Type>(
                                                     def().interfaces(),
                                                     new DerefSubstitutionTransform(ts, this));
+    }
+
+    @Override
+    public List<FieldInstance> fields() {
+        return new TransformingList<FieldDef,FieldInstance>(
+                def().fields(),
+                new FieldAsSubstitutionTypeTransform(ts, this));
     }
 
     protected List<TypeVariable> substTypeVars = null;
