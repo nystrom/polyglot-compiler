@@ -1,25 +1,25 @@
 package polyglot.ext.jl5.ast;
 
-import java.util.Iterator;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import polyglot.ast.Import;
 import polyglot.ast.Import_c;
 import polyglot.ast.Node;
-import polyglot.ext.jl5.types.JL5ImportTable;
+import polyglot.frontend.Globals;
 import polyglot.types.ClassType;
+import polyglot.types.Context;
 import polyglot.types.FieldInstance;
+import polyglot.types.MethodInstance;
+import polyglot.types.Name;
 import polyglot.types.Named;
 import polyglot.types.QName;
 import polyglot.types.SemanticException;
-import polyglot.types.Type;
 import polyglot.types.TypeSystem;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
-import polyglot.util.StringUtil;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.TypeBuilder;
 
 /**
  * Add support for JLS:
@@ -27,155 +27,133 @@ import polyglot.visit.TypeBuilder;
  * 7.5.4 Static-Import-on-Demand Declaration
  */
 public class JL5Import_c extends Import_c implements JL5Import{
-    protected boolean isStaticImport; 
 
-    public JL5Import_c(Position pos, Import.Kind kind, QName name, boolean isStatic){
+    public JL5Import_c(Position pos, Import.Kind kind, QName name){
         super(pos, kind, name);
-        this.isStaticImport = isStatic;
-        if (isStaticImport) {
-        	System.out.println("Static import not yet supported");
-        	assert(false);
+    }
+
+    public boolean isStaticImport() {
+        return ((kind == ALL_STATIC_MEMBERS) || (kind == STATIC_MEMBER));
+    }
+
+    /**
+     * @param ts
+     * @param name A fully qualified name
+     * @return The package part of 'name' 
+     */
+    public QName findPackage(TypeSystem ts, QName name) {
+        while((name != null) && !ts.packageExists(name)) {
+            name = name.qualifier();
+        }
+        return name;
+    }
+
+    /**
+     * 
+     * @param cv
+     * @param importName
+     * @throws SemanticException if import is not found or not accessible
+     */
+    protected void checkStaticImport(ContextVisitor cv) throws SemanticException {
+        TypeSystem ts = cv.typeSystem();
+        Context ctx = cv.context();
+        // Try to resolve qualifier
+        QName pkg = findPackage(ts, name);
+        String pkgStr = pkg.toString();
+        String impStr = name.toString();
+
+        // Get what's remaining after the package name
+        QName staticImport = QName.make(impStr.substring(pkgStr.length(), impStr.length()));
+        StringTokenizer stoken = new StringTokenizer(staticImport.toString(), ".");
+        String className = stoken.nextToken();
+        QName currentName = QName.make(pkg, Name.make(className));
+
+        // first element after the package must be a class
+        Named resolved = ts.systemResolver().find(currentName);
+        assert (resolved instanceof ClassType);
+        ClassType ct = (ClassType) resolved;
+        // The named type must be accessible (¤6.6) or a compile-time error occurs.
+        if (! ts.classAccessibleFromPackage(ct.def(), ctx.package_())) {
+            throw new SemanticException("Class " + ct + " is not accessible.");
+        }
+        QName currentStatic = currentName;
+        ClassType container = (ClassType) resolved;
+
+        // Now try to resolve any remaining elements: inner-class, field, method
+        while(stoken.hasMoreTokens()) {
+            Name name = Name.make(stoken.nextToken());
+            currentStatic = QName.make(currentStatic, name);
+            assert (resolved instanceof ClassType);
+            // Try to resolve a field or a method
+            if (kind() == JL5Import.STATIC_MEMBER) {
+                // Try to resolve a field
+                FieldInstance fi = null;
+                if (((fi=container.fieldNamed(name)) != null) 
+                        && ts.isAccessible(fi, ctx) 
+                        && fi.flags().isStatic()) {
+                    // found valid field
+                    return;
+                }
+                // No luck, try to resolve a method
+                List<MethodInstance> meths = container.methodsNamed(name);
+                for (MethodInstance mi : meths) { 
+                    if (ts.isAccessible(mi, ctx) && mi.flags().isStatic()) {
+                        // found valid method
+                        return;
+                    }
+                }
+            }
+            // Check if name designates an inner-class
+            try {
+                container = (ClassType) ts.findMemberType(container, name, ctx);
+                if (!container.flags().isStatic() && ts.isAccessible(container,ctx)) {
+                    throw new SemanticException("Class " + container + " is not accessible.");
+                }
+            } catch(SemanticException e) {
+                // Didn't find a matching name
+                throw new SemanticException("The import "+ name + " cannot be resolved");      
+            }
+        }
+        // import has been resolved as a class or an inner-class
+        if ((kind() == JL5Import.STATIC_MEMBER)
+                && currentStatic.equals(currentName)
+                && (!ct.flags().isStatic())) {
+            throw new SemanticException("Cannot static import a non-static class");       
         }
     }
 
-//  //CHECK commented for further integration
-//    public Node buildTypes(TypeBuilder tb) throws SemanticException {
-//    	
-//    	if (isStaticImport) {
-//            JL5ImportTable it = (JL5ImportTable)tb.importTable();
-//            if (kind() == JL5Import.STATIC_MEMBER){
-//                it.addExplicitStaticImport(name);
-//            }
-//            else if (kind() == JL5Import.ALL_STATIC_MEMBERS){
-//            	// why all_members means we add a static class import ?
-//                it.addOnDemandStaticImport(name);
-//            }
-//            
-//            // beside MEMBER / ALL_MEMBERS there are no indications of
-//            // whether this is a static or regular import
-//            return this;    		
-//    	} else {
-//    		return super.buildTypes(tb);
-//    	}
-//    }
-//
-//    public Node typeCheck(ContextVisitor tc) throws SemanticException {
-//        TypeSystem ts = tc.typeSystem();
-//        if (isStaticImport) {
-//            // check package exists
-//
-//        	// The TypeName must be the canonical name of a class or interface type; 
-//        	// a compile-time error occurs if the named type does not exist. 
-//        	
-//        	// The named type must be accessible (¤6.6) or a compile-time error occurs. 
-//        	
-//        	// The Identifier must name at least one static member of the named type; 
-//        	// a compile-time error occurs if there is no member of that name or if all 
-//        	// of the named members are not accessible.
-//        	
-//            // this just check first part of the package !
-//            String pkgName = StringUtil.getFirstComponent(name.toString);
-//            if (! ts.systemResolver().packageExists(pkgName)){
-//                throw new SemanticException("Package \"" + pkgName +
-//                    "\" not found.", position());
-//            }
-//
-//            // check class exists and is accessible
-//            Named nt;
-//            if (kind() == JL5Import.STATIC_MEMBER){
-//            	// This time really get the package component part
-//                nt = tc.typeSystem().forName(StringUtil.getPackageComponent(name));
-//            }
-//            else {
-//            	// assume ALL_MEMBER here ?
-//            	// or just get the name ?? (i.e. is that just a classname ?)
-//                nt = tc.typeSystem().forName(name);
-//            }
-//            
-//            // what could it be beside a Type ?
-//            if (nt instanceof Type){
-//                Type t = (Type) nt;
-//                if (t.isClass()){
-//                    tc.typeSystem().classAccessibleFromPackage(t.toClass(), 
-//                        tc.context().package_());
-//                    // if member check class contains some static member by the 
-//                    // given name
-//                    if (kind() == JL5Import.STATIC_MEMBER){
-//                    	// get the class name 
-//                        String id = StringUtil.getShortNameComponent(name);
-//                        // Sounds that everything in MEMBER should be static
-//                        if (!isIdStaticMember(t.toClass(), id, tc.typeSystem())){
-//                            throw new SemanticException("Cannot import: "+id+" from class: "+t, position());
-//                        }
-//                    }
-//                } else {
-//                	//CHECK sanity check here what could it be beside a Class ?
-//                	assert(false);            	
-//                }
-//            } else {
-//            	//CHECK sanity check here what could it be beside a Type ?
-//            	assert(false);
-//            }
-//
-//            //findStaticMemberImportCollisions(tc);
-//            
-//            return this; 
-//        	
-//        } else {
-//        	return super.typeCheck(tc);
-//        }
-//    }
-//
-//    private void findStaticMemberImportCollisions(ContextVisitor tc) throws SemanticException {
-//    	//CHECK This code is never used
-//    	if (kind() == JL5Import.STATIC_MEMBER){
-//            String id = StringUtil.getShortNameComponent(name.toString());
-//            List l = ((JL5ImportTable)tc.context().importTable()).explicitStaticImports();
-//            for (Iterator it = l.iterator(); it.hasNext(); ){
-//                String next = (String)it.next();
-//                String nextId = StringUtil.getShortNameComponent(next);
-//                //if (nextId.equals(id) && !next.equals(name)){
-//                if (next.equals(name)){
-//                    throw new SemanticException("The import statement "+this+" collides with another import statement.", position());
-//                }
-//            }
-//        }
-//    }
-//    
-//    private boolean isIdStaticMember(ClassType t, String id, TypeSystem ts){
-//        try {
-//            FieldInstance fi = ts.findField(t, id);
-//            if (fi != null && fi.flags().isStatic()) return true;
-//        }
-//        catch(SemanticException e){}
-//
-//        if (ts.hasMethodNamed(t, id)) return true;
-//
-//        try {
-// CHECK Should be replace by something like 
-// context.findInThisScope(ts.TypeMatcher(name));
-// No idea how we're supposed to get a context around here though...
-//            ClassType ct = ts.findMemberClass(t, id);
-//            if (ct != null && ct.flags().isStatic()) return true;
-//        }
-//        catch(SemanticException e){}
-//
-//        return false;
-//    }
-//
-//    public String toString(){
-//        return "import static "+name + (kind() == ALL_MEMBERS ? ".*": "");
-//    }
-//
-//    public void prettyPrint(CodeWriter w, PrettyPrinter tr){
-//        w.write("import static ");
-//        w.write(name);
-//
-//        if (kind() == ALL_MEMBERS){
-//            w.write(".*");
-//        }
-//
-//        w.write(";");
-//        w.newline(0);
-//    }
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
+        if (isStaticImport()) {
+            checkStaticImport(tc);
+            return this;
+        }
+        return super.typeCheck(tc);
+    }
+
+    public String toString() {
+        if (isStaticImport()) {
+            return "import static " + name + (kind == ALL_STATIC_MEMBERS ? ".*" : "");            
+        }
+        return super.toString();
+    }
+
+    /** Write the import to an output file. */
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+        if (isStaticImport()) {
+            if (! Globals.Options().fully_qualified_names) {
+                w.write("import static ");
+                w.write(name.toString());
+
+                if (kind == ALL_STATIC_MEMBERS) {
+                    w.write(".*");
+                }
+
+                w.write(";");
+                w.newline(0);
+            }
+        } else {
+            super.prettyPrint(w, tr);
+        }
+    }
+
 }
