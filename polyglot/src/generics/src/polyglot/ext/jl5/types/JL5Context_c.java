@@ -4,11 +4,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import polyglot.types.Context_c;
+import polyglot.types.MethodInstance;
 import polyglot.types.Name;
+import polyglot.types.Named;
+import polyglot.types.QName;
 import polyglot.types.Ref;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
+import polyglot.types.TypeSystem_c.MethodMatcher;
 import polyglot.types.VarInstance;
 
 public class JL5Context_c extends Context_c implements JL5Context {
@@ -31,7 +35,7 @@ public class JL5Context_c extends Context_c implements JL5Context {
         VarInstance vi = super.findVariableInThisScope(name);
         if (vi == null && isClass()) {
             try {
-            	JL5TypeSystem jts = (JL5TypeSystem) ts;
+                JL5TypeSystem jts = (JL5TypeSystem) ts;
                 return jts.findEnumConstant(this.currentClass(), jts.EnumMatcher(this.currentClass(), name, this));
             } catch (SemanticException e) {
                 return null;
@@ -45,47 +49,42 @@ public class JL5Context_c extends Context_c implements JL5Context {
         if (vi != null) {
             return vi;
         }
+        // might be static
+        if (importTable() != null) {
+            JL5ImportTable jit = (JL5ImportTable) importTable();
+            for (QName importName : jit.explicitStaticImports()) {
+                Name candidateClass = importName.name();
+                if (name.equals(candidateClass)) {
+                    try {
+                        Named enclosingClass = ts.forName(importName.qualifier());
+                        assert(enclosingClass instanceof Type);
+                        if (enclosingClass instanceof Type) {
+                            Type t = (Type) enclosingClass;
 
-//    	//CHECK Commented because we do not support static import yet
-//        try {
-//            // might be static
-//            if (importTable() != null) {
-//                JL5ImportTable jit = (JL5ImportTable) importTable();
-//                for (Iterator it = jit.explicitStaticImports().iterator(); it.hasNext();) {
-//                    String next = (String) it.next();
-//                    String id = StringUtil.getShortNameComponent(next);
-//                    if (name.equals(id)) {
-//                        Named nt = ts.forName(StringUtil.getPackageComponent(next));
-//                        if (nt instanceof Type) {
-//                            Type t = (Type) nt;
-//                            try {
-//                                vi = ts.findField(t.toClass(), name);
-//                            } catch (SemanticException e) {
-//                            }
-//                            if (vi != null) {
-//                                return vi;
-//                            }
-//                        }
-//                    }
-//                }
-//                if (vi == null) {
-//                    for (Iterator it = jit.onDemandStaticImports().iterator(); it.hasNext();) {
-//                        String next = (String) it.next();
-//                        Named nt = ts.forName(next);
-//                        if (nt instanceof Type) {
-//                            Type t = (Type) nt;
-//                            try {
-//                                vi = ts.findField(t.toClass(), name);
-//                            } catch (SemanticException e) {
-//                            }
-//                            if (vi != null)
-//                                return vi;
-//                        }
-//                    }
-//                }
-//            }
-//        } catch (SemanticException e) {
-//        }
+                            vi = ts.findField(t.toClass(), ts.FieldMatcher(t.toClass(), name, this));
+                            if (vi != null) {
+                                return vi;
+                            }
+                        }
+                    } catch (SemanticException e) {
+                    }
+                }
+            }
+            for (QName importName : jit.onDemandStaticImports()) {
+                try {
+                    Named candidateClass = ts.forName(importName);
+                    assert(candidateClass instanceof Type);
+                    if (candidateClass instanceof Type) {
+                        Type t = (Type) candidateClass;
+                        vi = ts.findField(t.toClass(), ts.FieldMatcher(t.toClass(), name, this));
+                        if (vi != null) {
+                            return vi;
+                        }
+                    }
+                } catch (SemanticException e) {
+                }
+            }
+        }
 
         if (outer != null) {
             return outer.findVariableSilent(name);
@@ -157,7 +156,7 @@ public class JL5Context_c extends Context_c implements JL5Context {
             return (TypeVariable) typeVars.get(name).get();
         }
         if (outer != null) {
-        	//CHECK the method name suggests we shouldn't recurse on outer
+            //CHECK the method name suggests we shouldn't recurse on outer
             return ((JL5Context) outer).findTypeVariableInThisScope(name);
         }
         return null;
@@ -175,12 +174,24 @@ public class JL5Context_c extends Context_c implements JL5Context {
     }
 
     public JL5Context addTypeVariable(Name name, Ref<? extends Type> type) {
-    	assert(type != null);
+        assert(type != null);
         if (typeVars == null) {
             typeVars = new HashMap<Name, Ref<? extends Type>>();
         }
         typeVars.put(name, type);
         return this;
     }
-
+    
+    public MethodInstance findMethod(MethodMatcher matcher) throws SemanticException {
+        try {
+            return super.findMethod(matcher);
+        } catch (SemanticException e) {
+            // couldn't find the method, try static imports.
+            JL5ImportTable it = (JL5ImportTable) this.importTable();
+            if (it != null && this.currentClass() != null) {
+                return it.findMethod(matcher);
+            }
+            throw e;
+        }
+    }
 }

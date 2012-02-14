@@ -7,6 +7,7 @@ import polyglot.ast.NodeFactory;
 import polyglot.ext.jl5.types.JL5ClassDef;
 import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.ext.jl5.visit.ApplicationChecker;
+import polyglot.ext.jl5.visit.JL5InitImportsVisitor;
 import polyglot.frontend.Goal;
 import polyglot.frontend.JLScheduler;
 import polyglot.frontend.Job;
@@ -66,6 +67,14 @@ public class JL5Scheduler extends JLScheduler {
 //		return new VisitorGoal("GenericTypeHandled", job, new JL5AmbiguityRemover(job, ts, nf)).intern(this);
 //	}
 
+    public Goal ImportTableInitialized(Job job) {
+        TypeSystem ts = job.extensionInfo().typeSystem();
+        NodeFactory nf = job.extensionInfo().nodeFactory();
+        Goal g = new VisitorGoal("ImportTableInitialized", job, new JL5InitImportsVisitor(job, ts, nf));
+        Goal g2 = g.intern(this);
+        return g2;
+    }
+    
 	public Goal ApplicationChecked(Job job) {
 		TypeSystem ts = job.extensionInfo().typeSystem();
 		NodeFactory nf = job.extensionInfo().nodeFactory();

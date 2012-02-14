@@ -6,7 +6,6 @@ import polyglot.main.Report;
 import polyglot.types.Context;
 import polyglot.types.MethodInstance;
 import polyglot.types.PrimitiveType;
-import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeEnv_c;

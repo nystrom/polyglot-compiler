@@ -234,68 +234,75 @@ public class ImportTable implements Resolver
     }
 
     protected Named lookupOnDemand(Matcher<Named> matcher) throws SemanticException, NoClassException {
-	List<QName> imports = new ArrayList<QName>(onDemandImports.size() + 5);
-	List<Position> positions = new ArrayList<Position>(onDemandImports.size() + 5);
-	
-	// Next search the default imports (e.g., java.lang)
-	imports.addAll(ts.defaultOnDemandImports());
-	positions.addAll(Arrays.asList(new Position[imports.size()]));
+        return lookupOnDemandImpl(matcher, onDemandImports, onDemandImportPositions, true);
+    }
+    
+    protected Named lookupOnDemandImpl(Matcher<Named> matcher, 
+            List<QName> importsList, List<Position> importsPos, boolean checkDefault) throws SemanticException, NoClassException {
+    List<QName> imports = new ArrayList<QName>(importsList.size() + 5);
+    List<Position> positions = new ArrayList<Position>(importsPos.size() + 5);
+    
+    if (checkDefault) {
+        // Next search the default imports (e.g., java.lang)
+        imports.addAll(ts.defaultOnDemandImports());
+        positions.addAll(Arrays.asList(new Position[imports.size()]));
+    }
 
-	// Then search the explicit p.* imports.
-	imports.addAll(onDemandImports);
-	positions.addAll(onDemandImportPositions);
+    // Then search the explicit p.* imports.
+    imports.addAll(importsList);
+    positions.addAll(importsPos);
 
-	assert imports.size() == positions.size();
+    assert imports.size() == positions.size();
 
-	Named resolved = null;
+    Named resolved = null;
 
-	Set<QName> tried = new HashSet<QName>();
+    Set<QName> tried = new HashSet<QName>();
 
-	for (int i = 0; i < imports.size(); i++) {
-	    QName containerName = imports.get(i);
-	    Position pos = positions.get(i);
-	    
-	    if (tried.contains(containerName))
-		continue;
-	    tried.add(containerName);
-	    
-	    Named n = findInContainer(matcher, containerName, pos);
-	
-	    if (n != null) {
-		if (resolved == null) {
-		    // This is the first occurrence of name we've found
-		    // in a package import.
-		    // Record it, and keep going, to see if there
-		    // are any conflicts.
-		    resolved = n;
-		}
-		else {
-		    // This is the 2nd occurrence of name we've found
-		    // in an imported package.
-		    // That's bad.
-		    throw new SemanticException("Reference to " + 
-		                                matcher.signature() + " is ambiguous; both " + 
-		                                resolved + " and " + n + " match.");
-		}
-	    }
-	}
+    for (int i = 0; i < imports.size(); i++) {
+        QName containerName = imports.get(i);
+        Position pos = positions.get(i);
+        
+        if (tried.contains(containerName))
+        continue;
+        tried.add(containerName);
+        
+        Named n = findInContainer(matcher, containerName, pos);
+    
+        if (n != null) {
+        if (resolved == null) {
+            // This is the first occurrence of name we've found
+            // in a package import.
+            // Record it, and keep going, to see if there
+            // are any conflicts.
+            resolved = n;
+        }
+        else {
+            // This is the 2nd occurrence of name we've found
+            // in an imported package.
+            // That's bad.
+            throw new SemanticException("Reference to " + 
+                                        matcher.signature() + " is ambiguous; both " + 
+                                        resolved + " and " + n + " match.");
+        }
+        }
+    }
 
-//	// Search the empty package only if not already found.
-//	if (resolved == null) {
-//	    QName containerName = null;
-//	    Position pos = null;
+//  // Search the empty package only if not already found.
+//  if (resolved == null) {
+//      QName containerName = null;
+//      Position pos = null;
 //
-//	    if (! tried.contains(containerName)) {
+//      if (! tried.contains(containerName)) {
 //
-//		Named n = findInContainer(matcher, containerName, pos);
+//      Named n = findInContainer(matcher, containerName, pos);
 //
-//		if (n != null) {
-//		    resolved = n;
-//		}
-//	    }
-//	}
+//      if (n != null) {
+//          resolved = n;
+//      }
+//      }
+//  }
 
-	return resolved;
+    return resolved;
     }
     
     protected Named findInContainer(Matcher<Named> matcher, QName containerName, Position containerPos) throws SemanticException  {
@@ -381,11 +388,16 @@ public class ImportTable implements Resolver
     }
 
     protected Named lookupExplicit(Matcher<Named> matcher) throws SemanticException {
+        return lookupExplicitImpl(matcher, explicitImports, explicitImportPositions);
+    }
+
+    protected Named lookupExplicitImpl(Matcher<Named> matcher, 
+            List<QName> importsList, List<Position> posList) throws SemanticException {
 	Set<QName> tried = new HashSet<QName>();
 
-	for (int i = 0; i < explicitImports.size(); i++) {
-	    QName longName = explicitImports.get(i);
-	    Position pos = explicitImportPositions.get(i);
+	for (int i = 0; i < importsList.size(); i++) {
+	    QName longName = importsList.get(i);
+	    Position pos = posList.get(i);
 
 	    if (tried.contains(longName))
 		continue;
@@ -410,7 +422,7 @@ public class ImportTable implements Resolver
         }
     }
 
-    private static final Collection<String> TOPICS = 
+    protected static final Collection<String> TOPICS = 
         CollectionUtil.list(Report.types, Report.resolver, Report.imports);
 
 }

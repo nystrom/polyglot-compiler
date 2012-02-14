@@ -377,14 +377,14 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
 
 	@Override
 	public Import Import(Position pos, Import.Kind kind, QName name){
-		Import n = new JL5Import_c(pos, kind, name, false);
+		Import n = new JL5Import_c(pos, kind, name);
 		n = (Import)n.ext(extFactory().extLocalAssign());
 		n = (Import)n.del(delFactory().delLocalAssign());
 		return n;
 	}
 
 	public Import Import(Position pos, Import.Kind kind, QName name, boolean isStatic){
-		Import n = new JL5Import_c(pos, kind, name, isStatic);
+		Import n = new JL5Import_c(pos, kind, name);
 		n = (Import)n.ext(extFactory().extLocalAssign());
 		n = (Import)n.del(delFactory().delLocalAssign());
 		return n;
