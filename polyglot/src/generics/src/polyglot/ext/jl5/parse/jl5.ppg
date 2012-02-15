@@ -470,11 +470,11 @@ extend import_declaration ::=
 	;
 static_single_type_import_declaration ::= 
 		IMPORT:a STATIC:b name:c SEMICOLON:d
-        {: RESULT = parser.nf.Import(parser.pos(a, d), JL5Import.STATIC_MEMBER, QName.make(c.toString()), true); :}
+        {: RESULT = parser.nf.Import(parser.pos(a, d), JL5Import.STATIC_MEMBER, QName.make(c.toString())); :}
 	;
 static_type_import_on_demand_declaration ::=
 		IMPORT:a STATIC:b name:c DOT MULT SEMICOLON:d
-        {: RESULT = parser.nf.Import(parser.pos(a, d), JL5Import.ALL_STATIC_MEMBERS, QName.make(c.toString()), true); :}
+        {: RESULT = parser.nf.Import(parser.pos(a, d), JL5Import.ALL_STATIC_MEMBERS, QName.make(c.toString())); :}
 	;
 extend type_declaration ::=
     enum_declaration:a

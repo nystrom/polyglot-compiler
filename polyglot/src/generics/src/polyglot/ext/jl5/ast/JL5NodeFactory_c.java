@@ -382,13 +382,6 @@ public class JL5NodeFactory_c extends NodeFactory_c implements JL5NodeFactory {
 		n = (Import)n.del(delFactory().delLocalAssign());
 		return n;
 	}
-
-	public Import Import(Position pos, Import.Kind kind, QName name, boolean isStatic){
-		Import n = new JL5Import_c(pos, kind, name);
-		n = (Import)n.ext(extFactory().extLocalAssign());
-		n = (Import)n.del(delFactory().delLocalAssign());
-		return n;
-	}
     
 	@Override
 	public Instanceof Instanceof(Position pos, Expr expr, TypeNode tn){
