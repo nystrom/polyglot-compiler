@@ -1,0 +1,10 @@
+import static packa.staticImportDef0;
+
+/**
+ * Cannot static import a non-static class
+ */
+public class staticImport15_MustFailCompile {
+    public static void main(String [] args) {
+        assert(false) : "Cannot static import a non-static class";
+    }
+}

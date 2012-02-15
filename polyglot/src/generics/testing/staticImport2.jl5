@@ -1,0 +1,11 @@
+import static packa.staticImportDef0.*;
+
+/**
+ * on-demand static import
+ */
+public class staticImport2 {
+    public static void main(String [] args) {
+        System.out.println(PI);
+        assert(PI == 3.14);
+    }
+}

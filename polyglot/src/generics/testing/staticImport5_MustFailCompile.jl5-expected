@@ -1,0 +1,5 @@
+/Users/vcave/Work/workspaces/Repository/polyglot-generic-extension-3/polyglot/src/generics/testing/staticImport5_MustFailCompile.jl5:8: Could not find field or local variable "PIP".
+        System.out.println(PIP);
+                           ^-^
+
+1 error.

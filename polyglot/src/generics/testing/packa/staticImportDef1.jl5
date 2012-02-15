@@ -1,0 +1,18 @@
+package packa;
+
+public class staticImportDef1 {
+    public static double PI = 3.1415;
+    private static double PIP = 3.14;
+ 
+    public static double id() {
+        return 1.0;
+    }
+
+    private static double id(int t1, int t2) {
+        return 1.0;
+    }
+
+    public double id(int t) {
+        return 1.0;
+    }
+}

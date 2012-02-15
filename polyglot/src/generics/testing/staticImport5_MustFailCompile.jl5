@@ -1,0 +1,10 @@
+import static packa.staticImportDef0.*;
+
+/**
+ * on-demand static import is not visible
+ */
+public class staticImport5_MustFailCompile {
+    public static void main(String [] args) {
+        System.out.println(PIP);
+    }
+}

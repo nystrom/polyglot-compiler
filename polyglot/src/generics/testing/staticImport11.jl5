@@ -1,0 +1,12 @@
+import static packa.staticImportDef0.staticImportDef0Inner;
+import static packa.staticImportDef1.id;
+
+/**
+ * explicit static import of member classes
+ */
+public class staticImport11 {
+    public static void main(String [] args) {
+        System.out.println(id());
+        assert(id() == 1);
+    }
+}

@@ -1,0 +1,10 @@
+import static packa.staticImportDef0.staticImportDef0Inner.*;
+
+/**
+ * Cannot resolve type if on-demand
+ */
+public class staticImport14_MustFailCompile {
+    public static void main(String [] args) {
+        new staticImportDef0Inner();
+    }
+}

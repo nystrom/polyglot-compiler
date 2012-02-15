@@ -1,0 +1,7 @@
+import static packa.staticImportDef0.PI;
+
+public class staticImport0 {
+    public static void main(String [] args) {
+        System.out.println(PI);
+    }
+}

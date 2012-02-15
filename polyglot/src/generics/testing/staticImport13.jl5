@@ -1,0 +1,10 @@
+import static packa.staticImportDef0.staticImportDef0Inner.staticImportDef0InnerInner.PI;
+
+/**
+ * explicit static import of member classes
+ */
+public class staticImport13 {
+    public static void main(String [] args) {
+        System.out.println(PI);
+    }
+}
