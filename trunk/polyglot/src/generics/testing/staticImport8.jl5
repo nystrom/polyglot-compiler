@@ -1,0 +1,10 @@
+import static packa.staticImportDef0.staticImportDef0Inner;
+
+/**
+ * explicit static import of member classes
+ */
+public class staticImport8 {
+    public static void main(String [] args) {
+        new staticImportDef0Inner();
+    }
+}

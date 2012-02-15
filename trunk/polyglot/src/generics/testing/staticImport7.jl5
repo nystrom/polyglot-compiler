@@ -1,0 +1,11 @@
+import static packa.staticImportDef0.id;
+
+/**
+ * explicit static import of method
+ */
+public class staticImport7 {
+    public static void main(String [] args) {
+        System.out.println(id() + id);
+        assert(id() == 0);
+    }
+}

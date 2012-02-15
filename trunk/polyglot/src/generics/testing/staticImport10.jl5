@@ -1,0 +1,12 @@
+import static packa.staticImportDef0.*;
+import static packa.staticImportDef1.id;
+
+/**
+ * explicit static import supersede on-demand
+ */
+public class staticImport10 {
+    public static void main(String [] args) {
+        System.out.println(id());
+        assert(id() == 1);
+    }
+}

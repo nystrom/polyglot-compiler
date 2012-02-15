@@ -1,0 +1,5 @@
+/Users/vcave/Work/workspaces/Repository/polyglot-generic-extension-3/polyglot/src/generics/testing/staticImport14_MustFailCompiler.jl5:8: Could not find type "staticImportDef0Inner".
+        new staticImportDef0Inner();
+            ^-------------------^
+
+1 error.

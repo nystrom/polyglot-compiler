@@ -1,0 +1,11 @@
+import static packa.staticImportDef0.*;
+
+/**
+ * on-demand static import of method
+ */
+public class staticImport6 {
+    public static void main(String [] args) {
+        System.out.println(id());
+        assert(id() == 0);
+    }
+}

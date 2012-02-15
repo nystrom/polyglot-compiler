@@ -1,0 +1,12 @@
+import static packa.staticImportDef0.PI;
+import static packa.staticImportDef1.*;
+
+/**
+ * explicit import supersede on-demand import 
+ */
+public class staticImport1 {
+    public static void main(String [] args) {
+        System.out.println(PI);
+        assert(PI == 3.14);
+    }
+}

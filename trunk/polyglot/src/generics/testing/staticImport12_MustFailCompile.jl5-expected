@@ -1,0 +1,5 @@
+/Users/vcave/Work/workspaces/Repository/polyglot-generic-extension-3/polyglot/src/generics/testing/staticImport12_MustFailCompile.jl5:9: The static method call 'id' is ambiguous
+        System.out.println(id());
+                           ^--^
+
+1 error.

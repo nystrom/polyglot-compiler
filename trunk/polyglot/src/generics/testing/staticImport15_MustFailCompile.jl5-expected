@@ -1,0 +1,5 @@
+staticImport15_MustFailCompile.jl5:1: Cannot static import a non-static class
+import static packa.staticImportDef0;
+^-----------------------------------^
+
+1 error.
