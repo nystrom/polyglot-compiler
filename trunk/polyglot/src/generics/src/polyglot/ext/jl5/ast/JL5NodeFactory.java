@@ -108,8 +108,6 @@ public interface JL5NodeFactory extends NodeFactory {
 
     public Import Import(Position pos, Import.Kind kind, QName Name);
 
-    public Import Import(Position pos, Import.Kind kind, QName Name, boolean isStatic);
-
     public Instanceof Instanceof(Position pos, Expr expr, TypeNode tn);
 
     public LocalDecl LocalDecl(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr init);
