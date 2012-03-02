@@ -27,6 +27,16 @@ public class JL5Method extends Method{
 	public void initialize() throws IOException {
 		modifiers = in.readUnsignedShort();
 
+		// Bridge method 0x0040
+		if ((modifiers & 64) != 0) {
+            synthetic = true;
+		}
+
+        // Synthetic method 0x0020 (can also be specified as an attribute)
+		if ((modifiers & 32) != 0) {
+            synthetic = true;
+		}
+
 		name = in.readUnsignedShort();
 		type = in.readUnsignedShort();
 
