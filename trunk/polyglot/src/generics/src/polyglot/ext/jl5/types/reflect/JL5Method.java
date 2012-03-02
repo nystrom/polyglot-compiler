@@ -32,8 +32,8 @@ public class JL5Method extends Method{
             synthetic = true;
 		}
 
-        // Synthetic method 0x0020 (can also be specified as an attribute)
-		if ((modifiers & 32) != 0) {
+        // Synthetic method 0x1000 (can also be specified as an attribute)
+		if ((modifiers & 4096) != 0) {
             synthetic = true;
 		}
 
