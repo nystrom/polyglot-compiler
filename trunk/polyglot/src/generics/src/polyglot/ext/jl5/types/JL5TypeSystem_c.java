@@ -947,7 +947,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	}
 
 	public ParameterizedType parameterizedType(JL5ParsedClassType ct) {
-	    return parameterizedType(ct);
+	    return new ParameterizedType_c(ct);
 	}
 	
     public ParameterizedType parameterizedType(JL5ParsedClassType type, Ref<ClassDef> defRef, 
