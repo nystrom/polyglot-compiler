@@ -19,12 +19,17 @@ public class JL5InitImportsVisitor extends InitImportsVisitor {
     public Node leaveCall(Node old, Node n, NodeVisitor v) throws SemanticException {
         if (n instanceof JL5Import) {
             JL5Import im = (JL5Import) n;
+            JL5ImportTable impt = (JL5ImportTable) this.importTable;
             
             if (im.kind() == JL5Import.ALL_STATIC_MEMBERS) {
-                ((JL5ImportTable)this.importTable).addOnDemandStaticImport(im.name(), im.position());
+                impt.addOnDemandStaticImport(im.name(), im.position());
             }
             else if (im.kind() == JL5Import.STATIC_MEMBER) {
-                ((JL5ImportTable)this.importTable).addExplicitStaticImport(im.name(), im.position());
+                if (impt.hasExplicitName(im.name().name())) { 
+                    throw new SemanticException("The import "+im.name()+ " collides with another import statement", im.position());
+                } else {
+                    impt.addExplicitStaticImport(im.name(), im.position());                    
+                }
             }
         }
         return super.leaveCall(old, n, v);
