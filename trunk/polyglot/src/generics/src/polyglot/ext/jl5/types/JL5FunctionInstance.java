@@ -2,7 +2,6 @@ package polyglot.ext.jl5.types;
 
 import polyglot.types.FunctionInstance;
 import polyglot.types.ProcedureDef;
-import polyglot.types.ProcedureInstance;
 
 
 /**
