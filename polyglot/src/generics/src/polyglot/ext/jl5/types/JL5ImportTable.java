@@ -170,5 +170,16 @@ public class JL5ImportTable extends ImportTable {
     protected Named lookupOnDemandStatic(Matcher<Named> matcher) throws SemanticException, NoClassException {
         return lookupOnDemandImpl(matcher, onDemandStaticImports(), onDemandStaticImportsPosition(), false);
     }
+    
+    public boolean hasExplicitName(Name importName) {
+        for (QName explicitImport : explicitStaticImports()) {
+            Name explicitName = explicitImport.name();
+            if (explicitName.equals(importName)) {
+                return true;
+            }
+        }
+        return false;
+        
+    }
 
 }
