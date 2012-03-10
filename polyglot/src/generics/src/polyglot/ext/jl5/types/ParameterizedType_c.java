@@ -21,7 +21,6 @@ import polyglot.types.Type;
 import polyglot.types.TypeObject;
 import polyglot.types.TypeSystem;
 import polyglot.types.Types;
-import polyglot.util.Position;
 import polyglot.util.Transformation;
 import polyglot.util.TransformingList;
 
