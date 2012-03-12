@@ -2,6 +2,7 @@ package polyglot.ext.jl5.types;
 
 import java.util.List;
 
+import polyglot.ext.jl5.types.attributes.MethodSignatureAttribute;
 import polyglot.types.Flags;
 import polyglot.types.MethodDef;
 import polyglot.types.MethodInstance;
@@ -22,6 +23,8 @@ public class JL5MethodDef_c extends JL5ProcedureDef_c implements MethodDef, JL5M
     protected Name name;
     protected Ref<? extends Type> returnType;
     protected boolean compilerGenerated;
+    protected MethodSignatureAttribute msa;
+    
     /** Used for deserializing types. */
     protected JL5MethodDef_c() { }
 
@@ -92,5 +95,16 @@ public class JL5MethodDef_c extends JL5ProcedureDef_c implements MethodDef, JL5M
 	public boolean isCompilerGenerated() {
 		return compilerGenerated;
 	}
+
+    @Override
+    public void eraseWith(List<Ref<? extends Type>> formalsRefs, Ref<? extends Type> retRef) {
+        msa = new MethodSignatureAttribute(this);
+        this.setFormalTypes(formalsRefs);
+        this.setReturnType(retRef);
+    }
+    
+    public MethodSignatureAttribute getSignatureAttr() {
+        return msa;
+    }
 
 }
