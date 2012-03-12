@@ -14,6 +14,7 @@ import polyglot.ast.TypeNode;
 import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5MethodInstance;
 import polyglot.ext.jl5.types.JL5TypeSystem;
+import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.types.ClassType;
 import polyglot.types.Context;
 import polyglot.types.NoMemberException;
@@ -97,7 +98,9 @@ public class JL5Call_c extends Call_c implements JL5Call {
         Type targetType = target.type();
         JL5MethodInstance mi = null;
         // We push the method container in the context
-        if (targetType instanceof ClassType) {
+        //TODO this doesn't work for type variable yet
+        if ((targetType instanceof ClassType) && 
+                !(targetType instanceof TypeVariable)) {
             Context ctx = tc.context();
             ClassType ct = (ClassType) targetType;
             ctx = ctx.pushClass(ct.def(), ct);
