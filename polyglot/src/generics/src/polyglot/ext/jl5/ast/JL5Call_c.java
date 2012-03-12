@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import polyglot.ast.Call;
 import polyglot.ast.Call_c;
 import polyglot.ast.Expr;
 import polyglot.ast.Id;
@@ -16,16 +15,19 @@ import polyglot.ext.jl5.types.JL5Context;
 import polyglot.ext.jl5.types.JL5MethodInstance;
 import polyglot.ext.jl5.types.JL5TypeSystem;
 import polyglot.types.ClassType;
+import polyglot.types.Context;
+import polyglot.types.NoMemberException;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
+import polyglot.types.TypeSystem_c.MethodMatcher;
 import polyglot.types.Types;
 import polyglot.util.CodeWriter;
 import polyglot.util.CollectionUtil;
 import polyglot.util.Position;
 import polyglot.util.TypedList;
+import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
 import polyglot.visit.PrettyPrinter;
-import polyglot.visit.ContextVisitor;
 
 public class JL5Call_c extends Call_c implements JL5Call {
 
@@ -93,7 +95,29 @@ public class JL5Call_c extends Call_c implements JL5Call {
         }
         
         Type targetType = target.type();
-        JL5MethodInstance mi = (JL5MethodInstance) ts.findMethod(targetType, ts.JL5MethodMatcher(targetType, name().id(), argsTypes, explicitTypeArgs, c));
+        JL5MethodInstance mi = null;
+        // We push the method container in the context
+        if (targetType instanceof ClassType) {
+            Context ctx = tc.context();
+            ClassType ct = (ClassType) targetType;
+            ctx = ctx.pushClass(ct.def(), ct);
+            MethodMatcher matcher = ts.JL5MethodMatcher(targetType, name().id(), argsTypes, explicitTypeArgs, ctx);
+            mi = (JL5MethodInstance) ts.findMethod(targetType, 
+                    matcher);
+            ctx = ctx.pop();
+            // Now we need to check, does targetType is accessible from current context
+            if (!ts.isAccessibleTarget(mi, targetType, ctx)) {
+                throw new NoMemberException(NoMemberException.METHOD,
+                        "Method " + mi.signature() +
+                        " in " + targetType +
+                " is inaccessible.");
+            }
+        } else {
+            // else do the standard stuff
+            MethodMatcher matcher = ts.JL5MethodMatcher(targetType, name().id(), argsTypes, explicitTypeArgs, tc.context());
+            mi = (JL5MethodInstance) ts.findMethod(targetType, 
+                    matcher);
+        }
 
         /* This call is in a static context if and only if
          * the target (possibly implicit) is a type node.
