@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import polyglot.ext.jl5.types.attributes.ClassSignatureAttribute;
 import polyglot.frontend.Source;
 import polyglot.types.ClassDef;
 import polyglot.types.ClassDef_c;
@@ -13,7 +14,8 @@ import polyglot.types.Type;
 
 public class JL5ClassDef_c extends ClassDef_c implements ClassDef, JL5ClassDef {
     protected List<Ref<? extends Type>> typeVariables;
-
+    protected ClassSignatureAttribute csa;
+    
     /**
      * This is used to instantiate ClassDef for TypeVariable
      * 
@@ -79,4 +81,15 @@ public class JL5ClassDef_c extends ClassDef_c implements ClassDef, JL5ClassDef {
     public boolean hasTypeVariable() {
         return !this.typeVariables.isEmpty();
     }
+    
+    public void eraseWith(List<Ref<? extends Type>> tvRefs,
+                          Type superRef,
+                          List<Type> interfacesTypes) {
+        this.csa = new ClassSignatureAttribute(tvRefs, superRef, interfacesTypes);
+    }
+    
+    public ClassSignatureAttribute getSignatureAttr() {
+        return csa;
+    }
+
 }

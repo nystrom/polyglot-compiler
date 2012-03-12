@@ -2,10 +2,12 @@ package polyglot.ext.jl5.types;
 
 import java.util.List;
 
+import polyglot.ext.jl5.types.attributes.ClassSignatureAttribute;
+import polyglot.types.ClassDef;
 import polyglot.types.Ref;
 import polyglot.types.Type;
 
-public interface JL5ClassDef {
+public interface JL5ClassDef extends ClassDef {
 
 	public void addTypeVariable(Ref<? extends Type> t);
 
@@ -15,4 +17,8 @@ public interface JL5ClassDef {
 	public List<Ref<? extends Type>> typeVariables();
 
 	public boolean hasTypeVariable();
+	
+    public void eraseWith(List<Ref<? extends Type>> tvRefs, Type superRef, List<Type> interfacesTypes);
+    
+    public ClassSignatureAttribute getSignatureAttr();
 }
