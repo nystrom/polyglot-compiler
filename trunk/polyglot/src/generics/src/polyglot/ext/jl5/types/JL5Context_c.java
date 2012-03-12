@@ -60,7 +60,6 @@ public class JL5Context_c extends Context_c implements JL5Context {
                         assert(enclosingClass instanceof Type);
                         if (enclosingClass instanceof Type) {
                             Type t = (Type) enclosingClass;
-
                             vi = ts.findField(t.toClass(), ts.FieldMatcher(t.toClass(), name, this));
                             if (vi != null) {
                                 return vi;
@@ -189,7 +188,10 @@ public class JL5Context_c extends Context_c implements JL5Context {
             // couldn't find the method, try static imports.
             JL5ImportTable it = (JL5ImportTable) this.importTable();
             if (it != null && this.currentClass() != null) {
-                return it.findMethod(matcher);
+                MethodInstance res = it.findMethod(matcher);
+                if (res != null) {
+                    return res;
+                }
             }
             throw e;
         }
