@@ -2,17 +2,15 @@ package polyglot.ext.jl5.types.reflect;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import polyglot.ext.jl5.types.JL5ClassDef;
-import polyglot.ext.jl5.types.JL5ParsedClassType;
 import polyglot.ext.jl5.types.JL5TypeSystem;
-import polyglot.ext.jl5.types.ParameterizedType;
 import polyglot.ext.jl5.types.TypeVariable;
 import polyglot.types.ClassDef;
 import polyglot.types.ClassType;
@@ -36,9 +34,9 @@ public class Signature extends Attribute {
 	protected ClassSig classSignature;
 	protected MethodSig methodSignature;
 	protected FieldSig fieldSignature;
-	protected List<Ref<TypeVariable>> typeVars;
 	protected JL5ClassDef curClass;
 	protected ClassFileLazyClassInitializer cllz;
+	protected LinkedList<List<Ref<Type>>> typeVarStack;
 
 	/**
 	 * Grammar:
@@ -144,6 +142,7 @@ public class Signature extends Attribute {
 		super(nameIndex, length);
 		this.index = in.readUnsignedShort();
 		this.cls = clazz;
+		this.typeVarStack = new LinkedList<List<Ref<Type>>>();
 	}
 
 	// tokens
@@ -171,8 +170,6 @@ public class Signature extends Attribute {
 	private final char J = 'J';
 	private final char S = 'S';
 	private final char Z = 'Z';
-	private boolean createTypeVars;
-
 
 	class ClassSig {
 		public ClassSig(List<Ref<? extends Type>> typeVars, Ref<? extends Type> superType, List<Ref<? extends Type>> interfaces){
@@ -220,10 +217,10 @@ public class Signature extends Attribute {
 	}
 
 	class FieldSig {
-        protected Ref<? extends Type> type;
-	    public FieldSig(Ref<? extends Type> result) {
-	        type = result;
-        }
+		protected Ref<? extends Type> type;
+		public FieldSig(Ref<? extends Type> result) {
+			type = result;
+		}
 	}
 
 	class Result {
@@ -257,17 +254,17 @@ public class Signature extends Attribute {
 	public Result classSig(String value, int pos){
 		List<Ref<? extends Type>> typeFormals = Collections.EMPTY_LIST;
 		char token = value.charAt(pos);
-		
+
 		Result fres = null;
 		if (token == LEFT_ANGLE){
 			fres = formalTypeParamList(value, ++pos);
 			pos = fres.pos();
 			if(fres != null) { typeFormals = (List<Ref<? extends Type>>) fres.result();}
-			typeVars = (List) fres.result();
+			//typeVars = (List) fres.result();
 		}
 		Result sres = classTypeSig(value, pos);
 		Ref<? extends Type> superType = (Ref<? extends Type>) sres.result();
-		List<Ref<? extends Type>> superInterfaces = new ArrayList();
+		List<Ref<? extends Type>> superInterfaces = new LinkedList();
 		pos = sres.pos();
 		while (pos < value.length()){
 			Result ires = classTypeSig(value, pos);
@@ -286,35 +283,18 @@ public class Signature extends Attribute {
 	 * 		<K:Ljava/lang/Object;V:Ljava/lang/Object;>
 	 */
 	public Result formalTypeParamList(String value, int pos){
-		typeVars = null;
-		int oldpos = pos;
-		createTypeVars = true;
-		//do it twice. second time, bounds will be resolved
-		//CHECK The first pass creates the typevar: and calls to typeVarSig should fail as map is empty
-		//CHECK The second just appears to do the lookup
-		List list = new ArrayList();
+		List tvArgs = new LinkedList();
+		typeVarStack.push(tvArgs);
 		char token = value.charAt(pos);
 		while (token != RIGHT_ANGLE){
 			Result fres = formalTypeParam(value, pos);
-			list.add(fres.result());
+			tvArgs.add((Ref<Type>)fres.result());
 			pos = fres.pos();
 			token = value.charAt(pos);
 		}
-
-		typeVars = list;
-		pos = oldpos;
-		createTypeVars = false;
-		list = new ArrayList();
-		token = value.charAt(pos);
-		while (token != RIGHT_ANGLE){
-			Result fres = formalTypeParam(value, pos);
-			list.add(fres.result());
-			pos = fres.pos();
-			token = value.charAt(pos);
-		}
-
+		typeVarStack.pop();
 		pos++;
-		return new Result(list, pos);
+		return new Result(tvArgs, pos);
 	}
 
 	/**
@@ -331,10 +311,10 @@ public class Signature extends Attribute {
 			pos++;
 			token = value.charAt(pos);
 		}
-		Result cres = classBound(value, pos);
-		pos = cres.pos();
-		Result ires = null;
-		List bounds = new ArrayList();
+		Result ires = classBound(value, pos);
+		pos = ires.pos();
+		List bounds = new LinkedList();
+		bounds.add(ires.result());
 		token = value.charAt(pos);
 		while (token != RIGHT_ANGLE){
 			if (value.charAt(pos) != COLON) break;
@@ -342,23 +322,17 @@ public class Signature extends Attribute {
 			pos = ires.pos();
 			bounds.add(ires.result());
 		}
-		if (createTypeVars) {
-			return new Result(Types.ref(ts.typeVariable(position, id, bounds)), pos);
-		} else {
-			TypeVariable tv = findTypeVar(id).get();
-			tv.bounds(bounds);
-			return new Result(Types.ref(tv), pos);
-		}
+		return new Result(Types.ref(ts.typeVariable(position, id, bounds)), pos);
 	}
 
 	/**
 	 * ClassBound:
- 	 * 		: FieldTypeSignatureopt
+	 * 		: FieldTypeSignatureopt
 	 */
 	public Result classBound(String value, int pos){
 		return fieldTypeSig(value, ++pos);
 	}
- 
+
 	/**
 	 * 
 	 * FieldTypeSignature:
@@ -381,7 +355,7 @@ public class Signature extends Attribute {
 		case COLON: { res = new Result(cllz.typeForName("java.lang.Object"), pos); break; }
 		}
 		return res;
-//		return new Result(new FieldSig((Ref<? extends Type>) res.result()), pos);
+		//		return new Result(new FieldSig((Ref<? extends Type>) res.result()), pos);
 	}
 
 	/**
@@ -439,34 +413,34 @@ public class Signature extends Attribute {
 		className += id;
 
 		List<Ref<TypeVariable>> tvList = classArgsMap.get(id);
-		
-//		if (classArgsMap.containsKey(className)) {
-//			// If TypeArguments were available, instantiate a parameterized type
-//			ParameterizedType pt = ts.parameterizedType((JL5ParsedClassType)ct);
-//			pt.typeArguments(classArgsMap.get(className));
-//			//Need to update the type with the parameter args
-//			ct = Types.ref(pt);
-//		}
+
+		//		if (classArgsMap.containsKey(className)) {
+		//			// If TypeArguments were available, instantiate a parameterized type
+		//			ParameterizedType pt = ts.parameterizedType((JL5ParsedClassType)ct);
+		//			pt.typeArguments(classArgsMap.get(className));
+		//			//Need to update the type with the parameter args
+		//			ct = Types.ref(pt);
+		//		}
 
 		Ref<? extends Type> ct =
-		        ((JL5ClassFileLazyClassInitializer)cllz).typeForName(className, tvList);
+				((JL5ClassFileLazyClassInitializer)cllz).typeForName(className, tvList);
 		// The map may contain type arguments that were under angle brackets
 		// for example <K:Ljava/lang/Object;>
 
 		// CHECK calling get creates an infinite loop because ts tries to resolve more type		
-//		ClassType current = (ClassType) ct.get();
-//		ClassType outer = current.outer();
-//		//CHECK is this to handles nested classes, i.e. if a signature contains refs to parameterized nested classes
-//		while (outer != null) {
-//			if (classArgsMap.containsKey(outer.name())) {
-//				ParameterizedType pt = ts.parameterizedType((JL5ParsedClassType)outer);
-//				pt.typeArguments((List)classArgsMap.get(outer.name()));
-//				((JL5ParsedClassType)current).def().outer(Types.ref(pt.def()));
-//			}
-//			if (current == current.outer()) break;
-//			current = current.outer();
-//			outer = current.outer();
-//		}
+		//		ClassType current = (ClassType) ct.get();
+		//		ClassType outer = current.outer();
+		//		//CHECK is this to handles nested classes, i.e. if a signature contains refs to parameterized nested classes
+		//		while (outer != null) {
+		//			if (classArgsMap.containsKey(outer.name())) {
+		//				ParameterizedType pt = ts.parameterizedType((JL5ParsedClassType)outer);
+		//				pt.typeArguments((List)classArgsMap.get(outer.name()));
+		//				((JL5ParsedClassType)current).def().outer(Types.ref(pt.def()));
+		//			}
+		//			if (current == current.outer()) break;
+		//			current = current.outer();
+		//			outer = current.outer();
+		//		}
 		pos++;
 		return new Result(ct, pos);
 	}
@@ -490,24 +464,26 @@ public class Signature extends Attribute {
 				token = value.charAt(pos);
 			}
 			pos++;
-			// CHECK sounds that if we're here it means we already resolved the TypeVariable somewhere ?
 			res = new Result(findTypeVar(id), pos);
-			}
+		}
 		}
 		return res;
 	}
 
 	public Result typeArgList(String value, int pos){
-		List typeArgs = new ArrayList();
+		List tvArgs = new LinkedList();
+		typeVarStack.push(tvArgs);
 		char token = value.charAt(pos++);
 		while (token != RIGHT_ANGLE){
 			Result tres = typeArg(value, pos);
 			pos = tres.pos();
-			typeArgs.add(tres.result());
+			//ADD
+			tvArgs.add((Ref<Type>)tres.result());
 			token = value.charAt(pos);
 		}
+		typeVarStack.pop();
 		pos++;
-		return new Result(typeArgs, pos);
+		return new Result(tvArgs, pos);
 	}   
 
 	public Result typeArg(String value, int pos){
@@ -548,13 +524,13 @@ public class Signature extends Attribute {
 			Ref<? extends Type> type = (Ref<? extends Type>) tres.result();
 			res = new Result(cllz.arrayOf(type, 1), tres.pos());
 			break;
-			}
+		}
 		}
 		return res;
 	}
 
 	public Result typeSigList(String value, int pos){
-		List formals = new ArrayList();
+		List formals = new LinkedList();
 		char token = value.charAt(pos);
 		while (token != RIGHT_BRACE){
 			Result ares = typeSig(value, pos);
@@ -605,8 +581,7 @@ public class Signature extends Attribute {
 	 */
 	public Result methodTypeSig(String value, int pos){
 		char token = value.charAt(pos);
-		List list = new ArrayList();
-		typeVars = list;
+		List tvList = new LinkedList();
 		List<Ref<? extends Type>> typeFormals = Collections.EMPTY_LIST;
 		Ref<? extends Type> typeReturned = null;
 		List<Ref<? extends Type>> typeThrown = Collections.EMPTY_LIST;
@@ -615,8 +590,7 @@ public class Signature extends Attribute {
 			// '<' : starts type variables list
 			Result fres = formalTypeParamList(value, ++pos);
 			pos = fres.pos(); // set position to continue parsing
-			if (fres != null) { list = (List) fres.result(); }
-			typeVars = list; // CHECK why do we put that in a class field ??
+			if (fres != null) { tvList = (List) fres.result(); }
 		}
 		if ((token = value.charAt(pos)) == LEFT_BRACE){
 			//'(' : starts the formals list
@@ -634,7 +608,7 @@ public class Signature extends Attribute {
 			pos = tres.pos();
 			if (typeThrown != null) { typeThrown = (List)tres.result(); }
 		}
-		List typeVarsList = new ArrayList(list);
+		List typeVarsList = new LinkedList(tvList);
 		return new Result(new MethodSig(typeVarsList, typeFormals, typeReturned, typeThrown), pos);
 	}
 
@@ -669,7 +643,7 @@ public class Signature extends Attribute {
 	// this is okay as throwsSigList is last part 
 	// of methodTypeSig
 	public Result throwsSigList(String value, int pos){
-		List throwsList = new ArrayList();
+		List throwsList = new LinkedList();
 		char token;
 		while (pos < value.length()){
 			Result tres = throwsSig(value, pos);
@@ -759,79 +733,69 @@ public class Signature extends Attribute {
 			TypeSystem ts, Position pos, ClassDef ct) throws IOException, SemanticException{
 		this.ts = (JL5TypeSystem)ts;
 		this.position = pos;
-        this.curClass = (JL5ClassDef) ct;
+		this.curClass = (JL5ClassDef) ct;
 		this.cllz = cllz;
 		String sigValue = (String)cls.getConstants()[index].value();
 		Result res = fieldTypeSig(sigValue, 0);
 		// If the field is not parameterized, there is no signature
 		if (res != null) {
-		    fieldSignature = new FieldSig((Ref<? extends Type>) res.result());
+			fieldSignature = new FieldSig((Ref<? extends Type>) res.result());
 		}
-//		fieldSignature = (FieldSig) fieldTypeSig(sigValue, 0).result();
+		//		fieldSignature = (FieldSig) fieldTypeSig(sigValue, 0).result();
 	}
 
-	private Ref<TypeVariable> findTypeVar(String next){
-		if (typeVars != null){
-			for (Iterator<Ref<TypeVariable>> it = typeVars.iterator(); it.hasNext(); ){
-				Ref<TypeVariable> iType = it.next();
-				TypeVariable tv = iType.get();
-				if (tv.name().toString().equals(next)) return iType;
+	private Ref<Type> findTypeVar(String tvName){
+		for (List<Ref<Type>> tvList : typeVarStack) {
+			for (Ref<Type> tvRef : tvList) {
+				Type type = tvRef.get();
+				if (type instanceof TypeVariable) {
+					TypeVariable tv = (TypeVariable) type;
+					if (tv.name().toString().equals(tvName)) {
+						return tvRef;
+					}
+				}
 			}
 		}
 		if (curClass != null){
 			if (curClass.typeVariables() != null){
 				for (Iterator it = curClass.typeVariables().iterator(); it.hasNext(); ){
-					Ref<TypeVariable> iType = (Ref<TypeVariable>) it.next();
-					TypeVariable tv = iType.get();
-					if (tv.name().toString().equals(next)) return iType;
+					Ref<Type> refType = ((Ref<Type>) it.next());
+					Type type = refType.get();
+					if (type instanceof TypeVariable) {
+						TypeVariable tv = (TypeVariable) type;
+						if (tv.name().toString().equals(tvName)) {
+							return refType;
+						}
+					}
 				}
 			}
-		}
-		return null;
+		} 
+		// If there's no typeVars and no curClass, then initialize a typeVars
+		Object o = Types.ref(ts.typeVariable(position, tvName, Collections.EMPTY_LIST));
+		Ref<Type> tv = (Ref<Type>) o; 
+		return tv;
 	}
 
-	//CHECK should return a ref on the type variable ?
-//	private Ref<? extends Type> findTypeVar(String next){
-//		if (typeVars != null) {
-//			Ref<? extends Type> tv;
-//			if ((tv = typeVars.get(next)) != null) {
-//				return tv;
-//			}
-//		}
-//		
-//		if (curClass != null && curClass instanceof JL5ParsedClassType){
-//			if (curClass.typeVariables() != null){
-//				for (Iterator it = curClass.typeVariables().iterator(); it.hasNext(); ){
-//					TypeVariable iType = (TypeVariable)it.next();
-//					if (iType.name().toString().equals(next)) return iType;
-//				}
-//			}
-//		}
-//		return null;
-//	}
-
-
 	public List<Ref<? extends Type>> typeVariables(){
-    	if ((classSignature != null) && (classSignature.typeVars != null)) {
-    		return classSignature.typeVars();
-    	}
-    	return Collections.EMPTY_LIST;
+		if ((classSignature != null) && (classSignature.typeVars != null)) {
+			return classSignature.typeVars();
+		}
+		return Collections.EMPTY_LIST;
+	}
 
-    }
+	public String toString(){
+		return (String)cls.getConstants()[index].value();
+	}
 
-    public String toString(){
-    	return (String)cls.getConstants()[index].value();
-    }
-    
-    public List<Ref<? extends Type>> getSuperInterfacesType(){
-    	if ((classSignature != null) && (classSignature.interfaces != null)) {
-    		return classSignature.interfaces;
-    	}
-    	return Collections.EMPTY_LIST;
-    }
+	public List<Ref<? extends Type>> getSuperInterfacesType(){
+		if ((classSignature != null) && (classSignature.interfaces != null)) {
+			return classSignature.interfaces;
+		}
+		return Collections.EMPTY_LIST;
+	}
 
 	public Ref<? extends Type> getSuperclassType() {
-    	assert ((classSignature != null) && (classSignature.superType != null));
-    	return classSignature.superType;
+		assert ((classSignature != null) && (classSignature.superType != null));
+		return classSignature.superType;
 	}
 }
