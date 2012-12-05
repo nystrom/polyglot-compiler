@@ -26,6 +26,7 @@ import polyglot.ast.NullLit;
 import polyglot.ext.jl5.ast.AnnotationElem;
 import polyglot.ext.jl5.ast.ElementValuePair;
 import polyglot.ext.jl5.ast.JL5Field;
+import polyglot.ext.jl5.types.reflect.JL5ClassContextResolver;;
 import polyglot.ext.jl5.ast.JL5ProcedureMatcher;
 import polyglot.ext.jl5.ast.NormalAnnotationElem;
 import polyglot.ext.jl5.types.inference.InferenceSolver;
@@ -34,7 +35,9 @@ import polyglot.ext.jl5.types.inference.LubType;
 import polyglot.ext.jl5.types.inference.LubType_c;
 import polyglot.ext.jl5.types.reflect.JL5ClassFileLazyClassInitializer;
 import polyglot.frontend.Source;
+import polyglot.types.AccessControlResolver;
 import polyglot.types.ArrayType;
+import polyglot.types.ClassContextResolver;
 import polyglot.types.ClassDef;
 import polyglot.types.ClassDef_c;
 import polyglot.types.ClassType;
@@ -463,6 +466,12 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			Ref<? extends ConstructorDef> def) {
 		return new JL5ConstructorInstance_c(this, pos, def);
 	}
+	
+	@Override
+    public AccessControlResolver createClassContextResolver(Type type) {
+	assert_(type);
+	return new JL5ClassContextResolver(this, type);
+    }
 	
 	@Override
 	public Context emptyContext() {
