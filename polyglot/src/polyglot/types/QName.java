@@ -30,7 +30,8 @@ public class QName implements Serializable {
 
     public static QName make(QName qualifier, Name name) {
 	String shortName = name.toString();
-	String fullName = qualifier == null ? shortName : qualifier.toString() + "." + shortName;
+	String fullName = qualifier == null ? shortName : qualifier.toString() + 
+			(shortName.startsWith("$") ? "" : ".") + shortName;
 	synchronized (internCache) {
 	    QName q = internCache.get(fullName);
 	    if (q != null)
