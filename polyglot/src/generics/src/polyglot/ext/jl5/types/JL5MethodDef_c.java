@@ -97,9 +97,11 @@ public class JL5MethodDef_c extends JL5ProcedureDef_c implements MethodDef, JL5M
 	}
 
     @Override
-    public void eraseWith(List<Ref<? extends Type>> formalsRefs, Ref<? extends Type> retRef) {
+    public void eraseWith(List<Ref<? extends Type>> formalsRefs, 
+    		List<Ref<? extends Type>> thrownRefs, Ref<? extends Type> retRef) {
         msa = new MethodSignatureAttribute(this);
         this.setFormalTypes(formalsRefs);
+        this.setThrowTypes(thrownRefs);
         this.setReturnType(retRef);
     }
     

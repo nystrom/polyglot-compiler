@@ -9,7 +9,8 @@ import polyglot.types.Type;
 
 public interface JL5MethodDef extends JL5ProcedureDef, MethodDef {
 	boolean isCompilerGenerated();
-	void eraseWith(List<Ref<? extends Type>> formalsRefs, Ref<? extends Type> retRef);
+	void eraseWith(List<Ref<? extends Type>> formalsRefs, 
+			List<Ref<? extends Type>> throwTypes, Ref<? extends Type> retRef);
 	
 	MethodSignatureAttribute getSignatureAttr();
 }
