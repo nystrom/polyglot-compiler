@@ -875,7 +875,7 @@ public class TypeEnv_c implements TypeEnv {
 
 	if (acceptable.size() == 0) {
 	    if (error == null) {
-		error = new NoMemberException(NoMemberException.CONSTRUCTOR, "No valid constructor found for " + container + matcher.signature() + ".");
+		error = new NoMemberException(NoMemberException.CONSTRUCTOR, "No valid constructor found in " + container + " for " + matcher.signature() + ".");
 	    }
 
 	    throw error;
