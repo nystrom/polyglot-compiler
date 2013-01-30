@@ -45,7 +45,7 @@ public class ResourceLoader
     public ResourceLoader() {
         this.zipCache = new HashMap();
         this.dirContentsCache = new HashMap();
-	this.dirCache = new HashSet();
+        this.dirCache = new HashSet();
     }
 
     /**
@@ -54,8 +54,8 @@ public class ResourceLoader
      */
     public boolean dirExists(File dir, String name) {
         if (Report.should_report(verbose, 3)) {
-	    Report.report(3, "looking in " + dir + " for " +
-                             name.replace('.', File.separatorChar));
+            Report.report(3, "looking in " + dir + " for " +
+                    name.replace('.', File.separatorChar));
         }
 
         if (!dir.canRead())
@@ -63,18 +63,18 @@ public class ResourceLoader
 
         try {
             if (dir.getName().endsWith(".jar") ||
-                dir.getName().endsWith(".zip")) {
+                    dir.getName().endsWith(".zip")) {
 
                 if (dirCache.contains(name)) {
-		    return true;
-		}
+                    return true;
+                }
 
-		// load the zip file, forcing the package cache to be initialized
-		// with its contents.
+                // load the zip file, forcing the package cache to be initialized
+                // with its contents.
                 loadZip(dir);
-    		
-		return dirCache.contains(name);
-	    }
+
+                return dirCache.contains(name);
+            }
             else {
                 File f = new File(dir, name);
                 return f.isDirectory() && FileUtil.checkNameFromRoot(dir, f);
@@ -99,15 +99,15 @@ public class ResourceLoader
     public Resource loadResource(File dir, String name)
     {
         if (Report.should_report(verbose, 3)) {
-	    Report.report(3, "looking in " + dir + " for " + name);
+            Report.report(3, "looking in " + dir + " for " + name);
         }
-	
+
         if (!dir.canRead())
             return null;
-        
+
         try {
             if (dir.getName().endsWith(".jar") ||
-                dir.getName().endsWith(".zip")) {
+                    dir.getName().endsWith(".zip")) {
 
                 ZipFile zip = loadZip(dir);
                 return loadFromZip(dir, zip, name);
@@ -144,26 +144,31 @@ public class ResourceLoader
                     // get the zip and put it in the cache.
                     if (Report.should_report(verbose, 2))
                         Report.report(2, "Opening zip " + dir);
-		    if (dir.getName().endsWith(".jar")) {
-			zip = new JarFile(dir);
-		    }
-		    else {
-			zip = new ZipFile(dir);
-		    }
-		    zipCache.put(dir, zip);
-		    
-		    // Load the package cache.
-		    for (Enumeration i = zip.entries(); i.hasMoreElements(); ) {
-			ZipEntry ei = (ZipEntry) i.nextElement();
-			String n = ei.getName();
-			
-			int index = n.indexOf('/');
-			while (index >= 0) {
-			    dirCache.add(n.substring(0, index));
-			    index = n.indexOf('/', index+1);
-			}
-		    }
-		    
+                    if (dir.getName().endsWith(".jar")) {
+                        zip = new JarFile(dir);
+                    }
+                    else {
+                        zip = new ZipFile(dir);
+                    }
+                    zipCache.put(dir, zip);
+
+                    // Load the package cache.
+                    for (Enumeration i = zip.entries(); i.hasMoreElements(); ) {
+                        ZipEntry ei = (ZipEntry) i.nextElement();
+                        String n = ei.getName();
+
+                        int index = n.indexOf('/');
+                        while (index >= 0) {
+                            String res = n.substring(0, index);
+                            if (res.equals("java/util")) {
+                                System.out.println(zip.toString());
+                                System.out.println(dir.getName());
+                            }
+                            dirCache.add(res);
+                            index = n.indexOf('/', index+1);
+                        }
+                    }
+
                     return zip;
                 }
             }
@@ -172,7 +177,7 @@ public class ResourceLoader
     }
 
     Resource loadFromZip(File source, ZipFile zip, String fileName) throws IOException {
-	String entryName = fileName.replace(File.separatorChar, '/');
+        String entryName = fileName.replace(File.separatorChar, '/');
         if (Report.should_report(verbose, 2))
             Report.report(2, "Looking for " + entryName + " in " + zip.getName());
         if (zip != null) {
@@ -188,12 +193,12 @@ public class ResourceLoader
     }
 
     Resource loadFromFile(String name, File dir) throws IOException {
-	int sepIndex = name.indexOf(File.separatorChar);
-	if (sepIndex > 0) {
-	    File newDir = new File(dir, name.substring(0, sepIndex));
-	    String newName = name.substring(sepIndex+1);
-	    return loadFromFile(newName, newDir);
-	}
+        int sepIndex = name.indexOf(File.separatorChar);
+        if (sepIndex > 0) {
+            File newDir = new File(dir, name.substring(0, sepIndex));
+            String newName = name.substring(sepIndex+1);
+            return loadFromFile(newName, newDir);
+        }
         Set dirContents = (Set) dirContentsCache.get(dir);
         if (dirContents == null) {
             dirContents = new HashSet();
@@ -207,13 +212,13 @@ public class ResourceLoader
                 }
             }
         }
-        
+
         // otherwise, try and open the thing.
         File file = new File(dir, name);
-        
+
         if (! file.exists())
             return null;
-        
+
         String firstPart = name;
 
         // check to see if the directory has the first part of the filename,
@@ -225,13 +230,13 @@ public class ResourceLoader
 
         if (Report.should_report(verbose, 3))
             Report.report(3, "found " + file);
-	if (Report.should_report(verbose, 3))
-	Report.report(3, "defining class " + name);
-	
-	Resource c = new FileResource(file);
+        if (Report.should_report(verbose, 3))
+            Report.report(3, "defining class " + name);
+
+        Resource c = new FileResource(file);
         return c;
     }
-    
+
     protected static Collection verbose;
 
     static {
