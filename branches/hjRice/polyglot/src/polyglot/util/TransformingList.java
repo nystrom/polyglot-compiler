@@ -39,5 +39,14 @@ public class TransformingList<S,T> extends AbstractList<T> {
 	return trans.transform(underlying.get(index));
     }
 
+	@Override
+	public Object[] toArray() {
+		int size = this.size();
+		Object [] array = new Object [size];
+		for (int i = 0; i < array.length; i++) {
+			array[i] = get(i);
+		}
+		return array;
+	}
 }
 
