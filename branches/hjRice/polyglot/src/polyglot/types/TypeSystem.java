@@ -11,6 +11,9 @@ import java.util.*;
 
 import polyglot.frontend.ExtensionInfo;
 import polyglot.frontend.Source;
+import polyglot.types.Context;
+import polyglot.types.MemberDef;
+import polyglot.types.MemberInstance;
 import polyglot.types.TypeSystem_c.ConstructorMatcher;
 import polyglot.types.TypeSystem_c.MethodMatcher;
 import polyglot.types.reflect.ClassFile;
@@ -239,6 +242,11 @@ public interface TypeSystem {
      */
     boolean isAccessible(MemberInstance<? extends MemberDef> mi, Context context);
 
+    /**
+     * Checks whether a class member can be accessed from <code>context</code> through target.
+     */
+    boolean isAccessibleTarget(MemberInstance<? extends MemberDef> mi, Type target, Context context);
+    
     /**
      * Checks whether a class can be accessed from Context context.
      */
