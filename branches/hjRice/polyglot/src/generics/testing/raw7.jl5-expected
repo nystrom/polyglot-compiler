@@ -1,0 +1,4 @@
+raw7.jl5:12: Warning -- Use of a raw type could lead to unchecked operations.
+class C implements mytype {
+                   ^----^
+

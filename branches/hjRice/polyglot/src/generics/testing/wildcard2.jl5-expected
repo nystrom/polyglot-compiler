@@ -1,0 +1,25 @@
+wildcard2.jl5:16: The type of the variable initializer "java.util.List<?>"
+    does not match that of the declaration "java.util.List<java.lang.Object>".
+	List<Object> l2 = l1;
+	                  ^^
+
+wildcard2.jl5:20: The type of the variable initializer
+    "java.util.Collection<Pair<java.lang.String, java.lang.Long>>" does not
+    match that of the declaration "java.util.Collection<Pair<java.lang.String,
+    ?>>".
+    Collection< Pair<String,?> >           c3 = c1;  // error
+                                                ^^
+
+wildcard2.jl5:24: The type of the variable initializer "java.lang.Class<?>"
+    does not match that of the declaration
+    "java.lang.Class<java.lang.String>".
+Class<String>           c0 = s.getClass();  // error
+                             ^----------^
+
+wildcard2.jl5:26: The type of the variable initializer "java.lang.Class<?>"
+    does not match that of the declaration "java.lang.Class<? extends
+    java.lang.String>".
+Class<? extends String> c2 = s.getClass();  // fine     
+                             ^----------^
+
+4 errors.

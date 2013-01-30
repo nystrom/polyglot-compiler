@@ -1,0 +1,75 @@
+package polyglot.ext.jl5.types;
+
+import polyglot.types.FieldDef;
+import polyglot.types.FieldInstance_c;
+import polyglot.types.ParsedClassType;
+import polyglot.types.Ref;
+import polyglot.types.TypeSystem;
+import polyglot.util.Position;
+
+/**
+ * Instance of an enum
+ * Build from a field instance that had a 'enum' keyword.
+ *
+ */
+public class EnumInstance_c extends FieldInstance_c implements EnumInstance {
+
+    /*protected ReferenceType container;
+
+    protected EnumInstance_c(){
+    }*/
+
+    protected ParsedClassType anonType;
+
+    public EnumInstance_c(TypeSystem ts, Position pos, Ref<? extends FieldDef> def){
+        super(ts, pos, def);
+        flags().set(JL5Flags.STATIC);
+        this.anonType = (ParsedClassType) container();
+    }
+    
+    public ParsedClassType anonType(){
+        return anonType;
+    }
+
+    /*public ReferenceType container(){
+        return container;
+    }
+    
+    public EnumInstance flags(Flags flags);
+        if (!flags.equals(this.flags)){
+            EnumInstance_c n = (EnumInstance_c) copy();
+            n.flags = flags;
+            return n;
+        }
+        return this;
+    }
+
+    public EnumInstance name(String name);
+        if ((name != null && !name.equals(this.name)) || (name == null && name != this.name)){
+            EnumInstance_c n = (EnumInstance_c) copy();
+            n.name = name;
+            return n;
+        }
+        return this;
+    }
+
+    EnumInstance type(Type type);
+        if (this.container != container){
+            EnumInstance_c n = (EnumInstance_c) copy();
+            n.container = container;
+            return n;
+        }
+        return this;
+    }
+
+    public EnumInstance container(ReferenceType container){
+        if (this.container != container){
+            EnumInstance_c n = (EnumInstance_c) copy();
+            n.container = container;
+            return n;
+        }
+        return this;
+    }*/
+
+}
+

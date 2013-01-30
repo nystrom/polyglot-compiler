@@ -1,0 +1,6 @@
+Simple.jl5:12: The type of the variable initializer "java.util.HashMap<V, K>"
+    does not match that of the declaration "java.util.Map<K, V>".
+    Map<K, V> r = new HashMap<V, K>();
+                  ^-^
+
+1 error.

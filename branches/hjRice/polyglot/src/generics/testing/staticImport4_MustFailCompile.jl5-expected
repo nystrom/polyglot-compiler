@@ -1,0 +1,9 @@
+staticImport4_MustFailCompile.jl5:1: The import PIP cannot be resolved
+import static packa.staticImportDef0.PIP;
+^---------------------------------------^
+
+staticImport4_MustFailCompile.jl5:8: Could not find field or local variable "PIP".
+        System.out.println(PIP);
+                           ^-^
+
+2 errors.

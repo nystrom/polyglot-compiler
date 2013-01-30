@@ -1,0 +1,9 @@
+interface I<U>  {}
+
+class C1<X, T extends I<X>>  {
+    public C1() { super(); }
+}
+
+class C2<U, S extends I<U>>  extends C1<U, S> {
+    public C2() { super(); }
+}

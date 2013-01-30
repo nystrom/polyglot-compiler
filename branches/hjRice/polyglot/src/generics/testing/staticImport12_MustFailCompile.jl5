@@ -1,0 +1,11 @@
+import static packa.staticImportDef0.*;
+import static packa.staticImportDef1.*;
+
+/**
+ * on-demand static import collision
+ */
+public class staticImport12_MustFailCompile {
+    public static void main(String [] args) {
+        System.out.println(id());
+    }
+}

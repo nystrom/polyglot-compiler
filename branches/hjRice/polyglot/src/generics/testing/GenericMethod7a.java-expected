@@ -1,0 +1,23 @@
+import java.util.*;
+
+class c {
+    public <T, V> boolean bothContain(T a, V b, java.util.Collection<T> l1, java.util.Collection<V> l2) {
+        boolean temp1 = false;
+        boolean temp2 = true;
+        for (T t : l1) { temp1 = (temp1 || t.equals(a)); }
+        for (V e : l2) { temp1 = (temp1 || e.equals(b)); }
+        return temp1 && temp2;
+    }
+    
+    public void main(java.lang.String[] args) {
+        java.util.Collection<java.lang.String> c1 = new java.util.ArrayList<java.lang.String>();
+        c1.add("hello");
+        c1.add("World");
+        java.util.Collection<java.lang.Double> c2 = new java.util.Vector<java.lang.Double>();
+        c2.add(2.3);
+        c2.add(3.1);
+        boolean result = this.<java.lang.String, java.lang.Double>bothContain("hello", 5.0, c1, c2);
+    }
+    
+    public c() { super(); }
+}

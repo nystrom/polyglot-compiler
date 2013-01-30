@@ -1,0 +1,5 @@
+/Users/vcave/Work/workspaces/Repository/polyglot-generic-extension-3/polyglot/src/generics/testing/staticImport3_MustFailCompile.jl5:2: The import test.staticImportDef1.PI collides with another import statement
+import static test.staticImportDef1.PI;
+^-------------------------------------^
+
+1 error.

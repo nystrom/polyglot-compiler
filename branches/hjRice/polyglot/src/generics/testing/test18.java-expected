@@ -1,0 +1,14 @@
+class A {
+    public int compareTo(java.lang.Object o) { return 0; }
+    
+    public A() { super(); }
+}
+
+class B extends A implements java.lang.Comparable<B> {
+    public int compareTo(B b) { return 0; }
+    
+    public static void main(java.lang.String[] argv) {
+        java.lang.System.out.println(new B().compareTo(new java.lang.Object())); }
+    
+    public B() { super(); }
+}

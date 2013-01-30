@@ -1,0 +1,261 @@
+package polyglot.ext.jl5.ast;
+
+import java.util.List;
+
+import polyglot.ast.ArrayInit;
+import polyglot.ast.Expr;
+import polyglot.ast.FlagsNode;
+import polyglot.ast.Id;
+import polyglot.ast.Node;
+import polyglot.ast.Term;
+import polyglot.ast.Term_c;
+import polyglot.ast.TypeNode;
+import polyglot.ext.jl5.types.AnnotationElemInstance;
+import polyglot.ext.jl5.types.FlagAnnotations;
+import polyglot.ext.jl5.types.JL5Flags;
+import polyglot.ext.jl5.types.JL5TypeSystem;
+import polyglot.types.ClassType;
+import polyglot.types.Context;
+import polyglot.types.Flags;
+import polyglot.types.MemberDef;
+import polyglot.types.SemanticException;
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
+import polyglot.visit.CFGBuilder;
+import polyglot.visit.ContextVisitor;
+import polyglot.visit.NodeVisitor;
+import polyglot.visit.PrettyPrinter;
+import polyglot.visit.TypeBuilder;
+
+public class AnnotationElemDecl_c extends Term_c implements AnnotationElemDecl {
+
+    protected TypeNode type;
+    protected FlagsNode flags;
+    protected Expr defaultVal;
+    protected Id name;
+    protected AnnotationElemInstance ai;
+    
+    public AnnotationElemDecl_c(Position pos, FlagAnnotations flags, TypeNode type, Id name, Expr defaultVal){
+        super(pos);
+        this.type = type;
+        this.flags = flags.classicFlags();
+        this.defaultVal = defaultVal;
+        this.name = name;
+        throw new RuntimeException("Annotation elements declaration are not yet supported");
+    }
+    
+    public AnnotationElemDecl type(TypeNode type){
+        if (!type.equals(this.type)){ 
+            AnnotationElemDecl_c n = (AnnotationElemDecl_c) copy();
+            n.type = type;
+            return n;
+        }
+        return this;
+    }
+    
+    public TypeNode type(){
+        return type;
+    }
+    
+    public AnnotationElemDecl flags(FlagsNode flags){
+        if (!flags.equals(this.flags)){
+            AnnotationElemDecl_c n = (AnnotationElemDecl_c) copy();
+            n.flags = flags;
+            return n;
+        }
+        return this;
+    }
+    
+    public FlagsNode flags(){
+        return flags;
+    }
+
+    public AnnotationElemDecl defaultVal(Expr def){
+        if (!def.equals(this.defaultVal)){
+            AnnotationElemDecl_c n = (AnnotationElemDecl_c) copy();
+            n.defaultVal = def;
+            return n;
+        }
+        return this;
+    }
+    
+    public Expr defaultVal(){
+        return defaultVal;
+    }
+
+    public AnnotationElemDecl name(Id name){
+        if (!name.equals(this.name)){
+            AnnotationElemDecl_c n = (AnnotationElemDecl_c) copy();
+            n.name = name;
+            return n;
+        }
+        return this;
+    }
+    
+    public Id name(){
+        return name;
+    }
+
+    public AnnotationElemDecl annotationElemInstance(AnnotationElemInstance ai){
+        AnnotationElemDecl_c n = (AnnotationElemDecl_c) copy();
+        n.ai = ai;
+        return n;
+    }
+
+    public AnnotationElemInstance annotationElemInstance(){
+        return ai;
+    }
+    
+    protected AnnotationElemDecl_c reconstruct(TypeNode type, Expr defaultVal) {
+        if (!type.equals(this.type) || this.defaultVal != defaultVal){
+            AnnotationElemDecl_c n = (AnnotationElemDecl_c) copy();
+            n.type = type;
+            n.defaultVal = defaultVal;
+            return n;
+        }
+        return this;
+    }
+
+    public Node visitChildren(NodeVisitor v){
+        TypeNode type = (TypeNode) visitChild( this.type, v);
+        Expr defVal = (Expr)visitChild(this.defaultVal, v);
+        return reconstruct(type, defVal);
+    }
+
+//  CHECK AnnotationElemDecl comment code to be able to compile the generic extension
+//    public NodeVisitor addMembersEnter(AddMemberVisitor am) {
+//        JL5ParsedClassType ct = (JL5ParsedClassType)am.context().currentClassScope();
+//
+//        ct.addAnnotationElem(this.ai);
+//        return am.bypassChildren(this);
+//    }
+
+//  CHECK AnnotationElemDecl comment code to be able to compile the generic extension
+//    public NodeVisitor buildTypesEnter(TypeBuilder tb) throws SemanticException {
+//        // this may not be neccessary - I think this is for scopes for
+//        // symbol checking? - in fields and meths there many anon inner 
+//        // classes and thus a scope is needed - but in annots there 
+//        // cannot be ???
+//        return tb.pushCode();
+//    }
+
+    public Node buildTypes(TypeBuilder tb) throws SemanticException {
+        JL5TypeSystem ts = (JL5TypeSystem)tb.typeSystem();
+
+        AnnotationElemDecl n = this;
+        //CHECK why send Object as container ??
+        AnnotationElemInstance ai = ts.annotationElemInstance(n.position(), (ClassType) ts.Object(), JL5Flags.NONE, ts.unknownType(position()), n.name(), defaultVal == null ? false: true);
+
+        return n.annotationElemInstance(ai);
+    }
+//    CHECK Commented AnnotationElemDecl_c code to be able to compile the generic extension
+//    public NodeVisitor disambiguateEnter(AmbiguityRemover ar) throws SemanticException {
+//        if (ar.kind() == AmbiguityRemover.SUPER){
+//            return ar.bypassChildren(this);
+//        }
+//        else if (ar.kind() == AmbiguityRemover.SIGNATURES){
+//            if (defaultVal != null){
+//                return ar.bypass(defaultVal);
+//            }
+//        }
+//        return ar;
+//    }
+//
+//    public Node disambiguate(AmbiguityRemover ar) throws SemanticException {
+//        if (ar.kind() == AmbiguityRemover.SIGNATURES){
+//            Context c = ar.context();
+//            JL5TypeSystem ts = (JL5TypeSystem)ar.typeSystem();
+//
+//            JL5ParsedClassType ct = (JL5ParsedClassType)c.currentClassScope();
+//
+//            FlagsNode f = flags;
+//
+//            f = f.flags(f.flags().Public().Abstract());
+//
+//            AnnotationElemInstance ai = ts.annotationElemInstance(position(), ct, f, type().type(), name(), defaultVal == null ? false : true);
+//            return flags(f).annotationElemInstance(ai);
+//        }
+//
+//        return this;
+//    }
+    
+    public Node typeCheck(ContextVisitor tc) throws SemanticException {
+    
+        JL5TypeSystem ts = (JL5TypeSystem)tc.typeSystem();
+        Context ctx = tc.context();
+        // check type - must be one of primitive, String, Class, 
+        // enum, annotation or array or one of these
+        if (!ts.isValidAnnotationValueType(type().type())){
+            throw new SemanticException("The type: "+this.type()+" for the annotation element declaration "+this.name()+" must be a primitive, String, Class, enum type, annotation type or an array of one of these.", type().position());
+        }
+        
+        // an annotation element cannot have the same type as the 
+        // type it is declared in - direct
+        // also need to check indirect cycles
+        if (ts.typeEquals(type().type(), tc.context().currentClass(), ctx)) {
+            throw new SemanticException("Cyclic annotation element type: "+type(), type().position());
+        }
+
+        // check default value matches type
+        if (defaultVal != null){
+            if (defaultVal instanceof ArrayInit){
+                ((ArrayInit)defaultVal).typeCheckElements(tc, type.type());
+            }
+            else {
+                if (! ts.isImplicitCastValid(defaultVal.type(), type.type(), ctx) &&
+                    ! ts.typeEquals(defaultVal.type(), type.type(), ctx) &&
+                    ! ts.numericConversionValid(type.type(), defaultVal.constantValue(), ctx) &&
+                    ! ts.isBaseCastValid(defaultVal.type(), type.type(), ctx) &&
+                    ! ts.numericConversionBaseValid(type.type(), defaultVal.constantValue(), ctx)){
+                    throw new SemanticException("The type of the default value: "+defaultVal+" does not match the annotation element type: "+type.type()+" .", defaultVal.position());
+                }
+            }
+        }
+
+        if (flags.flags().isNative()){
+            throw new SemanticException("Modifier native is not allowed here", position());
+        }
+        if (flags.flags().isPrivate()){
+            throw new SemanticException("Modifier private is not allowed here", position());
+        }
+
+        if (defaultVal != null) ts.checkValueConstant(defaultVal);
+        return this;
+    }
+    
+    
+    public List acceptCFG(CFGBuilder v, List<Term> succs){
+        if (defaultVal != null) {
+            v.visitCFG(defaultVal, this, EXIT);
+        }
+        return succs;
+    }
+
+    public Term firstChild() {
+        return defaultVal != null ? defaultVal.firstChild() : this;
+    }
+
+    public void prettyPrint(CodeWriter w, PrettyPrinter tr) {
+        w.begin(0);
+        
+        Flags f = flags().flags();
+        f = f.clearPublic();
+        f = f.clearAbstract();
+        
+        w.write(f.translate());
+        print(type, w, tr);
+        w.write(" "+name+"( )");
+        if (defaultVal != null){
+            w.write(" default ");
+            print(defaultVal, w, tr);
+        }
+        w.write(";");
+        w.end();
+    }
+
+	@Override
+	public MemberDef memberDef() {
+		// CHECK AnnotationElemDecl Auto-generated code to be able to compile the generic extension
+		return null;
+	}
+}

@@ -1,0 +1,8 @@
+raw2.jl5:11: Warning -- Use of a raw type could lead to unchecked operations.
+class C implements mytype {
+                   ^----^
+
+raw2.jl5:12: Warning -- Use of a raw type could lead to unchecked operations.
+   public void m(Comparable input){
+                 ^--------^
+

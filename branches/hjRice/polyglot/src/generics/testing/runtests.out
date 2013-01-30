@@ -1,0 +1,489 @@
+DIRECTORY /Users/todd/lang/polyglot5/testing
+Checking Array.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking Array2.jl5 ...
+1,2c1,8
+< jl5c: TestA should be declared abstract; it does not define testMethod(S[]),
+<     which is declared in Test
+---
+> Array2.jl5:7-9: TestA should be declared abstract; it does not define
+>     testMethod(S[]), which is declared in Test
+> class TestA<S,T> implements Test<S> {
+> ^------------------------------------
+> ...
+> }
+> ^
+> 
+make[1]: *** [Array2.jl5-test] Error 1
+Checking C.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking FBoundSub.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking FBoundSub2.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking FBoundSub3.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking FBoundSub4.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking Generic.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking GenericMethod10.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking GenericMethod11.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking GenericMethod12.jl5 ...
+2c2
+<     "lub(java.lang.String, java.lang.Integer)" does not match that of the
+---
+>     "lub(java.lang.Integer, java.lang.String)" does not match that of the
+make[1]: *** [GenericMethod12.jl5-test] Error 1
+Checking GenericMethod13.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking GenericMethod1a.jl5 ...
+1c1,5
+< jl5c: Cannot find constructor applicable to call B(java.lang.String)
+---
+> GenericMethod1a.jl5:19: Cannot find constructor applicable to call
+>     B(java.lang.String)
+>    	B<Number> b = new <String>B<Number>("");
+>    	              ^-^
+> 
+make[1]: *** [GenericMethod1a.jl5-test] Error 1
+Checking GenericMethod3.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking GenericMethod7a.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking GenericMethod8a.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking GenericMethod8b.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking GenericMethod9a.jl5 ...
+1c1,5
+< jl5c: Cannot find constructor applicable to call GenCons(java.lang.String)
+---
+> GenericMethod9a.jl5:14: Cannot find constructor applicable to call
+>     GenCons(java.lang.String)
+>     GenCons test2 = new <String> GenCons(""); 
+>                     ^-^
+> 
+make[1]: *** [GenericMethod9a.jl5-test] Error 1
+Checking GenericMethod9b.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking JLS8.1.2.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking Lists1.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking Lists2.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking Lists3.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking Lists4.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking Lists5.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking Lists6.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking Lists7.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking Lists8.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking Lists9.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking Nongeneric.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking Simple.jl5 ...
+4c4
+<     ^--------------------------------^
+---
+>                   ^-^
+make[1]: *** [Simple.jl5-test] Error 1
+Checking SimpleFBoundSub.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking StringTest.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking VerySimple.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking Wildcard1.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking error1.jl5 ...
+1,2c1,8
+< jl5c: test_c should be declared abstract; it does not define m(S), which is
+<     declared in test1
+---
+> error1.jl5:9-13: test_c should be declared abstract; it does not define m(S),
+>     which is declared in test1
+> class test_c<S> implements test1<S> {
+> ^------------------------------------
+> ...
+> }
+> ^
+> 
+make[1]: *** [error1.jl5-test] Error 1
+Checking error3.jl5 ...
+5c5
+< jl5c: parent2 should be declared abstract; it does not define
+---
+> error3.jl5:9-13: parent2 should be declared abstract; it does not define
+6a7,12
+> class parent2<S> implements mytype {
+> ^-----------------------------------
+> ...
+> }
+> ^
+> 
+make[1]: *** [error3.jl5-test] Error 1
+Checking error3b.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking error3c.jl5 ...
+1,2c1,8
+< jl5c: parent2 should be declared abstract; it does not define m(U), which is
+<     declared in mytype
+---
+> error3c.jl5:9-13: parent2 should be declared abstract; it does not define
+>     m(U), which is declared in mytype
+> class parent2<S,U> implements mytype<U> {
+> ^----------------------------------------
+> ...
+> }
+> ^
+> 
+make[1]: *** [error3c.jl5-test] Error 1
+Checking error3d.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking error3e.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking error3f.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking error3g.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking error3h.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking error4.jl5 ...
+4c4
+<                        ^------^
+---
+>                                    ^-^
+make[1]: *** [error4.jl5-test] Error 1
+Checking error5.jl5 ...
+5c5
+<                                ^------^
+---
+>                                           ^-^
+make[1]: *** [error5.jl5-test] Error 1
+Checking error6.jl5 ...
+1c1
+< jl5c: parent should be declared abstract; it does not define
+---
+> error6.jl5:11-14: parent should be declared abstract; it does not define
+2a3,8
+> class parent<S> implements mytype<S,Integer> {
+> ^---------------------------------------------
+> ...
+> }
+> ^
+> 
+make[1]: *** [error6.jl5-test] Error 1
+Checking error7.jl5 ...
+1c1,2
+< error7.jl5:15: Invalid type argument S
+---
+> error7.jl5:15: Type argument S is not a subtype of its declared bound
+>     java.lang.String
+make[1]: *** [error7.jl5-test] Error 1
+Checking forwardref1.jl5 ...
+9c9,10
+< forwardref1.jl5:11: Invalid type argument S
+---
+> forwardref1.jl5:11: Type argument S is not a subtype of its declared bound
+>     D<S, S>
+make[1]: *** [forwardref1.jl5-test] Error 1
+Checking forwardref2.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking forwardref3.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking raw1.jl5 ...
+5,6c5,12
+< jl5c: C should be declared abstract; it does not define m(Comparable), which
+<     is declared in mytype
+---
+> raw1.jl5:11-14: C should be declared abstract; it does not define
+>     m(Comparable), which is declared in mytype
+> class C implements mytype {
+> ^--------------------------
+> ...
+> }
+> ^
+> 
+make[1]: *** [raw1.jl5-test] Error 1
+Checking raw2.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking raw3.jl5 ...
+9,10c9,16
+< jl5c: C should be declared abstract; it does not define m(java.lang.Object),
+<     which is declared in mytype
+---
+> raw3.jl5:11-14: C should be declared abstract; it does not define
+>     m(java.lang.Object), which is declared in mytype
+> class C implements mytype {
+> ^--------------------------
+> ...
+> }
+> ^
+> 
+make[1]: *** [raw3.jl5-test] Error 1
+Checking raw4.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking raw5.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking raw6.jl5 ...
+9,10c9,16
+< jl5c: C should be declared abstract; it does not define m(Drawable), which is
+<     declared in mytype
+---
+> raw6.jl5:12-15: C should be declared abstract; it does not define m(Drawable),
+>     which is declared in mytype
+> class C implements mytype {
+> ^--------------------------
+> ...
+> }
+> ^
+> 
+make[1]: *** [raw6.jl5-test] Error 1
+Checking raw7.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking raw8.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking raw9.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking simpleFBoundError.jl5 ...
+1c1,2
+< simpleFBoundError.jl5:9: Invalid type argument S
+---
+> simpleFBoundError.jl5:9: Type argument S is not a subtype of its declared
+>     bound I<S>
+make[1]: *** [simpleFBoundError.jl5-test] Error 1
+Checking test1.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test11.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test12.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test13.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test14.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test16.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test16b.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test16c.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test17.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test18.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test2.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test3.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test4.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test5.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test6.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test7.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test8.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking test9.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking var_args1.jl5 ...
+6,62d5
+< Exception in thread "main" java.lang.ClassCastException: polyglot.ext.jl5.types.JL5ArrayType_c cannot be cast to polyglot.types.ClassType
+< 	at polyglot.ext.jl5.types.ParameterizedType_c.capture(ParameterizedType_c.java:321)
+< 	at polyglot.ext.jl5.types.ParameterizedType_c.capture(ParameterizedType_c.java:1)
+< 	at polyglot.ext.jl5.types.JL5TypeSystem_c.getSubstitution(JL5TypeSystem_c.java:1190)
+< 	at polyglot.ext.jl5.types.ParameterizedType_c.outer(ParameterizedType_c.java:345)
+< 	at polyglot.ext.jl5.types.reflect.Signature.classTypeSig(Signature.java:360)
+< 	at polyglot.ext.jl5.types.reflect.Signature.fieldTypeSig(Signature.java:303)
+< 	at polyglot.ext.jl5.types.reflect.Signature.typeSig(Signature.java:462)
+< 	at polyglot.ext.jl5.types.reflect.Signature.typeSigList(Signature.java:447)
+< 	at polyglot.ext.jl5.types.reflect.Signature.methodTypeSig(Signature.java:489)
+< 	at polyglot.ext.jl5.types.reflect.Signature.parseMethodSignature(Signature.java:611)
+< 	at polyglot.ext.jl5.types.reflect.JL5Method.methodInstance(JL5Method.java:85)
+< 	at polyglot.types.reflect.ClassFile.initMethods(ClassFile.java:292)
+< 	at polyglot.ext.jl.types.ParsedClassType_c.methods(ParsedClassType_c.java:199)
+< 	at polyglot.ext.jl5.types.JL5TypeSystem_c.findMethodsNamed(JL5TypeSystem_c.java:1094)
+< 	at polyglot.ext.jl5.types.JL5TypeSystem_c.findJL5Method(JL5TypeSystem_c.java:905)
+< 	at polyglot.ext.jl5.types.JL5TypeSystem_c.findJL5Method(JL5TypeSystem_c.java:895)
+< 	at polyglot.ext.jl5.ast.JL5Call_c.typeCheck(JL5Call_c.java:92)
+< 	at polyglot.visit.TypeChecker.leaveCall(TypeChecker.java:21)
+< 	at polyglot.visit.ErrorHandlingVisitor.leave(ErrorHandlingVisitor.java:251)
+< 	at polyglot.visit.ContextVisitor.leave(ContextVisitor.java:121)
+< 	at polyglot.visit.NodeVisitor.visitEdge(NodeVisitor.java:223)
+< 	at polyglot.ext.jl.ast.Node_c.visitChild(Node_c.java:140)
+< 	at polyglot.ext.jl.ast.Node_c.visitList(Node_c.java:197)
+< 	at polyglot.ext.jl5.ast.JL5Call_c.visitChildren(JL5Call_c.java:57)
+< 	at polyglot.visit.NodeVisitor.visitEdge(NodeVisitor.java:216)
+< 	at polyglot.ext.jl.ast.Node_c.visitChild(Node_c.java:140)
+< 	at polyglot.ext.jl.ast.Eval_c.visitChildren(Eval_c.java:57)
+< 	at polyglot.visit.NodeVisitor.visitEdge(NodeVisitor.java:216)
+< 	at polyglot.ext.jl.ast.Node_c.visitChild(Node_c.java:140)
+< 	at polyglot.ext.jl.ast.Node_c.visitList(Node_c.java:197)
+< 	at polyglot.ext.jl.ast.AbstractBlock_c.visitChildren(AbstractBlock_c.java:63)
+< 	at polyglot.visit.NodeVisitor.visitEdge(NodeVisitor.java:216)
+< 	at polyglot.ext.jl.ast.Node_c.visitChild(Node_c.java:140)
+< 	at polyglot.ext.jl5.ast.JL5MethodDecl_c.visitChildren(JL5MethodDecl_c.java:249)
+< 	at polyglot.visit.NodeVisitor.visitEdge(NodeVisitor.java:216)
+< 	at polyglot.ext.jl.ast.Node_c.visitChild(Node_c.java:140)
+< 	at polyglot.ext.jl.ast.Node_c.visitList(Node_c.java:197)
+< 	at polyglot.ext.jl.ast.ClassBody_c.visitChildren(ClassBody_c.java:61)
+< 	at polyglot.visit.NodeVisitor.visitEdge(NodeVisitor.java:216)
+< 	at polyglot.ext.jl.ast.Node_c.visitChild(Node_c.java:140)
+< 	at polyglot.ext.jl5.ast.JL5ClassDecl_c.visitChildren(JL5ClassDecl_c.java:131)
+< 	at polyglot.visit.NodeVisitor.visitEdge(NodeVisitor.java:216)
+< 	at polyglot.ext.jl.ast.Node_c.visitChild(Node_c.java:140)
+< 	at polyglot.ext.jl.ast.Node_c.visitList(Node_c.java:197)
+< 	at polyglot.ext.jl.ast.SourceFile_c.visitChildren(SourceFile_c.java:108)
+< 	at polyglot.visit.NodeVisitor.visitEdge(NodeVisitor.java:216)
+< 	at polyglot.ext.jl.ast.Node_c.visit(Node_c.java:144)
+< 	at polyglot.frontend.VisitorPass.run(VisitorPass.java:48)
+< 	at polyglot.frontend.AbstractExtensionInfo.runPass(AbstractExtensionInfo.java:308)
+< 	at polyglot.frontend.AbstractExtensionInfo.runToPass(AbstractExtensionInfo.java:228)
+< 	at polyglot.frontend.AbstractExtensionInfo.runAllPasses(AbstractExtensionInfo.java:195)
+< 	at polyglot.frontend.AbstractExtensionInfo.runToCompletion(AbstractExtensionInfo.java:110)
+< 	at polyglot.frontend.Compiler.compile(Compiler.java:95)
+< 	at polyglot.main.Main.start(Main.java:102)
+< 	at polyglot.main.Main.start(Main.java:67)
+< 	at polyglot.main.Main.main(Main.java:235)
+make[1]: *** [var_args1.jl5-test] Error 1
+Checking wildcard10.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard11.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard12.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard13.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard14.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard15.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard16.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard17.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard18.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard19.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard2.jl5 ...
+13,14c13,14
+< wildcard2.jl5:24: The type of the variable initializer "java.lang.Class<?>"
+<     does not match that of the declaration
+---
+> wildcard2.jl5:24: The type of the variable initializer "java.lang.Class<?
+>     extends java.lang.Object>" does not match that of the declaration
+19,21c19,21
+< wildcard2.jl5:26: The type of the variable initializer "java.lang.Class<?>"
+<     does not match that of the declaration "java.lang.Class<? extends
+<     java.lang.String>".
+---
+> wildcard2.jl5:26: The type of the variable initializer "java.lang.Class<?
+>     extends java.lang.Object>" does not match that of the declaration
+>     "java.lang.Class<? extends java.lang.String>".
+make[1]: *** [wildcard2.jl5-test] Error 1
+Checking wildcard3.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard4.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard5.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard6.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard7.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard8.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!
+Checking wildcard9.jl5 ...
+TYPECHECKING COMPARED AS EXPECTED!
+CODEGEN COMPARED AS EXPECTED!

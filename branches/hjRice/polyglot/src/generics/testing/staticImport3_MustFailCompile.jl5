@@ -1,0 +1,11 @@
+import static packa.staticImportDef0.PI;
+import static packa.staticImportDef1.PI;
+
+/**
+ * Two explicit imports collide.
+ */
+public class staticImport3_MustFailCompile {
+    public static void main(String [] args) {
+        System.out.println(PI);
+    }
+}

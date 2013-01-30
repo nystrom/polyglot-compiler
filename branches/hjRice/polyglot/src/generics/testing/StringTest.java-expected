@@ -1,0 +1,7 @@
+class C {
+    void m() {
+        java.lang.String s = "hi";
+        s += "there"; }
+    
+    public C() { super(); }
+}

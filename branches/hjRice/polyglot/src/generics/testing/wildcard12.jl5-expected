@@ -1,0 +1,23 @@
+wildcard12.jl5:27: No valid method call found for
+    compareTo(java.lang.Comparable<?>) in Box<?>.
+    compared = unknownBox.compareTo(comparableToUnknown); // error
+               ^---------------------------------------^
+
+wildcard12.jl5:29: No valid method call found for
+    compareTo(java.lang.Comparable<? super java.lang.Number>) in Box<?>.
+    compared = unknownBox.compareTo(comparableToNumber); // error
+               ^--------------------------------------^
+
+wildcard12.jl5:32: The type of the variable initializer "Box<? super capture
+    of ?_25>" does not match that of the declaration "Box<? extends
+    java.lang.Number>".
+    Box<? extends Number> box2 = unknownBox.copy(); // error
+                                 ^---------------^
+
+wildcard12.jl5:33: The type of the variable initializer "Box<? super capture
+    of ?_25>" does not match that of the declaration "Box<? super
+    java.lang.Number>".
+    Box<? super Number>   box3 = unknownBox.copy();  // error
+                                 ^---------------^
+
+4 errors.

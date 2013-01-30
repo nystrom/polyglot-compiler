@@ -1,0 +1,14 @@
+forwardref1.jl5:1: Illegal forward reference.
+class A<T extends S, S> {} //error
+        ^---------^
+
+forwardref1.jl5:9: Invalid bounds in intersection type.
+class E<T extends T> {} //error
+        ^---------^
+
+forwardref1.jl5:11: Type argument S is not a subtype of its declared bound
+    D<S, S>
+class F<T extends D<S,S>, S> {} //error S is D<S,S> is not bounded by T
+                  ^---^
+
+3 errors.

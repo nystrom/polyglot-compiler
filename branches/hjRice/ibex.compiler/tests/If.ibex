@@ -1,0 +1,21 @@
+import java.util.List;
+import ibex.runtime.StringScanner;
+
+public class If {
+    public static void main(String[] args) throws Exception {
+        String s = new If().Var(new StringScanner("xyzzy012.345"));
+        System.out.println(s);
+    }
+
+    String Var ::= Id;
+    String Id ::= [ final char[] c = Letter ( Letter / Digit )* ]
+        { return new String(c); };
+        /*
+        { StringBuffer sb = new StringBuffer();
+          for (int i = 0; i < c.size(); i++) sb.append(c.get(i));
+          return sb.toString(); };
+          */
+    char Letter ::= 'a'..'z';
+    char Digit ::= '0'..'9';
+    char WS ::= ' ' / '\t' / '\n';
+}

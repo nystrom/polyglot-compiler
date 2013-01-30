@@ -1,0 +1,9 @@
+interface mytype<T1 extends java.lang.String>  {
+    public abstract void m1(T1 input);
+}
+
+class parent<S extends java.lang.String>  implements mytype<S> {
+    public void m1(S input) {  }
+    
+    public parent() { super(); }
+}

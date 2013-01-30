@@ -1,0 +1,9 @@
+interface TestI<E>  {
+    public abstract <T> T[] toArray(T[] a);
+}
+
+public class genmethod2<E>  implements TestI<E> {
+    public <T> T[] toArray(T[] a) { return a; }
+    
+    public genmethod2() { super(); }
+}

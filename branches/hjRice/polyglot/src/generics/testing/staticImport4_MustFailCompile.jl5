@@ -1,0 +1,10 @@
+import static packa.staticImportDef0.PIP;
+
+/**
+ * explicit static import is not visible
+ */
+public class staticImport4_MustFailCompile {
+    public static void main(String [] args) {
+        System.out.println(PIP);
+    }
+}

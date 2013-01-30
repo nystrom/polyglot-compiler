@@ -1,0 +1,7 @@
+error5.jl5:20: The type of the variable initializer "parent<java.lang.String>"
+    does not match that of the declaration "mytype<java.lang.String,
+    java.lang.Integer>".
+        mytype<String,Integer> myclass1 = new parent<String>();
+                                          ^-^
+
+1 error.

@@ -1,0 +1,17 @@
+raw3.jl5:11: Warning -- Use of a raw type could lead to unchecked operations.
+class C implements mytype {
+                   ^----^
+
+raw3.jl5:12: Warning -- Use of a raw type could lead to unchecked operations.
+   public void m(Comparable input){
+                 ^--------^
+
+raw3.jl5:11-14: C should be declared abstract; it does not define
+    m(java.lang.Object), which is declared in mytype
+class C implements mytype {
+^--------------------------
+...
+}
+^
+
+1 error.

@@ -1,0 +1,14 @@
+genmethod1.jl5:6: Warning -- Use of a raw type could lead to unchecked
+    operations.
+    	Set s = emptySet();
+    	^-^
+
+genmethod1.jl5:6: Method emptySetnot found.
+    	Set s = emptySet();
+    	        ^--------^
+
+genmethod1.jl5:14: No valid method call found for m(java.lang.String) in C.B.
+            m("t");
+            ^----^
+
+2 errors.

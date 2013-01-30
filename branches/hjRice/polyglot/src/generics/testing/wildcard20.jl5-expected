@@ -1,0 +1,6 @@
+wildcard20.jl5:5: No valid method call found for m(java.util.List<?>) in
+    wildcard20.
+    public void m2(List<?> lst) { m(lst); }
+                                  ^----^
+
+1 error.

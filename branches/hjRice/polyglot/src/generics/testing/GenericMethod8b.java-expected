@@ -1,0 +1,7 @@
+import java.util.*;
+
+class test {
+    public <V> V firstElement(java.util.List<V> a) { return a.get(1); }
+    
+    public test() { super(); }
+}

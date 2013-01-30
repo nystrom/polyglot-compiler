@@ -1,0 +1,21 @@
+class mytype<T>  {
+    public void m(T input) {  }
+    
+    public mytype() { super(); }
+}
+
+class parent2<S, U>  extends mytype<U> {
+    public void m(U input) {  }
+    
+    public parent2() { super(); }
+}
+
+class d {
+    public d() { super(); }
+}
+
+class error3 {
+    public static void main(java.lang.String[] args) { mytype<d> myclass = new parent2(); }
+    
+    public error3() { super(); }
+}

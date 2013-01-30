@@ -1,0 +1,9 @@
+error3c.jl5:9-13: parent2 should be declared abstract; it does not define
+    m(U), which is declared in mytype
+class parent2<S,U> implements mytype<U> {
+^----------------------------------------
+...
+}
+^
+
+1 error.

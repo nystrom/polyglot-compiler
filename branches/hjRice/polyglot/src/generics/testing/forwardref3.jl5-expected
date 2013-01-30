@@ -1,0 +1,13 @@
+forwardref3.jl5:3: Illegal forward reference.
+<T extends S, S> A(int i) {} //error
+ ^---------^
+
+forwardref3.jl5:11: Invalid bounds in intersection type.
+<T extends T> A(Object o) {} //error
+ ^---------^
+
+forwardref3.jl5:15: Illegal forward reference.
+<T extends X, X> A() {} //error
+ ^---------^
+
+3 errors.

@@ -1,0 +1,8 @@
+Lists3.jl5:5: Warning -- Use of a raw type could lead to unchecked operations.
+	List l = new LinkedList();
+	^--^
+
+Lists3.jl5:5: Warning -- Use of a raw type could lead to unchecked operations.
+	List l = new LinkedList();
+	             ^--------^
+

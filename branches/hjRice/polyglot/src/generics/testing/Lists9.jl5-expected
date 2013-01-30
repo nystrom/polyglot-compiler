@@ -1,0 +1,10 @@
+Lists9.jl5:3: Warning -- Use of a raw type could lead to unchecked operations.
+class MyList extends LinkedList {}
+                     ^--------^
+
+Lists9.jl5:8: No valid method call found for add(java.lang.Object) in
+    java.util.List<java.lang.String>.
+	l.add(new Object());
+	^-----------------^
+
+1 error.

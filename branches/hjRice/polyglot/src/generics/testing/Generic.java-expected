@@ -1,0 +1,9 @@
+interface I<T>  {
+    public abstract void m(T o);
+}
+
+class C<S>  implements I<S> {
+    public void m(S o) {  }
+    
+    public C() { super(); }
+}

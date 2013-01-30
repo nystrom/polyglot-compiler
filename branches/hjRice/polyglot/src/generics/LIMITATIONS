@@ -1,0 +1,47 @@
+Java 5 extension for Polyglot compiler framework
+------------------------------------------------
+11/20/2006
+Some history
+------------
+We started out developing the extension by using the code by Jennifer Lhotak
+from McGill university. We have heavily modified a lot of code, some things are 
+rewritten from scratch, but the hierarchy of the classes and main design of the
+extension are due to J. Lhotak. Our main goal was to make the extension usable,
+so we might have sacrificed the readability and design of the code to pure
+functionality. A lot of old code that we don't use anymore is still in the
+source tree (e.g. code that does some explicit boxing/unboxing), but we are in 
+the process of removing it.
+
+We realize that our code might not adhere to the best Polyglot extension
+practices. We are open to any suggestion, patches and refactorings that could
+make this extension useful for use with other extensions. 
+
+Please send all remarks to Milan Stanojevic(milanst@cs.ucla.edu)
+or Todd Millstein (todd@cs.ucla.edu).
+
+KNOW BUGS AND LIMITATIONS
+=========================
+
+- Type checking of method overriding. The version of 03/11/2007 has most of the checks in place,
+but we haven't tested it much.
+
+- Type inference in generic method calls based on return type of method.
+
+- Most specific method search: If more than one method is applicable
+for a call, the most specific method should be chosen. Right now, the
+search is delegated to Polyglot (implementing Java 1.4 search) which
+is not the right semantics in all cases.
+
+- Methods imported by import static are not included in method search. 
+
+- There are some bugs related to accessibility check. 
+
+- Object.getClass() return type should be evaluated based on the
+static type of target object.
+
+- Enums and annotations: We have not modified or worked on the code
+that deals with enums and annotations. We have not tested anything, so
+we have no assessment on the quality of the current implementation. We
+might address this issues in the future, but currently they are very
+low on our priority list.
+

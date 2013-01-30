@@ -1,0 +1,10 @@
+wildcard19.jl5:6: Error in intersection type. Types java.lang.Number and
+    java.lang.String are not in subtype relation.
+	A<? extends Long, ? extends String> e = null; //error
+	^--------------------------------^
+
+wildcard19.jl5:9: Cannot assign capture of ?_9 to capture of ?_6.
+		a.t = a.s; //error;
+		^-------^
+
+2 errors.
