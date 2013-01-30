@@ -65,7 +65,13 @@ public class AscriptionVisitor extends ContextVisitor
         Type t = null;
 
         if (parent != null && n instanceof Expr) {
+            Type save = this.type;
+            if (parent instanceof Binary) {
+                // propagate the parent type down to children
+                this.type = ((Expr)parent).type();
+            }
             t = parent.childExpectedType((Expr) n, this);
+            this.type = save;
         }
 
         AscriptionVisitor v = (AscriptionVisitor) copy();
