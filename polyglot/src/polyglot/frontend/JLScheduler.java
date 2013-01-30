@@ -259,8 +259,7 @@ public class JLScheduler extends Scheduler {
 			Named n = ts.systemResolver().find(QName.make(className));
         		if (n instanceof ClassType) {
         			ClassType ct = (ClassType) n;
-        			ClassDef def = ct.def();
-        			defResolved(def);
+        			ClassDef def = defResolved(ct.def());
         			ref.update(def);
         			return true;
         		}
