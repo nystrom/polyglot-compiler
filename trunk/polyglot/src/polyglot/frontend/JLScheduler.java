@@ -271,12 +271,13 @@ public class JLScheduler extends Scheduler {
         	return false;
         }
         /** Extra work to do when def has been resolved */
-        protected void defResolved(ClassDef def) {
+        protected ClassDef defResolved(ClassDef def) {
 			if (flags != null) {
 				// The flags should be overwritten only for a member class.
 				assert def.isMember();
 				def.setFlags(flags);
 			}
+			return def;
         }
     }
 }
