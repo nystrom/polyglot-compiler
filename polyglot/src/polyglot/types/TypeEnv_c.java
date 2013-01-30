@@ -4,6 +4,12 @@ import java.util.*;
 
 import polyglot.frontend.Globals;
 import polyglot.main.Report;
+import polyglot.types.ClassDef;
+import polyglot.types.ClassType;
+import polyglot.types.Flags;
+import polyglot.types.MemberDef;
+import polyglot.types.MemberInstance;
+import polyglot.types.Type;
 import polyglot.types.TypeSystem_c.ConstructorMatcher;
 
 /**
@@ -380,6 +386,72 @@ public class TypeEnv_c implements TypeEnv {
 
 	return accessibleFromPackage(flags, targetClass.package_(), contextClassType.package_());
     }
+
+    /**
+     * Checks whether the member mi can be accessed from Context "context".
+     */
+    public boolean isAccessibleTarget(MemberInstance<? extends MemberDef> mi, Type target) {
+    ClassDef contextClass = context.currentClassDef();
+    //Type concreteTarget = mi.container();
+    Flags flags = mi.flags();
+
+    if (!target.isClass()) {
+        // public members of non-classes are accessible;
+        // non-public members of non-classes are inaccessible
+        return flags.isPublic();
+    }
+
+    if (contextClass == null) {
+        return flags.isPublic();
+    }
+
+    ClassType contextClassType = contextClass.asType();
+
+    ClassType targetClass = target.toClass();
+
+    if (!classAccessible(targetClass.def())) {
+        return false;
+    }
+
+    if (ts.equals(targetClass.def(), contextClass))
+        return true;
+
+    // If the current class and the target class are both in the
+    // same class body, then protection doesn't matter, i.e.
+    // protected and private members may be accessed. Do this by
+    // working up through contextClass's containers.
+    if (ts.isEnclosed(contextClass, targetClass.def()) || ts.isEnclosed(targetClass.def(), contextClass))
+        return true;
+
+    ClassDef cd = contextClass;
+    while (!cd.isTopLevel()) {
+        cd = cd.outer().get();
+        if (ts.isEnclosed(targetClass.def(), cd))
+        return true;
+    }
+
+    // protected
+    if (flags.isProtected()) {
+        // If the current class is in a
+        // class body that extends/implements the target class, then
+        // protected members can be accessed. Do this by
+        // working up through contextClass's containers.
+        if (ts.descendsFrom(ts.classDefOf(contextClassType), ts.classDefOf(targetClass))) {
+        return true;
+        }
+
+        ClassType ct = contextClassType;
+        while (!ct.isTopLevel()) {
+        ct = ct.outer();
+        if (ts.descendsFrom(ts.classDefOf(ct), ts.classDefOf(targetClass))) {
+            return true;
+        }
+        }
+    }
+
+    return accessibleFromPackage(flags, targetClass.package_(), contextClassType.package_());
+    }
+
 
     /** True if the class targetClass accessible from the context. */
     public boolean classAccessible(ClassDef targetClass) {

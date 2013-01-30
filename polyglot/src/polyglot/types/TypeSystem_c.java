@@ -455,6 +455,14 @@ public class TypeSystem_c implements TypeSystem
 	assert_(mi);
 	return env(context).isAccessible(mi);
     }
+    
+    /**
+     * Checks whether a class member can be accessed from <code>context</code> through target.
+     */
+    public boolean isAccessibleTarget(MemberInstance<? extends MemberDef> mi, Type target, Context context) {
+        assert_(mi);
+        return env(context).isAccessibleTarget(mi, target);
+    }
 
     /** True if the class targetClass accessible from the context. */
     public boolean classAccessible(ClassDef targetClass, Context context) {

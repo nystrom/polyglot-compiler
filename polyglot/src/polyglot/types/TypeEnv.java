@@ -68,6 +68,8 @@ public interface TypeEnv extends Copy {
      */
     public boolean isAccessible(MemberInstance<? extends MemberDef> mi);
 
+    public boolean isAccessibleTarget(MemberInstance<? extends MemberDef> mi, Type target);
+
     /** True if the class targetClass accessible from the context. */
     public boolean classAccessible(ClassDef targetClass);
 
