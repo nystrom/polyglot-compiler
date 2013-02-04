@@ -374,7 +374,7 @@ public class ClassFileLazyClassInitializer {
         if (innerClasses != null) {
             for (int i = 0; i < innerClasses.getClasses().length; i++) {
                 Info c = innerClasses.getClasses()[i];
-
+                // If current class is the outer class of the inner class
                 if (c.outerClassIndex == clazz.getThisClass() && c.classIndex != 0) {
                     String name = clazz.classNameCP(c.classIndex);
 
@@ -392,6 +392,13 @@ public class ClassFileLazyClassInitializer {
                         Report.report(3, "adding member " + t + " to " + ct);
 
                     ct.addMemberClass((Ref<? extends ClassType>) t);
+                }
+                
+                if (c.classIndex == clazz.getThisClass()) {
+                    // this is an attribute describing the current class (which is an inner-class)
+                    // and we can read flags from the attribute to complete the ClassDef
+                    // Related to bug report HABJ-315
+                    ct.flags(ts.flagsForBits(c.modifiers));
                 }
             }
         }
