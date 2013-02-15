@@ -99,6 +99,7 @@ public class JL5Call_c extends Call_c implements JL5Call {
         JL5MethodInstance mi = null;
         // We push the method container in the context
         //TODO this doesn't work for type variable yet
+		// Fix related to HABJ-356, a bit tricky for now to handle generics...        
         if ((targetType instanceof ClassType) && 
                 !(targetType instanceof TypeVariable)) {
             Context ctx = tc.context();
