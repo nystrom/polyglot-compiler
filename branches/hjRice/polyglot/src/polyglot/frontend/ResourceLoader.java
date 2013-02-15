@@ -160,10 +160,6 @@ public class ResourceLoader
                         int index = n.indexOf('/');
                         while (index >= 0) {
                             String res = n.substring(0, index);
-                            if (res.equals("java/util")) {
-                                System.out.println(zip.toString());
-                                System.out.println(dir.getName());
-                            }
                             dirCache.add(res);
                             index = n.indexOf('/', index+1);
                         }
