@@ -490,13 +490,12 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 
 		List<Type> miErasureExcTypes = new ArrayList<Type>(mi.throwTypes()
 				.size());
-		for (Iterator<Type> it = mi.formalTypes().iterator(); it.hasNext();) {
+		for (Iterator<Type> it = mi.throwTypes().iterator(); it.hasNext();) {
 			// CHECK this for loop wasn't here before, assume that was a bug
 			// (was just creating an empty list of size throwTypes().size())
 			miErasureExcTypes.add(erasure(it.next()));
 		}
 		Type erasureRet = erasure(mi.returnType());
-
 		mi = mi.formalTypes(miErasureFormals);
 		mi = mi.throwTypes(miErasureExcTypes);
 		mi = mi.returnType(erasureRet);
@@ -1776,10 +1775,10 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	public Type applySubstitution(Type toBeSubed, List<TypeVariable> orig,
 			List<Type> sub) {
 
-		// We lazily substitute class hierarchies, so when we ask to substitute
-		// a class type, it means we are in the context of a parameterized
-		// type trying to get substitution applied to let say an interface it implements
-		// or its super class. Thus at this point we convert the class type to a parameterized type.
+        // We lazily substitute class hierarchies, so when we ask to substitute
+        // a class type, it means we are in the context of a parameterized
+        // type trying to get substitution applied to let say an interface it implements
+        // or its super class. Thus at this point we convert the class type to a parameterized type.
 		if ((toBeSubed instanceof JL5ParsedClassType) &&
 			 ((JL5ParsedClassType) toBeSubed).isGeneric() &&
 			 (!(toBeSubed instanceof ParameterizedType))) {
@@ -1917,7 +1916,20 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 	        return erasure(tv.upperBound());
 	    } else if (t instanceof IntersectionType) {
 	        IntersectionType it = (IntersectionType) t;
-	        return erasure(it.boundsTypes().get(0));
+	        List<Type> bounds = it.boundsTypes();
+	        int size = bounds.size();
+	        Type candidate;
+	        if (size == 1) {
+	            candidate = bounds.get(0);  
+	        } else if (size == 2) {
+	            Type type1 = bounds.get(0);
+	            Type type2 = bounds.get(1);
+	            candidate = (type1.isSubtype(type2, null)) ? type1 : type2;
+	        } else {
+	            System.out.println("Warning : Intersection type has more than two components" );
+	            candidate = bounds.get(0);
+	        }
+	        return erasure(candidate);
 	    } else if (t instanceof ArrayType) {
 	        ArrayType at = (ArrayType) t;
 	        return arrayOf(null, erasure(at.base()));
@@ -1944,7 +1956,7 @@ public class JL5TypeSystem_c extends TypeSystem_c implements JL5TypeSystem {
 			ParameterizedType ancestor) {
 		Context ctx = emptyContext();
 		if (!typeEquals(child.baseType(), ancestor.baseType(), ctx))
-			return false;
+          return false;
 		Iterator<Type> itChild = child.typeArguments().iterator();
 		Iterator<Type> itAnc = ancestor.typeArguments().iterator();
 		while (itChild.hasNext()) {
